@@ -2,6 +2,7 @@
   "name": "movement",
   "version": "0.0.1",
   "peerDependencies": {
+    "@angular/animations": "^21.2.0",
     "@angular/common": "^21.2.0",
     "@angular/core": "^21.2.0"
   },

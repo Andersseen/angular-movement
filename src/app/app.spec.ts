@@ -18,6 +18,8 @@ describe('App', () => {
     const fixture = TestBed.createComponent(App);
     await fixture.whenStable();
     const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, angular-movement');
+    expect(compiled.querySelector('h1')?.textContent).toContain(
+      'Playground rapido para entender la API',
+    );
   });
 });

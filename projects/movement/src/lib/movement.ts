@@ -1,9 +1,17 @@
-import { Component } from '@angular/core';
+import { MoveAnimateDirective } from './directives/move-animate.directive';
+import { MoveEnterDirective } from './directives/move-enter.directive';
+import { MoveLeaveDirective } from './directives/move-leave.directive';
 
-@Component({
-  selector: 'move-movement',
-  imports: [],
-  template: ` <p>movement works!</p> `,
-  styles: ``,
-})
-export class Movement {}
+export const MOVEMENT_DIRECTIVES = [
+  MoveEnterDirective,
+  MoveLeaveDirective,
+  MoveAnimateDirective,
+] as const;
+
+export * from './directives/move-animate.directive';
+export * from './directives/move-enter.directive';
+export * from './directives/move-leave.directive';
+export * from './presets/presets';
+export * from './presets/presets.types';
+export * from './providers/provide-movement';
+export * from './tokens/movement.tokens';

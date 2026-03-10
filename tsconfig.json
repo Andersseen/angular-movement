@@ -8,7 +8,7 @@
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
     "paths": {
-      "movement": ["./dist/movement"]
+      "movement": ["./projects/movement/src/public-api.ts", "./dist/movement"]
     },
     "noFallthroughCasesInSwitch": true,
     "skipLibCheck": true,
