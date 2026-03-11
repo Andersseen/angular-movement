@@ -1,3 +1,80 @@
-/* You can add global styles to this file, and also import other style files */
-
+@import url('https://fonts.bunny.net/css?family=geist:400,700,800|geist-mono:400');
 @import 'tailwindcss';
+
+@theme {
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+  --color-accent-glow: var(--color-accent-glow);
+  --color-bg: var(--color-bg);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-border: var(--color-border);
+  --color-text: var(--color-text);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-subtle: var(--color-text-subtle);
+  
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+}
+
+:root {
+  /* Brand */
+  --color-accent: oklch(0.62 0.24 268);          /* electric indigo */
+  --color-accent-light: oklch(0.72 0.18 268);
+  --color-accent-glow: oklch(0.62 0.24 268 / 0.15);
+
+  /* Surface */
+  --color-bg: oklch(0.07 0.01 268);              /* near-black with blue tint */
+  --color-surface: oklch(0.11 0.015 268);
+  --color-surface-raised: oklch(0.14 0.015 268);
+  --color-border: oklch(0.22 0.02 268);
+
+  /* Text */
+  --color-text: oklch(0.96 0.005 268);
+  --color-text-muted: oklch(0.65 0.01 268);
+  --color-text-subtle: oklch(0.45 0.01 268);
+
+  /* Code */
+  --color-code-bg: oklch(0.09 0.015 268);
+  --color-code-string: oklch(0.75 0.18 155);     /* green */
+  --color-code-keyword: oklch(0.72 0.18 268);    /* indigo */
+  --color-code-attr: oklch(0.78 0.15 55);        /* amber */
+  --color-code-comment: oklch(0.5 0.01 268);
+
+  /* Typography */
+  --font-display: 'Geist', 'Inter', system-ui;   /* headings */
+  --font-mono: 'Geist Mono', 'Fira Code', monospace; /* code */
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-display);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  line-height: 1.7;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-top: 0;
+}
+
+h1 {
+  letter-spacing: -0.04em;
+  font-weight: 800;
+}
+
+pre, code {
+  font-family: var(--font-mono);
+}
+
+.code-keyword { color: var(--color-code-keyword); }
+.code-string { color: var(--color-code-string); }
+.code-attr { color: var(--color-code-attr); }
+.code-comment { color: var(--color-code-comment); }

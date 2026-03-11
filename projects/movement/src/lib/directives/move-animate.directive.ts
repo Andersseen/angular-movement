@@ -1,0 +1,108 @@
+import { DOCUMENT } from '@angular/common';
+import {
+  Directive,
+  ElementRef,
+  inject,
+  input,
+  OnDestroy,
+  OnInit,
+} from '@angular/core';
+import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+import {
+  createLeaveClone,
+  prefersReducedMotion,
+  resolveMovementConfig,
+  resolveMoveFrames,
+} from './move-animation.utils';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
+import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
+
+@Directive({
+  selector: '[move],[moveAnimate]',
+})
+export class MoveAnimateDirective implements OnDestroy, OnInit {
+  readonly move = input<MovePreset | MoveKeyframes | undefined>(undefined);
+  readonly moveAnimate = input<MovePreset | MoveKeyframes | undefined>(undefined);
+  readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
+  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveEasing = input<string | undefined>(undefined);
+  readonly moveDelay = input<number | undefined>(undefined);
+  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveSpring = input<MoveSpring | undefined>(undefined);
+
+  private readonly defaults = inject(MOVEMENT_CONFIG);
+  private readonly documentRef = inject(DOCUMENT);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly engine = inject(AnimationEngine);
+  private readonly stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+
+  private config = this.defaults;
+  private enterPlayer: AnimationControls | null = null;
+  private leavePlayer: AnimationControls | null = null;
+
+  ngOnInit(): void {
+    this.stagger?.register(this.host.nativeElement);
+
+    Promise.resolve().then(() => {
+      const staggerDelay = this.stagger?.getDelay(this.host.nativeElement) ?? 0;
+
+      this.config = resolveMovementConfig(
+        this.defaults,
+        {
+          duration: this.moveDuration(),
+          easing: this.moveEasing(),
+          delay: (this.moveDelay() ?? 0) + staggerDelay,
+          disabled: this.moveDisabled(),
+        },
+        prefersReducedMotion(this.documentRef),
+      );
+
+      const enterInput = this.resolveEnterInput();
+      this.enterPlayer = this.engine.play(
+        this.host.nativeElement,
+        resolveMoveFrames(enterInput, 'enter'),
+        {
+          config: this.config,
+          spring: this.moveSpring(),
+          disabled: this.config.disabled
+        }
+      );
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.stagger?.unregister(this.host.nativeElement);
+    this.enterPlayer?.cancel();
+    this.leavePlayer?.cancel();
+
+    if (this.config.disabled) {
+      return;
+    }
+
+    const cloned = createLeaveClone(this.documentRef, this.host.nativeElement);
+    if (!cloned) {
+      return;
+    }
+
+    this.leavePlayer = this.engine.play(
+      cloned,
+      resolveMoveFrames(this.resolveLeaveInput(), 'leave'),
+      {
+        config: this.config,
+        spring: this.moveSpring(),
+        disabled: false,
+        onDone: () => cloned.remove()
+      }
+    );
+  }
+
+  private resolveEnterInput(): MovePreset | MoveKeyframes {
+    return this.moveAnimate() ?? this.move() ?? 'none';
+  }
+
+  private resolveLeaveInput(): MovePreset | MoveKeyframes {
+    return this.moveAnimateLeave() ?? this.resolveEnterInput();
+  }
+}

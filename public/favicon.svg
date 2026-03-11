@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- 
+    Color: oklch(0.62 0.24 268) / Electric Indigo / Approx #6533FF
+    Shape: Chevron / Abstract overlapping motion lines
+  -->
+  <path d="M 25 20 L 50 50 L 25 80 L 45 80 L 70 50 L 45 20 Z" fill="#6533FF" fill-opacity="0.8"/>
+  <path d="M 45 20 L 70 50 L 45 80 L 65 80 L 90 50 L 65 20 Z" fill="#6533FF"/>
+</svg>
