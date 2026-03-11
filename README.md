@@ -57,3 +57,30 @@ Angular CLI does not come with an end-to-end testing framework by default. You c
 ## Additional Resources
 
 For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+
+## Cloudflare Deploy
+
+### Local deploy with Wrangler
+
+1. Authenticate Wrangler once:
+
+```bash
+pnpm wrangler login
+```
+
+2. Deploy with one command:
+
+```bash
+pnpm run deploy
+```
+
+This command builds the app and deploys `dist/angular-movement/browser` to the Cloudflare Pages project `angular-movement`.
+
+### CI deploy on `main`/`master`
+
+The workflow `.github/workflows/deploy-cloudflare.yml` deploys automatically on every push to `main` and `master`.
+
+Configure these GitHub repository secrets:
+
+- `CLOUDFLARE_API_TOKEN`
+- `CLOUDFLARE_ACCOUNT_ID`
