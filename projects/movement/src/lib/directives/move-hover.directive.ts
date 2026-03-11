@@ -1,0 +1,101 @@
+import { DOCUMENT } from '@angular/common';
+import {
+  Directive,
+  ElementRef,
+  HostListener,
+  inject,
+  input,
+  OnDestroy,
+} from '@angular/core';
+import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+import {
+  prefersReducedMotion,
+  resolveMovementConfig,
+  resolveMoveFrames,
+} from './move-animation.utils';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
+
+@Directive({
+  selector: '[moveWhileHover]',
+})
+export class MoveHoverDirective implements OnDestroy {
+  readonly moveWhileHover = input.required<MovePreset | MoveKeyframes>();
+  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveEasing = input<string | undefined>(undefined);
+  readonly moveDelay = input<number | undefined>(undefined);
+  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveSpring = input<MoveSpring | undefined>(undefined);
+
+  private readonly defaults = inject(MOVEMENT_CONFIG);
+  private readonly documentRef = inject(DOCUMENT);
+  private readonly host = inject(ElementRef<HTMLElement>);
+  private readonly engine = inject(AnimationEngine);
+
+  private currentPlayer: AnimationControls | null = null;
+  private isHovered = false;
+
+  @HostListener('mouseenter')
+  onMouseEnter() {
+    if (this.isHovered) return;
+    this.isHovered = true;
+    this.play(false);
+  }
+
+  @HostListener('mouseleave')
+  onMouseLeave() {
+    if (!this.isHovered) return;
+    this.isHovered = false;
+    this.play(true);
+  }
+
+  private play(reverse: boolean) {
+    this.currentPlayer?.cancel();
+
+    const isReduced = prefersReducedMotion(this.documentRef);
+    const config = resolveMovementConfig(
+      this.defaults,
+      {
+        duration: this.moveDuration(),
+        easing: this.moveEasing(),
+        delay: this.moveDelay(),
+        disabled: this.moveDisabled(),
+      },
+      isReduced,
+    );
+
+    if (config.disabled) return;
+
+    let frames = resolveMoveFrames(this.moveWhileHover(), 'enter');
+    if (reverse) {
+      frames = this.reverseFrames(frames);
+    }
+
+    this.currentPlayer = this.engine.play(
+      this.host.nativeElement,
+      frames,
+      {
+        config,
+        spring: this.moveSpring(),
+        disabled: false
+      }
+    );
+  }
+
+  private reverseFrames(frames: MoveKeyframes): MoveKeyframes {
+    const reversed: MoveKeyframes = {};
+    for (const key in frames) {
+      const k = key as keyof MoveKeyframes;
+      const arr = frames[k];
+      if (arr) {
+        reversed[k] = [...arr].reverse();
+      }
+    }
+    return reversed;
+  }
+
+  ngOnDestroy(): void {
+    this.currentPlayer?.cancel();
+  }
+}

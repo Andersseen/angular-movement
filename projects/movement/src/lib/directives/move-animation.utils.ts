@@ -43,42 +43,6 @@ export function prefersReducedMotion(documentRef: Document): boolean {
   return view.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-export function playMoveAnimation(
-  host: HTMLElement,
-  frames: MoveKeyframes,
-  config: MovementConfig,
-  onDone?: () => void,
-): Animation | null {
-  if (config.disabled) {
-    return null;
-  }
-
-  if (typeof host.animate !== 'function') {
-    return null;
-  }
-
-  const from = toAngularStyle(frames, 'from');
-  const to = toAngularStyle(frames, 'to');
-
-  const animation = host.animate([from, to], {
-    duration: config.duration,
-    easing: config.easing,
-    delay: config.delay,
-    fill: 'both',
-  });
-
-  animation.addEventListener(
-    'finish',
-    () => {
-      animation.commitStyles?.();
-      animation.cancel();
-      onDone?.();
-    },
-    { once: true },
-  );
-
-  return animation;
-}
 
 export function createLeaveClone(documentRef: Document, source: HTMLElement): HTMLElement | null {
   const sourceRect = source.getBoundingClientRect();
@@ -101,48 +65,4 @@ export function createLeaveClone(documentRef: Document, source: HTMLElement): HT
 
   documentRef.body.appendChild(cloned);
   return cloned;
-}
-
-function toAngularStyle(
-  frames: MoveKeyframes,
-  direction: 'from' | 'to',
-): Record<string, string | number> {
-  const index = direction === 'from' ? 0 : 1;
-  const styles: Record<string, string | number> = {};
-
-  if (frames.opacity) {
-    styles['opacity'] = frames.opacity[index];
-  }
-
-  const transforms: string[] = [];
-
-  if (frames.x) {
-    transforms.push(`translateX(${frames.x[index]}px)`);
-  }
-
-  if (frames.y) {
-    transforms.push(`translateY(${frames.y[index]}px)`);
-  }
-
-  if (frames.scale) {
-    transforms.push(`scale(${frames.scale[index]})`);
-  }
-
-  if (frames.rotate) {
-    transforms.push(`rotate(${frames.rotate[index]}deg)`);
-  }
-
-  if (frames.rotateX) {
-    transforms.push(`rotateX(${frames.rotateX[index]}deg)`);
-  }
-
-  if (frames.rotateY) {
-    transforms.push(`rotateY(${frames.rotateY[index]}deg)`);
-  }
-
-  if (transforms.length > 0) {
-    styles['transform'] = transforms.join(' ');
-  }
-
-  return styles;
 }

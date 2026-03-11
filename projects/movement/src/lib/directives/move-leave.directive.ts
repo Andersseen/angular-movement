@@ -1,4 +1,4 @@
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { DOCUMENT } from '@angular/common';
 import {
   Directive,
   ElementRef,
@@ -6,17 +6,17 @@ import {
   input,
   OnDestroy,
   OnInit,
-  PLATFORM_ID,
 } from '@angular/core';
-import { MoveKeyframes, MovePreset } from '../presets/presets.types';
+import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   createLeaveClone,
-  playMoveAnimation,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
 } from './move-animation.utils';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
 
 @Directive({
   selector: '[moveLeave]',
@@ -27,20 +27,17 @@ export class MoveLeaveDirective implements OnDestroy, OnInit {
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined>(undefined);
   readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   private readonly defaults = inject(MOVEMENT_CONFIG);
   private readonly documentRef = inject(DOCUMENT);
   private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly platformId = inject(PLATFORM_ID);
+  private readonly engine = inject(AnimationEngine);
 
   private config = this.defaults;
-  private player: Animation | null = null;
+  private player: AnimationControls | null = null;
 
   ngOnInit(): void {
-    if (!isPlatformBrowser(this.platformId)) {
-      return;
-    }
-
     this.config = resolveMovementConfig(
       this.defaults,
       {
@@ -56,7 +53,7 @@ export class MoveLeaveDirective implements OnDestroy, OnInit {
   ngOnDestroy(): void {
     this.player?.cancel();
 
-    if (!isPlatformBrowser(this.platformId) || this.config.disabled) {
+    if (this.config.disabled) {
       return;
     }
 
@@ -65,11 +62,15 @@ export class MoveLeaveDirective implements OnDestroy, OnInit {
       return;
     }
 
-    this.player = playMoveAnimation(
+    this.player = this.engine.play(
       cloned,
       resolveMoveFrames(this.moveLeave(), 'leave'),
-      this.config,
-      () => cloned.remove(),
+      {
+        config: this.config,
+        spring: this.moveSpring(),
+        disabled: false,
+        onDone: () => cloned.remove()
+      }
     );
   }
 }

@@ -14,17 +14,33 @@ export type MovePreset =
   | 'bounce-in'
   | 'none';
 
-export type MoveValuePair = readonly [number, number];
+export type MoveValuePair = readonly number[];
+
+export interface MoveSpring {
+  stiffness?: number;
+  damping?: number;
+  mass?: number;
+  velocity?: number;
+}
 
 export interface MoveKeyframes {
   opacity?: MoveValuePair;
   x?: MoveValuePair;
   y?: MoveValuePair;
   scale?: MoveValuePair;
+  scaleX?: MoveValuePair;
+  scaleY?: MoveValuePair;
   rotate?: MoveValuePair;
   rotateX?: MoveValuePair;
   rotateY?: MoveValuePair;
 }
+
+export type MoveVariant = MoveKeyframes & {
+  spring?: MoveSpring;
+  duration?: number;
+  easing?: string;
+  delay?: number;
+};
 
 export interface MovePresetDefinition {
   enter: MoveKeyframes;
