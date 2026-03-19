@@ -7,6 +7,8 @@ import { MoveVariantsDirective } from './directives/move-variants.directive';
 import { MoveStaggerDirective } from './directives/move-stagger.directive';
 import { MoveLayoutDirective } from './directives/move-layout.directive';
 import { MoveScrollDirective } from './directives/move-scroll.directive';
+import { MovePresenceDirective } from './directives/move-presence.directive';
+import { MoveDragDirective } from './directives/move-drag.directive';
 
 export const MOVEMENT_DIRECTIVES = [
   MoveEnterDirective,
@@ -18,6 +20,8 @@ export const MOVEMENT_DIRECTIVES = [
   MoveStaggerDirective,
   MoveLayoutDirective,
   MoveScrollDirective,
+  MovePresenceDirective,
+  MoveDragDirective,
 ] as const;
 
 export * from './directives/move-animate.directive';
@@ -29,6 +33,8 @@ export * from './directives/move-variants.directive';
 export * from './directives/move-stagger.directive';
 export * from './directives/move-layout.directive';
 export * from './directives/move-scroll.directive';
+export * from './directives/move-presence.directive';
+export * from './directives/move-drag.directive';
 export * from './engines/animation-controls';
 export * from './engines/animation-engine.service';
 export * from './engines/spring-player';
@@ -37,3 +43,5 @@ export * from './presets/presets';
 export * from './presets/presets.types';
 export * from './providers/provide-movement';
 export * from './tokens/movement.tokens';
+export * from './tokens/presence.tokens';
+export * from './tokens/stagger.tokens';

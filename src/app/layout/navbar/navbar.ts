@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { MOVEMENT_DIRECTIVES } from 'movement';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ...MOVEMENT_DIRECTIVES],
   template: `
     <nav 
       class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent"
@@ -55,7 +56,7 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 
       <!-- Mobile Menu -->
       @if (mobileMenuOpen()) {
-        <div class="md:hidden bg-surface border-b border-border" moveEnter="slide-down" moveDuration="200" moveEasing="ease-out">
+        <div class="md:hidden bg-surface border-b border-border" moveEnter="slide-down" [moveDuration]="200" moveEasing="ease-out">
           <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 flex flex-col">
             <a routerLink="/" routerLinkActive="text-accent bg-surface-raised" [routerLinkActiveOptions]="{exact: true}" class="text-text-muted hover:text-text hover:bg-surface-raised block px-3 py-2 rounded-md text-base font-medium transition-colors" (click)="closeMobileMenu()">Home</a>
             <a routerLink="/demos" routerLinkActive="text-accent bg-surface-raised" class="text-text-muted hover:text-text hover:bg-surface-raised block px-3 py-2 rounded-md text-base font-medium transition-colors" (click)="closeMobileMenu()">Demos</a>

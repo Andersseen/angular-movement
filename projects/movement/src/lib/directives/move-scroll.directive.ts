@@ -1,5 +1,6 @@
 import { Directive, ElementRef, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { PLATFORM_ID } from '@angular/core';
 import { MoveKeyframes } from '../presets/presets.types';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -15,6 +16,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   readonly progress = signal(0);
 
   private readonly documentRef = inject(DOCUMENT);
+  private readonly platformId = inject(PLATFORM_ID);
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly engine = inject(AnimationEngine);
 
@@ -23,6 +25,11 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   private scrollListener = () => this.updateProgress();
 
   ngOnInit() {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    const view = this.documentRef.defaultView;
+    if (!view) return;
+
     const frames = this.moveScroll();
     if (frames) {
       this.player = this.engine.play(this.host.nativeElement, frames, {
@@ -38,10 +45,10 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting) {
-          window.addEventListener('scroll', this.scrollListener, { passive: true });
+          view.addEventListener('scroll', this.scrollListener, { passive: true });
           this.updateProgress();
         } else {
-          window.removeEventListener('scroll', this.scrollListener);
+          view.removeEventListener('scroll', this.scrollListener);
         }
       },
       { root: null }
@@ -51,9 +58,12 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   }
 
   private updateProgress() {
+    const view = this.documentRef.defaultView;
+    if (!view) return;
+
     const el = this.host.nativeElement;
     const rect = el.getBoundingClientRect();
-    const windowHeight = window.innerHeight;
+    const windowHeight = view.innerHeight;
 
     const offsets = this.moveScrollOffset();
     const startY = this.calculateOffset(rect, windowHeight, offsets[0]);
@@ -82,7 +92,8 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.player?.cancel();
-    window.removeEventListener('scroll', this.scrollListener);
+    this.documentRef.defaultView?.removeEventListener('scroll', this.scrollListener);
     this.observer?.disconnect();
   }
 }
+

@@ -34,6 +34,7 @@ export class WaapiPlayer implements AnimationControls {
       'finish',
       () => {
         this.animation?.commitStyles?.();
+        this.animation?.cancel();
         this.resolveFinished();
         onDone?.();
       },
