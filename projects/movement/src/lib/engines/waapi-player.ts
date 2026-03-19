@@ -119,7 +119,9 @@ export class WaapiPlayer implements AnimationControls {
       if (rotateY !== undefined) transforms.push(`rotateY(${rotateY}deg)`);
 
       if (transforms.length > 0) {
-        frame['transform'] = transforms.join(' ');
+        const has3D = transforms.some(t => t.includes('rotateX') || t.includes('rotateY'));
+        const prefix = has3D ? 'perspective(1200px) ' : '';
+        frame['transform'] = prefix + transforms.join(' ');
       }
 
       keyframes.push(frame);

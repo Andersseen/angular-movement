@@ -5,56 +5,56 @@ const DEFAULT_LEAVE_OPACITY = [1, 0] as const;
 
 export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
   'fade-up': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, y: [14, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -10] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, y: [24, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -16] },
   },
   'fade-down': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, y: [-14, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, 10] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, y: [-24, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, 16] },
   },
   'fade-left': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, x: [14, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, x: [0, -10] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, x: [24, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, x: [0, -16] },
   },
   'fade-right': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, x: [-14, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, x: [0, 10] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, x: [-24, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, x: [0, 16] },
   },
   'slide-up': {
-    enter: { y: [20, 0], opacity: [0.98, 1] },
-    leave: { y: [0, -18], opacity: [1, 0.98] },
+    enter: { y: [60, 0], opacity: DEFAULT_FADE_OPACITY },
+    leave: { y: [0, -60], opacity: DEFAULT_LEAVE_OPACITY },
   },
   'slide-down': {
-    enter: { y: [-20, 0], opacity: [0.98, 1] },
-    leave: { y: [0, 18], opacity: [1, 0.98] },
+    enter: { y: [-60, 0], opacity: DEFAULT_FADE_OPACITY },
+    leave: { y: [0, 60], opacity: DEFAULT_LEAVE_OPACITY },
   },
   'slide-left': {
-    enter: { x: [20, 0], opacity: [0.98, 1] },
-    leave: { x: [0, -18], opacity: [1, 0.98] },
+    enter: { x: [60, 0], opacity: DEFAULT_FADE_OPACITY },
+    leave: { x: [0, -60], opacity: DEFAULT_LEAVE_OPACITY },
   },
   'slide-right': {
-    enter: { x: [-20, 0], opacity: [0.98, 1] },
-    leave: { x: [0, 18], opacity: [1, 0.98] },
+    enter: { x: [-60, 0], opacity: DEFAULT_FADE_OPACITY },
+    leave: { x: [0, 60], opacity: DEFAULT_LEAVE_OPACITY },
   },
   'zoom-in': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, scale: [0.92, 1] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, scale: [1, 0.92] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, scale: [0.5, 1] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, scale: [1, 0.5] },
   },
   'zoom-out': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, scale: [1.06, 1] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, scale: [1, 1.06] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, scale: [1.3, 1] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, scale: [1, 1.3] },
   },
   'flip-x': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, rotateX: [-20, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, rotateX: [0, 16] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, rotateX: [-90, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, rotateX: [0, 90] },
   },
   'flip-y': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, rotateY: [-20, 0] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, rotateY: [0, 16] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, rotateY: [-90, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, rotateY: [0, 90] },
   },
   'bounce-in': {
-    enter: { opacity: DEFAULT_FADE_OPACITY, y: [12, 0], scale: [0.95, 1] },
-    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -8], scale: [1, 0.97] },
+    enter: { opacity: DEFAULT_FADE_OPACITY, y: [30, 0], scale: [0.85, 1] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -20], scale: [1, 0.9] },
   },
   none: {
     enter: { opacity: [1, 1] },

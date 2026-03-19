@@ -89,7 +89,9 @@ export class AnimationEngine {
     if (rotateY !== undefined) transforms.push(`rotateY(${rotateY}deg)`);
 
     if (transforms.length > 0) {
-      host.style.transform = transforms.join(' ');
+      const has3D = transforms.some(t => t.includes('rotateX') || t.includes('rotateY'));
+      const prefix = has3D ? 'perspective(1200px) ' : '';
+      host.style.transform = prefix + transforms.join(' ');
     }
   }
 }
