@@ -18,6 +18,13 @@ export function resolveMovementConfig(
   overrides: MoveInputOverrides,
   reducedMotion: boolean,
 ): MovementConfig {
+  if (reducedMotion && typeof ngDevMode !== 'undefined' && ngDevMode) {
+    console.warn(
+      '[Movement] Animations disabled: prefers-reduced-motion is active. ' +
+      'Disable "Reduce motion" in your OS accessibility settings to see animations.'
+    );
+  }
+
   return {
     duration: Math.max(0, overrides.duration ?? defaults.duration),
     easing: overrides.easing ?? defaults.easing,

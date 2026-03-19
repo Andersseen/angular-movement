@@ -64,9 +64,9 @@ export class PresetsShowcase {
     // Hide Element
     this.activePresets.update(state => ({ ...state, [preset]: false }));
     
-    // Trigger tick and immediately re-show
-    queueMicrotask(() => {
+    // Use setTimeout to ensure Angular processes the removal before re-creation
+    setTimeout(() => {
       this.activePresets.update(state => ({ ...state, [preset]: true }));
-    });
+    }, 0);
   }
 }

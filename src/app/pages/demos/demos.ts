@@ -236,7 +236,7 @@ export class Demos {
 
   protected replay(): void {
     this.showDemo.set(false);
-    queueMicrotask(() => this.showDemo.set(true));
+    setTimeout(() => this.showDemo.set(true), 0);
   }
 
   protected copyCode(): void {
