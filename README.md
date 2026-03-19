@@ -65,10 +65,16 @@ For more information on using the Angular CLI, including detailed command refere
 1. Authenticate Wrangler once:
 
 ```bash
-pnpm wrangler login
+pnpm run cf:login
 ```
 
-2. Deploy with one command:
+2. Optional: verify the active Cloudflare account:
+
+```bash
+pnpm run cf:whoami
+```
+
+3. Deploy with one command:
 
 ```bash
 pnpm run deploy
@@ -79,6 +85,7 @@ This command builds the app and deploys `dist/angular-movement/browser` to the C
 ### CI deploy on `main`/`master`
 
 The workflow `.github/workflows/deploy-cloudflare.yml` deploys automatically on every push to `main` and `master`.
+It uses the same `wrangler` version from this repository (`pnpm exec wrangler`) to keep local and CI behavior aligned.
 
 Configure these GitHub repository secrets:
 

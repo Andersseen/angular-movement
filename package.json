@@ -8,7 +8,9 @@
     "build:prod": "ng build angular-movement --configuration production",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "deploy:cloudflare": "pnpm run build:prod && wrangler pages deploy dist/angular-movement/browser --project-name angular-movement",
+    "cf:login": "pnpm exec wrangler login",
+    "cf:whoami": "pnpm exec wrangler whoami",
+    "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/angular-movement/browser --project-name angular-movement",
     "deploy": "pnpm run deploy:cloudflare"
   },
   "private": true,

@@ -11,8 +11,13 @@ permissions:
   contents: read
 
 concurrency:
-  group: cloudflare-pages-deploy
+  group: cloudflare-pages-deploy-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  NODE_VERSION: 22
+  PNPM_VERSION: 10
+  CLOUDFLARE_PROJECT_NAME: angular-movement
 
 jobs:
   deploy:
@@ -25,12 +30,12 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 10
+          version: ${{ env.PNPM_VERSION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
 
       - name: Install dependencies
@@ -39,9 +44,16 @@ jobs:
       - name: Build application
         run: pnpm run build:prod
 
+      - name: Validate Cloudflare secrets
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          [[ -n "${CLOUDFLARE_API_TOKEN}" ]] || { echo "Missing CLOUDFLARE_API_TOKEN secret"; exit 1; }
+          [[ -n "${CLOUDFLARE_ACCOUNT_ID}" ]] || { echo "Missing CLOUDFLARE_ACCOUNT_ID secret"; exit 1; }
+
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/wrangler-action@v3
-        with:
-          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/angular-movement/browser --project-name angular-movement
+        run: pnpm exec wrangler pages deploy dist/angular-movement/browser --project-name "$CLOUDFLARE_PROJECT_NAME"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
