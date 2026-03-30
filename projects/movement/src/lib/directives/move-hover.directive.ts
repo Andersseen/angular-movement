@@ -2,7 +2,6 @@ import { DOCUMENT } from '@angular/common';
 import {
   Directive,
   ElementRef,
-  HostListener,
   inject,
   input,
   OnDestroy,
@@ -19,6 +18,10 @@ import { AnimationControls } from '../engines/animation-controls';
 
 @Directive({
   selector: '[moveWhileHover]',
+  host: {
+    '(mouseenter)': 'onMouseEnter()',
+    '(mouseleave)': 'onMouseLeave()'
+  }
 })
 export class MoveHoverDirective implements OnDestroy {
   readonly moveWhileHover = input.required<MovePreset | MoveKeyframes>();
@@ -36,14 +39,12 @@ export class MoveHoverDirective implements OnDestroy {
   private currentPlayer: AnimationControls | null = null;
   private isHovered = false;
 
-  @HostListener('mouseenter')
   onMouseEnter() {
     if (this.isHovered) return;
     this.isHovered = true;
     this.play(false);
   }
 
-  @HostListener('mouseleave')
   onMouseLeave() {
     if (!this.isHovered) return;
     this.isHovered = false;
