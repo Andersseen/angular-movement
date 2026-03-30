@@ -82,7 +82,6 @@ export class WaapiPlayer implements AnimationControls {
 
     for (let i = 0; i < maxLength; i++) {
       const frame: Keyframe = {};
-      const transforms: string[] = [];
 
       const getVal = (arr: readonly number[] | undefined) => {
         if (!arr || arr.length === 0) return undefined;
@@ -95,33 +94,31 @@ export class WaapiPlayer implements AnimationControls {
       }
 
       const x = getVal(frames.x);
-      if (x !== undefined) transforms.push(`translateX(${x}px)`);
-
       const y = getVal(frames.y);
-      if (y !== undefined) transforms.push(`translateY(${y}px)`);
+      if (x !== undefined || y !== undefined) {
+        frame['translate'] = `${x ?? 0}px ${y ?? 0}px`;
+      }
 
       const scale = getVal(frames.scale);
-      if (scale !== undefined) transforms.push(`scale(${scale})`);
-
-      const scaleX = getVal(frames.scaleX);
-      if (scaleX !== undefined) transforms.push(`scaleX(${scaleX})`);
-
-      const scaleY = getVal(frames.scaleY);
-      if (scaleY !== undefined) transforms.push(`scaleY(${scaleY})`);
+      if (scale !== undefined) {
+        frame['scale'] = `${scale}`;
+      } else {
+        const scaleX = getVal(frames.scaleX);
+        const scaleY = getVal(frames.scaleY);
+        if (scaleX !== undefined || scaleY !== undefined) {
+          frame['scale'] = `${scaleX ?? 1} ${scaleY ?? 1}`;
+        }
+      }
 
       const rotate = getVal(frames.rotate);
-      if (rotate !== undefined) transforms.push(`rotate(${rotate}deg)`);
+      if (rotate !== undefined) {
+        frame['rotate'] = `${rotate}deg`;
+      }
 
       const rotateX = getVal(frames.rotateX);
-      if (rotateX !== undefined) transforms.push(`rotateX(${rotateX}deg)`);
-
       const rotateY = getVal(frames.rotateY);
-      if (rotateY !== undefined) transforms.push(`rotateY(${rotateY}deg)`);
-
-      if (transforms.length > 0) {
-        const has3D = transforms.some(t => t.includes('rotateX') || t.includes('rotateY'));
-        const prefix = has3D ? 'perspective(1200px) ' : '';
-        frame['transform'] = prefix + transforms.join(' ');
+      if (rotateX !== undefined || rotateY !== undefined) {
+        frame['transform'] = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
       }
 
       keyframes.push(frame);
