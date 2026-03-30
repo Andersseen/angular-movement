@@ -49,27 +49,3 @@ export function prefersReducedMotion(documentRef: Document): boolean {
 
   return view.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
-
-
-export function createLeaveClone(documentRef: Document, source: HTMLElement): HTMLElement | null {
-  const sourceRect = source.getBoundingClientRect();
-  if (sourceRect.width === 0 || sourceRect.height === 0) {
-    return null;
-  }
-
-  const cloned = source.cloneNode(true) as HTMLElement;
-  const sourceStyle = documentRef.defaultView?.getComputedStyle(source);
-  cloned.style.position = 'fixed';
-  cloned.style.left = `${sourceRect.left}px`;
-  cloned.style.top = `${sourceRect.top}px`;
-  cloned.style.width = `${sourceRect.width}px`;
-  cloned.style.height = `${sourceRect.height}px`;
-  cloned.style.margin = '0';
-  cloned.style.pointerEvents = 'none';
-  cloned.style.transformOrigin = sourceStyle?.transformOrigin ?? 'center';
-  cloned.style.boxSizing = sourceStyle?.boxSizing ?? 'border-box';
-  cloned.style.zIndex = '2147483647';
-
-  documentRef.body.appendChild(cloned);
-  return cloned;
-}

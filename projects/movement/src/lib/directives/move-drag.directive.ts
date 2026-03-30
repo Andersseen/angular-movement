@@ -1,4 +1,4 @@
-import { Directive, ElementRef, HostListener, inject, input, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
@@ -10,6 +10,12 @@ export type MoveDragConstraints = { top?: number; right?: number; bottom?: numbe
 
 @Directive({
   selector: '[moveDrag]',
+  host: {
+    '(pointerdown)': 'onPointerDown($event)',
+    '(pointermove)': 'onPointerMove($event)',
+    '(pointerup)': 'onPointerUp($event)',
+    '(pointercancel)': 'onPointerUp($event)'
+  }
 })
 export class MoveDragDirective implements OnDestroy {
   readonly moveDrag = input<boolean | ''>(true);
@@ -33,7 +39,6 @@ export class MoveDragDirective implements OnDestroy {
   private dragBounds: { top?: number; right?: number; bottom?: number; left?: number } | null = null;
   private player: AnimationControls | null = null;
 
-  @HostListener('pointerdown', ['$event'])
   onPointerDown(e: PointerEvent) {
     if (this.moveDrag() === false || e.button !== 0) return;
     this.isDragging = true;
@@ -52,7 +57,6 @@ export class MoveDragDirective implements OnDestroy {
     this.host.nativeElement.style.userSelect = 'none';
   }
 
-  @HostListener('pointermove', ['$event'])
   onPointerMove(e: PointerEvent) {
     if (!this.isDragging || e.pointerId !== this.pointerId) return;
 
@@ -62,8 +66,6 @@ export class MoveDragDirective implements OnDestroy {
     this.applyTransform();
   }
 
-  @HostListener('pointerup', ['$event'])
-  @HostListener('pointercancel', ['$event'])
   onPointerUp(e: PointerEvent) {
     if (!this.isDragging || e.pointerId !== this.pointerId) return;
     this.isDragging = false;
@@ -81,13 +83,13 @@ export class MoveDragDirective implements OnDestroy {
     if (!constraints) return null;
 
     if (constraints instanceof HTMLElement) {
-      const oldTransform = this.host.nativeElement.style.transform;
-      this.host.nativeElement.style.transform = 'none';
+      const oldTranslate = this.host.nativeElement.style.translate;
+      this.host.nativeElement.style.translate = 'none';
 
       const elRect = this.host.nativeElement.getBoundingClientRect();
       const containerRect = constraints.getBoundingClientRect();
 
-      this.host.nativeElement.style.transform = oldTransform;
+      this.host.nativeElement.style.translate = oldTranslate;
 
       return {
         left: containerRect.left - elRect.left,
@@ -120,7 +122,7 @@ export class MoveDragDirective implements OnDestroy {
       }
     }
 
-    this.host.nativeElement.style.transform = `translate(${x}px, ${y}px)`;
+    this.host.nativeElement.style.translate = `${x}px ${y}px`;
   }
 
   private snapBackIfNeeded() {

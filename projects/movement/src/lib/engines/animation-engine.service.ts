@@ -68,30 +68,32 @@ export class AnimationEngine {
     const opacity = getFinal(frames.opacity);
     if (opacity !== undefined) host.style.opacity = `${opacity}`;
 
-    const transforms: string[] = [];
-    
     const x = getFinal(frames.x);
-    if (x !== undefined) transforms.push(`translateX(${x}px)`);
-
     const y = getFinal(frames.y);
-    if (y !== undefined) transforms.push(`translateY(${y}px)`);
+    if (x !== undefined || y !== undefined) {
+      host.style.translate = `${x ?? 0}px ${y ?? 0}px`;
+    }
 
     const scale = getFinal(frames.scale);
-    if (scale !== undefined) transforms.push(`scale(${scale})`);
+    if (scale !== undefined) {
+      host.style.scale = `${scale}`;
+    } else {
+      const scaleX = getFinal(frames.scaleX);
+      const scaleY = getFinal(frames.scaleY);
+      if (scaleX !== undefined || scaleY !== undefined) {
+        host.style.scale = `${scaleX ?? 1} ${scaleY ?? 1}`;
+      }
+    }
 
     const rotate = getFinal(frames.rotate);
-    if (rotate !== undefined) transforms.push(`rotate(${rotate}deg)`);
+    if (rotate !== undefined) {
+      host.style.rotate = `${rotate}deg`;
+    }
 
     const rotateX = getFinal(frames.rotateX);
-    if (rotateX !== undefined) transforms.push(`rotateX(${rotateX}deg)`);
-
     const rotateY = getFinal(frames.rotateY);
-    if (rotateY !== undefined) transforms.push(`rotateY(${rotateY}deg)`);
-
-    if (transforms.length > 0) {
-      const has3D = transforms.some(t => t.includes('rotateX') || t.includes('rotateY'));
-      const prefix = has3D ? 'perspective(1200px) ' : '';
-      host.style.transform = prefix + transforms.join(' ');
+    if (rotateX !== undefined || rotateY !== undefined) {
+      host.style.transform = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
     }
   }
 }

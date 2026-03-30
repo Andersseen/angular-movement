@@ -2,7 +2,6 @@ import { DOCUMENT } from '@angular/common';
 import {
   Directive,
   ElementRef,
-  HostListener,
   inject,
   input,
   OnDestroy,
@@ -19,6 +18,12 @@ import { AnimationControls } from '../engines/animation-controls';
 
 @Directive({
   selector: '[moveWhileTap]',
+  host: {
+    '(pointerdown)': 'onPointerDown()',
+    '(pointerup)': 'onPointerUp()',
+    '(pointercancel)': 'onPointerUp()',
+    '(pointerleave)': 'onPointerUp()'
+  }
 })
 export class MoveTapDirective implements OnDestroy {
   readonly moveWhileTap = input.required<MovePreset | MoveKeyframes>();
@@ -36,16 +41,12 @@ export class MoveTapDirective implements OnDestroy {
   private currentPlayer: AnimationControls | null = null;
   private isTapped = false;
 
-  @HostListener('pointerdown')
   onPointerDown() {
     if (this.isTapped) return;
     this.isTapped = true;
     this.play(false);
   }
 
-  @HostListener('pointerup')
-  @HostListener('pointercancel')
-  @HostListener('pointerleave')
   onPointerUp() {
     if (!this.isTapped) return;
     this.isTapped = false;

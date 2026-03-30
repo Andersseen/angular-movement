@@ -1,5 +1,6 @@
 import { AnimationControls } from './animation-controls';
 import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
+import { inject } from '@angular/core';
 
 export class SpringPlayer implements AnimationControls {
   private resolveFinished!: () => void;
@@ -7,27 +8,7 @@ export class SpringPlayer implements AnimationControls {
     this.resolveFinished = resolve;
   });
 
-  private isPaused = false;
-  private isCanceled = false;
-  private startTime = 0;
-  private activeRaf: number | null = null;
-  private delayTimeout: number | ReturnType<typeof setTimeout> | null = null;
-  private _currentTime = 0;
-
-  get currentTime(): number {
-    return this._currentTime;
-  }
-
-  set currentTime(time: number) {
-    this._currentTime = time;
-  }
-  
-  // Spring state
-  private _progress = 0;
-  private _velocity = 0;
-  private stepIndex = 0;
-  private maxSteps: number;
-  private config: MoveSpring;
+  private animation: Animation | null = null;
 
   constructor(
     private readonly host: HTMLElement,
@@ -36,122 +17,131 @@ export class SpringPlayer implements AnimationControls {
     private readonly delay: number,
     private readonly onDone?: () => void
   ) {
-    this.config = {
+    if (typeof host.animate !== 'function') {
+      this.resolveFinished();
+      onDone?.();
+      return;
+    }
+
+    const config: MoveSpring = {
       stiffness: 100,
       damping: 10,
       mass: 1,
       velocity: 0,
       ...userConfig
     };
-    
-    this._velocity = this.config.velocity!;
 
-    this.maxSteps = 0;
-    for (const key in frames) {
-      const arr = frames[key as keyof MoveKeyframes];
-      if (Array.isArray(arr)) {
-        this.maxSteps = Math.max(this.maxSteps, arr.length);
-      }
-    }
-    
-    if (this.maxSteps <= 1) {
+    const keyframes = this.generateSpringKeyframes(frames, config);
+
+    if (keyframes.length === 0) {
       this.resolveFinished();
-      this.onDone?.();
+      onDone?.();
       return;
     }
 
-    if (this.delay > 0) {
-      this.delayTimeout = setTimeout(() => {
-        this.delayTimeout = null;
-        if (!this.isCanceled && !this.isPaused) {
-          this.startNextStep();
-        }
-      }, this.delay);
-    } else {
-      this.startNextStep();
-    }
+    // Default duration of the calculated simulation is bound to the arrays output. 
+    // We run it over that specific time frame, we know exactly the duration by counting ticks * tick duration.
+    // Let's assume tick rate is 16.66ms (60fps simulation)
+    const duration = keyframes.length * (1000 / 60);
+
+    this.animation = host.animate(keyframes, {
+      duration,
+      delay: this.delay,
+      fill: 'both',
+      easing: 'linear', // Spring physics already has the easing baked into the frames
+    });
+
+    this.animation.addEventListener('finish', () => {
+      this.animation?.commitStyles?.();
+      this.animation?.cancel();
+      this.resolveFinished();
+      onDone?.();
+    }, { once: true });
   }
 
   play(): void {
-    if (this.isPaused) {
-      this.isPaused = false;
-      if (this.delayTimeout === null && this.activeRaf === null) {
-        this.startTime = performance.now();
-        this.tick(this.startTime);
-      }
-    }
+    this.animation?.play();
   }
 
   pause(): void {
-    this.isPaused = true;
-    if (this.activeRaf !== null) {
-      cancelAnimationFrame(this.activeRaf);
-      this.activeRaf = null;
-    }
+    this.animation?.pause();
   }
 
   cancel(): void {
-    this.isCanceled = true;
-    this.pause();
-    if (this.delayTimeout !== null) {
-      clearTimeout(this.delayTimeout as number);
-      this.delayTimeout = null;
+    if (this.animation?.playState !== 'idle') {
+      this.animation?.cancel();
     }
     this.resolveFinished();
   }
 
-  private startNextStep() {
-    if (this.stepIndex >= this.maxSteps - 1) {
-      this.resolveFinished();
-      this.onDone?.();
-      return;
-    }
-
-    this._progress = 0;
-    if (this.stepIndex === 0) {
-      this._velocity = this.config.velocity ?? 0;
-    }
-    
-    this.startTime = performance.now();
-    this.activeRaf = requestAnimationFrame((t) => this.tick(t));
+  get currentTime(): number {
+    return (this.animation?.currentTime as number) ?? 0;
   }
 
-  private tick(time: number) {
-    if (this.isCanceled || this.isPaused) return;
-
-    // cap dt to 50ms to prevent massive jumps when tab is in background
-    const dt = Math.min((time - this.startTime) / 1000, 0.05); 
-    this.startTime = time;
-    this._currentTime += dt * 1000;
-
-    const stiffness = this.config.stiffness!;
-    const damping = this.config.damping!;
-    const mass = this.config.mass!;
-
-    // F = -k*x - c*v
-    const displacement = this._progress - 1;
-    const force = -stiffness * displacement - damping * this._velocity;
-    const acceleration = force / mass;
-
-    this._velocity += acceleration * dt;
-    this._progress += this._velocity * dt;
-
-    this.applyStyles(this._progress);
-
-    if (Math.abs(displacement) < 0.001 && Math.abs(this._velocity) < 0.001) {
-      this._progress = 1;
-      this.applyStyles(1);
-      this.stepIndex++;
-      this.startNextStep();
-    } else {
-      this.activeRaf = requestAnimationFrame((t) => this.tick(t));
+  set currentTime(time: number) {
+    if (this.animation) {
+      this.animation.currentTime = time;
     }
   }
 
-  private applyStyles(p: number) {
-    const i1 = this.stepIndex;
-    const i2 = this.stepIndex + 1;
+  private generateSpringKeyframes(frames: MoveKeyframes, config: MoveSpring): Keyframe[] {
+    let maxSteps = 0;
+    for (const key in frames) {
+      const arr = frames[key as keyof MoveKeyframes];
+      if (Array.isArray(arr)) {
+        maxSteps = Math.max(maxSteps, arr.length);
+      }
+    }
     
+    if (maxSteps <= 1) return [];
+
+    const keyframes: Keyframe[] = [];
+    const dt = 1 / 60; // Simulate at 60fps (16.66ms per tick)
+    
+    const stiffness = config.stiffness!;
+    const damping = config.damping!;
+    const mass = config.mass!;
+    
+    // We will simulate segments between keyframes based on physics
+    for (let step = 0; step < maxSteps - 1; step++) {
+      let progress = 0;
+      let velocity = step === 0 ? (config.velocity ?? 0) : 0;
+      let isSettled = false;
+
+      // Simulate the spring for this intermediate segment
+      // Prevent infinite loops safely by bounding iterations
+      let iterations = 0;
+      const maxIterations = 600; // max 10 seconds per step
+      
+      while (!isSettled && iterations < maxIterations) {
+        // Evaluate frame
+        const p = Math.min(Math.max(progress, 0), 1);
+        keyframes.push(this.composeFrame(frames, step, step + 1, p));
+
+        // Advance physics F = -k*x - c*v
+        const displacement = progress - 1;
+        const force = -stiffness * displacement - damping * velocity;
+        const acceleration = force / mass;
+
+        velocity += acceleration * dt;
+        progress += velocity * dt;
+
+        if (Math.abs(displacement) < 0.001 && Math.abs(velocity) < 0.001) {
+          isSettled = true;
+        }
+        iterations++;
+      }
+      
+      // Ensure the final state of the step is exactly 1
+      keyframes.push(this.composeFrame(frames, step, step + 1, 1));
+    }
+    
+    return keyframes;
+  }
+
+  private composeFrame(frames: MoveKeyframes, i1: number, i2: number, p: number): Keyframe {
+    const frame: Keyframe = {};
+
     const getVal = (arr: readonly number[] | undefined) => {
       if (!arr || arr.length === 0) return undefined;
       const v1 = arr[Math.min(i1, arr.length - 1)];
@@ -159,41 +149,40 @@ export class SpringPlayer implements AnimationControls {
       return v1 + (v2 - v1) * p;
     };
 
-    const opacity = getVal(this.frames.opacity);
+    const opacity = getVal(frames.opacity);
     if (opacity !== undefined) {
-      this.host.style.opacity = `${opacity}`;
+      frame['opacity'] = opacity;
     }
 
-    const transforms: string[] = [];
-    
-    const x = getVal(this.frames.x);
-    if (x !== undefined) transforms.push(`translateX(${x}px)`);
-
-    const y = getVal(this.frames.y);
-    if (y !== undefined) transforms.push(`translateY(${y}px)`);
-
-    const scale = getVal(this.frames.scale);
-    if (scale !== undefined) transforms.push(`scale(${scale})`);
-
-    const scaleX = getVal(this.frames.scaleX);
-    if (scaleX !== undefined) transforms.push(`scaleX(${scaleX})`);
-
-    const scaleY = getVal(this.frames.scaleY);
-    if (scaleY !== undefined) transforms.push(`scaleY(${scaleY})`);
-
-    const rotate = getVal(this.frames.rotate);
-    if (rotate !== undefined) transforms.push(`rotate(${rotate}deg)`);
-
-    const rotateX = getVal(this.frames.rotateX);
-    if (rotateX !== undefined) transforms.push(`rotateX(${rotateX}deg)`);
-
-    const rotateY = getVal(this.frames.rotateY);
-    if (rotateY !== undefined) transforms.push(`rotateY(${rotateY}deg)`);
-
-    if (transforms.length > 0) {
-      const has3D = transforms.some(t => t.includes('rotateX') || t.includes('rotateY'));
-      const prefix = has3D ? 'perspective(1200px) ' : '';
-      this.host.style.transform = prefix + transforms.join(' ');
+    const x = getVal(frames.x);
+    const y = getVal(frames.y);
+    if (x !== undefined || y !== undefined) {
+      frame['translate'] = `${x ?? 0}px ${y ?? 0}px`;
     }
+
+    const scale = getVal(frames.scale);
+    if (scale !== undefined) {
+      frame['scale'] = `${scale}`;
+    } else {
+      const scaleX = getVal(frames.scaleX);
+      const scaleY = getVal(frames.scaleY);
+      if (scaleX !== undefined || scaleY !== undefined) {
+        frame['scale'] = `${scaleX ?? 1} ${scaleY ?? 1}`;
+      }
+    }
+
+    const rotate = getVal(frames.rotate);
+    if (rotate !== undefined) {
+      frame['rotate'] = `${rotate}deg`;
+    }
+
+    // 3D rotations for rotateX and rotateY via CSS rotate and transform perspective if needed
+    const rotateX = getVal(frames.rotateX);
+    const rotateY = getVal(frames.rotateY);
+    if (rotateX !== undefined || rotateY !== undefined) {
+      frame['transform'] = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
+    }
+
+    return frame;
   }
 }

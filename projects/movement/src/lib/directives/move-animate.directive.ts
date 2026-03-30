@@ -10,7 +10,6 @@ import {
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
-  createLeaveClone,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -18,11 +17,12 @@ import {
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
+import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 @Directive({
   selector: '[move],[moveAnimate]',
 })
-export class MoveAnimateDirective implements OnDestroy, OnInit {
+export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly move = input<MovePreset | MoveKeyframes | undefined>(undefined);
   readonly moveAnimate = input<MovePreset | MoveKeyframes | undefined>(undefined);
   readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
@@ -37,6 +37,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit {
   private readonly host = inject(ElementRef<HTMLElement>);
   private readonly engine = inject(AnimationEngine);
   private readonly stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+  private readonly presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
 
   private config = this.defaults;
   private enterPlayer: AnimationControls | null = null;
@@ -44,6 +45,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit {
 
   ngOnInit(): void {
     this.stagger?.register(this.host.nativeElement);
+    this.presence?.register(this);
 
     Promise.resolve().then(() => {
       const staggerDelay = this.stagger?.getDelay(this.host.nativeElement) ?? 0;
@@ -74,28 +76,29 @@ export class MoveAnimateDirective implements OnDestroy, OnInit {
 
   ngOnDestroy(): void {
     this.stagger?.unregister(this.host.nativeElement);
+    this.presence?.unregister(this);
     this.enterPlayer?.cancel();
     this.leavePlayer?.cancel();
+  }
 
+  playLeave(): Promise<void> {
     if (this.config.disabled) {
-      return;
+      return Promise.resolve();
     }
 
-    const cloned = createLeaveClone(this.documentRef, this.host.nativeElement);
-    if (!cloned) {
-      return;
-    }
+    this.enterPlayer?.cancel();
 
     this.leavePlayer = this.engine.play(
-      cloned,
+      this.host.nativeElement,
       resolveMoveFrames(this.resolveLeaveInput(), 'leave'),
       {
         config: this.config,
         spring: this.moveSpring(),
-        disabled: false,
-        onDone: () => cloned.remove()
+        disabled: false
       }
     );
+
+    return this.leavePlayer?.finished ?? Promise.resolve();
   }
 
   private resolveEnterInput(): MovePreset | MoveKeyframes {
