@@ -13,7 +13,10 @@
     "cf:login": "pnpm exec wrangler login",
     "cf:whoami": "pnpm exec wrangler whoami",
     "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/angular-movement/browser --project-name angular-movement",
-    "deploy": "pnpm run deploy:cloudflare"
+    "deploy": "pnpm run deploy:cloudflare",
+    "lint": "ng lint",
+    "prepare": "husky",
+    "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },
   "private": true,
   "packageManager": "pnpm@10.30.1",
@@ -30,19 +33,41 @@
     "tslib": "^2.3.0"
   },
   "devDependencies": {
+    "@angular-eslint/builder": "21.3.1",
     "@angular/build": "^21.2.1",
     "@angular/cli": "^21.2.1",
     "@angular/compiler-cli": "^21.2.0",
+    "@commitlint/cli": "^20.5.0",
+    "@commitlint/config-conventional": "^20.5.0",
+    "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@tailwindcss/postcss": "^4.1.12",
-    "@vitest/coverage-v8": "^4.0.18",
-    "jsdom": "^28.0.0",
+    "@types/jasmine": "^6.0.0",
+    "angular-eslint": "21.3.1",
+    "eslint": "^10.0.3",
+    "husky": "^9.1.7",
+    "jasmine-core": "^6.1.0",
+    "lint-staged": "^16.4.0",
     "ng-packagr": "^21.2.0",
     "postcss": "^8.5.3",
     "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
     "tailwindcss": "^4.1.12",
     "typescript": "~5.9.2",
-    "vitest": "^4.0.8",
+    "typescript-eslint": "8.56.1",
     "wrangler": "^4.72.0"
+  },
+  "lint-staged": {
+    "*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.html": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.{css,scss,less,md,json}": [
+      "prettier --write"
+    ]
   }
 }

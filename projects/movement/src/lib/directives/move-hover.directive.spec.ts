@@ -3,10 +3,12 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { MoveHoverDirective } from './move-hover.directive';
 import { provideMovement } from '../providers/provide-movement';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
 
 @Component({
   template: `<div [moveWhileHover]="{ scale: [1, 1.1] }">Hover Me</div>`,
-  imports: [MoveHoverDirective]
+  imports: [MoveHoverDirective],
 })
 class TestHostComponent {}
 
@@ -17,7 +19,7 @@ describe('MoveHoverDirective', () => {
   beforeEach(() => {
     TestBed.configureTestingModule({
       imports: [TestHostComponent],
-      providers: [provideMovement()]
+      providers: [provideMovement()],
     });
     fixture = TestBed.createComponent(TestHostComponent);
     fixture.detectChanges();
@@ -29,17 +31,17 @@ describe('MoveHoverDirective', () => {
   });
 
   it('should handle enter and leave events natively through host bindings', () => {
-    const directiveInstance = debugElement.injector.get(MoveHoverDirective);
-    
-    // Default state
-    expect((directiveInstance as any).isHovered).toBe(false);
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = spyOn(engine, 'play').and.returnValue(null as unknown as AnimationControls);
 
     // Simulate mouseenter native host binding
     debugElement.triggerEventHandler('mouseenter', null);
-    expect((directiveInstance as any).isHovered).toBe(true);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    playSpy.calls.reset();
 
     // Simulate mouseleave
     debugElement.triggerEventHandler('mouseleave', null);
-    expect((directiveInstance as any).isHovered).toBe(false);
+    expect(playSpy).toHaveBeenCalledTimes(1);
   });
 });

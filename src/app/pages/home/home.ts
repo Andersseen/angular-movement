@@ -19,4 +19,4 @@ import { Install } from './sections/install/install';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Home {}
+export default class Home {}

@@ -16,21 +16,21 @@ export interface PlayAnimationOptions {
 
 @Injectable({ providedIn: 'root' })
 export class AnimationEngine {
-  private platformId = inject(PLATFORM_ID);
-  private defaults = inject(MOVEMENT_CONFIG);
+  #platformId = inject(PLATFORM_ID);
+  #defaults = inject(MOVEMENT_CONFIG);
 
   play(
     host: HTMLElement,
     frames: MoveKeyframes,
-    options: PlayAnimationOptions = {}
+    options: PlayAnimationOptions = {},
   ): AnimationControls | null {
-    if (!isPlatformBrowser(this.platformId)) {
+    if (!isPlatformBrowser(this.#platformId)) {
       options.onDone?.();
       return null;
     }
 
     if (options.disabled) {
-      this.applyFinalStyles(host, frames);
+      this.#applyFinalStyles(host, frames);
       options.onDone?.();
       return null;
     }
@@ -40,11 +40,11 @@ export class AnimationEngine {
         host,
         frames,
         options.spring,
-        options.delay ?? this.defaults.delay,
-        options.onDone
+        options.delay ?? this.#defaults.delay,
+        options.onDone,
       );
     } else {
-      const config = options.config ?? this.defaults;
+      const config = options.config ?? this.#defaults;
       return new WaapiPlayer(
         host,
         frames,
@@ -52,14 +52,14 @@ export class AnimationEngine {
           duration: config.duration,
           easing: config.easing,
           delay: options.delay ?? config.delay,
-          disabled: false
+          disabled: false,
         },
-        options.onDone
+        options.onDone,
       );
     }
   }
 
-  private applyFinalStyles(host: HTMLElement, frames: MoveKeyframes) {
+  #applyFinalStyles(host: HTMLElement, frames: MoveKeyframes) {
     const getFinal = (arr: readonly number[] | undefined) => {
       if (!arr || arr.length === 0) return undefined;
       return arr[arr.length - 1];

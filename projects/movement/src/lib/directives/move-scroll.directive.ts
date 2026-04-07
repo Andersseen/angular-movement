@@ -15,53 +15,53 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   readonly progress = signal(0);
 
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly platformId = inject(PLATFORM_ID);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly engine = inject(AnimationEngine);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #platformId = inject(PLATFORM_ID);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
 
-  private player: AnimationControls | null = null;
-  private observer: IntersectionObserver | null = null;
-  private scrollListener = () => this.updateProgress();
+  #player: AnimationControls | null = null;
+  #observer: IntersectionObserver | null = null;
+  #scrollListener = () => this.updateProgress();
 
   ngOnInit() {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.#platformId)) return;
 
-    const view = this.documentRef.defaultView;
+    const view = this.#documentRef.defaultView;
     if (!view) return;
 
     const frames = this.moveScroll();
     if (frames) {
-      this.player = this.engine.play(this.host.nativeElement, frames, {
+      this.#player = this.#engine.play(this.#host.nativeElement, frames, {
         config: { duration: 1000, delay: 0, easing: 'linear', disabled: false },
       });
-      this.player?.pause();
-      if (this.player) {
-        this.player.currentTime = 0;
+      this.#player?.pause();
+      if (this.#player) {
+        this.#player.currentTime = 0;
       }
     }
 
-    this.observer = new IntersectionObserver(
+    this.#observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting) {
-          view.addEventListener('scroll', this.scrollListener, { passive: true });
+          view.addEventListener('scroll', this.#scrollListener, { passive: true });
           this.updateProgress();
         } else {
-          view.removeEventListener('scroll', this.scrollListener);
+          view.removeEventListener('scroll', this.#scrollListener);
         }
       },
-      { root: null }
+      { root: null },
     );
 
-    this.observer.observe(this.host.nativeElement);
+    this.#observer.observe(this.#host.nativeElement);
   }
 
   private updateProgress() {
-    const view = this.documentRef.defaultView;
+    const view = this.#documentRef.defaultView;
     if (!view) return;
 
-    const el = this.host.nativeElement;
+    const el = this.#host.nativeElement;
     const rect = el.getBoundingClientRect();
     const windowHeight = view.innerHeight;
 
@@ -77,8 +77,8 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
     this.progress.set(p);
 
-    if (this.player) {
-      this.player.currentTime = p * 1000;
+    if (this.#player) {
+      this.#player.currentTime = p * 1000;
     }
   }
 
@@ -91,9 +91,8 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.player?.cancel();
-    this.documentRef.defaultView?.removeEventListener('scroll', this.scrollListener);
-    this.observer?.disconnect();
+    this.#player?.cancel();
+    this.#documentRef.defaultView?.removeEventListener('scroll', this.#scrollListener);
+    this.#observer?.disconnect();
   }
 }
-

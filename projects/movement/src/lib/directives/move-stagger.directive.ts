@@ -17,20 +17,20 @@ export class MoveStaggerDirective implements MoveStaggerProvider {
   readonly moveStagger = input.required<number | MoveSpring>();
   readonly moveStaggerDirection = input<MoveStaggerDirection>('first');
 
-  private children = new Set<HTMLElement>();
+  #children = new Set<HTMLElement>();
 
   register(el: HTMLElement): void {
-    this.children.add(el);
+    this.#children.add(el);
   }
 
   unregister(el: HTMLElement): void {
-    this.children.delete(el);
+    this.#children.delete(el);
   }
 
   getDelay(el: HTMLElement): number {
-    if (!this.children.has(el)) return 0;
+    if (!this.#children.has(el)) return 0;
 
-    const list = Array.from(this.children).sort((a, b) => {
+    const list = Array.from(this.#children).sort((a, b) => {
       // Unreliable on detached elements, but they are in DOM when sorting
       const pos = a.compareDocumentPosition(b);
       return pos & Node.DOCUMENT_POSITION_PRECEDING ? 1 : -1;

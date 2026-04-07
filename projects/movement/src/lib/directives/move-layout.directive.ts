@@ -1,13 +1,5 @@
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  afterEveryRender,
-  NgZone,
-} from '@angular/core';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Directive, ElementRef, inject, input, OnDestroy, afterEveryRender } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
@@ -26,38 +18,37 @@ export class MoveLayoutDirective implements OnDestroy {
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
-  private readonly defaults = inject(MOVEMENT_CONFIG);
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly engine = inject(AnimationEngine);
-  private readonly ngZone = inject(NgZone);
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
 
-  private snapshot: DOMRect | null = null;
-  private currentPlayer: AnimationControls | null = null;
-  private isReducedMotion = false;
-  private isAnimating = false;
+  #snapshot: DOMRect | null = null;
+  #currentPlayer: AnimationControls | null = null;
+  #isReducedMotion = false;
+  #isAnimating = false;
 
   constructor() {
-    this.isReducedMotion = prefersReducedMotion(this.documentRef);
+    this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
 
     afterEveryRender({
       earlyRead: () => {
         if (
           this.moveLayout() === false ||
           this.moveDisabled() ||
-          this.isReducedMotion ||
-          this.isAnimating
+          this.#isReducedMotion ||
+          this.#isAnimating
         ) {
           return null;
         }
 
-        const currentRect = this.host.nativeElement.getBoundingClientRect();
+        const currentRect = this.#host.nativeElement.getBoundingClientRect();
 
-        if (this.snapshot) {
-          const dx = this.snapshot.left - currentRect.left;
-          const dy = this.snapshot.top - currentRect.top;
-          const dw = this.snapshot.width / currentRect.width;
-          const dh = this.snapshot.height / currentRect.height;
+        if (this.#snapshot) {
+          const dx = this.#snapshot.left - currentRect.left;
+          const dy = this.#snapshot.top - currentRect.top;
+          const dw = this.#snapshot.width / currentRect.width;
+          const dh = this.#snapshot.height / currentRect.height;
 
           if (
             Math.abs(dx) > 0.5 ||
@@ -75,7 +66,7 @@ export class MoveLayoutDirective implements OnDestroy {
           }
         }
 
-        this.snapshot = currentRect;
+        this.#snapshot = currentRect;
         return null;
       },
       write: (
@@ -95,27 +86,27 @@ export class MoveLayoutDirective implements OnDestroy {
     dh: number;
     targetRect: DOMRect;
   }) {
-    this.isAnimating = true;
+    this.#isAnimating = true;
 
     // The host is currently visually at its NEW position (unpainted).
     // We apply the inverse transform to make it LOOK like it's at the OLD position.
     // We apply transform origin 0 0 so scaling works correctly from top-left.
-    const transformOrigin = this.host.nativeElement.style.transformOrigin;
-    this.host.nativeElement.style.transformOrigin = '0 0';
+    const transformOrigin = this.#host.nativeElement.style.transformOrigin;
+    this.#host.nativeElement.style.transformOrigin = '0 0';
 
     const config = resolveMovementConfig(
-      this.defaults,
+      this.#defaults,
       {
         duration: this.moveDuration(),
         easing: this.moveEasing(),
         delay: this.moveDelay(),
         disabled: this.moveDisabled(),
       },
-      this.isReducedMotion,
+      this.#isReducedMotion,
     );
 
-    this.currentPlayer = this.engine.play(
-      this.host.nativeElement,
+    this.#currentPlayer = this.#engine.play(
+      this.#host.nativeElement,
       {
         x: [flipData.dx, 0],
         y: [flipData.dy, 0],
@@ -127,16 +118,16 @@ export class MoveLayoutDirective implements OnDestroy {
         spring: this.moveSpring(),
         disabled: false,
         onDone: () => {
-          this.isAnimating = false;
-          this.host.nativeElement.style.transformOrigin = transformOrigin;
+          this.#isAnimating = false;
+          this.#host.nativeElement.style.transformOrigin = transformOrigin;
           // Take final snapshot so next check is fresh
-          this.snapshot = this.host.nativeElement.getBoundingClientRect();
+          this.#snapshot = this.#host.nativeElement.getBoundingClientRect();
         },
       },
     );
   }
 
   ngOnDestroy(): void {
-    this.currentPlayer?.cancel();
+    this.#currentPlayer?.cancel();
   }
 }

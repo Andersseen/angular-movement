@@ -21,7 +21,9 @@ export interface MoveVariantsProvider {
   activeVariant: () => string | undefined;
 }
 
-export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>('MOVE_VARIANTS_PARENT');
+export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
+  'MOVE_VARIANTS_PARENT',
+);
 
 @Directive({
   selector: '[moveVariants]',
@@ -42,23 +44,23 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
-  private readonly parent = inject(MOVE_VARIANTS_PARENT, { optional: true, skipSelf: true });
-  private readonly engine = inject(AnimationEngine);
-  private readonly defaults = inject(MOVEMENT_CONFIG);
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+  readonly #parent = inject(MOVE_VARIANTS_PARENT, { optional: true, skipSelf: true });
+  readonly #engine = inject(AnimationEngine);
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
 
-  private currentPlayer: AnimationControls | null = null;
-  private isReducedMotion = false;
+  #currentPlayer: AnimationControls | null = null;
+  #isReducedMotion = false;
 
   readonly activeVariant = computed(() => {
-    return this.moveAnimate() ?? this.parent?.activeVariant();
+    return this.moveAnimate() ?? this.#parent?.activeVariant();
   });
 
   constructor() {
-    this.isReducedMotion = prefersReducedMotion(this.documentRef);
-    this.stagger?.register(this.host.nativeElement);
+    this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
+    this.#stagger?.register(this.#host.nativeElement);
 
     effect(() => {
       const variantName = this.activeVariant();
@@ -70,38 +72,34 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
       const state = variants[variantName];
       if (!state) return;
 
-      this.currentPlayer?.cancel();
+      this.#currentPlayer?.cancel();
 
       const { spring, duration, easing, delay, ...keyframesMap } = state;
       const keyframes = keyframesMap as MoveKeyframes;
 
-      const staggerDelay = this.stagger?.getDelay(this.host.nativeElement) ?? 0;
+      const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
 
       const config = resolveMovementConfig(
-        this.defaults,
+        this.#defaults,
         {
           duration: duration ?? this.moveDuration(),
           easing: easing ?? this.moveEasing(),
           delay: (delay ?? this.moveDelay() ?? 0) + staggerDelay,
           disabled: this.moveDisabled(),
         },
-        this.isReducedMotion,
+        this.#isReducedMotion,
       );
 
-      this.currentPlayer = this.engine.play(
-        this.host.nativeElement,
-        keyframes,
-        {
-          config,
-          spring: spring ?? this.moveSpring(),
-          disabled: config.disabled,
-        }
-      );
+      this.#currentPlayer = this.#engine.play(this.#host.nativeElement, keyframes, {
+        config,
+        spring: spring ?? this.moveSpring(),
+        disabled: config.disabled,
+      });
     });
   }
 
   ngOnDestroy(): void {
-    this.stagger?.unregister(this.host.nativeElement);
-    this.currentPlayer?.cancel();
+    this.#stagger?.unregister(this.#host.nativeElement);
+    this.#currentPlayer?.cancel();
   }
 }

@@ -3,71 +3,71 @@ import { MoveKeyframes } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
 
 export class WaapiPlayer implements AnimationControls {
-  private animation: Animation | null = null;
-  private resolveFinished!: () => void;
+  #animation: Animation | null = null;
+  #resolveFinished!: () => void;
   public readonly finished = new Promise<void>((resolve) => {
-    this.resolveFinished = resolve;
+    this.#resolveFinished = resolve;
   });
 
   constructor(
     host: HTMLElement,
     frames: MoveKeyframes,
     config: MovementConfig,
-    onDone?: () => void
+    onDone?: () => void,
   ) {
     if (typeof host.animate !== 'function') {
-      this.resolveFinished();
+      this.#resolveFinished();
       onDone?.();
       return;
     }
 
-    const keyframes = this.toWAAPIKeyframes(frames);
+    const keyframes = this.#toWAAPIKeyframes(frames);
 
-    this.animation = host.animate(keyframes, {
+    this.#animation = host.animate(keyframes, {
       duration: config.duration,
       easing: config.easing,
       delay: config.delay,
       fill: 'both',
     });
 
-    this.animation.addEventListener(
+    this.#animation.addEventListener(
       'finish',
       () => {
-        this.animation?.commitStyles?.();
-        this.animation?.cancel();
-        this.resolveFinished();
+        this.#animation?.commitStyles?.();
+        this.#animation?.cancel();
+        this.#resolveFinished();
         onDone?.();
       },
-      { once: true }
+      { once: true },
     );
   }
 
   play(): void {
-    this.animation?.play();
+    this.#animation?.play();
   }
 
   pause(): void {
-    this.animation?.pause();
+    this.#animation?.pause();
   }
 
   cancel(): void {
-    if (this.animation?.playState !== 'idle') {
-      this.animation?.cancel();
+    if (this.#animation?.playState !== 'idle') {
+      this.#animation?.cancel();
     }
-    this.resolveFinished();
+    this.#resolveFinished();
   }
 
   get currentTime(): number {
-    return (this.animation?.currentTime as number) ?? 0;
+    return (this.#animation?.currentTime as number) ?? 0;
   }
 
   set currentTime(time: number) {
-    if (this.animation) {
-      this.animation.currentTime = time;
+    if (this.#animation) {
+      this.#animation.currentTime = time;
     }
   }
 
-  private toWAAPIKeyframes(frames: MoveKeyframes): Keyframe[] {
+  #toWAAPIKeyframes(frames: MoveKeyframes): Keyframe[] {
     let maxLength = 0;
     for (const key in frames) {
       const arr = frames[key as keyof MoveKeyframes];
@@ -118,7 +118,8 @@ export class WaapiPlayer implements AnimationControls {
       const rotateX = getVal(frames.rotateX);
       const rotateY = getVal(frames.rotateY);
       if (rotateX !== undefined || rotateY !== undefined) {
-        frame['transform'] = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
+        frame['transform'] =
+          `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
       }
 
       keyframes.push(frame);

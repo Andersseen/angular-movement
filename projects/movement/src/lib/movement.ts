@@ -9,6 +9,9 @@ import { MoveLayoutDirective } from './directives/move-layout.directive';
 import { MoveScrollDirective } from './directives/move-scroll.directive';
 import { MovePresenceDirective } from './directives/move-presence.directive';
 import { MoveDragDirective } from './directives/move-drag.directive';
+import { MoveInViewDirective } from './directives/move-in-view.directive';
+import { MoveTextDirective } from './directives/move-text.directive';
+import { MoveSmoothScrollDirective } from './scroll/move-smooth-scroll.directive';
 
 export const MOVEMENT_DIRECTIVES = [
   MoveEnterDirective,
@@ -22,6 +25,9 @@ export const MOVEMENT_DIRECTIVES = [
   MoveScrollDirective,
   MovePresenceDirective,
   MoveDragDirective,
+  MoveInViewDirective,
+  MoveTextDirective,
+  MoveSmoothScrollDirective,
 ] as const;
 
 export * from './directives/move-animate.directive';
@@ -35,6 +41,10 @@ export * from './directives/move-layout.directive';
 export * from './directives/move-scroll.directive';
 export * from './directives/move-presence.directive';
 export * from './directives/move-drag.directive';
+export * from './directives/move-in-view.directive';
+export * from './directives/move-text.directive';
+export * from './scroll/smooth-scroll.service';
+export * from './scroll/move-smooth-scroll.directive';
 export * from './engines/animation-controls';
 export * from './engines/animation-engine.service';
 export * from './engines/spring-player';
