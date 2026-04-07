@@ -12,5 +12,5 @@ export const routes: Routes = [
       { path: 'get-started', loadComponent: () => import('./pages/docs/pages/get-started/get-started').then(m => m.GetStarted) },
     ]
   },
-  { path: '**', redirectTo: '' }
+  { path: '**', loadComponent: () => import('./pages/not-found/not-found').then(m => m.NotFound) }
 ];
