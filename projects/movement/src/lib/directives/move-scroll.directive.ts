@@ -51,7 +51,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
           view.removeEventListener('scroll', this.#scrollListener);
         }
       },
-      { root: null }
+      { root: null },
     );
 
     this.#observer.observe(this.#host.nativeElement);
@@ -96,4 +96,3 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
     this.#observer?.disconnect();
   }
 }
-

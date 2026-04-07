@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
 import { FormsModule } from '@angular/forms';
 
@@ -7,30 +7,30 @@ import { FormsModule } from '@angular/forms';
   imports: [...MOVEMENT_DIRECTIVES, FormsModule],
   template: `
     <div
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 min-h-[calc(100vh-theme('spacing.64'))]"
+      class="mx-auto min-h-[calc(100vh-theme('spacing.64'))] max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
     >
       <div class="mb-12">
-        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-text mb-4">
+        <h1 class="font-display text-text mb-4 text-4xl font-bold tracking-tight md:text-5xl">
           Interactive Playground
         </h1>
-        <p class="text-lg text-text-muted max-w-2xl">
+        <p class="text-text-muted max-w-2xl text-lg">
           Tweak the settings below to see how Angular Movement directs elements in and out of the
           DOM. The generated code updates in real-time.
         </p>
       </div>
 
-      <div class="flex flex-col lg:flex-row gap-8 lg:gap-12 items-start">
+      <div class="flex flex-col items-start gap-8 lg:flex-row lg:gap-12">
         <!-- Left Panel: Controls (40%) -->
         <div
-          class="w-full lg:w-[40%] bg-surface border border-border rounded-2xl p-6 md:p-8 shrink-0 shadow-sm"
+          class="bg-surface border-border w-full shrink-0 rounded-2xl border p-6 shadow-sm md:p-8 lg:w-[40%]"
         >
-          <div class="flex items-center justify-between mb-8">
-            <h3 class="font-display text-xl font-semibold text-text">Configuration</h3>
+          <div class="mb-8 flex items-center justify-between">
+            <h3 class="font-display text-text text-xl font-semibold">Configuration</h3>
             <button
-              class="text-sm font-medium text-accent hover:text-accent-light transition-colors flex items-center gap-1 bg-accent/10 px-3 py-1.5 rounded-full"
+              class="text-accent hover:text-accent-light bg-accent/10 flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
               (click)="replay()"
             >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
                   stroke-linecap="round"
                   stroke-linejoin="round"
@@ -45,15 +45,18 @@ import { FormsModule } from '@angular/forms';
           <div class="space-y-8">
             <!-- Preset Selector -->
             <div>
-              <div class="flex justify-between items-end mb-2">
-                <label class="block text-sm font-medium text-text-muted">Preset</label>
-                <span class="text-xs text-text-subtle font-mono">{{ preset() }}</span>
+              <div class="mb-2 flex items-end justify-between">
+                <label for="preset-select" class="text-text-muted block text-sm font-medium"
+                  >Preset</label
+                >
+                <span class="text-text-subtle font-mono text-xs">{{ preset() }}</span>
               </div>
               <div class="relative">
                 <select
+                  id="preset-select"
                   [ngModel]="preset()"
                   (ngModelChange)="setPreset($event)"
-                  class="block w-full appearance-none bg-bg border border-border text-text rounded-xl pl-4 pr-10 py-3 text-sm focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent transition-shadow"
+                  class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full appearance-none rounded-xl border py-3 pr-10 pl-4 text-sm transition-shadow focus:ring-1 focus:outline-none"
                 >
                   <optgroup label="Fade">
                     <option value="fade-up">fade-up</option>
@@ -78,7 +81,7 @@ import { FormsModule } from '@angular/forms';
                   </optgroup>
                 </select>
                 <div
-                  class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-4 text-text-subtle"
+                  class="text-text-subtle pointer-events-none absolute inset-y-0 right-0 flex items-center px-4"
                 >
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path
@@ -94,20 +97,23 @@ import { FormsModule } from '@angular/forms';
 
             <!-- Duration Slider -->
             <div>
-              <div class="flex justify-between items-end mb-2">
-                <label class="block text-sm font-medium text-text-muted">Duration</label>
-                <span class="text-xs text-text-subtle font-mono">{{ duration() }}ms</span>
+              <div class="mb-2 flex items-end justify-between">
+                <label for="duration-range" class="text-text-muted block text-sm font-medium"
+                  >Duration</label
+                >
+                <span class="text-text-subtle font-mono text-xs">{{ duration() }}ms</span>
               </div>
               <input
+                id="duration-range"
                 type="range"
                 min="100"
                 max="2000"
                 step="50"
                 [ngModel]="duration()"
                 (ngModelChange)="duration.set($event); replay()"
-                class="w-full h-2 bg-surface-raised rounded-lg appearance-none cursor-pointer accent-accent"
+                class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
               />
-              <div class="flex justify-between text-xs text-text-subtle mt-1 px-1">
+              <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
                 <span>100ms</span>
                 <span>2000ms</span>
               </div>
@@ -115,20 +121,23 @@ import { FormsModule } from '@angular/forms';
 
             <!-- Delay Slider -->
             <div>
-              <div class="flex justify-between items-end mb-2">
-                <label class="block text-sm font-medium text-text-muted">Delay</label>
-                <span class="text-xs text-text-subtle font-mono">{{ delay() }}ms</span>
+              <div class="mb-2 flex items-end justify-between">
+                <label for="delay-range" class="text-text-muted block text-sm font-medium"
+                  >Delay</label
+                >
+                <span class="text-text-subtle font-mono text-xs">{{ delay() }}ms</span>
               </div>
               <input
+                id="delay-range"
                 type="range"
                 min="0"
                 max="1000"
                 step="50"
                 [ngModel]="delay()"
                 (ngModelChange)="delay.set($event); replay()"
-                class="w-full h-2 bg-surface-raised rounded-lg appearance-none cursor-pointer accent-accent"
+                class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
               />
-              <div class="flex justify-between text-xs text-text-subtle mt-1 px-1">
+              <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
                 <span>0ms</span>
                 <span>1000ms</span>
               </div>
@@ -136,9 +145,9 @@ import { FormsModule } from '@angular/forms';
 
             <!-- Easing Selector -->
             <div>
-              <div class="flex justify-between items-end mb-2">
-                <label class="block text-sm font-medium text-text-muted">Easing</label>
-                <span class="text-xs text-text-subtle font-mono">{{ easing() }}</span>
+              <div class="mb-2 flex items-end justify-between">
+                <span class="text-text-muted block text-sm font-medium">Easing</span>
+                <span class="text-text-subtle font-mono text-xs">{{ easing() }}</span>
               </div>
               <div class="grid grid-cols-2 gap-2">
                 @for (ease of ['ease', 'ease-in', 'ease-out', 'ease-in-out']; track ease) {
@@ -146,10 +155,10 @@ import { FormsModule } from '@angular/forms';
                     (click)="easing.set(ease); replay()"
                     [class]="
                       easing() === ease
-                        ? 'bg-accent text-white border-accent'
+                        ? 'bg-accent border-accent text-white'
                         : 'bg-bg text-text-muted border-border hover:border-accent/50'
                     "
-                    class="py-2 text-sm rounded-lg border transition-all text-center"
+                    class="rounded-lg border py-2 text-center text-sm transition-all"
                   >
                     {{ ease }}
                   </button>
@@ -160,24 +169,24 @@ import { FormsModule } from '@angular/forms';
         </div>
 
         <!-- Right Panel: Preview & Code (60%) -->
-        <div class="w-full lg:w-[60%] flex flex-col gap-6">
+        <div class="flex w-full flex-col gap-6 lg:w-[60%]">
           <!-- Live Preview Area -->
           <div
-            class="bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PjE8RXxKYIsIymIagGgYKAAAACv0E/7zZ9k0AAAAASUVORK5CYII=')] bg-repeat border border-border rounded-2xl h-[320px] flex items-center justify-center relative overflow-hidden group"
+            class="border-border group relative flex h-[320px] items-center justify-center overflow-hidden rounded-2xl border bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PjE8RXxKYIsIymIagGgYKAAAACv0E/7zZ9k0AAAAASUVORK5CYII=')] bg-repeat"
           >
-            <div class="absolute inset-0 bg-bg/80 backdrop-blur-[1px] z-0"></div>
+            <div class="bg-bg/80 absolute inset-0 z-0 backdrop-blur-[1px]"></div>
 
-            <div class="relative z-10 w-full h-full flex items-center justify-center p-8">
+            <div class="relative z-10 flex h-full w-full items-center justify-center p-8">
               @if (showDemo()) {
                 <div
                   [moveEnter]="preset()"
                   [moveDuration]="duration()"
                   [moveDelay]="delay()"
                   [moveEasing]="easing()"
-                  class="bg-surface border border-accent/40 shadow-[0_0_30px_var(--color-accent-glow)] rounded-xl p-8 flex flex-col items-center justify-center min-w-[240px] gap-4"
+                  class="bg-surface border-accent/40 flex min-w-[240px] flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)]"
                 >
-                  <div class="w-16 h-16 rounded-full bg-accent/20 flex items-center justify-center">
-                    <svg class="h-8 w-8 text-accent" viewBox="0 0 100 100" fill="none">
+                  <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
+                    <svg class="text-accent h-8 w-8" viewBox="0 0 100 100" fill="none">
                       <path
                         d="M 25 20 L 50 50 L 25 80 L 45 80 L 70 50 L 45 20 Z"
                         fill="currentColor"
@@ -189,32 +198,32 @@ import { FormsModule } from '@angular/forms';
                       />
                     </svg>
                   </div>
-                  <div class="text-xl font-display font-bold text-text">Target Element</div>
-                  <div class="h-2 w-24 bg-surface-raised rounded-full"></div>
+                  <div class="font-display text-text text-xl font-bold">Target Element</div>
+                  <div class="bg-surface-raised h-2 w-24 rounded-full"></div>
                 </div>
               }
             </div>
 
-            <div class="absolute bottom-4 right-4 z-20">
+            <div class="absolute right-4 bottom-4 z-20">
               <span
-                class="text-xs font-mono text-text-subtle bg-bg/80 backdrop-blur px-2 py-1 rounded border border-border"
+                class="text-text-subtle bg-bg/80 border-border rounded border px-2 py-1 font-mono text-xs backdrop-blur"
                 >Preview Area</span
               >
             </div>
           </div>
 
           <!-- Generated Code Snippet -->
-          <div class="relative bg-code-bg rounded-2xl border border-border overflow-hidden">
+          <div class="bg-code-bg border-border relative overflow-hidden rounded-2xl border">
             <div
-              class="absolute top-0 left-0 right-0 h-10 border-b border-border bg-surface flex items-center px-4 justify-between z-20"
+              class="border-border bg-surface absolute top-0 right-0 left-0 z-20 flex h-10 items-center justify-between border-b px-4"
             >
-              <div class="text-xs font-mono text-text-subtle">HTML Output</div>
+              <div class="text-text-subtle font-mono text-xs">HTML Output</div>
               <button
                 type="button"
-                class="text-xs font-medium text-text-muted hover:text-text transition-colors flex items-center gap-1"
+                class="text-text-muted hover:text-text flex items-center gap-1 text-xs font-medium transition-colors"
                 (click)="copyCode()"
               >
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path
                     stroke-linecap="round"
                     stroke-linejoin="round"
@@ -226,9 +235,9 @@ import { FormsModule } from '@angular/forms';
               </button>
             </div>
 
-            <div class="pt-14 p-6 overflow-x-auto relative">
+            <div class="relative overflow-x-auto p-6 pt-14">
               <pre
-                class="text-sm font-mono leading-relaxed"
+                class="font-mono text-sm leading-relaxed"
               ><code class="text-text">&lt;<span class="code-keyword">div</span>
   <span class="code-attr">moveEnter</span>=<span class="code-string">"{{ preset() }}"</span><span [class.hidden]="duration() === 300">
   <span class="code-attr">moveDuration</span>=<span class="code-string">"{{ duration() }}"</span></span><span [class.hidden]="delay() === 0">
@@ -242,11 +251,11 @@ import { FormsModule } from '@angular/forms';
       </div>
 
       <!-- Preset Gallery Footer -->
-      <div class="mt-24 border-t border-border pt-16">
-        <h3 class="font-display text-2xl font-bold tracking-tight text-text mb-8 text-center">
+      <div class="border-border mt-24 border-t pt-16">
+        <h3 class="font-display text-text mb-8 text-center text-2xl font-bold tracking-tight">
           Available Presets
         </h3>
-        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+        <div class="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
           @for (p of allPresets; track p) {
             <button
               (click)="setPreset(p)"
@@ -255,10 +264,10 @@ import { FormsModule } from '@angular/forms';
                   ? 'border-accent bg-accent/5'
                   : 'border-border bg-surface hover:border-accent/40 hover:bg-surface-raised'
               "
-              class="px-4 py-4 rounded-xl border transition-all text-center group"
+              class="group rounded-xl border px-4 py-4 text-center transition-all"
             >
               <code
-                class="text-sm font-mono transition-colors"
+                class="font-mono text-sm transition-colors"
                 [class]="preset() === p ? 'text-accent' : 'text-text-muted group-hover:text-text'"
                 >{{ p }}</code
               >

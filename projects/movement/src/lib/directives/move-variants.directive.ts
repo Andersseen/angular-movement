@@ -21,7 +21,9 @@ export interface MoveVariantsProvider {
   activeVariant: () => string | undefined;
 }
 
-export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>('MOVE_VARIANTS_PARENT');
+export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
+  'MOVE_VARIANTS_PARENT',
+);
 
 @Directive({
   selector: '[moveVariants]',
@@ -88,15 +90,11 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
         this.#isReducedMotion,
       );
 
-      this.#currentPlayer = this.#engine.play(
-        this.#host.nativeElement,
-        keyframes,
-        {
-          config,
-          spring: spring ?? this.moveSpring(),
-          disabled: config.disabled,
-        }
-      );
+      this.#currentPlayer = this.#engine.play(this.#host.nativeElement, keyframes, {
+        config,
+        spring: spring ?? this.moveSpring(),
+        disabled: config.disabled,
+      });
     });
   }
 

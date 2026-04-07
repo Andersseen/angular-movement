@@ -1,12 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -68,8 +61,8 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
         {
           config: this.#config,
           spring: this.moveSpring(),
-          disabled: this.#config.disabled
-        }
+          disabled: this.#config.disabled,
+        },
       );
     });
   }
@@ -94,8 +87,8 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
       {
         config: this.#config,
         spring: this.moveSpring(),
-        disabled: false
-      }
+        disabled: false,
+      },
     );
 
     return this.#leavePlayer?.finished ?? Promise.resolve();

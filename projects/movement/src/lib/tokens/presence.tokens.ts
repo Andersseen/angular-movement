@@ -9,4 +9,6 @@ export interface MovePresenceProvider {
   unregister(child: MovePresenceChild): void;
 }
 
-export const MOVE_PRESENCE_PARENT = new InjectionToken<MovePresenceProvider>('MOVE_PRESENCE_PARENT');
+export const MOVE_PRESENCE_PARENT = new InjectionToken<MovePresenceProvider>(
+  'MOVE_PRESENCE_PARENT',
+);

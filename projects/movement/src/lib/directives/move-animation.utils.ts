@@ -21,7 +21,7 @@ export function resolveMovementConfig(
   if (reducedMotion && typeof ngDevMode !== 'undefined' && ngDevMode) {
     console.warn(
       '[Movement] Animations disabled: prefers-reduced-motion is active. ' +
-      'Disable "Reduce motion" in your OS accessibility settings to see animations.'
+        'Disable "Reduce motion" in your OS accessibility settings to see animations.',
     );
   }
 

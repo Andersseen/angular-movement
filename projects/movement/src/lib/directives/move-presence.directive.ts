@@ -1,5 +1,18 @@
-import { Directive, effect, EmbeddedViewRef, forwardRef, inject, input, TemplateRef, ViewContainerRef } from '@angular/core';
-import { MOVE_PRESENCE_PARENT, MovePresenceChild, MovePresenceProvider } from '../tokens/presence.tokens';
+import {
+  Directive,
+  effect,
+  EmbeddedViewRef,
+  forwardRef,
+  inject,
+  input,
+  TemplateRef,
+  ViewContainerRef,
+} from '@angular/core';
+import {
+  MOVE_PRESENCE_PARENT,
+  MovePresenceChild,
+  MovePresenceProvider,
+} from '../tokens/presence.tokens';
 
 @Directive({
   selector: '[movePresence]',
@@ -49,7 +62,7 @@ export class MovePresenceDirective implements MovePresenceProvider {
   }
 
   private async removeView(): Promise<void> {
-    const promises: Array<Promise<void> | void> = [];
+    const promises: (Promise<void> | void)[] = [];
 
     // Trigger leave on all registered children
     for (const child of this.#children) {

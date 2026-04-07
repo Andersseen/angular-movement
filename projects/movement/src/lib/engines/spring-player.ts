@@ -1,6 +1,5 @@
 import { AnimationControls } from './animation-controls';
 import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
-import { inject } from '@angular/core';
 
 export class SpringPlayer implements AnimationControls {
   #resolveFinished!: () => void;
@@ -15,7 +14,7 @@ export class SpringPlayer implements AnimationControls {
     private readonly frames: MoveKeyframes,
     userConfig: MoveSpring,
     private readonly delay: number,
-    private readonly onDone?: () => void
+    private readonly onDone?: () => void,
   ) {
     if (typeof host.animate !== 'function') {
       this.#resolveFinished();
@@ -28,7 +27,7 @@ export class SpringPlayer implements AnimationControls {
       damping: 10,
       mass: 1,
       velocity: 0,
-      ...userConfig
+      ...userConfig,
     };
 
     const keyframes = this.#generateSpringKeyframes(frames, config);
@@ -39,7 +38,7 @@ export class SpringPlayer implements AnimationControls {
       return;
     }
 
-    // Default duration of the calculated simulation is bound to the arrays output. 
+    // Default duration of the calculated simulation is bound to the arrays output.
     // We run it over that specific time frame, we know exactly the duration by counting ticks * tick duration.
     // Let's assume tick rate is 16.66ms (60fps simulation)
     const duration = keyframes.length * (1000 / 60);
@@ -51,12 +50,16 @@ export class SpringPlayer implements AnimationControls {
       easing: 'linear', // Spring physics already has the easing baked into the frames
     });
 
-    this.#animation.addEventListener('finish', () => {
-      this.#animation?.commitStyles?.();
-      this.#animation?.cancel();
-      this.#resolveFinished();
-      onDone?.();
-    }, { once: true });
+    this.#animation.addEventListener(
+      'finish',
+      () => {
+        this.#animation?.commitStyles?.();
+        this.#animation?.cancel();
+        this.#resolveFinished();
+        onDone?.();
+      },
+      { once: true },
+    );
   }
 
   play(): void {
@@ -92,16 +95,16 @@ export class SpringPlayer implements AnimationControls {
         maxSteps = Math.max(maxSteps, arr.length);
       }
     }
-    
+
     if (maxSteps <= 1) return [];
 
     const keyframes: Keyframe[] = [];
     const dt = 1 / 60; // Simulate at 60fps (16.66ms per tick)
-    
+
     const stiffness = config.stiffness!;
     const damping = config.damping!;
     const mass = config.mass!;
-    
+
     // We will simulate segments between keyframes based on physics
     for (let step = 0; step < maxSteps - 1; step++) {
       let progress = 0;
@@ -112,7 +115,7 @@ export class SpringPlayer implements AnimationControls {
       // Prevent infinite loops safely by bounding iterations
       let iterations = 0;
       const maxIterations = 600; // max 10 seconds per step
-      
+
       while (!isSettled && iterations < maxIterations) {
         // Evaluate frame
         const p = Math.min(Math.max(progress, 0), 1);
@@ -131,11 +134,11 @@ export class SpringPlayer implements AnimationControls {
         }
         iterations++;
       }
-      
+
       // Ensure the final state of the step is exactly 1
       keyframes.push(this.#composeFrame(frames, step, step + 1, 1));
     }
-    
+
     return keyframes;
   }
 
@@ -180,7 +183,8 @@ export class SpringPlayer implements AnimationControls {
     const rotateX = getVal(frames.rotateX);
     const rotateY = getVal(frames.rotateY);
     if (rotateX !== undefined || rotateY !== undefined) {
-      frame['transform'] = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
+      frame['transform'] =
+        `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
     }
 
     return frame;

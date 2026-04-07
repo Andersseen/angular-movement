@@ -7,26 +7,36 @@ import { CodeBlock } from '../../../../shared/components/code-block/code-block';
   imports: [RouterLink, CodeBlock],
   template: `
     <article class="max-w-3xl">
-      <div class="mb-10 pb-10 border-b border-border">
-        <h1 class="font-display text-4xl md:text-5xl font-bold tracking-tight text-text mb-4 relative inline-block">
+      <div class="border-border mb-10 border-b pb-10">
+        <h1
+          class="font-display text-text relative mb-4 inline-block text-4xl font-bold tracking-tight md:text-5xl"
+        >
           Get Started
-          <div class="absolute -bottom-2 left-0 w-1/3 h-1 bg-accent rounded-full"></div>
+          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
-        <p class="text-xl text-text-muted mt-6">
+        <p class="text-text-muted mt-6 text-xl">
           Install the library and set up your application configuration.
         </p>
       </div>
 
-      <div class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-code:text-accent-light prose-code:bg-surface-raised max-w-none">
+      <div
+        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-code:text-accent-light prose-code:bg-surface-raised max-w-none"
+      >
         <h2>1. Installation</h2>
         <p>Install the Angular Movement library using your preferred package manager.</p>
 
         <div class="my-6 h-32">
           <app-code-block title="Terminal" [code]="installCode">
-            <div class="absolute top-2 right-2 flex gap-2 z-30">
-              <button class="text-xs px-2 py-1 bg-surface rounded text-text-muted hover:text-text">npm</button>
-              <button class="text-xs px-2 py-1 rounded text-text-subtle hover:text-text">pnpm</button>
-              <button class="text-xs px-2 py-1 rounded text-text-subtle hover:text-text">yarn</button>
+            <div class="absolute top-2 right-2 z-30 flex gap-2">
+              <button class="bg-surface text-text-muted hover:text-text rounded px-2 py-1 text-xs">
+                npm
+              </button>
+              <button class="text-text-subtle hover:text-text rounded px-2 py-1 text-xs">
+                pnpm
+              </button>
+              <button class="text-text-subtle hover:text-text rounded px-2 py-1 text-xs">
+                yarn
+              </button>
             </div>
           </app-code-block>
         </div>
@@ -51,24 +61,30 @@ import { CodeBlock } from '../../../../shared/components/code-block/code-block';
           <app-code-block title="my.component.ts" [code]="componentCode"></app-code-block>
         </div>
 
-        <p class="mt-8 p-4 bg-accent/5 border border-accent/20 rounded-xl">
+        <p class="bg-accent/5 border-accent/20 mt-8 rounded-xl border p-4">
           <strong>That's it!</strong> No triggers to set up, no state variables to manage. The
           element will animate automatically when initialized by Angular.
         </p>
       </div>
 
-      <div class="mt-16 pt-8 border-t border-border flex justify-between items-center">
-        <a routerLink="/docs/introduction" class="group flex flex-col items-start gap-1 hover:text-accent transition-colors">
-          <span class="text-sm font-medium text-text-subtle">Previous</span>
-          <span class="text-lg font-display font-semibold flex items-center gap-2">
-            <span class="group-hover:-translate-x-1 transition-transform">&larr;</span> Introduction
+      <div class="border-border mt-16 flex items-center justify-between border-t pt-8">
+        <a
+          routerLink="/docs/introduction"
+          class="group hover:text-accent flex flex-col items-start gap-1 transition-colors"
+        >
+          <span class="text-text-subtle text-sm font-medium">Previous</span>
+          <span class="font-display flex items-center gap-2 text-lg font-semibold">
+            <span class="transition-transform group-hover:-translate-x-1">&larr;</span> Introduction
           </span>
         </a>
 
-        <a routerLink="/demos" class="group flex flex-col items-end gap-1 hover:text-accent transition-colors">
-          <span class="text-sm font-medium text-text-subtle">Next</span>
-          <span class="text-lg font-display font-semibold flex items-center gap-2">
-            Try Demos <span class="group-hover:translate-x-1 transition-transform">&rarr;</span>
+        <a
+          routerLink="/demos"
+          class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
+        >
+          <span class="text-text-subtle text-sm font-medium">Next</span>
+          <span class="font-display flex items-center gap-2 text-lg font-semibold">
+            Try Demos <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
           </span>
         </a>
       </div>

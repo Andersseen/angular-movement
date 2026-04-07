@@ -13,7 +13,7 @@ export class WaapiPlayer implements AnimationControls {
     host: HTMLElement,
     frames: MoveKeyframes,
     config: MovementConfig,
-    onDone?: () => void
+    onDone?: () => void,
   ) {
     if (typeof host.animate !== 'function') {
       this.#resolveFinished();
@@ -38,7 +38,7 @@ export class WaapiPlayer implements AnimationControls {
         this.#resolveFinished();
         onDone?.();
       },
-      { once: true }
+      { once: true },
     );
   }
 
@@ -118,7 +118,8 @@ export class WaapiPlayer implements AnimationControls {
       const rotateX = getVal(frames.rotateX);
       const rotateY = getVal(frames.rotateY);
       if (rotateX !== undefined || rotateY !== undefined) {
-        frame['transform'] = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
+        frame['transform'] =
+          `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
       }
 
       keyframes.push(frame);

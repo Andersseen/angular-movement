@@ -1,12 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -60,8 +53,8 @@ export class MoveEnterDirective implements OnDestroy, OnInit {
         {
           config: config,
           spring: this.moveSpring(),
-          disabled: config.disabled
-        }
+          disabled: config.disabled,
+        },
       );
     });
   }

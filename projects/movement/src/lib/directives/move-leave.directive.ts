@@ -1,12 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  OnInit,
-} from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -69,8 +62,8 @@ export class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild 
       {
         config: this.#config,
         spring: this.moveSpring(),
-        disabled: false
-      }
+        disabled: false,
+      },
     );
 
     return this.#player?.finished ?? Promise.resolve();

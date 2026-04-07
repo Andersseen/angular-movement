@@ -6,18 +6,18 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div
-      class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24 min-h-[calc(100vh-theme('spacing.64'))]"
+      class="mx-auto min-h-[calc(100vh-theme('spacing.64'))] max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
     >
-      <div class="flex flex-col lg:flex-row gap-12">
+      <div class="flex flex-col gap-12 lg:flex-row">
         <!-- Sidebar Navigation -->
         <aside
-          class="w-full lg:w-64 shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-theme('spacing.32'))] overflow-y-auto hidden-scrollbar"
+          class="hidden-scrollbar w-full shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:max-h-[calc(100vh-theme('spacing.32'))] lg:w-64 lg:self-start"
         >
           <nav class="space-y-8">
             <!-- Group 1 -->
             <div>
               <h4
-                class="font-display font-bold text-sm text-text mb-3 px-3 uppercase tracking-wider"
+                class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
               >
                 Getting Started
               </h4>
@@ -26,7 +26,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                   <a
                     routerLink="/docs/introduction"
                     routerLinkActive="bg-accent/10 text-accent font-medium"
-                    class="block px-3 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-raised rounded-lg transition-colors"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     Introduction
                   </a>
@@ -35,7 +35,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                   <a
                     routerLink="/docs/get-started"
                     routerLinkActive="bg-accent/10 text-accent font-medium"
-                    class="block px-3 py-2 text-sm text-text-muted hover:text-text hover:bg-surface-raised rounded-lg transition-colors"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     Get Started
                   </a>
@@ -46,23 +46,23 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <!-- Group 2 Placeholder -->
             <div>
               <h4
-                class="font-display font-bold text-sm text-text mb-3 px-3 uppercase tracking-wider"
+                class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
               >
                 Directives
               </h4>
-              <ul class="space-y-1 opacity-50 pointer-events-none">
+              <ul class="pointer-events-none space-y-1 opacity-50">
                 <li>
-                  <a href="#" class="block px-3 py-2 text-sm text-text-muted rounded-lg"
+                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >moveEnter</a
                   >
                 </li>
                 <li>
-                  <a href="#" class="block px-3 py-2 text-sm text-text-muted rounded-lg"
+                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >moveLeave</a
                   >
                 </li>
                 <li>
-                  <a href="#" class="block px-3 py-2 text-sm text-text-muted rounded-lg"
+                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >moveAnimate (shorthand)</a
                   >
                 </li>
@@ -72,18 +72,18 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
             <!-- Group 3 Placeholder -->
             <div>
               <h4
-                class="font-display font-bold text-sm text-text mb-3 px-3 uppercase tracking-wider"
+                class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
               >
                 Presets
               </h4>
-              <ul class="space-y-1 opacity-50 pointer-events-none">
+              <ul class="pointer-events-none space-y-1 opacity-50">
                 <li>
-                  <a href="#" class="block px-3 py-2 text-sm text-text-muted rounded-lg"
+                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >Available Presets</a
                   >
                 </li>
                 <li>
-                  <a href="#" class="block px-3 py-2 text-sm text-text-muted rounded-lg"
+                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >Custom Keyframes</a
                   >
                 </li>
@@ -93,7 +93,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
         </aside>
 
         <!-- Main Content Area -->
-        <main class="flex-1 min-w-0 prose prose-invert max-w-none">
+        <main class="prose prose-invert max-w-none min-w-0 flex-1">
           <router-outlet />
         </main>
       </div>

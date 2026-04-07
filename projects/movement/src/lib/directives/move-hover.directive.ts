@@ -1,11 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-} from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -20,8 +14,8 @@ import { AnimationControls } from '../engines/animation-controls';
   selector: '[moveWhileHover]',
   host: {
     '(mouseenter)': 'onMouseEnter()',
-    '(mouseleave)': 'onMouseLeave()'
-  }
+    '(mouseleave)': 'onMouseLeave()',
+  },
 })
 export class MoveHoverDirective implements OnDestroy {
   readonly moveWhileHover = input.required<MovePreset | MoveKeyframes>();
@@ -73,15 +67,11 @@ export class MoveHoverDirective implements OnDestroy {
       frames = this.reverseFrames(frames);
     }
 
-    this.#currentPlayer = this.#engine.play(
-      this.#host.nativeElement,
-      frames,
-      {
-        config,
-        spring: this.moveSpring(),
-        disabled: false
-      }
-    );
+    this.#currentPlayer = this.#engine.play(this.#host.nativeElement, frames, {
+      config,
+      spring: this.moveSpring(),
+      disabled: false,
+    });
   }
 
   private reverseFrames(frames: MoveKeyframes): MoveKeyframes {

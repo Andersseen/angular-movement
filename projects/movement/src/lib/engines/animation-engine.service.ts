@@ -22,7 +22,7 @@ export class AnimationEngine {
   play(
     host: HTMLElement,
     frames: MoveKeyframes,
-    options: PlayAnimationOptions = {}
+    options: PlayAnimationOptions = {},
   ): AnimationControls | null {
     if (!isPlatformBrowser(this.#platformId)) {
       options.onDone?.();
@@ -41,7 +41,7 @@ export class AnimationEngine {
         frames,
         options.spring,
         options.delay ?? this.#defaults.delay,
-        options.onDone
+        options.onDone,
       );
     } else {
       const config = options.config ?? this.#defaults;
@@ -52,9 +52,9 @@ export class AnimationEngine {
           duration: config.duration,
           easing: config.easing,
           delay: options.delay ?? config.delay,
-          disabled: false
+          disabled: false,
         },
-        options.onDone
+        options.onDone,
       );
     }
   }

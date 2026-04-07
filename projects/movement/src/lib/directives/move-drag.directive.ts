@@ -1,12 +1,14 @@
 import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
-import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+
 import { prefersReducedMotion } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
-export type MoveDragConstraints = { top?: number; right?: number; bottom?: number; left?: number } | HTMLElement;
+export type MoveDragConstraints =
+  | { top?: number; right?: number; bottom?: number; left?: number }
+  | HTMLElement;
 
 @Directive({
   selector: '[moveDrag]',
@@ -14,8 +16,8 @@ export type MoveDragConstraints = { top?: number; right?: number; bottom?: numbe
     '(pointerdown)': 'onPointerDown($event)',
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
-    '(pointercancel)': 'onPointerUp($event)'
-  }
+    '(pointercancel)': 'onPointerUp($event)',
+  },
 })
 export class MoveDragDirective implements OnDestroy {
   readonly moveDrag = input<boolean | ''>(true);
@@ -26,7 +28,6 @@ export class MoveDragDirective implements OnDestroy {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
-  readonly #defaults = inject(MOVEMENT_CONFIG);
 
   #isDragging = false;
   #pointerId: number | null = null;
@@ -127,15 +128,19 @@ export class MoveDragDirective implements OnDestroy {
 
   private snapBackIfNeeded() {
     if (!this.#dragBounds) return;
-    
+
     // We base the snap on the current logical _x, _y, calculating the nearest valid position.
     let targetX = this.#_x;
     let targetY = this.#_y;
 
-    if (this.#dragBounds.left !== undefined && targetX < this.#dragBounds.left) targetX = this.#dragBounds.left;
-    if (this.#dragBounds.right !== undefined && targetX > this.#dragBounds.right) targetX = this.#dragBounds.right;
-    if (this.#dragBounds.top !== undefined && targetY < this.#dragBounds.top) targetY = this.#dragBounds.top;
-    if (this.#dragBounds.bottom !== undefined && targetY > this.#dragBounds.bottom) targetY = this.#dragBounds.bottom;
+    if (this.#dragBounds.left !== undefined && targetX < this.#dragBounds.left)
+      targetX = this.#dragBounds.left;
+    if (this.#dragBounds.right !== undefined && targetX > this.#dragBounds.right)
+      targetX = this.#dragBounds.right;
+    if (this.#dragBounds.top !== undefined && targetY < this.#dragBounds.top)
+      targetY = this.#dragBounds.top;
+    if (this.#dragBounds.bottom !== undefined && targetY > this.#dragBounds.bottom)
+      targetY = this.#dragBounds.bottom;
 
     if (targetX !== this.#_x || targetY !== this.#_y) {
       // Find the currently visible coordinates (which include elasticity)
@@ -164,7 +169,7 @@ export class MoveDragDirective implements OnDestroy {
           config: { duration: 300, easing: 'ease', delay: 0, disabled: false },
           spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
           disabled: prefersReducedMotion(this.#documentRef),
-        }
+        },
       );
 
       this.#_x = targetX;

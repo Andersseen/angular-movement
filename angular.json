@@ -65,6 +65,12 @@
         },
         "test": {
           "builder": "@angular/build:unit-test"
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["src/**/*.ts", "src/**/*.html"]
+          }
         }
       }
     },
@@ -90,6 +96,13 @@
           "builder": "@angular/build:unit-test",
           "options": {
             "tsConfig": "projects/movement/tsconfig.spec.json"
+          }
+        },
+        "lint": {
+          "builder": "@angular-eslint/builder:lint",
+          "options": {
+            "lintFilePatterns": ["projects/movement/**/*.ts", "projects/movement/**/*.html"],
+            "eslintConfig": "projects/movement/eslint.config.js"
           }
         }
       }

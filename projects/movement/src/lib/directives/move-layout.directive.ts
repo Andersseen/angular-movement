@@ -1,13 +1,5 @@
-import {
-  Directive,
-  ElementRef,
-  inject,
-  input,
-  OnDestroy,
-  afterEveryRender,
-  NgZone,
-} from '@angular/core';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { Directive, ElementRef, inject, input, OnDestroy, afterEveryRender } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
@@ -30,7 +22,6 @@ export class MoveLayoutDirective implements OnDestroy {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
-  readonly #ngZone = inject(NgZone);
 
   #snapshot: DOMRect | null = null;
   #currentPlayer: AnimationControls | null = null;
