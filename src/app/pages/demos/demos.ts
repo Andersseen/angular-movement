@@ -250,7 +250,157 @@ import { FormsModule } from '@angular/forms';
         </div>
       </div>
 
+      <!-- Text Animation Showcase -->
+      <div class="border-border mt-24 border-t pt-16">
+        <h2 class="font-display text-text mb-8 text-3xl font-bold tracking-tight">
+          Text Animation
+        </h2>
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-2 lg:gap-12">
+          <div class="bg-surface border-border rounded-2xl border p-6 shadow-sm md:p-8">
+            <div class="space-y-6">
+              <div>
+                <label for="text-input" class="text-text-muted mb-2 block text-sm font-medium"
+                  >Text Content</label
+                >
+                <input
+                  id="text-input"
+                  type="text"
+                  [ngModel]="textToAnimate()"
+                  (ngModelChange)="textToAnimate.set($event); replayText()"
+                  class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-4 py-3 text-sm transition-shadow focus:ring-1 focus:outline-none"
+                />
+              </div>
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="split-select" class="text-text-muted mb-2 block text-sm font-medium"
+                    >Split By</label
+                  >
+                  <select
+                    id="split-select"
+                    [ngModel]="textSplit()"
+                    (ngModelChange)="textSplit.set($event); replayText()"
+                    class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-3 py-2.5 text-sm focus:outline-none"
+                  >
+                    <option value="chars">Characters</option>
+                    <option value="words">Words</option>
+                  </select>
+                </div>
+                <div>
+                  <label for="stagger-range" class="text-text-muted mb-2 block text-sm font-medium"
+                    >Stagger ({{ textStagger() }}ms)</label
+                  >
+                  <input
+                    id="stagger-range"
+                    type="range"
+                    min="10"
+                    max="200"
+                    step="5"
+                    [ngModel]="textStagger()"
+                    (ngModelChange)="textStagger.set($event); replayText()"
+                    class="accent-accent h-2 w-full appearance-none rounded-lg bg-gray-200"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          <div
+            class="bg-surface-raised border-border flex min-h-[200px] items-center justify-center rounded-2xl border p-8"
+          >
+            @if (showTextDemo()) {
+              <h3
+                [moveText]="preset()"
+                [moveTextSplit]="textSplit()"
+                [moveTextStagger]="textStagger()"
+                [moveDuration]="duration()"
+                [moveEasing]="easing()"
+                class="font-display text-text text-center text-4xl leading-tight font-bold"
+              >
+                {{ textToAnimate() }}
+              </h3>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- In View Showcase -->
+      <div class="border-border mt-24 border-t pt-16">
+        <h2 class="font-display text-text mb-8 text-3xl font-bold tracking-tight">
+          In View Trigger
+        </h2>
+        <p class="text-text-muted mb-12 max-w-2xl">
+          Animations that trigger only when they enter the viewport. Scroll down to see the effect.
+        </p>
+
+        <div class="bg-surface border-border overflow-hidden rounded-2xl border shadow-sm">
+          <div id="inview-demo" class="max-h-[500px] overflow-y-auto scroll-smooth px-6 py-12">
+            <div class="flex flex-col items-center gap-32 py-24">
+              <div class="text-text-subtle text-center italic">Scroll down to see the magic...</div>
+
+              <div class="h-64"></div>
+
+              <div
+                moveInView="fade-up"
+                moveInViewRoot="#inview-demo"
+                [moveDuration]="800"
+                class="bg-accent/10 border-accent/20 flex flex-col items-center gap-4 rounded-3xl border p-12 text-center"
+              >
+                <div
+                  class="bg-accent shadow-accent/50 flex h-16 w-16 items-center justify-center rounded-full text-white shadow-lg"
+                >
+                  <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="2"
+                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
+                  </svg>
+                </div>
+                <h4 class="text-text text-2xl font-bold">Hello! I just appeared.</h4>
+                <p class="text-text-muted max-w-sm">
+                  I was waiting for you to scroll here to reveal myself with a smooth animation.
+                </p>
+              </div>
+
+              <div class="h-64"></div>
+
+              <div class="grid w-full max-w-4xl grid-cols-1 gap-8 md:grid-cols-2">
+                <div
+                  moveInView="zoom-in"
+                  moveInViewRoot="#inview-demo"
+                  [moveDuration]="600"
+                  [moveDelay]="200"
+                  class="bg-surface-raised border-border rounded-2xl border p-8"
+                >
+                  <h5 class="text-text mb-2 font-bold">Delayed reveal</h5>
+                  <p class="text-text-muted text-sm">I trigger 200ms after you see me.</p>
+                </div>
+                <div
+                  moveInView="slide-right"
+                  moveInViewRoot="#inview-demo"
+                  [moveDuration]="600"
+                  [moveInViewOnce]="false"
+                  class="bg-surface-raised border-border rounded-2xl border p-8"
+                >
+                  <h5 class="text-text mb-2 font-bold">Repeatable</h5>
+                  <p class="text-text-muted text-sm">
+                    I re-animate every time you scroll back to me.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Preset Gallery Footer -->
+
       <div class="border-border mt-24 border-t pt-16">
         <h3 class="font-display text-text mb-8 text-center text-2xl font-bold tracking-tight">
           Available Presets
@@ -302,6 +452,11 @@ export default class Demos {
   protected readonly easing = signal('ease');
   protected readonly showDemo = signal(true);
 
+  protected readonly textToAnimate = signal('Magic split text animation');
+  protected readonly textSplit = signal<'chars' | 'words'>('chars');
+  protected readonly textStagger = signal(30);
+  protected readonly showTextDemo = signal(true);
+
   protected setPreset(p: MovePreset): void {
     this.preset.set(p);
     this.replay();
@@ -310,6 +465,11 @@ export default class Demos {
   protected replay(): void {
     this.showDemo.set(false);
     setTimeout(() => this.showDemo.set(true), 0);
+  }
+
+  protected replayText(): void {
+    this.showTextDemo.set(false);
+    setTimeout(() => this.showTextDemo.set(true), 50);
   }
 
   protected copyCode(): void {

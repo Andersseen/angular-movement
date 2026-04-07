@@ -9,7 +9,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
       <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <!-- Feature 1: Attribute-first -->
         <div
-          moveEnter="fade-up"
+          moveInView="fade-up"
           [moveDuration]="500"
           [moveDelay]="100"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
@@ -35,7 +35,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
 
         <!-- Feature 2: Angular-native -->
         <div
-          moveEnter="fade-up"
+          moveInView="fade-up"
           [moveDuration]="500"
           [moveDelay]="200"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
@@ -57,7 +57,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
 
         <!-- Feature 3: Accessible -->
         <div
-          moveEnter="fade-up"
+          moveInView="fade-up"
           [moveDuration]="500"
           [moveDelay]="300"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
