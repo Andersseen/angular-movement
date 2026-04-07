@@ -50,4 +50,4 @@ jobs:
       run: pnpm run build:prod
       
     - name: Run Tests
-      run: pnpm run test:coverage --no-watch --browsers=ChromeHeadless
+      run: pnpm run test:coverage
