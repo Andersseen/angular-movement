@@ -32,73 +32,73 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
-  private readonly defaults = inject(MOVEMENT_CONFIG);
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly engine = inject(AnimationEngine);
-  private readonly stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
-  private readonly presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
+  readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+  readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
 
-  private config = this.defaults;
-  private enterPlayer: AnimationControls | null = null;
-  private leavePlayer: AnimationControls | null = null;
+  #config = this.#defaults;
+  #enterPlayer: AnimationControls | null = null;
+  #leavePlayer: AnimationControls | null = null;
 
   ngOnInit(): void {
-    this.stagger?.register(this.host.nativeElement);
-    this.presence?.register(this);
+    this.#stagger?.register(this.#host.nativeElement);
+    this.#presence?.register(this);
 
     Promise.resolve().then(() => {
-      const staggerDelay = this.stagger?.getDelay(this.host.nativeElement) ?? 0;
+      const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
 
-      this.config = resolveMovementConfig(
-        this.defaults,
+      this.#config = resolveMovementConfig(
+        this.#defaults,
         {
           duration: this.moveDuration(),
           easing: this.moveEasing(),
           delay: (this.moveDelay() ?? 0) + staggerDelay,
           disabled: this.moveDisabled(),
         },
-        prefersReducedMotion(this.documentRef),
+        prefersReducedMotion(this.#documentRef),
       );
 
       const enterInput = this.resolveEnterInput();
-      this.enterPlayer = this.engine.play(
-        this.host.nativeElement,
+      this.#enterPlayer = this.#engine.play(
+        this.#host.nativeElement,
         resolveMoveFrames(enterInput, 'enter'),
         {
-          config: this.config,
+          config: this.#config,
           spring: this.moveSpring(),
-          disabled: this.config.disabled
+          disabled: this.#config.disabled
         }
       );
     });
   }
 
   ngOnDestroy(): void {
-    this.stagger?.unregister(this.host.nativeElement);
-    this.presence?.unregister(this);
-    this.enterPlayer?.cancel();
-    this.leavePlayer?.cancel();
+    this.#stagger?.unregister(this.#host.nativeElement);
+    this.#presence?.unregister(this);
+    this.#enterPlayer?.cancel();
+    this.#leavePlayer?.cancel();
   }
 
   playLeave(): Promise<void> {
-    if (this.config.disabled) {
+    if (this.#config.disabled) {
       return Promise.resolve();
     }
 
-    this.enterPlayer?.cancel();
+    this.#enterPlayer?.cancel();
 
-    this.leavePlayer = this.engine.play(
-      this.host.nativeElement,
+    this.#leavePlayer = this.#engine.play(
+      this.#host.nativeElement,
       resolveMoveFrames(this.resolveLeaveInput(), 'leave'),
       {
-        config: this.config,
+        config: this.#config,
         spring: this.moveSpring(),
         disabled: false
       }
     );
 
-    return this.leavePlayer?.finished ?? Promise.resolve();
+    return this.#leavePlayer?.finished ?? Promise.resolve();
   }
 
   private resolveEnterInput(): MovePreset | MoveKeyframes {

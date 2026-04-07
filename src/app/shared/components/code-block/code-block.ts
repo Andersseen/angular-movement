@@ -26,12 +26,12 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CodeBlock {
-  private sanitizer = inject(DomSanitizer);
+  #sanitizer = inject(DomSanitizer);
   
   readonly title = input<string>('code.ts');
   readonly code = input<string>('');
   
   protected safeCode = computed<SafeHtml>(() => 
-    this.sanitizer.bypassSecurityTrustHtml(this.code())
+    this.#sanitizer.bypassSecurityTrustHtml(this.code())
   );
 }

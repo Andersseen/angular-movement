@@ -3,12 +3,12 @@ import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
 import { inject } from '@angular/core';
 
 export class SpringPlayer implements AnimationControls {
-  private resolveFinished!: () => void;
+  #resolveFinished!: () => void;
   public readonly finished = new Promise<void>((resolve) => {
-    this.resolveFinished = resolve;
+    this.#resolveFinished = resolve;
   });
 
-  private animation: Animation | null = null;
+  #animation: Animation | null = null;
 
   constructor(
     private readonly host: HTMLElement,
@@ -18,7 +18,7 @@ export class SpringPlayer implements AnimationControls {
     private readonly onDone?: () => void
   ) {
     if (typeof host.animate !== 'function') {
-      this.resolveFinished();
+      this.#resolveFinished();
       onDone?.();
       return;
     }
@@ -31,10 +31,10 @@ export class SpringPlayer implements AnimationControls {
       ...userConfig
     };
 
-    const keyframes = this.generateSpringKeyframes(frames, config);
+    const keyframes = this.#generateSpringKeyframes(frames, config);
 
     if (keyframes.length === 0) {
-      this.resolveFinished();
+      this.#resolveFinished();
       onDone?.();
       return;
     }
@@ -44,47 +44,47 @@ export class SpringPlayer implements AnimationControls {
     // Let's assume tick rate is 16.66ms (60fps simulation)
     const duration = keyframes.length * (1000 / 60);
 
-    this.animation = host.animate(keyframes, {
+    this.#animation = host.animate(keyframes, {
       duration,
       delay: this.delay,
       fill: 'both',
       easing: 'linear', // Spring physics already has the easing baked into the frames
     });
 
-    this.animation.addEventListener('finish', () => {
-      this.animation?.commitStyles?.();
-      this.animation?.cancel();
-      this.resolveFinished();
+    this.#animation.addEventListener('finish', () => {
+      this.#animation?.commitStyles?.();
+      this.#animation?.cancel();
+      this.#resolveFinished();
       onDone?.();
     }, { once: true });
   }
 
   play(): void {
-    this.animation?.play();
+    this.#animation?.play();
   }
 
   pause(): void {
-    this.animation?.pause();
+    this.#animation?.pause();
   }
 
   cancel(): void {
-    if (this.animation?.playState !== 'idle') {
-      this.animation?.cancel();
+    if (this.#animation?.playState !== 'idle') {
+      this.#animation?.cancel();
     }
-    this.resolveFinished();
+    this.#resolveFinished();
   }
 
   get currentTime(): number {
-    return (this.animation?.currentTime as number) ?? 0;
+    return (this.#animation?.currentTime as number) ?? 0;
   }
 
   set currentTime(time: number) {
-    if (this.animation) {
-      this.animation.currentTime = time;
+    if (this.#animation) {
+      this.#animation.currentTime = time;
     }
   }
 
-  private generateSpringKeyframes(frames: MoveKeyframes, config: MoveSpring): Keyframe[] {
+  #generateSpringKeyframes(frames: MoveKeyframes, config: MoveSpring): Keyframe[] {
     let maxSteps = 0;
     for (const key in frames) {
       const arr = frames[key as keyof MoveKeyframes];
@@ -116,7 +116,7 @@ export class SpringPlayer implements AnimationControls {
       while (!isSettled && iterations < maxIterations) {
         // Evaluate frame
         const p = Math.min(Math.max(progress, 0), 1);
-        keyframes.push(this.composeFrame(frames, step, step + 1, p));
+        keyframes.push(this.#composeFrame(frames, step, step + 1, p));
 
         // Advance physics F = -k*x - c*v
         const displacement = progress - 1;
@@ -133,13 +133,13 @@ export class SpringPlayer implements AnimationControls {
       }
       
       // Ensure the final state of the step is exactly 1
-      keyframes.push(this.composeFrame(frames, step, step + 1, 1));
+      keyframes.push(this.#composeFrame(frames, step, step + 1, 1));
     }
     
     return keyframes;
   }
 
-  private composeFrame(frames: MoveKeyframes, i1: number, i2: number, p: number): Keyframe {
+  #composeFrame(frames: MoveKeyframes, i1: number, i2: number, p: number): Keyframe {
     const frame: Keyframe = {};
 
     const getVal = (arr: readonly number[] | undefined) => {

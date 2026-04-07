@@ -29,33 +29,33 @@ export class MoveEnterDirective implements OnDestroy, OnInit {
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
-  private readonly defaults = inject(MOVEMENT_CONFIG);
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly engine = inject(AnimationEngine);
-  private readonly stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
+  readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
 
-  private player: AnimationControls | null = null;
+  #player: AnimationControls | null = null;
 
   ngOnInit(): void {
-    this.stagger?.register(this.host.nativeElement);
+    this.#stagger?.register(this.#host.nativeElement);
 
     Promise.resolve().then(() => {
-      const staggerDelay = this.stagger?.getDelay(this.host.nativeElement) ?? 0;
+      const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
 
       const config = resolveMovementConfig(
-        this.defaults,
+        this.#defaults,
         {
           duration: this.moveDuration(),
           easing: this.moveEasing(),
           delay: (this.moveDelay() ?? 0) + staggerDelay,
           disabled: this.moveDisabled(),
         },
-        prefersReducedMotion(this.documentRef),
+        prefersReducedMotion(this.#documentRef),
       );
 
-      this.player = this.engine.play(
-        this.host.nativeElement,
+      this.#player = this.#engine.play(
+        this.#host.nativeElement,
         resolveMoveFrames(this.moveEnter(), 'enter'),
         {
           config: config,
@@ -67,7 +67,7 @@ export class MoveEnterDirective implements OnDestroy, OnInit {
   }
 
   ngOnDestroy(): void {
-    this.stagger?.unregister(this.host.nativeElement);
-    this.player?.cancel();
+    this.#stagger?.unregister(this.#host.nativeElement);
+    this.#player?.cancel();
   }
 }

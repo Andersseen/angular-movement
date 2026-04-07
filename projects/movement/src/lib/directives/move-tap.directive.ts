@@ -33,32 +33,32 @@ export class MoveTapDirective implements OnDestroy {
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
-  private readonly defaults = inject(MOVEMENT_CONFIG);
-  private readonly documentRef = inject(DOCUMENT);
-  private readonly host = inject(ElementRef<HTMLElement>);
-  private readonly engine = inject(AnimationEngine);
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
 
-  private currentPlayer: AnimationControls | null = null;
-  private isTapped = false;
+  #currentPlayer: AnimationControls | null = null;
+  #isTapped = false;
 
   onPointerDown() {
-    if (this.isTapped) return;
-    this.isTapped = true;
+    if (this.#isTapped) return;
+    this.#isTapped = true;
     this.play(false);
   }
 
   onPointerUp() {
-    if (!this.isTapped) return;
-    this.isTapped = false;
+    if (!this.#isTapped) return;
+    this.#isTapped = false;
     this.play(true);
   }
 
   private play(reverse: boolean) {
-    this.currentPlayer?.cancel();
+    this.#currentPlayer?.cancel();
 
-    const isReduced = prefersReducedMotion(this.documentRef);
+    const isReduced = prefersReducedMotion(this.#documentRef);
     const config = resolveMovementConfig(
-      this.defaults,
+      this.#defaults,
       {
         duration: this.moveDuration(),
         easing: this.moveEasing(),
@@ -75,8 +75,8 @@ export class MoveTapDirective implements OnDestroy {
       frames = this.reverseFrames(frames);
     }
 
-    this.currentPlayer = this.engine.play(
-      this.host.nativeElement,
+    this.#currentPlayer = this.#engine.play(
+      this.#host.nativeElement,
       frames,
       {
         config,
@@ -99,6 +99,6 @@ export class MoveTapDirective implements OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.currentPlayer?.cancel();
+    this.#currentPlayer?.cancel();
   }
 }

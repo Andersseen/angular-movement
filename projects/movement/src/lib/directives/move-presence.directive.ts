@@ -13,46 +13,46 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild, MovePresenceProvider } from '.
 export class MovePresenceDirective implements MovePresenceProvider {
   readonly movePresence = input<unknown>();
 
-  private readonly viewContainer = inject(ViewContainerRef);
-  private readonly template = inject(TemplateRef);
+  readonly #viewContainer = inject(ViewContainerRef);
+  readonly #template = inject(TemplateRef);
 
-  private view: EmbeddedViewRef<unknown> | null = null;
-  private isRemoving = false;
+  #view: EmbeddedViewRef<unknown> | null = null;
+  #isRemoving = false;
 
-  private readonly children = new Set<MovePresenceChild>();
+  readonly #children = new Set<MovePresenceChild>();
 
   constructor() {
     effect(() => {
       const show = !!this.movePresence();
 
       if (show) {
-        if (!this.view) {
-          this.view = this.viewContainer.createEmbeddedView(this.template);
-          this.isRemoving = false;
-        } else if (this.isRemoving) {
+        if (!this.#view) {
+          this.#view = this.#viewContainer.createEmbeddedView(this.#template);
+          this.#isRemoving = false;
+        } else if (this.#isRemoving) {
           // If we were removing, cancel the removal
-          this.isRemoving = false;
+          this.#isRemoving = false;
         }
-      } else if (!show && this.view && !this.isRemoving) {
-        this.isRemoving = true;
+      } else if (!show && this.#view && !this.#isRemoving) {
+        this.#isRemoving = true;
         this.removeView();
       }
     });
   }
 
   register(child: MovePresenceChild): void {
-    this.children.add(child);
+    this.#children.add(child);
   }
 
   unregister(child: MovePresenceChild): void {
-    this.children.delete(child);
+    this.#children.delete(child);
   }
 
   private async removeView(): Promise<void> {
     const promises: Array<Promise<void> | void> = [];
 
     // Trigger leave on all registered children
-    for (const child of this.children) {
+    for (const child of this.#children) {
       promises.push(child.playLeave());
     }
 
@@ -64,11 +64,11 @@ export class MovePresenceDirective implements MovePresenceProvider {
       // Ignore errors in animations
     }
 
-    if (this.isRemoving && this.view) {
-      this.viewContainer.clear();
-      this.view = null;
-      this.isRemoving = false;
-      this.children.clear();
+    if (this.#isRemoving && this.#view) {
+      this.#viewContainer.clear();
+      this.#view = null;
+      this.#isRemoving = false;
+      this.#children.clear();
     }
   }
 }
