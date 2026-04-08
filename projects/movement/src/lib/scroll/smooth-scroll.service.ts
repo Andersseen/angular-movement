@@ -1,5 +1,5 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 
 /**
  * SmoothScrollService — Lenis-inspired smooth scroll for Angular.
@@ -7,6 +7,10 @@ import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/cor
  * Desktop: intercepts wheel events → lerp interpolation → synthetic scrollTop.
  * Mobile:  listens to native touch scroll → lerp interpolation → synthetic scrollTop.
  *          Native scroll is prevented during touch to avoid the vibration conflict.
+ *
+ * The `scrollY` signal is updated on every RAF tick and can be consumed by
+ * `MoveScrollDirective` (or any other consumer) to react to smooth scroll position
+ * without relying on the native `scroll` event (which is NOT fired during smooth scroll).
  *
  * Usage (in app root or a layout service):
  *
@@ -28,6 +32,13 @@ export class SmoothScrollService implements OnDestroy {
   #rafId = 0;
   #isRunning = false;
   #scrollElement: HTMLElement | null = null;
+
+  /**
+   * Reactive scroll position (in pixels) updated on every RAF tick.
+   * Use this signal instead of listening to `window.scroll` when smooth scroll is active,
+   * since native scroll events are NOT fired during lerp-based scrolling.
+   */
+  readonly scrollY = signal(0);
 
   // Touch tracking
   #touchStartY = 0;
@@ -80,6 +91,11 @@ export class SmoothScrollService implements OnDestroy {
   };
 
   // ─── Public API ────────────────────────────────────────────────────────────
+
+  /** Whether the service is currently active (i.e. `init()` has been called). */
+  get isActive(): boolean {
+    return this.#isRunning;
+  }
 
   init(options: { lerp?: number; element?: HTMLElement } = {}): void {
     if (!isPlatformBrowser(this.#platformId)) return;
@@ -172,6 +188,9 @@ export class SmoothScrollService implements OnDestroy {
   #applyScroll(y: number): void {
     if (!this.#scrollElement) return;
     this.#scrollElement.scrollTop = y;
+    // Update the reactive signal so consumers (e.g. MoveScrollDirective) can react
+    // without relying on native scroll events which don't fire during lerp-based scroll.
+    this.scrollY.set(y);
   }
 
   #getMaxScroll(): number {
