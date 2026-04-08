@@ -11,6 +11,8 @@ import {
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  applyInitialStyles,
+  clearInitialStyles,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -59,7 +61,7 @@ export class MoveTextDirective implements OnDestroy, OnInit {
       // Apply initial (invisible) state to each span directly — no player yet
       this.#spans.forEach((span) => {
         if (this.#frames) {
-          this.#applyInitialStyles(span, this.#frames);
+          applyInitialStyles(span, this.#frames);
         }
       });
 
@@ -96,7 +98,7 @@ export class MoveTextDirective implements OnDestroy, OnInit {
       );
 
       // Clear inline styles so WAAPI can animate from the keyframe starting point
-      this.#clearInitialStyles(span);
+      clearInitialStyles(span);
 
       const player = this.#engine.play(span, this.#frames!, {
         config,
@@ -108,36 +110,6 @@ export class MoveTextDirective implements OnDestroy, OnInit {
         this.#players.push(player);
       }
     });
-  }
-
-  #applyInitialStyles(el: HTMLElement, frames: MoveKeyframes): void {
-    const getFirst = (arr: readonly number[] | undefined) =>
-      arr && arr.length > 0 ? arr[0] : undefined;
-
-    const opacity = getFirst(frames.opacity);
-    if (opacity !== undefined) el.style.opacity = `${opacity}`;
-
-    const x = getFirst(frames.x);
-    const y = getFirst(frames.y);
-    if (x !== undefined || y !== undefined) {
-      el.style.translate = `${x ?? 0}px ${y ?? 0}px`;
-    }
-
-    const scale = getFirst(frames.scale);
-    if (scale !== undefined) el.style.scale = `${scale}`;
-
-    const rotateX = getFirst(frames.rotateX);
-    const rotateY = getFirst(frames.rotateY);
-    if (rotateX !== undefined || rotateY !== undefined) {
-      el.style.transform = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
-    }
-  }
-
-  #clearInitialStyles(el: HTMLElement): void {
-    el.style.opacity = '';
-    el.style.translate = '';
-    el.style.scale = '';
-    el.style.transform = '';
   }
 
   #splitText() {

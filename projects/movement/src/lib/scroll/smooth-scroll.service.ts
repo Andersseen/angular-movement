@@ -1,8 +1,16 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID } from '@angular/core';
+import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 
 /**
  * SmoothScrollService — Lenis-inspired smooth scroll for Angular.
+ *
+ * Desktop: intercepts wheel events → lerp interpolation → synthetic scrollTop.
+ * Mobile:  listens to native touch scroll → lerp interpolation → synthetic scrollTop.
+ *          Native scroll is prevented during touch to avoid the vibration conflict.
+ *
+ * The `scrollY` signal is updated on every RAF tick and can be consumed by
+ * `MoveScrollDirective` (or any other consumer) to react to smooth scroll position
+ * without relying on the native `scroll` event (which is NOT fired during smooth scroll).
  *
  * Usage (in app root or a layout service):
  *
@@ -25,13 +33,69 @@ export class SmoothScrollService implements OnDestroy {
   #isRunning = false;
   #scrollElement: HTMLElement | null = null;
 
-  /** Wheel event handler — captured to be removable */
+  /**
+   * Reactive scroll position (in pixels) updated on every RAF tick.
+   * Use this signal instead of listening to `window.scroll` when smooth scroll is active,
+   * since native scroll events are NOT fired during lerp-based scrolling.
+   */
+  readonly scrollY = signal(0);
+
+  // Touch tracking
+  #touchStartY = 0;
+  #lastTouchY = 0;
+  #touchVelocity = 0;
+  #isTouching = false;
+  #lastTouchTimestamp = 0;
+
+  // ─── Event handlers ────────────────────────────────────────────────────────
+
   readonly #onWheel = (e: WheelEvent): void => {
-    // Let native scroll handle inner scrollable containers (like overflow-y-auto divs)
     if (this.#isInsideScrollable(e.target as HTMLElement)) return;
     e.preventDefault();
-    this.#targetY = Math.max(0, Math.min(this.#targetY + e.deltaY, this.#getMaxScroll()));
+    this.#targetY = this.#clamp(this.#targetY + e.deltaY);
   };
+
+  readonly #onTouchStart = (e: TouchEvent): void => {
+    if (this.#isInsideScrollable(e.target as HTMLElement)) return;
+    this.#isTouching = true;
+    this.#touchVelocity = 0;
+    this.#touchStartY = e.touches[0].clientY;
+    this.#lastTouchY = this.#touchStartY;
+    this.#lastTouchTimestamp = e.timeStamp;
+  };
+
+  readonly #onTouchMove = (e: TouchEvent): void => {
+    if (!this.#isTouching) return;
+    if (this.#isInsideScrollable(e.target as HTMLElement)) return;
+
+    // Prevent native scroll on the root element — we handle it ourselves
+    e.preventDefault();
+
+    const currentY = e.touches[0].clientY;
+    const deltaTime = Math.max(e.timeStamp - this.#lastTouchTimestamp, 1);
+    const deltaY = this.#lastTouchY - currentY; // inverted: swipe up → scroll down
+
+    // Track velocity (px/ms) for momentum after lift
+    this.#touchVelocity = deltaY / deltaTime;
+
+    this.#targetY = this.#clamp(this.#targetY + deltaY);
+
+    this.#lastTouchY = currentY;
+    this.#lastTouchTimestamp = e.timeStamp;
+  };
+
+  readonly #onTouchEnd = (): void => {
+    this.#isTouching = false;
+    // Apply momentum: fling the targetY by velocity × decay frames
+    this.#applyMomentum();
+  };
+
+  // ─── Public API ────────────────────────────────────────────────────────────
+
+  /** Whether the service is currently active (i.e. `init()` has been called). */
+  get isActive(): boolean {
+    return this.#isRunning;
+  }
 
   init(options: { lerp?: number; element?: HTMLElement } = {}): void {
     if (!isPlatformBrowser(this.#platformId)) return;
@@ -42,11 +106,16 @@ export class SmoothScrollService implements OnDestroy {
     this.#currentY = this.#scrollElement.scrollTop;
     this.#targetY = this.#currentY;
 
-    // Run entirely outside Angular zone to avoid triggering change detection on every RAF
+    // Run entirely outside Angular zone to avoid change detection on every RAF
     this.#zone.runOutsideAngular(() => {
-      this.#scrollElement?.addEventListener('wheel', this.#onWheel, {
-        passive: false,
-      });
+      const el = this.#scrollElement!;
+
+      el.addEventListener('wheel', this.#onWheel, { passive: false });
+
+      // Touch events must also be non-passive to call preventDefault()
+      el.addEventListener('touchstart', this.#onTouchStart, { passive: true });
+      el.addEventListener('touchmove', this.#onTouchMove, { passive: false });
+      el.addEventListener('touchend', this.#onTouchEnd, { passive: true });
 
       this.#isRunning = true;
       this.#tick();
@@ -56,13 +125,21 @@ export class SmoothScrollService implements OnDestroy {
   destroy(): void {
     this.#isRunning = false;
     cancelAnimationFrame(this.#rafId);
-    this.#scrollElement?.removeEventListener('wheel', this.#onWheel);
+
+    const el = this.#scrollElement;
+    if (el) {
+      el.removeEventListener('wheel', this.#onWheel);
+      el.removeEventListener('touchstart', this.#onTouchStart);
+      el.removeEventListener('touchmove', this.#onTouchMove);
+      el.removeEventListener('touchend', this.#onTouchEnd);
+    }
+
     this.#scrollElement = null;
   }
 
   /** Scroll programmatically to a Y position */
   scrollTo(y: number, instant = false): void {
-    this.#targetY = Math.max(0, Math.min(y, this.#getMaxScroll()));
+    this.#targetY = this.#clamp(y);
     if (instant) {
       this.#currentY = this.#targetY;
       this.#applyScroll(this.#currentY);
@@ -73,30 +150,56 @@ export class SmoothScrollService implements OnDestroy {
     this.destroy();
   }
 
+  // ─── Internal ──────────────────────────────────────────────────────────────
+
   #tick(): void {
     if (!this.#isRunning) return;
 
-    // Lerp interpolation: current = current + (target - current) * factor
     this.#currentY += (this.#targetY - this.#currentY) * this.#lerp;
 
-    // Snap to target when close enough to avoid infinite tiny float updates
     if (Math.abs(this.#targetY - this.#currentY) < 0.1) {
       this.#currentY = this.#targetY;
     }
 
     this.#applyScroll(this.#currentY);
-
     this.#rafId = requestAnimationFrame(() => this.#tick());
+  }
+
+  /**
+   * After finger lift, simulate Lenis-style momentum decay.
+   * Velocity decays by a friction factor each frame until negligible.
+   */
+  #applyMomentum(): void {
+    const FRICTION = 0.92; // higher = more glide; lower = stops faster
+    const MIN_VELOCITY = 0.05; // px/ms threshold to stop
+
+    let v = this.#touchVelocity * 16; // convert px/ms → px/frame (~16ms)
+
+    const step = (): void => {
+      if (!this.#isRunning || Math.abs(v) < MIN_VELOCITY) return;
+      v *= FRICTION;
+      this.#targetY = this.#clamp(this.#targetY + v);
+      requestAnimationFrame(step);
+    };
+
+    requestAnimationFrame(step);
   }
 
   #applyScroll(y: number): void {
     if (!this.#scrollElement) return;
     this.#scrollElement.scrollTop = y;
+    // Update the reactive signal so consumers (e.g. MoveScrollDirective) can react
+    // without relying on native scroll events which don't fire during lerp-based scroll.
+    this.scrollY.set(y);
   }
 
   #getMaxScroll(): number {
     if (!this.#scrollElement) return 0;
     return this.#scrollElement.scrollHeight - this.#scrollElement.clientHeight;
+  }
+
+  #clamp(y: number): number {
+    return Math.max(0, Math.min(y, this.#getMaxScroll()));
   }
 
   /**

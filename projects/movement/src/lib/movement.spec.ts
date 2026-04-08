@@ -38,6 +38,7 @@ describe('movement library', () => {
 
   it('defines every documented preset key', () => {
     expect(Object.keys(MOVE_PRESETS).sort()).toEqual([
+      'blur-in',
       'bounce-in',
       'fade-down',
       'fade-left',
@@ -46,10 +47,12 @@ describe('movement library', () => {
       'flip-x',
       'flip-y',
       'none',
+      'pulse',
       'slide-down',
       'slide-left',
       'slide-right',
       'slide-up',
+      'spin',
       'zoom-in',
       'zoom-out',
     ]);

@@ -12,16 +12,14 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 @Directive({
-  selector: '[moveWhileTap]',
+  selector: '[moveWhileFocus]',
   host: {
-    '(pointerdown)': 'onPointerDown()',
-    '(pointerup)': 'onPointerUp()',
-    '(pointercancel)': 'onPointerUp()',
-    '(pointerleave)': 'onPointerUp()',
+    '(focusin)': 'onFocus()',
+    '(focusout)': 'onBlur()',
   },
 })
-export class MoveTapDirective implements OnDestroy {
-  readonly moveWhileTap = input.required<MovePreset | MoveKeyframes>();
+export class MoveFocusDirective implements OnDestroy {
+  readonly moveWhileFocus = input.required<MovePreset | MoveKeyframes>();
   readonly moveDuration = input<number | undefined>(undefined);
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined>(undefined);
@@ -34,17 +32,17 @@ export class MoveTapDirective implements OnDestroy {
   readonly #engine = inject(AnimationEngine);
 
   #currentPlayer: AnimationControls | null = null;
-  #isTapped = false;
+  #isFocused = false;
 
-  onPointerDown() {
-    if (this.#isTapped) return;
-    this.#isTapped = true;
+  onFocus() {
+    if (this.#isFocused) return;
+    this.#isFocused = true;
     this.play(false);
   }
 
-  onPointerUp() {
-    if (!this.#isTapped) return;
-    this.#isTapped = false;
+  onBlur() {
+    if (!this.#isFocused) return;
+    this.#isFocused = false;
     this.play(true);
   }
 
@@ -65,7 +63,7 @@ export class MoveTapDirective implements OnDestroy {
 
     if (config.disabled) return;
 
-    let frames = resolveMoveFrames(this.moveWhileTap(), 'enter');
+    let frames = resolveMoveFrames(this.moveWhileFocus(), 'enter');
     if (reverse) {
       frames = reverseFrames(frames);
     }

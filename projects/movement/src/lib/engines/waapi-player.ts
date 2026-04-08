@@ -115,6 +115,11 @@ export class WaapiPlayer implements AnimationControls {
         frame['rotate'] = `${rotate}deg`;
       }
 
+      const blur = getVal(frames.blur);
+      if (blur !== undefined) {
+        frame['filter'] = `blur(${blur}px)`;
+      }
+
       const rotateX = getVal(frames.rotateX);
       const rotateY = getVal(frames.rotateY);
       if (rotateX !== undefined || rotateY !== undefined) {
