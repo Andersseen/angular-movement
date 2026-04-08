@@ -78,6 +78,9 @@ import { FormsModule } from '@angular/forms';
                     <option value="flip-x">flip-x</option>
                     <option value="flip-y">flip-y</option>
                     <option value="bounce-in">bounce-in</option>
+                    <option value="blur-in">blur-in</option>
+                    <option value="spin">spin</option>
+                    <option value="pulse">pulse</option>
                   </optgroup>
                 </select>
                 <div
@@ -399,6 +402,83 @@ import { FormsModule } from '@angular/forms';
         </div>
       </div>
 
+      <!-- Interactive Triggers Showcase -->
+      <div class="border-border mt-24 border-t pt-16">
+        <h2 class="font-display text-text mb-8 text-3xl font-bold tracking-tight">
+          Interactive Triggers
+        </h2>
+        <p class="text-text-muted mb-12 max-w-2xl">
+          Declarative animations for user interactions. Hover, tap, or focus the elements below.
+        </p>
+
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+          <div
+            class="bg-surface border-border flex flex-col items-center justify-center rounded-2xl border p-12 shadow-sm"
+          >
+            <h5 class="text-text mb-6 font-medium">Hover</h5>
+            <div
+              [moveWhileHover]="'bounce-in'"
+              class="bg-accent/10 border-accent/20 cursor-pointer rounded-xl border p-6 text-center"
+            >
+              <svg
+                class="text-accent mx-auto mb-2 h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
+                />
+              </svg>
+              <span class="text-sm font-bold">Hover Me</span>
+            </div>
+          </div>
+
+          <div
+            class="bg-surface border-border flex flex-col items-center justify-center rounded-2xl border p-12 shadow-sm"
+          >
+            <h5 class="text-text mb-6 font-medium">Tap</h5>
+            <button
+              [moveWhileTap]="'pulse'"
+              class="bg-accent/10 border-accent/20 hover:bg-accent/20 cursor-pointer rounded-xl border px-8 py-6 text-center transition-colors"
+            >
+              <svg
+                class="text-accent mx-auto mb-2 h-8 w-8"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"
+                />
+              </svg>
+              <span class="text-sm font-bold">Press & Hold</span>
+            </button>
+          </div>
+
+          <div
+            class="bg-surface border-border flex flex-col items-center justify-center rounded-2xl border p-12 shadow-sm"
+          >
+            <h5 class="text-text mb-6 font-medium">Focus</h5>
+            <input
+              type="text"
+              placeholder="Click to focus..."
+              [moveWhileFocus]="{ scale: [1, 1.05], rotate: [0, -2] }"
+              class="bg-bg border-border text-text focus:border-accent focus:ring-accent w-full max-w-[200px] appearance-none rounded-xl border px-4 py-3 text-sm transition-shadow focus:ring-1 focus:outline-none"
+            />
+            <p class="text-text-subtle mt-4 text-center text-xs font-medium">
+              Great for form accessibility.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <!-- Preset Gallery Footer -->
 
       <div class="border-border mt-24 border-t pt-16">
@@ -444,6 +524,9 @@ export default class Demos {
     'flip-x',
     'flip-y',
     'bounce-in',
+    'blur-in',
+    'spin',
+    'pulse',
   ];
 
   protected readonly preset = signal<MovePreset>('fade-up');

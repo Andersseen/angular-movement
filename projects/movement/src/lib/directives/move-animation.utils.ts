@@ -92,6 +92,11 @@ export function applyInitialStyles(el: HTMLElement, frames: MoveKeyframes): void
   if (rotateX !== undefined || rotateY !== undefined) {
     el.style.transform = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
   }
+
+  const blur = getFirst(frames.blur);
+  if (blur !== undefined) {
+    el.style.filter = `blur(${blur}px)`;
+  }
 }
 
 /**
@@ -103,4 +108,5 @@ export function clearInitialStyles(el: HTMLElement): void {
   el.style.translate = '';
   el.style.scale = '';
   el.style.transform = '';
+  el.style.filter = '';
 }
