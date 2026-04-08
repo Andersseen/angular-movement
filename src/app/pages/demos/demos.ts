@@ -479,6 +479,72 @@ import { FormsModule } from '@angular/forms';
         </div>
       </div>
 
+      <!-- Parallax Showcase -->
+      <div class="border-border mt-24 border-t pt-16">
+        <h2 class="font-display text-text mb-8 text-3xl font-bold tracking-tight">
+          Parallax Depth
+        </h2>
+        <p class="text-text-muted mb-12 max-w-2xl">
+          Create floating layers of depth easily using
+          <code class="bg-surface-raised rounded px-1.5 py-0.5 text-sm">[moveParallax]="speed"</code
+          >.
+        </p>
+
+        <div class="bg-surface border-border relative rounded-2xl border shadow-sm">
+          <div
+            class="absolute inset-0 z-0 flex items-center justify-center overflow-hidden rounded-2xl opacity-10"
+          >
+            <h1 class="text-9xl font-black tracking-tighter italic mix-blend-overlay">PARALLAX</h1>
+          </div>
+
+          <div id="parallax-demo" class="relative z-10 w-full" style="perspective: 1px;">
+            <div class="flex min-h-[1400px] flex-col items-center justify-start gap-32 py-24">
+              <div
+                class="text-text-subtle bg-bg/80 mt-12 rounded-full px-4 py-2 text-center italic backdrop-blur"
+              >
+                Scroll down...
+              </div>
+
+              <div class="relative mt-48 w-full max-w-2xl">
+                <!-- Slow Background Element -->
+                <div
+                  [moveParallax]="-0.3"
+                  class="bg-accent/20 pointer-events-none absolute -top-12 -left-12 h-32 w-32 rounded-full mix-blend-screen blur-xl"
+                ></div>
+
+                <!-- Fast Foreground Element -->
+                <div
+                  [moveParallax]="0.4"
+                  class="bg-surface-raised border-border absolute -top-16 -right-8 flex h-24 w-24 rotate-12 items-center justify-center rounded-2xl border shadow-lg"
+                >
+                  <span class="text-accent text-xl font-bold">0.4x</span>
+                </div>
+
+                <!-- Very Slow Element -->
+                <div
+                  [moveParallax]="-0.6"
+                  class="bg-surface border-border absolute top-48 -left-16 flex h-40 w-32 -rotate-6 items-center justify-center rounded-3xl border shadow-md"
+                >
+                  <span class="text-text-muted text-xl font-bold">-0.6x</span>
+                </div>
+
+                <!-- Central Static Panel (Normal scroll) -->
+                <div
+                  class="bg-surface border-accent/30 relative z-10 mx-auto w-3/4 rounded-3xl border p-12 text-center shadow-xl backdrop-blur-sm"
+                >
+                  <h4 class="font-display text-text mb-4 text-2xl font-bold">Depth Layers</h4>
+                  <p class="text-text-muted">
+                    The boxes around me scroll at different speeds. Notice how negative values
+                    scroll faster (moving upwards), and positive values scroll slower (lagging
+                    behind).
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Preset Gallery Footer -->
 
       <div class="border-border mt-24 border-t pt-16">
