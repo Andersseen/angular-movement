@@ -1,9 +1,17 @@
-import { Directive, ElementRef, inject, input, OnDestroy, OnInit, signal } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { PLATFORM_ID } from '@angular/core';
-import { MoveKeyframes } from '../presets/presets.types';
-import { AnimationEngine } from '../engines/animation-engine.service';
+import {
+  Directive,
+  ElementRef,
+  inject,
+  input,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  signal,
+} from '@angular/core';
 import { AnimationControls } from '../engines/animation-controls';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { MoveKeyframes } from '../presets/presets.types';
 
 @Directive({
   selector: '[moveScroll]',
@@ -22,13 +30,16 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   #player: AnimationControls | null = null;
   #observer: IntersectionObserver | null = null;
-  #scrollListener = () => this.updateProgress();
+  #scrollContainer: Window | Element | null = null;
 
   ngOnInit() {
     if (!isPlatformBrowser(this.#platformId)) return;
 
     const view = this.#documentRef.defaultView;
     if (!view) return;
+
+    // Find scroll container - check parent chain for scrollable elements
+    this.#scrollContainer = this.findScrollContainer(this.#host.nativeElement) ?? view;
 
     const frames = this.moveScroll();
     if (frames) {
@@ -41,20 +52,45 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
       }
     }
 
+    // Use IntersectionObserver to detect when element is visible
     this.#observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
         if (entry.isIntersecting) {
-          view.addEventListener('scroll', this.#scrollListener, { passive: true });
           this.updateProgress();
-        } else {
-          view.removeEventListener('scroll', this.#scrollListener);
         }
       },
-      { root: null },
+      { root: null, threshold: [0, 0.25, 0.5, 0.75, 1] },
     );
 
     this.#observer.observe(this.#host.nativeElement);
+
+    // Listen for scroll events
+    const scrollTarget = this.#scrollContainer === view ? view : this.#scrollContainer;
+    scrollTarget?.addEventListener('scroll', this.updateProgress.bind(this), { passive: true });
+
+    // Also listen for resize
+    view.addEventListener('resize', this.updateProgress.bind(this), { passive: true });
+
+    // Initial update
+    this.updateProgress();
+  }
+
+  private findScrollContainer(el: HTMLElement): Element | null {
+    let parent = el.parentElement;
+    while (parent) {
+      const style = window.getComputedStyle(parent);
+      if (
+        style.overflowY === 'auto' ||
+        style.overflowY === 'scroll' ||
+        style.overflow === 'auto' ||
+        style.overflow === 'scroll'
+      ) {
+        return parent;
+      }
+      parent = parent.parentElement;
+    }
+    return null;
   }
 
   private updateProgress() {
@@ -92,7 +128,22 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.#player?.cancel();
-    this.#documentRef.defaultView?.removeEventListener('scroll', this.#scrollListener);
+
+    const view = this.#documentRef.defaultView;
+    if (view) {
+      view.removeEventListener('resize', this.updateProgress.bind(this));
+      if (this.#scrollContainer === view) {
+        view.removeEventListener('scroll', this.updateProgress.bind(this));
+      }
+    }
+
+    if (this.#scrollContainer && this.#scrollContainer !== view) {
+      (this.#scrollContainer as Element).removeEventListener(
+        'scroll',
+        this.updateProgress.bind(this),
+      );
+    }
+
     this.#observer?.disconnect();
   }
 }

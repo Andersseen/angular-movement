@@ -44,6 +44,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
               <a
                 routerLink="/demos"
                 routerLinkActive="text-accent"
+                [routerLinkActiveOptions]="{ exact: false }"
                 class="hover:text-text transition-colors"
                 >Demos</a
               >
@@ -122,6 +123,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             <a
               routerLink="/demos"
               routerLinkActive="text-accent bg-surface-raised"
+              [routerLinkActiveOptions]="{ exact: false }"
               class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-md px-3 py-2 text-base font-medium transition-colors"
               (click)="closeMobileMenu()"
               >Demos</a

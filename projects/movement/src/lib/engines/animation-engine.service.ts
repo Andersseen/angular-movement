@@ -35,16 +35,18 @@ export class AnimationEngine {
       return null;
     }
 
-    if (options.spring) {
+    const config = options.config ?? this.#defaults;
+    const isSpring = options.spring || config.easing === 'spring';
+
+    if (isSpring) {
       return new SpringPlayer(
         host,
         frames,
-        options.spring,
-        options.delay ?? this.#defaults.delay,
+        options.spring ?? {},
+        options.delay ?? config.delay,
         options.onDone,
       );
     } else {
-      const config = options.config ?? this.#defaults;
       return new WaapiPlayer(
         host,
         frames,
