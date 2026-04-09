@@ -11,7 +11,7 @@ import {
   template: `
     <app-demo-container
       title="moveInView"
-      description="Trigger animations when elements enter the viewport. Perfect for scroll-triggered reveals."
+      description="Trigger animations when elements enter the viewport. Scroll down to see the animation trigger."
       directive="moveInView"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
@@ -20,14 +20,17 @@ import {
     >
       <!-- Preview -->
       <div preview class="relative h-full w-full overflow-hidden">
-        <div #scrollContainer class="h-full w-full overflow-y-auto scroll-smooth px-4 py-8">
-          <div class="flex flex-col items-center gap-32 py-16">
-            <div class="text-text-subtle text-center italic">
-              Scroll down to trigger animations...
+        <div #scrollContainer class="h-full w-full overflow-y-auto scroll-smooth">
+          <!-- Spacer to push element below viewport -->
+          <div class="flex h-[400px] items-center justify-center">
+            <div class="text-text-subtle text-center">
+              <div class="mb-2">↓ Scroll down ↓</div>
+              <div class="text-sm">The element below will animate when it enters view</div>
             </div>
+          </div>
 
-            <div class="h-32"></div>
-
+          <!-- Element to animate -->
+          <div class="flex items-center justify-center py-8">
             @if (showDemo()) {
               <div
                 [moveInView]="preset()"
@@ -35,7 +38,7 @@ import {
                 [moveDuration]="duration()"
                 [moveDelay]="delay()"
                 [moveEasing]="easing()"
-                class="bg-accent/10 border-accent/20 flex flex-col items-center gap-4 rounded-3xl border p-8 text-center"
+                class="bg-accent/10 border-accent/20 flex max-w-xs flex-col items-center gap-4 rounded-3xl border p-8 text-center"
               >
                 <div
                   class="bg-accent shadow-accent/50 flex h-12 w-12 items-center justify-center rounded-full text-white shadow-lg"
@@ -56,14 +59,15 @@ import {
                   </svg>
                 </div>
                 <h4 class="text-text text-xl font-bold">{{ presetLabel() }}</h4>
-                <p class="text-text-muted max-w-xs text-sm">
-                  {{ once() ? 'Triggers once when visible' : 'Re-triggers every time' }}
+                <p class="text-text-muted text-sm">
+                  {{ once() ? 'I animate once when visible' : 'I re-animate every time' }}
                 </p>
               </div>
             }
-
-            <div class="h-32"></div>
           </div>
+
+          <!-- Bottom spacer for more scroll room -->
+          <div class="h-[200px]"></div>
         </div>
       </div>
     </app-demo-container>
@@ -72,14 +76,19 @@ import {
 })
 export default class DemoInView {
   protected readonly availablePresets: MovePreset[] = [
+    'none',
     'fade-up',
     'fade-down',
     'fade-left',
     'fade-right',
     'slide-up',
     'slide-down',
+    'slide-left',
+    'slide-right',
     'zoom-in',
     'zoom-out',
+    'flip-x',
+    'flip-y',
     'bounce-in',
   ];
 
@@ -119,8 +128,8 @@ export default class DemoInView {
     this.delay.set(state.delay);
     this.easing.set(state.easing);
     this.once.set((state['once'] as boolean) ?? true);
-    // Re-show element to reset in-view trigger
+    // Reset and show element again to trigger new animation
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    setTimeout(() => this.showDemo.set(true), 100);
   }
 }

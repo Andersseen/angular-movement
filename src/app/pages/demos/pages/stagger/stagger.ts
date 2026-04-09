@@ -41,9 +41,19 @@ import {
 })
 export default class DemoStagger {
   protected readonly availablePresets: MovePreset[] = [
+    'none',
     'fade-up',
-    'zoom-in',
+    'fade-down',
+    'fade-left',
+    'fade-right',
     'slide-up',
+    'slide-down',
+    'slide-left',
+    'slide-right',
+    'zoom-in',
+    'zoom-out',
+    'flip-x',
+    'flip-y',
     'bounce-in',
   ];
 

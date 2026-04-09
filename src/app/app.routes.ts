@@ -20,6 +20,7 @@ export const routes: Routes = [
       { path: 'drag', loadComponent: () => import('./pages/demos/pages/drag/drag') },
       { path: 'presence', loadComponent: () => import('./pages/demos/pages/presence/presence') },
       { path: 'scroll', loadComponent: () => import('./pages/demos/pages/scroll/scroll') },
+      { path: 'parallax', loadComponent: () => import('./pages/demos/pages/parallax/parallax') },
     ],
   },
   {

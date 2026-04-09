@@ -84,6 +84,7 @@ import {
 })
 export default class DemoLeave {
   protected readonly availablePresets: MovePreset[] = [
+    'none',
     'fade-up',
     'fade-down',
     'fade-left',

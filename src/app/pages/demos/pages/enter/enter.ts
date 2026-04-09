@@ -48,6 +48,7 @@ import {
 })
 export default class DemoEnter {
   protected readonly availablePresets: MovePreset[] = [
+    'none',
     'fade-up',
     'fade-down',
     'fade-left',
@@ -79,6 +80,7 @@ export default class DemoEnter {
 
   protected readonly presetDescription = () => {
     const desc: Record<string, string> = {
+      none: 'No animation',
       'fade-up': 'Fades in while moving up',
       'fade-down': 'Fades in while moving down',
       'fade-left': 'Fades in while moving left',

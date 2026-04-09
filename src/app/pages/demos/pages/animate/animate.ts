@@ -87,14 +87,19 @@ import {
 })
 export default class DemoAnimate {
   protected readonly availablePresets: MovePreset[] = [
+    'none',
     'fade-up',
     'fade-down',
     'fade-left',
     'fade-right',
     'slide-up',
     'slide-down',
+    'slide-left',
+    'slide-right',
     'zoom-in',
     'zoom-out',
+    'flip-x',
+    'flip-y',
     'bounce-in',
   ];
 

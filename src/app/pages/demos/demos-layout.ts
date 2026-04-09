@@ -24,9 +24,10 @@ const DEMO_GROUPS: DemoGroup[] = [
   {
     title: 'Interaction',
     items: [
-      { path: 'hover', label: 'moveHover', description: 'Hover animations' },
-      { path: 'tap', label: 'moveTap', description: 'Click/tap animations' },
+      { path: 'hover', label: 'moveWhileHover', description: 'Hover animations' },
+      { path: 'tap', label: 'moveWhileTap', description: 'Click/tap animations' },
       { path: 'in-view', label: 'moveInView', description: 'Scroll-triggered animations' },
+      { path: 'drag', label: 'moveDrag', description: 'Draggable elements' },
     ],
   },
   {
@@ -39,12 +40,15 @@ const DEMO_GROUPS: DemoGroup[] = [
     ],
   },
   {
-    title: 'Special',
+    title: 'Scroll Effects',
     items: [
-      { path: 'drag', label: 'moveDrag', description: 'Draggable elements' },
-      { path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' },
       { path: 'scroll', label: 'moveScroll', description: 'Scroll-linked animations' },
+      { path: 'parallax', label: 'Parallax', description: 'Multi-layer depth effect' },
     ],
+  },
+  {
+    title: 'Special',
+    items: [{ path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' }],
   },
 ];
 
