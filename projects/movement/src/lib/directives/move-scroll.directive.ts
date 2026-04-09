@@ -1,6 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Directive,
+  effect,
   ElementRef,
   inject,
   input,
@@ -32,6 +33,28 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   #observer: IntersectionObserver | null = null;
   #scrollContainer: Window | Element | null = null;
 
+  constructor() {
+    // Recreate animation when keyframes change
+    effect(() => {
+      const frames = this.moveScroll();
+      if (!isPlatformBrowser(this.#platformId)) return;
+
+      // Cancel existing player
+      this.#player?.cancel();
+      this.#player = null;
+
+      if (frames) {
+        this.#player = this.#engine.play(this.#host.nativeElement, frames, {
+          config: { duration: 1000, delay: 0, easing: 'linear', disabled: false },
+        });
+        this.#player?.pause();
+        if (this.#player) {
+          this.#player.currentTime = this.progress() * 1000;
+        }
+      }
+    });
+  }
+
   ngOnInit() {
     if (!isPlatformBrowser(this.#platformId)) return;
 
@@ -40,17 +63,6 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
     // Find scroll container - check parent chain for scrollable elements
     this.#scrollContainer = this.findScrollContainer(this.#host.nativeElement) ?? view;
-
-    const frames = this.moveScroll();
-    if (frames) {
-      this.#player = this.#engine.play(this.#host.nativeElement, frames, {
-        config: { duration: 1000, delay: 0, easing: 'linear', disabled: false },
-      });
-      this.#player?.pause();
-      if (this.#player) {
-        this.#player.currentTime = 0;
-      }
-    }
 
     // Use IntersectionObserver to detect when element is visible
     this.#observer = new IntersectionObserver(

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'movement';
 import {
   DemoContainer,
@@ -11,87 +11,95 @@ import {
   template: `
     <app-demo-container
       title="Parallax Effect"
-      description="Create depth with multiple layers moving at different speeds. A common use case of scroll-linked animations."
+      description="Create depth with multiple layers moving at different speeds. Scroll down to see the effect."
       directive="moveScroll"
       [availablePresets]="[]"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
-      <!-- Preview -->
-      <div preview class="relative h-full w-full overflow-hidden">
-        <div class="h-full w-full overflow-y-auto">
-          <div class="flex min-h-[700px] flex-col items-center py-8">
-            <div class="text-text-subtle mb-4 text-sm">Scroll down for parallax effect ↓</div>
-
-            <!-- Parallax container -->
-            <div
-              class="from-accent/5 to-accent/20 relative flex h-[450px] w-full max-w-sm items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-b"
-            >
-              <!-- Far background (slowest) -->
-              <div
-                [moveScroll]="{ y: [0, bgSpeed()] }"
-                class="absolute inset-0 flex items-center justify-center"
-              >
-                <div class="bg-accent/10 h-64 w-64 rounded-full blur-3xl"></div>
-              </div>
-
-              <!-- Middle layer (medium speed) -->
-              <div
-                [moveScroll]="{ y: [0, midSpeed()], scale: [0.9, 1.1] }"
-                class="absolute flex items-center justify-center"
-              >
-                <div class="bg-accent/20 h-40 w-40 rounded-full blur-2xl"></div>
-              </div>
-
-              <!-- Content layer (foreground) -->
-              <div
-                [moveScroll]="{ y: [0, fgSpeed()], scale: [0.9, 1.1] }"
-                class="bg-surface border-accent/40 relative z-10 flex flex-col items-center gap-3 rounded-xl border p-6 shadow-xl"
-              >
-                <div class="bg-accent/20 flex h-14 w-14 items-center justify-center rounded-full">
-                  <svg
-                    class="text-accent h-7 w-7"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      stroke-width="2"
-                      d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
-                    />
-                  </svg>
-                </div>
-                <div class="font-display text-text text-lg font-bold">Parallax</div>
-                <div class="text-text-muted text-xs">{{ intensityLabel() }}</div>
-              </div>
-
-              <!-- Floating elements -->
-              @if (showFloating()) {
-                <div
-                  [moveScroll]="{ y: [0, 30], x: [0, 20] }"
-                  class="bg-accent/30 absolute top-4 left-4 h-8 w-8 rounded-lg"
-                ></div>
-                <div
-                  [moveScroll]="{ y: [0, 40], x: [0, -15] }"
-                  class="bg-accent/40 absolute right-6 bottom-8 h-6 w-6 rounded-full"
-                ></div>
-                <div
-                  [moveScroll]="{ y: [0, -30] }"
-                  class="bg-accent/25 absolute top-1/3 right-4 h-4 w-4 rounded"
-                ></div>
-              }
+      <!-- Preview - Full height for scroll -->
+      <div preview class="relative h-[500px] w-full overflow-hidden">
+        <div class="h-full w-full overflow-y-auto pr-2">
+          <!-- Top spacer -->
+          <div class="flex h-[350px] items-center justify-center">
+            <div class="text-text-subtle text-center">
+              <div class="mb-2 text-2xl">↓</div>
+              <div>Scroll down</div>
             </div>
-
-            <div class="text-text-muted mt-4 max-w-xs text-center text-sm">
-              {{ intensityLabel() }} - Background layers move slower than foreground
-            </div>
-
-            <!-- Extra scroll space -->
-            <div class="h-40"></div>
           </div>
+
+          <!-- Parallax scene -->
+          <div class="relative my-8 flex h-[300px] w-full items-center justify-center">
+            <!-- Sky/Background layer (slowest - barely moves) -->
+            <div
+              [moveScroll]="{ y: [0, bgSpeed()] }"
+              class="absolute inset-x-0 top-0 flex h-full items-center justify-center"
+            >
+              <div
+                class="from-accent/20 to-accent/5 h-[300px] w-[300px] rounded-full bg-gradient-to-br blur-3xl"
+              ></div>
+            </div>
+
+            <!-- Mountains/Middle layer (medium speed) -->
+            <div
+              [moveScroll]="{ y: [0, midSpeed()] }"
+              class="absolute bottom-0 flex items-end justify-center"
+            >
+              <svg
+                class="text-accent/30 h-[150px] w-[250px]"
+                viewBox="0 0 250 150"
+                fill="currentColor"
+              >
+                <polygon points="0,150 50,50 100,150 150,80 200,150 250,100 300,150" />
+              </svg>
+            </div>
+
+            <!-- Foreground/Content (fastest - moves most) -->
+            <div
+              [moveScroll]="{ y: [0, fgSpeed()], scale: [0.8, 1.1] }"
+              class="bg-surface border-accent/50 relative z-10 flex flex-col items-center gap-3 rounded-2xl border-2 p-8 shadow-2xl"
+            >
+              <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
+                <svg
+                  class="text-accent h-8 w-8"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"
+                  />
+                </svg>
+              </div>
+              <div class="font-display text-text text-xl font-bold">{{ intensityLabel() }}</div>
+              <div class="text-text-muted max-w-[150px] text-center text-xs">
+                Background moves slower than foreground
+              </div>
+            </div>
+
+            <!-- Floating particles (varied speeds) -->
+            @if (showFloating()) {
+              <div
+                [moveScroll]="{ y: [0, -60], x: [0, 20] }"
+                class="bg-accent/60 absolute top-10 left-10 h-3 w-3 rounded-full"
+              ></div>
+              <div
+                [moveScroll]="{ y: [0, -40] }"
+                class="bg-accent/40 absolute top-20 right-16 h-2 w-2 rounded-full"
+              ></div>
+              <div
+                [moveScroll]="{ y: [0, -80], x: [0, -10] }"
+                class="bg-accent/50 absolute bottom-20 left-20 h-4 w-4 rounded-full"
+              ></div>
+            }
+          </div>
+
+          <!-- Bottom spacer -->
+          <div class="h-[350px]"></div>
         </div>
       </div>
     </app-demo-container>
@@ -120,7 +128,7 @@ export default class DemoParallax {
       {
         id: 'showFloating',
         type: 'toggle' as const,
-        label: 'Show Floating Elements',
+        label: 'Show Floating Particles',
         value: true,
       },
     ],
@@ -129,30 +137,31 @@ export default class DemoParallax {
   protected intensity = signal<'subtle' | 'medium' | 'strong' | 'extreme'>('medium');
   protected showFloating = signal(true);
 
-  protected readonly bgSpeed = () => {
-    const speeds = { subtle: -10, medium: -20, strong: -40, extreme: -80 };
+  // Computed speeds based on intensity
+  protected readonly bgSpeed = computed(() => {
+    const speeds = { subtle: -10, medium: -25, strong: -50, extreme: -100 };
     return speeds[this.intensity()];
-  };
+  });
 
-  protected readonly midSpeed = () => {
-    const speeds = { subtle: -25, medium: -50, strong: -100, extreme: -160 };
+  protected readonly midSpeed = computed(() => {
+    const speeds = { subtle: -30, medium: -70, strong: -130, extreme: -200 };
     return speeds[this.intensity()];
-  };
+  });
 
-  protected readonly fgSpeed = () => {
-    const speeds = { subtle: -40, medium: -80, strong: -140, extreme: -200 };
+  protected readonly fgSpeed = computed(() => {
+    const speeds = { subtle: -50, medium: -120, strong: -200, extreme: -300 };
     return speeds[this.intensity()];
-  };
+  });
 
-  protected readonly intensityLabel = () => {
+  protected readonly intensityLabel = computed(() => {
     const labels = {
-      subtle: 'Subtle parallax',
-      medium: 'Medium parallax',
-      strong: 'Strong parallax',
-      extreme: 'Extreme parallax',
+      subtle: 'Subtle',
+      medium: 'Medium',
+      strong: 'Strong',
+      extreme: 'Extreme',
     };
     return labels[this.intensity()];
-  };
+  });
 
   protected onStateChange(state: DemoState): void {
     this.intensity.set(
