@@ -75,7 +75,7 @@ export interface DemoState {
 
           <div class="space-y-8">
             <!-- Preset Selector -->
-            @if (controls().showPreset !== false) {
+            @if (controls().showPreset !== false && availablePresets().length > 0) {
               <div>
                 <div class="mb-2 flex items-end justify-between">
                   <label for="preset-select" class="text-text-muted block text-sm font-medium"

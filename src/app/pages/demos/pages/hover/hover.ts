@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
 import {
   DemoContainer,
   DemoState,
@@ -13,7 +13,7 @@ import {
       title="moveWhileHover"
       description="Add hover animations to elements. The animation plays forward on mouse enter and reverses on mouse leave."
       directive="moveWhileHover"
-      [availablePresets]="availablePresets"
+      [availablePresets]="[]"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
@@ -21,10 +21,10 @@ import {
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
         <div
-          [moveWhileHover]="preset()"
+          [moveWhileHover]="hoverKeyframes()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="bg-surface border-accent/40 group flex min-w-[220px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)] transition-shadow hover:shadow-[0_0_50px_var(--color-accent-glow)]"
+          class="bg-surface border-accent/40 group flex min-w-[240px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)] transition-shadow hover:shadow-[0_0_50px_var(--color-accent-glow)]"
         >
           <div
             class="bg-accent/20 group-hover:bg-accent/30 flex h-16 w-16 items-center justify-center rounded-full transition-colors"
@@ -38,7 +38,7 @@ import {
               />
             </svg>
           </div>
-          <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
+          <div class="font-display text-text text-xl font-bold">{{ effectLabel() }}</div>
           <div class="text-text-muted text-sm">Hover over this card</div>
         </div>
       </div>
@@ -47,37 +47,59 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoHover {
-  protected readonly availablePresets: MovePreset[] = [
-    'fade-up',
-    'zoom-in',
-    'zoom-out',
-    'slide-up',
-    'bounce-in',
-  ];
-
   protected readonly controlsConfig = {
-    showPreset: true,
+    showPreset: false,
     showDuration: true,
     showDelay: false,
     showEasing: true,
+    customControls: [
+      {
+        id: 'effect',
+        type: 'select' as const,
+        label: 'Hover Effect',
+        value: 'scale',
+        options: [
+          { label: 'Scale Up', value: 'scale' },
+          { label: 'Lift Up', value: 'lift' },
+          { label: 'Pulse', value: 'pulse' },
+          { label: 'Glow', value: 'glow' },
+        ],
+      },
+    ],
   };
 
-  protected preset = signal<MovePreset>('zoom-in');
+  protected effect = signal<'scale' | 'lift' | 'pulse' | 'glow'>('scale');
   protected duration = signal(200);
   protected easing = signal('ease-out');
 
-  protected readonly presetLabel = () => {
-    const p = this.preset();
-    return p
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
+  protected readonly hoverKeyframes = (): MoveKeyframes => {
+    switch (this.effect()) {
+      case 'scale':
+        return { scale: [1, 1.1] };
+      case 'lift':
+        return { y: [0, -8], scale: [1, 1.02] };
+      case 'pulse':
+        return { scale: [1, 1.05, 1] };
+      case 'glow':
+        return { scale: [1, 1.05] };
+      default:
+        return { scale: [1, 1.1] };
+    }
+  };
+
+  protected readonly effectLabel = () => {
+    const labels: Record<string, string> = {
+      scale: 'Scale Up',
+      lift: 'Lift Up',
+      pulse: 'Pulse',
+      glow: 'Glow',
+    };
+    return labels[this.effect()] || 'Hover Effect';
   };
 
   protected onStateChange(state: DemoState): void {
-    this.preset.set(state.preset);
+    this.effect.set((state['effect'] as 'scale' | 'lift' | 'pulse' | 'glow') ?? 'scale');
     this.duration.set(state.duration);
     this.easing.set(state.easing);
-    // No replay needed for hover - it's interactive
   }
 }
