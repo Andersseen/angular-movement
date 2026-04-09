@@ -4,6 +4,7 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-presence',
@@ -63,29 +64,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoPresence {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
-
-  protected readonly controlsConfig = {
-    showPreset: true,
-    showDuration: true,
-    showDelay: false,
-    showEasing: true,
-  };
+  protected readonly availablePresets = ALL_PRESETS;
+  protected readonly controlsConfig = DEFAULT_CONTROLS.standard;
 
   protected readonly tabs = [
     { id: 1, label: 'Tab 1' },
@@ -98,13 +78,7 @@ export default class DemoPresence {
   protected easing = signal('ease');
   protected activeTab = signal(1);
 
-  protected readonly presetLabel = () => {
-    const p = this.preset();
-    return p
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  };
+  protected readonly presetLabel = () => getPresetLabel(this.preset());
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);

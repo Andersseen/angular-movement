@@ -4,6 +4,7 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-text',
@@ -38,28 +39,9 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoText {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
-
+  protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = {
-    showPreset: true,
-    showDuration: true,
-    showDelay: false,
-    showEasing: true,
+    ...DEFAULT_CONTROLS.standard,
     customControls: [
       {
         id: 'split',
@@ -104,7 +86,6 @@ export default class DemoText {
     this.split.set((state['split'] as 'chars' | 'words') ?? 'chars');
     this.stagger.set((state['stagger'] as number) ?? 30);
     this.text.set((state['text'] as string) || 'Animate Text');
-    // Auto-replay on state change
     this.replay();
   }
 

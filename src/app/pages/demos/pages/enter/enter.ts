@@ -4,6 +4,11 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import {
+  ALL_PRESETS,
+  getPresetLabel,
+  getPresetDescription,
+} from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-enter',
@@ -47,22 +52,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoEnter {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
+  protected readonly availablePresets = ALL_PRESETS;
 
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
@@ -70,40 +60,14 @@ export default class DemoEnter {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
-  protected readonly presetLabel = () => {
-    const p = this.preset();
-    return p
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  };
-
-  protected readonly presetDescription = () => {
-    const desc: Record<string, string> = {
-      none: 'No animation',
-      'fade-up': 'Fades in while moving up',
-      'fade-down': 'Fades in while moving down',
-      'fade-left': 'Fades in while moving left',
-      'fade-right': 'Fades in while moving right',
-      'slide-up': 'Slides in from below',
-      'slide-down': 'Slides in from above',
-      'slide-left': 'Slides in from right',
-      'slide-right': 'Slides in from left',
-      'zoom-in': 'Scales up from small',
-      'zoom-out': 'Scales down from large',
-      'flip-x': 'Flips in horizontally',
-      'flip-y': 'Flips in vertically',
-      'bounce-in': 'Bounces in with scale',
-    };
-    return desc[this.preset()] || 'Enter animation';
-  };
+  protected readonly presetLabel = () => getPresetLabel(this.preset());
+  protected readonly presetDescription = () => getPresetDescription(this.preset(), 'enter');
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
     this.duration.set(state.duration);
     this.delay.set(state.delay);
     this.easing.set(state.easing);
-    // Auto-replay on state change
     this.replay();
   }
 

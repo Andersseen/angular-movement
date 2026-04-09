@@ -4,6 +4,11 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import {
+  ALL_PRESETS,
+  getPresetLabel,
+  getPresetDescription,
+} from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-leave',
@@ -70,7 +75,7 @@ import {
               </svg>
             </div>
             <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
-            <div class="text-text-muted text-sm">Click hide to see exit animation</div>
+            <div class="text-text-muted text-sm">{{ presetDescription() }}</div>
           </div>
         } @else {
           <div class="text-text-muted text-sm italic">
@@ -83,22 +88,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoLeave {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
+  protected readonly availablePresets = ALL_PRESETS;
 
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
@@ -106,20 +96,14 @@ export default class DemoLeave {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
-  protected readonly presetLabel = () => {
-    const p = this.preset();
-    return p
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  };
+  protected readonly presetLabel = () => getPresetLabel(this.preset());
+  protected readonly presetDescription = () => getPresetDescription(this.preset(), 'leave');
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
     this.duration.set(state.duration);
     this.delay.set(state.delay);
     this.easing.set(state.easing);
-    // Show element when changing settings
     this.showDemo.set(true);
   }
 

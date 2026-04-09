@@ -4,6 +4,7 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-stagger',
@@ -40,28 +41,9 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoStagger {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
-
+  protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = {
-    showPreset: true,
-    showDuration: true,
-    showDelay: false,
-    showEasing: true,
+    ...DEFAULT_CONTROLS.standard,
     customControls: [
       {
         id: 'staggerDelay',

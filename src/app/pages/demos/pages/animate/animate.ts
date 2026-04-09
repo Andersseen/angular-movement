@@ -4,6 +4,7 @@ import {
   DemoContainer,
   DemoState,
 } from '../../../../shared/components/demo-container/demo-container';
+import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-animate',
@@ -86,29 +87,8 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoAnimate {
-  protected readonly availablePresets: MovePreset[] = [
-    'none',
-    'fade-up',
-    'fade-down',
-    'fade-left',
-    'fade-right',
-    'slide-up',
-    'slide-down',
-    'slide-left',
-    'slide-right',
-    'zoom-in',
-    'zoom-out',
-    'flip-x',
-    'flip-y',
-    'bounce-in',
-  ];
-
-  protected readonly controlsConfig = {
-    showPreset: true,
-    showDuration: true,
-    showDelay: true,
-    showEasing: true,
-  };
+  protected readonly availablePresets = ALL_PRESETS;
+  protected readonly controlsConfig = DEFAULT_CONTROLS.full;
 
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
@@ -116,13 +96,7 @@ export default class DemoAnimate {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
-  protected readonly presetLabel = () => {
-    const p = this.preset();
-    return p
-      .split('-')
-      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-      .join(' ');
-  };
+  protected readonly presetLabel = () => getPresetLabel(this.preset());
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
