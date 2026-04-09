@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-text',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveText"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
       <!-- Preview -->
@@ -73,7 +77,7 @@ export default class DemoText {
         id: 'text',
         type: 'text' as const,
         label: 'Text Content',
-        value: 'Split text animation',
+        value: 'Animate Text',
       },
     ],
   };
@@ -83,8 +87,19 @@ export default class DemoText {
   protected easing = signal('ease');
   protected split = signal<'chars' | 'words'>('chars');
   protected stagger = signal(30);
-  protected text = signal('Split text animation');
+  protected text = signal('Animate Text');
   protected showDemo = signal(true);
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+    this.split.set((state['split'] as 'chars' | 'words') ?? 'chars');
+    this.stagger.set((state['stagger'] as number) ?? 30);
+    this.text.set((state['text'] as string) || 'Animate Text');
+    // Auto-replay on state change
+    this.replay();
+  }
 
   protected replay(): void {
     this.showDemo.set(false);

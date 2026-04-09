@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-hover',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveWhileHover"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -20,7 +24,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
           [moveWhileHover]="preset()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="bg-surface border-accent/40 group flex min-w-[200px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)] transition-shadow hover:shadow-[0_0_50px_var(--color-accent-glow)]"
+          class="bg-surface border-accent/40 group flex min-w-[220px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)] transition-shadow hover:shadow-[0_0_50px_var(--color-accent-glow)]"
         >
           <div
             class="bg-accent/20 group-hover:bg-accent/30 flex h-16 w-16 items-center justify-center rounded-full transition-colors"
@@ -34,8 +38,8 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
               />
             </svg>
           </div>
-          <div class="font-display text-text text-xl font-bold">Hover Me</div>
-          <div class="text-text-muted text-sm">Move your mouse over this card</div>
+          <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
+          <div class="text-text-muted text-sm">Hover over this card</div>
         </div>
       </div>
     </app-demo-container>
@@ -43,7 +47,6 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoHover {
-  // Hover works better with subtle presets
   protected readonly availablePresets: MovePreset[] = [
     'fade-up',
     'zoom-in',
@@ -62,4 +65,19 @@ export default class DemoHover {
   protected preset = signal<MovePreset>('zoom-in');
   protected duration = signal(200);
   protected easing = signal('ease-out');
+
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+    // No replay needed for hover - it's interactive
+  }
 }

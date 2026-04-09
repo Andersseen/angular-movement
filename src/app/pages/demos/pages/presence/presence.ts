@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-presence',
@@ -10,8 +13,9 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       title="movePresence"
       description="AnimatePresence pattern for coordinating enter/leave animations. Wraps content and animates it in/out based on condition."
       directive="movePresence"
-      [availablePresets]="[]"
+      [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -43,7 +47,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
               >
                 <div class="text-center">
                   <div class="font-display text-text mb-2 text-xl font-bold">{{ tab.label }}</div>
-                  <div class="text-text-muted text-sm">Content for {{ tab.label }}</div>
+                  <div class="text-text-muted text-sm">{{ presetLabel() }}</div>
                 </div>
               </div>
             }
@@ -51,8 +55,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
         </div>
 
         <div class="text-text-muted max-w-xs text-center text-sm">
-          Note: movePresence is a structural directive (*movePresence). It coordinates enter/leave
-          animations for its children.
+          Note: movePresence is a structural directive (*movePresence) that coordinates animations.
         </div>
       </div>
     </app-demo-container>
@@ -86,4 +89,18 @@ export default class DemoPresence {
   protected duration = signal(300);
   protected easing = signal('ease');
   protected activeTab = signal(1);
+
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+  }
 }

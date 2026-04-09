@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-layout',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveLayout"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -19,17 +23,19 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
         <div class="flex gap-2">
           <button
             (click)="setLayout('grid')"
-            class="text-accent hover:text-accent-light bg-accent/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'grid'"
             [class.text-white]="layout() === 'grid'"
+            [class.bg-accent/10]="layout() !== 'grid'"
           >
             Grid
           </button>
           <button
             (click)="setLayout('list')"
-            class="text-accent hover:text-accent-light bg-accent/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+            class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'list'"
             [class.text-white]="layout() === 'list'"
+            [class.bg-accent/10]="layout() !== 'list'"
           >
             List
           </button>
@@ -45,7 +51,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
           moveLayout
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="transition-all duration-500"
+          class="transition-all"
           [class.grid]="layout() === 'grid'"
           [class.flex]="layout() === 'list'"
           [class.grid-cols-3]="layout() === 'grid'"
@@ -54,14 +60,18 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
         >
           @for (item of items(); track item.id) {
             <div
-              class="bg-surface border-accent/40 flex items-center justify-center rounded-xl border p-4"
+              class="bg-surface border-accent/40 font-display text-text flex items-center justify-center rounded-xl border p-4 font-bold"
               [class.h-20]="layout() === 'grid'"
               [class.w-20]="layout() === 'grid'"
               [class.w-full]="layout() === 'list'"
             >
-              <span class="font-display text-text font-bold">{{ item.label }}</span>
+              {{ item.label }}
             </div>
           }
+        </div>
+
+        <div class="text-text-muted max-w-xs text-center text-sm">
+          Toggle between grid/list or shuffle items to see layout animations
         </div>
       </div>
     </app-demo-container>
@@ -87,6 +97,11 @@ export default class DemoLayout {
     { id: 5, label: 'E' },
     { id: 6, label: 'F' },
   ]);
+
+  protected onStateChange(state: DemoState): void {
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+  }
 
   protected setLayout(layout: 'grid' | 'list'): void {
     this.layout.set(layout);

@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-enter',
@@ -11,6 +14,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       description="Animate elements when they enter the DOM. Perfect for initial page loads and dynamically added content."
       directive="moveEnter"
       [availablePresets]="availablePresets"
+      (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
       <!-- Preview -->
@@ -33,8 +37,8 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
                 <path d="M 45 20 L 70 50 L 45 80 L 65 80 L 90 50 L 65 20 Z" fill="currentColor" />
               </svg>
             </div>
-            <div class="font-display text-text text-xl font-bold">Enter Animation</div>
-            <div class="bg-surface-raised h-2 w-24 rounded-full"></div>
+            <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
+            <div class="text-text-muted text-sm">{{ presetDescription() }}</div>
           </div>
         }
       </div>
@@ -65,20 +69,44 @@ export default class DemoEnter {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
-  protected onStateChange(state: {
-    preset: MovePreset;
-    duration: number;
-    delay: number;
-    easing: string;
-  }): void {
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected readonly presetDescription = () => {
+    const desc: Record<string, string> = {
+      'fade-up': 'Fades in while moving up',
+      'fade-down': 'Fades in while moving down',
+      'fade-left': 'Fades in while moving left',
+      'fade-right': 'Fades in while moving right',
+      'slide-up': 'Slides in from below',
+      'slide-down': 'Slides in from above',
+      'slide-left': 'Slides in from right',
+      'slide-right': 'Slides in from left',
+      'zoom-in': 'Scales up from small',
+      'zoom-out': 'Scales down from large',
+      'flip-x': 'Flips in horizontally',
+      'flip-y': 'Flips in vertically',
+      'bounce-in': 'Bounces in with scale',
+    };
+    return desc[this.preset()] || 'Enter animation';
+  };
+
+  protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
     this.duration.set(state.duration);
     this.delay.set(state.delay);
     this.easing.set(state.easing);
+    // Auto-replay on state change
+    this.replay();
   }
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 0);
+    setTimeout(() => this.showDemo.set(true), 50);
   }
 }

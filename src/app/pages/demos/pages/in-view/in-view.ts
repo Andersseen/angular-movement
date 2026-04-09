@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-in-view',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveInView"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -28,7 +32,6 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
               <div
                 [moveInView]="preset()"
                 [moveInViewOnce]="once()"
-                moveInViewRoot="[preview] div"
                 [moveDuration]="duration()"
                 [moveDelay]="delay()"
                 [moveEasing]="easing()"
@@ -52,9 +55,9 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
                     />
                   </svg>
                 </div>
-                <h4 class="text-text text-xl font-bold">I animate on scroll!</h4>
+                <h4 class="text-text text-xl font-bold">{{ presetLabel() }}</h4>
                 <p class="text-text-muted max-w-xs text-sm">
-                  Scroll me out and back in to {{ once() ? 'see me again' : 're-trigger' }}.
+                  {{ once() ? 'Triggers once when visible' : 'Re-triggers every time' }}
                 </p>
               </div>
             }
@@ -101,4 +104,23 @@ export default class DemoInView {
   protected easing = signal('ease-out');
   protected once = signal(true);
   protected showDemo = signal(true);
+
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.delay.set(state.delay);
+    this.easing.set(state.easing);
+    this.once.set((state['once'] as boolean) ?? true);
+    // Re-show element to reset in-view trigger
+    this.showDemo.set(false);
+    setTimeout(() => this.showDemo.set(true), 50);
+  }
 }

@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MoveVariant } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-variants',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveAnimate"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -41,7 +45,9 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
           <span class="font-display text-text text-lg font-bold">{{ currentVariant() }}</span>
         </div>
 
-        <div class="text-text-muted text-sm">Click buttons to transition between states</div>
+        <div class="text-text-muted max-w-xs text-center text-sm">
+          Click buttons to transition between animation states
+        </div>
       </div>
     </app-demo-container>
   `,
@@ -66,4 +72,9 @@ export default class DemoVariants {
     hover: { scale: [1, 1.1], rotate: [0, 5] },
     active: { scale: [1, 0.95], rotate: [0, -5] },
   };
+
+  protected onStateChange(state: DemoState): void {
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+  }
 }

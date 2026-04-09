@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-tap',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveWhileTap"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -30,7 +34,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
               d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"
             />
           </svg>
-          Click Me
+          {{ presetLabel() }}
         </button>
       </div>
     </app-demo-container>
@@ -38,7 +42,6 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoTap {
-  // Tap works best with quick, subtle animations
   protected readonly availablePresets: MovePreset[] = [
     'zoom-in',
     'zoom-out',
@@ -56,4 +59,19 @@ export default class DemoTap {
   protected preset = signal<MovePreset>('zoom-out');
   protected duration = signal(100);
   protected easing = signal('ease-out');
+
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+    // No replay needed for tap - it's interactive
+  }
 }

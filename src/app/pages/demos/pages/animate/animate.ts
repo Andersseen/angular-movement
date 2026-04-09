@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-animate',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveAnimate"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
       <!-- Preview -->
@@ -72,8 +76,8 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
                 />
               </svg>
             </div>
-            <div class="font-display text-text text-xl font-bold">Enter & Leave</div>
-            <div class="text-text-muted text-sm">Same animation for both</div>
+            <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
+            <div class="text-text-muted text-sm">Same animation for enter & leave</div>
           </div>
         }
       </div>
@@ -107,12 +111,28 @@ export default class DemoAnimate {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.delay.set(state.delay);
+    this.easing.set(state.easing);
+    this.showDemo.set(true);
+  }
+
   protected toggleElement(): void {
     this.showDemo.update((v) => !v);
   }
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 0);
+    setTimeout(() => this.showDemo.set(true), 50);
   }
 }

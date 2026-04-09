@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-drag',
@@ -12,14 +15,16 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveDrag"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >
       <!-- Preview -->
-      <div preview class="flex h-full w-full items-center justify-center">
+      <div preview class="relative flex h-full w-full items-center justify-center overflow-hidden">
         <div
           moveDrag
-          [moveDragConstraints]="constraints()"
-          [moveDragElastic]="elastic()"
+          [moveDragConstraints]="
+            constrained() ? { left: -100, right: 100, top: -80, bottom: 80 } : undefined
+          "
           class="bg-surface border-accent/40 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
         >
           <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
@@ -33,7 +38,9 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
             </svg>
           </div>
           <div class="font-display text-text font-semibold">Drag Me</div>
-          <div class="text-text-muted text-xs">Free movement</div>
+          <div class="text-text-muted text-xs">
+            {{ constrained() ? 'Constrained' : 'Free movement' }}
+          </div>
         </div>
       </div>
     </app-demo-container>
@@ -41,11 +48,6 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoDrag {
-  protected readonly constraints = signal<
-    { left: number; right: number; top: number; bottom: number } | undefined
-  >(undefined);
-  protected readonly elastic = signal(0.2);
-
   protected readonly controlsConfig = {
     showPreset: false,
     showDuration: false,
@@ -55,9 +57,15 @@ export default class DemoDrag {
       {
         id: 'constrained',
         type: 'toggle' as const,
-        label: 'Constrain to Parent',
+        label: 'Constrain to Area',
         value: false,
       },
     ],
   };
+
+  protected constrained = signal(false);
+
+  protected onStateChange(state: DemoState): void {
+    this.constrained.set((state['constrained'] as boolean) ?? false);
+  }
 }

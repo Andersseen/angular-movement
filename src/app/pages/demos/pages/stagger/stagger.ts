@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-stagger',
@@ -12,6 +15,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       directive="moveStagger"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
       <!-- Preview -->
@@ -23,9 +27,9 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
                 [moveEnter]="preset()"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                class="bg-surface border-border flex h-16 w-16 items-center justify-center rounded-lg border"
+                class="bg-surface border-accent/40 flex h-20 w-20 items-center justify-center rounded-lg border"
               >
-                <span class="text-text-muted font-mono text-sm">{{ i + 1 }}</span>
+                <span class="text-text font-mono text-lg font-bold">{{ i + 1 }}</span>
               </div>
             }
           </div>
@@ -52,7 +56,7 @@ export default class DemoStagger {
       {
         id: 'staggerDelay',
         type: 'range' as const,
-        label: 'Stagger Delay',
+        label: 'Stagger Delay (ms)',
         value: 50,
         min: 20,
         max: 200,
@@ -69,8 +73,16 @@ export default class DemoStagger {
   protected staggerDelay = signal(50);
   protected showDemo = signal(true);
 
+  protected onStateChange(state: DemoState): void {
+    this.preset.set(state.preset);
+    this.duration.set(state.duration);
+    this.easing.set(state.easing);
+    this.staggerDelay.set((state['staggerDelay'] as number) ?? 50);
+    this.replay();
+  }
+
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 0);
+    setTimeout(() => this.showDemo.set(true), 50);
   }
 }

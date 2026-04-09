@@ -1,6 +1,9 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
-import { DemoContainer } from '../../../../shared/components/demo-container/demo-container';
+import {
+  DemoContainer,
+  DemoState,
+} from '../../../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-leave',
@@ -11,6 +14,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
       description="Animate elements when they leave the DOM. Use with *ngIf or @if to trigger exit animations."
       directive="moveLeave"
       [availablePresets]="availablePresets"
+      (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
       <!-- Preview -->
@@ -65,7 +69,7 @@ import { DemoContainer } from '../../../../shared/components/demo-container/demo
                 />
               </svg>
             </div>
-            <div class="font-display text-text text-xl font-bold">Leave Animation</div>
+            <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
             <div class="text-text-muted text-sm">Click hide to see exit animation</div>
           </div>
         } @else {
@@ -101,16 +105,21 @@ export default class DemoLeave {
   protected easing = signal('ease');
   protected showDemo = signal(true);
 
-  protected onStateChange(state: {
-    preset: MovePreset;
-    duration: number;
-    delay: number;
-    easing: string;
-  }): void {
+  protected readonly presetLabel = () => {
+    const p = this.preset();
+    return p
+      .split('-')
+      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+      .join(' ');
+  };
+
+  protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
     this.duration.set(state.duration);
     this.delay.set(state.delay);
     this.easing.set(state.easing);
+    // Show element when changing settings
+    this.showDemo.set(true);
   }
 
   protected toggleElement(): void {
@@ -119,6 +128,6 @@ export default class DemoLeave {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 0);
+    setTimeout(() => this.showDemo.set(true), 50);
   }
 }
