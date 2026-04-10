@@ -15,9 +15,11 @@
       "prefix": "app",
       "architect": {
         "build": {
-          "builder": "@angular/build:application",
+          "builder": "@analogjs/platform:vite",
           "options": {
-            "browser": "src/main.ts",
+            "configFile": "vite.config.ts",
+            "main": "src/main.ts",
+            "outputPath": "dist/analog",
             "tsConfig": "tsconfig.app.json",
             "assets": [
               {
@@ -46,13 +48,25 @@
             "development": {
               "optimization": false,
               "extractLicenses": false,
-              "sourceMap": true
+              "sourceMap": true,
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "2MB",
+                  "maximumError": "5MB"
+                }
+              ]
             }
           },
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
+          "builder": "@analogjs/platform:vite-dev-server",
+          "defaultConfiguration": "development",
+          "options": {
+            "configFile": "vite.config.ts",
+            "buildTarget": "angular-movement:build"
+          },
           "configurations": {
             "production": {
               "buildTarget": "angular-movement:build:production"
@@ -60,11 +74,10 @@
             "development": {
               "buildTarget": "angular-movement:build:development"
             }
-          },
-          "defaultConfiguration": "development"
+          }
         },
         "test": {
-          "builder": "@angular/build:unit-test"
+          "builder": "@analogjs/platform:vitest"
         },
         "lint": {
           "builder": "@angular-eslint/builder:lint",

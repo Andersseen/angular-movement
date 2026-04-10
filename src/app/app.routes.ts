@@ -1,45 +1,42 @@
 import { Routes } from '@angular/router';
 
-export const routes: Routes = [
-  { path: '', loadComponent: () => import('./pages/home/home') },
+export const appRoutes: Routes = [
+  {
+    path: '',
+    loadComponent: () => import('./pages/(home).page'),
+  },
   {
     path: 'demos',
-    loadComponent: () => import('./pages/demos/demos-layout'),
+    loadComponent: () => import('./pages/demos.layout'),
     children: [
       { path: '', redirectTo: 'enter', pathMatch: 'full' },
-      { path: 'enter', loadComponent: () => import('./pages/demos/pages/enter/enter') },
-      { path: 'leave', loadComponent: () => import('./pages/demos/pages/leave/leave') },
-      { path: 'animate', loadComponent: () => import('./pages/demos/pages/animate/animate') },
-      { path: 'hover', loadComponent: () => import('./pages/demos/pages/hover/hover') },
-      { path: 'tap', loadComponent: () => import('./pages/demos/pages/tap/tap') },
-      { path: 'in-view', loadComponent: () => import('./pages/demos/pages/in-view/in-view') },
-      { path: 'text', loadComponent: () => import('./pages/demos/pages/text/text') },
-      { path: 'stagger', loadComponent: () => import('./pages/demos/pages/stagger/stagger') },
-      { path: 'layout', loadComponent: () => import('./pages/demos/pages/layout/layout') },
-      { path: 'variants', loadComponent: () => import('./pages/demos/pages/variants/variants') },
-      { path: 'drag', loadComponent: () => import('./pages/demos/pages/drag/drag') },
-      { path: 'presence', loadComponent: () => import('./pages/demos/pages/presence/presence') },
-      { path: 'scroll', loadComponent: () => import('./pages/demos/pages/scroll/scroll') },
-      { path: 'parallax', loadComponent: () => import('./pages/demos/pages/parallax/parallax') },
+      { path: 'enter', loadComponent: () => import('./pages/demos/enter.page') },
+      { path: 'leave', loadComponent: () => import('./pages/demos/leave.page') },
+      { path: 'animate', loadComponent: () => import('./pages/demos/animate.page') },
+      { path: 'hover', loadComponent: () => import('./pages/demos/hover.page') },
+      { path: 'tap', loadComponent: () => import('./pages/demos/tap.page') },
+      { path: 'in-view', loadComponent: () => import('./pages/demos/in-view.page') },
+      { path: 'drag', loadComponent: () => import('./pages/demos/drag.page') },
+      { path: 'text', loadComponent: () => import('./pages/demos/text.page') },
+      { path: 'stagger', loadComponent: () => import('./pages/demos/stagger.page') },
+      { path: 'layout', loadComponent: () => import('./pages/demos/layout.page') },
+      { path: 'variants', loadComponent: () => import('./pages/demos/variants.page') },
+      { path: 'scroll', loadComponent: () => import('./pages/demos/scroll.page') },
+      { path: 'parallax', loadComponent: () => import('./pages/demos/parallax.page') },
+      { path: 'presence', loadComponent: () => import('./pages/demos/presence.page') },
     ],
   },
   {
     path: 'docs',
-    loadComponent: () => import('./pages/docs/docs'),
+    loadComponent: () => import('./pages/docs.layout'),
     children: [
       { path: '', redirectTo: 'introduction', pathMatch: 'full' },
-      {
-        path: 'introduction',
-        loadComponent: () => import('./pages/docs/pages/introduction/introduction'),
-      },
-      {
-        path: 'get-started',
-        loadComponent: () => import('./pages/docs/pages/get-started/get-started'),
-      },
+      { path: 'introduction', loadComponent: () => import('./pages/docs/introduction.page') },
+      { path: 'get-started', loadComponent: () => import('./pages/docs/get-started.page') },
     ],
   },
   {
     path: '**',
-    loadComponent: () => import('./pages/not-found/not-found'),
+    loadComponent: () => import('./pages/[...404].page'),
   },
 ];
