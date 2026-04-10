@@ -33,7 +33,7 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
           }
         </div>
 
-        <div class="relative h-40 w-64">
+        <div class="relative h-40 w-full max-w-[256px]">
           @for (tab of tabs; track tab.id) {
             @if (activeTab() === tab.id) {
               <div

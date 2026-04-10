@@ -50,7 +50,7 @@ import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/
             [moveDuration]="duration()"
             [moveDelay]="delay()"
             [moveEasing]="easing()"
-            class="bg-surface border-accent/40 flex min-w-[240px] flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)]"
+            class="bg-surface border-accent/40 flex w-full max-w-[280px] flex-col items-center justify-center gap-4 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] sm:p-8"
           >
             <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
               <svg

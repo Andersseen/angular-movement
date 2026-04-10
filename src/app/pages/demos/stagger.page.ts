@@ -19,15 +19,15 @@ import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
         @if (showDemo()) {
-          <div [moveStagger]="staggerDelay()" class="grid grid-cols-3 gap-3">
+          <div [moveStagger]="staggerDelay()" class="grid grid-cols-3 gap-2 sm:gap-3">
             @for (i of items; track i) {
               <div
                 [moveEnter]="preset()"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                class="bg-surface border-accent/40 flex h-20 w-20 items-center justify-center rounded-lg border"
+                class="bg-surface border-accent/40 flex h-16 w-16 items-center justify-center rounded-lg border sm:h-20 sm:w-20"
               >
-                <span class="text-text font-mono text-lg font-bold">{{ i + 1 }}</span>
+                <span class="text-text font-mono text-base font-bold sm:text-lg">{{ i + 1 }}</span>
               </div>
             }
           </div>

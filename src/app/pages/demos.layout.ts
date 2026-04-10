@@ -59,10 +59,28 @@ const DEMO_GROUPS: DemoGroup[] = [
     <div
       class="mx-auto min-h-[calc(100vh-theme('spacing.64'))] max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
     >
+      <!-- Mobile Navigation (horizontal scrollable tabs) -->
+      <nav class="hidden-scrollbar -mx-4 mb-8 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden">
+        <div class="flex min-w-max gap-1 pb-2">
+          @for (group of demoGroups; track group.title) {
+            @for (item of group.items; track item.path) {
+              <a
+                [routerLink]="[item.path]"
+                routerLinkActive="bg-accent/10 text-accent font-medium"
+                class="text-text-muted hover:text-text rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors"
+                [attr.aria-label]="item.description"
+              >
+                {{ item.label }}
+              </a>
+            }
+          }
+        </div>
+      </nav>
+
       <div class="flex flex-col gap-12 lg:flex-row">
-        <!-- Sidebar Navigation -->
+        <!-- Sidebar Navigation (desktop only) -->
         <aside
-          class="hidden-scrollbar w-full shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:max-h-[calc(100vh-theme('spacing.32'))] lg:w-64 lg:self-start"
+          class="hidden-scrollbar hidden w-64 shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-theme('spacing.32'))] lg:self-start"
         >
           <nav class="space-y-8">
             @for (group of demoGroups; track group.title) {

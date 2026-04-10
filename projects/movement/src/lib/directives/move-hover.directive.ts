@@ -16,6 +16,9 @@ import { AnimationControls } from '../engines/animation-controls';
   host: {
     '(mouseenter)': 'onMouseEnter()',
     '(mouseleave)': 'onMouseLeave()',
+    '(touchstart)': 'onTouchStart($event)',
+    '(touchend)': 'onTouchEnd()',
+    '(touchcancel)': 'onTouchEnd()',
   },
 })
 export class MoveHoverDirective implements OnDestroy {
@@ -41,6 +44,19 @@ export class MoveHoverDirective implements OnDestroy {
   }
 
   onMouseLeave() {
+    if (!this.#isHovered) return;
+    this.#isHovered = false;
+    this.play(true);
+  }
+
+  onTouchStart(event: TouchEvent) {
+    event.preventDefault();
+    if (this.#isHovered) return;
+    this.#isHovered = true;
+    this.play(false);
+  }
+
+  onTouchEnd() {
     if (!this.#isHovered) return;
     this.#isHovered = false;
     this.play(true);

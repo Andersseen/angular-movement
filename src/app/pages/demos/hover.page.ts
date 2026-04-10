@@ -36,7 +36,10 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             </svg>
           </div>
           <div class="font-display text-text text-xl font-bold">{{ effectLabel() }}</div>
-          <div class="text-text-muted text-sm">Hover over this card</div>
+          <div class="text-text-muted text-sm">
+            <span class="hidden sm:inline">Hover over this card</span>
+            <span class="sm:hidden">Tap this card</span>
+          </div>
         </div>
       </div>
     </app-demo-container>

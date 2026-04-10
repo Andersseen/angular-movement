@@ -16,10 +16,10 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [showReplay]="false"
     >
       <!-- Preview -->
-      <div preview class="relative h-[500px] w-full overflow-hidden">
-        <div class="h-full w-full overflow-y-auto pr-2">
+      <div preview class="relative h-full w-full overflow-hidden">
+        <div id="scroll-demo-container" class="h-full w-full overflow-y-auto pr-2">
           <!-- Top spacer -->
-          <div class="flex h-[350px] items-center justify-center">
+          <div class="flex h-[280px] items-center justify-center">
             <div class="text-text-subtle text-center">
               <div class="mb-2 text-2xl">↓</div>
               <div>Scroll down</div>
@@ -27,10 +27,11 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
 
           <!-- Animation showcase -->
-          <div class="relative my-8 flex h-[300px] w-full items-center justify-center">
+          <div class="relative my-8 flex h-[280px] w-full items-center justify-center">
             <!-- Background element -->
             <div
               [moveScroll]="bgKeyframes()"
+              moveScrollContainer="#scroll-demo-container"
               class="bg-accent/20 border-accent/30 absolute flex h-40 w-40 items-center justify-center rounded-2xl border"
             >
               <span class="text-accent/60 font-display text-2xl font-bold">BG</span>
@@ -39,6 +40,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             <!-- Middle element -->
             <div
               [moveScroll]="midKeyframes()"
+              moveScrollContainer="#scroll-demo-container"
               class="bg-surface border-accent/50 absolute z-10 flex h-28 w-28 items-center justify-center rounded-xl border-2 shadow-xl"
             >
               <span class="text-text-muted font-display text-lg font-bold">MID</span>
@@ -47,6 +49,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             <!-- Foreground element -->
             <div
               [moveScroll]="fgKeyframes()"
+              moveScrollContainer="#scroll-demo-container"
               class="bg-accent absolute z-20 flex h-16 w-16 items-center justify-center rounded-lg shadow-lg"
             >
               <span class="font-display text-sm font-bold text-white">FG</span>
@@ -59,7 +62,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
 
           <!-- Bottom spacer -->
-          <div class="h-[350px]"></div>
+          <div class="h-[280px]"></div>
         </div>
       </div>
     </app-demo-container>

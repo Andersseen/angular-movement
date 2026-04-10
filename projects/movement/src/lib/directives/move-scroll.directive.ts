@@ -22,6 +22,8 @@ import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 export class MoveScrollDirective implements OnInit, OnDestroy {
   readonly moveScroll = input<MoveKeyframes | undefined>(undefined);
   readonly moveScrollOffset = input<[string, string]>(['0 1', '1 0']);
+  /** Optional CSS selector for a custom scrollable container (e.g. an inner div). Defaults to window scroll. */
+  readonly moveScrollContainer = input<string | null>(null);
 
   readonly progress = signal(0);
 
@@ -40,6 +42,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   #observer: IntersectionObserver | null = null;
   #isVisible = false;
   #scrollListener = () => this.#updateProgress();
+  #scrollTarget: EventTarget | null = null;
 
   constructor() {
     // React to the smooth-scroll signal when the service is active.
@@ -68,6 +71,12 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
       this.#player?.pause();
     }
 
+    // Resolve scroll target: custom container selector or window
+    const containerSelector = this.moveScrollContainer();
+    this.#scrollTarget = containerSelector
+      ? ((this.#documentRef.querySelector(containerSelector) as EventTarget | null) ?? view)
+      : view;
+
     // Use IntersectionObserver to detect when element is visible
     this.#observer = new IntersectionObserver(
       (entries) => {
@@ -77,11 +86,11 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
         if (entry.isIntersecting) {
           // Only attach native scroll listener when smooth scroll is NOT active
           if (!this.#smoothScroll?.isActive) {
-            view.addEventListener('scroll', this.#scrollListener, { passive: true });
+            this.#scrollTarget!.addEventListener('scroll', this.#scrollListener, { passive: true });
           }
           this.#updateProgress();
         } else {
-          view.removeEventListener('scroll', this.#scrollListener);
+          this.#scrollTarget?.removeEventListener('scroll', this.#scrollListener);
         }
       },
       { root: null, threshold: [0, 0.25, 0.5, 0.75, 1] },
@@ -125,12 +134,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.#player?.cancel();
-
-    const view = this.#documentRef.defaultView;
-    if (view) {
-      view.removeEventListener('scroll', this.#scrollListener);
-    }
-
+    this.#scrollTarget?.removeEventListener('scroll', this.#scrollListener);
     this.#observer?.disconnect();
   }
 }
