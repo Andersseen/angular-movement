@@ -123,6 +123,7 @@ export class SmoothScrollService implements OnDestroy {
   }
 
   destroy(): void {
+    if (!isPlatformBrowser(this.#platformId)) return;
     this.#isRunning = false;
     cancelAnimationFrame(this.#rafId);
 

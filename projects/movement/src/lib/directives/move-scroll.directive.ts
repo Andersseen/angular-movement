@@ -1,18 +1,18 @@
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import {
   Directive,
-  ElementRef,
   effect,
+  ElementRef,
   inject,
   input,
   OnDestroy,
   OnInit,
-  signal,
   PLATFORM_ID,
+  signal,
 } from '@angular/core';
-import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { MoveKeyframes } from '../presets/presets.types';
-import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { MoveKeyframes } from '../presets/presets.types';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
 @Directive({
@@ -61,17 +61,14 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
     const view = this.#documentRef.defaultView;
     if (!view) return;
 
-    const frames = this.moveScroll();
-    if (frames) {
-      this.#player = this.#engine.play(this.#host.nativeElement, frames, {
-        config: { duration: 1000, delay: 0, easing: 'linear', disabled: false },
-      });
+    // Create the animation player immediately (will be controlled via scroll)
+    const keyframes = this.moveScroll();
+    if (keyframes) {
+      this.#player = this.#engine.play(this.#host.nativeElement, keyframes);
       this.#player?.pause();
-      if (this.#player) {
-        this.#player.currentTime = 0;
-      }
     }
 
+    // Use IntersectionObserver to detect when element is visible
     this.#observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
@@ -87,7 +84,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
           view.removeEventListener('scroll', this.#scrollListener);
         }
       },
-      { root: null },
+      { root: null, threshold: [0, 0.25, 0.5, 0.75, 1] },
     );
 
     this.#observer.observe(this.#host.nativeElement);
@@ -128,7 +125,12 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.#player?.cancel();
-    this.#documentRef.defaultView?.removeEventListener('scroll', this.#scrollListener);
+
+    const view = this.#documentRef.defaultView;
+    if (view) {
+      view.removeEventListener('scroll', this.#scrollListener);
+    }
+
     this.#observer?.disconnect();
   }
 }

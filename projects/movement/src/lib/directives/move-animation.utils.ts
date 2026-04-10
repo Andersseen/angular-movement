@@ -35,7 +35,12 @@ export function resolveMovementConfig(
 
 export function resolveMoveFrames(value: MoveDirectiveInput, phase: MovePhase): MoveKeyframes {
   if (typeof value === 'string') {
-    return MOVE_PRESETS[value][phase];
+    const preset = MOVE_PRESETS[value];
+    if (!preset) {
+      console.warn(`[Movement] Unknown preset: "${value}". Using "none" preset.`);
+      return MOVE_PRESETS['none'][phase];
+    }
+    return preset[phase];
   }
 
   return value;
