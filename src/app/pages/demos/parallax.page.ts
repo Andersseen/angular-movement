@@ -18,8 +18,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       <!-- Preview - Full height for scroll -->
       <div preview class="relative h-full w-full overflow-hidden">
         <div id="parallax-demo-container" class="h-full w-full overflow-y-auto pr-2">
-          <!-- Top spacer -->
-          <div class="flex h-[280px] items-center justify-center">
+          <!-- Top spacer — must be taller than the container to push content below the fold -->
+          <div class="flex h-[400px] items-center justify-center">
             <div class="text-text-subtle text-center">
               <div class="mb-2 text-2xl">↓</div>
               <div>Scroll down</div>
@@ -102,7 +102,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
 
           <!-- Bottom spacer -->
-          <div class="h-[280px]"></div>
+          <div class="h-[320px]"></div>
         </div>
       </div>
     </app-demo-container>
