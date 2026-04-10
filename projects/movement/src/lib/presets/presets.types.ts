@@ -12,6 +12,9 @@ export type MovePreset =
   | 'flip-x'
   | 'flip-y'
   | 'bounce-in'
+  | 'blur-in'
+  | 'spin'
+  | 'pulse'
   | 'none';
 
 export type MoveValuePair = readonly number[];
@@ -33,6 +36,7 @@ export interface MoveKeyframes {
   rotate?: MoveValuePair;
   rotateX?: MoveValuePair;
   rotateY?: MoveValuePair;
+  blur?: MoveValuePair;
 }
 
 export type MoveVariant = MoveKeyframes & {

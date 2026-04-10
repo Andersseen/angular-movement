@@ -11,6 +11,8 @@ import {
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  applyInitialStyles,
+  clearInitialStyles,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -54,7 +56,7 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
     this.#frames = resolveMoveFrames(this.moveInView(), 'enter');
 
     // Apply initial (invisible) state directly to DOM - avoid creating a player
-    this.#applyInitialStyles(this.#frames);
+    applyInitialStyles(this.#host.nativeElement, this.#frames);
 
     const rootSelector = this.moveInViewRoot();
     const rootEl = rootSelector ? this.#documentRef.querySelector(rootSelector) : null;
@@ -74,7 +76,7 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
           this.#player = null;
           this.#isAnimated = false;
           if (this.#frames) {
-            this.#applyInitialStyles(this.#frames);
+            applyInitialStyles(this.#host.nativeElement, this.#frames);
           }
         }
       },
@@ -103,7 +105,7 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
     );
 
     // Clear inline styles before animating so WAAPI can take over cleanly
-    this.#clearInitialStyles();
+    clearInitialStyles(this.#host.nativeElement);
 
     this.#player = this.#engine.play(this.#host.nativeElement, this.#frames, {
       config,
@@ -112,40 +114,6 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
     });
 
     this.#isAnimated = true;
-  }
-
-  #applyInitialStyles(frames: MoveKeyframes): void {
-    const el = this.#host.nativeElement;
-    const getFirst = (arr: readonly number[] | undefined) =>
-      arr && arr.length > 0 ? arr[0] : undefined;
-
-    const opacity = getFirst(frames.opacity);
-    if (opacity !== undefined) el.style.opacity = `${opacity}`;
-
-    const x = getFirst(frames.x);
-    const y = getFirst(frames.y);
-    if (x !== undefined || y !== undefined) {
-      el.style.translate = `${x ?? 0}px ${y ?? 0}px`;
-    }
-
-    const scale = getFirst(frames.scale);
-    if (scale !== undefined) {
-      el.style.scale = `${scale}`;
-    }
-
-    const rotateX = getFirst(frames.rotateX);
-    const rotateY = getFirst(frames.rotateY);
-    if (rotateX !== undefined || rotateY !== undefined) {
-      el.style.transform = `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
-    }
-  }
-
-  #clearInitialStyles(): void {
-    const el = this.#host.nativeElement;
-    el.style.opacity = '';
-    el.style.translate = '';
-    el.style.scale = '';
-    el.style.transform = '';
   }
 
   ngOnDestroy(): void {

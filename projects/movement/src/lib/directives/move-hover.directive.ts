@@ -6,6 +6,7 @@ import {
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
+  reverseFrames,
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -64,7 +65,7 @@ export class MoveHoverDirective implements OnDestroy {
 
     let frames = resolveMoveFrames(this.moveWhileHover(), 'enter');
     if (reverse) {
-      frames = this.reverseFrames(frames);
+      frames = reverseFrames(frames);
     }
 
     this.#currentPlayer = this.#engine.play(this.#host.nativeElement, frames, {
@@ -72,18 +73,6 @@ export class MoveHoverDirective implements OnDestroy {
       spring: this.moveSpring(),
       disabled: false,
     });
-  }
-
-  private reverseFrames(frames: MoveKeyframes): MoveKeyframes {
-    const reversed: MoveKeyframes = {};
-    for (const key in frames) {
-      const k = key as keyof MoveKeyframes;
-      const arr = frames[k];
-      if (arr) {
-        reversed[k] = [...arr].reverse();
-      }
-    }
-    return reversed;
   }
 
   ngOnDestroy(): void {

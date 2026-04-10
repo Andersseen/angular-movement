@@ -179,6 +179,11 @@ export class SpringPlayer implements AnimationControls {
       frame['rotate'] = `${rotate}deg`;
     }
 
+    const blur = getVal(frames.blur);
+    if (blur !== undefined) {
+      frame['filter'] = `blur(${blur}px)`;
+    }
+
     // 3D rotations for rotateX and rotateY via CSS rotate and transform perspective if needed
     const rotateX = getVal(frames.rotateX);
     const rotateY = getVal(frames.rotateY);

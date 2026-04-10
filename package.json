@@ -9,7 +9,7 @@
     "build:prod": "vite build --mode production",
     "preview": "vite preview",
     "watch": "vite build --watch",
-    "test": "ng test",
+    "test": "ng test movement",
     "test:coverage": "ng test movement --coverage --watch=false",
     "e2e": "playwright test",
     "cf:login": "pnpm exec wrangler login",

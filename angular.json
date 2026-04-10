@@ -76,9 +76,6 @@
             }
           }
         },
-        "test": {
-          "builder": "@analogjs/platform:vitest"
-        },
         "lint": {
           "builder": "@angular-eslint/builder:lint",
           "options": {
