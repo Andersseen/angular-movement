@@ -62,5 +62,6 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          command: pages deploy dist/angular-movement/browser --project-name "${{ env.CLOUDFLARE_PROJECT_NAME }}"
+          wranglerVersion: 'latest'
+          command: pages deploy dist/analog/public --project-name "${{ env.CLOUDFLARE_PROJECT_NAME }}"
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}

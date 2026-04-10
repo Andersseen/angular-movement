@@ -14,7 +14,7 @@
     "e2e": "playwright test",
     "cf:login": "pnpm exec wrangler login",
     "cf:whoami": "pnpm exec wrangler whoami",
-    "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/analog/public --project-name angular-movement",
+    "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/analog/public --project-name=angular-movement",
     "deploy": "pnpm run deploy:cloudflare",
     "lint": "ng lint",
     "prepare": "husky",
