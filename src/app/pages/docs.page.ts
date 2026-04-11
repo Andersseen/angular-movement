@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 
 @Component({
-  selector: 'app-docs',
+  selector: 'app-docs-layout',
   imports: [RouterOutlet, RouterLink, RouterLinkActive],
   template: `
     <div
@@ -24,7 +24,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
               <ul class="space-y-1">
                 <li>
                   <a
-                    routerLink="/docs/introduction"
+                    routerLink="introduction"
                     routerLinkActive="bg-accent/10 text-accent font-medium"
                     class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
@@ -33,7 +33,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                 </li>
                 <li>
                   <a
-                    routerLink="/docs/get-started"
+                    routerLink="get-started"
                     routerLinkActive="bg-accent/10 text-accent font-medium"
                     class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
@@ -52,17 +52,13 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
               </h4>
               <ul class="pointer-events-none space-y-1 opacity-50">
                 <li>
-                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
-                    >moveEnter</a
-                  >
+                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">moveEnter</a>
                 </li>
                 <li>
-                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
-                    >moveLeave</a
-                  >
+                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">moveLeave</a>
                 </li>
                 <li>
-                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
+                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >moveAnimate (shorthand)</a
                   >
                 </li>
@@ -78,14 +74,12 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
               </h4>
               <ul class="pointer-events-none space-y-1 opacity-50">
                 <li>
-                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
+                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm"
                     >Available Presets</a
                   >
                 </li>
                 <li>
-                  <a href="#" class="text-text-muted block rounded-lg px-3 py-2 text-sm"
-                    >Custom Keyframes</a
-                  >
+                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">Custom Keyframes</a>
                 </li>
               </ul>
             </div>
@@ -110,4 +104,4 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
     }
   `,
 })
-export default class Docs {}
+export default class DocsLayout {}
