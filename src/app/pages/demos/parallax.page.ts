@@ -16,10 +16,10 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [showReplay]="false"
     >
       <!-- Preview - Full height for scroll -->
-      <div preview class="relative h-[500px] w-full overflow-hidden">
-        <div class="h-full w-full overflow-y-auto pr-2">
-          <!-- Top spacer -->
-          <div class="flex h-[350px] items-center justify-center">
+      <div preview class="relative h-full w-full overflow-hidden">
+        <div id="parallax-demo-container" class="h-full w-full overflow-y-auto pr-2">
+          <!-- Top spacer — must be taller than the container to push content below the fold -->
+          <div class="flex h-[400px] items-center justify-center">
             <div class="text-text-subtle text-center">
               <div class="mb-2 text-2xl">↓</div>
               <div>Scroll down</div>
@@ -27,24 +27,26 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
 
           <!-- Parallax scene -->
-          <div class="relative my-8 flex h-[300px] w-full items-center justify-center">
+          <div class="relative my-8 flex h-[280px] w-full items-center justify-center">
             <!-- Sky/Background layer (slowest - barely moves) -->
             <div
               [moveScroll]="{ y: [0, bgSpeed()] }"
+              moveScrollContainer="#parallax-demo-container"
               class="absolute inset-x-0 top-0 flex h-full items-center justify-center"
             >
               <div
-                class="from-accent/20 to-accent/5 h-[300px] w-[300px] rounded-full bg-gradient-to-br blur-3xl"
+                class="from-accent/20 to-accent/5 h-[280px] w-[280px] rounded-full bg-gradient-to-br blur-3xl"
               ></div>
             </div>
 
             <!-- Mountains/Middle layer (medium speed) -->
             <div
               [moveScroll]="{ y: [0, midSpeed()] }"
+              moveScrollContainer="#parallax-demo-container"
               class="absolute bottom-0 flex items-end justify-center"
             >
               <svg
-                class="text-accent/30 h-[150px] w-[250px]"
+                class="text-accent/30 h-[130px] w-[220px]"
                 viewBox="0 0 250 150"
                 fill="currentColor"
               >
@@ -55,11 +57,12 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             <!-- Foreground/Content (fastest - moves most) -->
             <div
               [moveScroll]="{ y: [0, fgSpeed()], scale: [0.8, 1.1] }"
-              class="bg-surface border-accent/50 relative z-10 flex flex-col items-center gap-3 rounded-2xl border-2 p-8 shadow-2xl"
+              moveScrollContainer="#parallax-demo-container"
+              class="bg-surface border-accent/50 relative z-10 flex flex-col items-center gap-3 rounded-2xl border-2 p-6 shadow-2xl"
             >
-              <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
+              <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
                 <svg
-                  class="text-accent h-8 w-8"
+                  class="text-accent h-6 w-6"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -72,8 +75,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                   />
                 </svg>
               </div>
-              <div class="font-display text-text text-xl font-bold">{{ intensityLabel() }}</div>
-              <div class="text-text-muted max-w-[150px] text-center text-xs">
+              <div class="font-display text-text text-lg font-bold">{{ intensityLabel() }}</div>
+              <div class="text-text-muted max-w-[130px] text-center text-xs">
                 Background moves slower than foreground
               </div>
             </div>
@@ -82,21 +85,24 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             @if (showFloating()) {
               <div
                 [moveScroll]="{ y: [0, -60], x: [0, 20] }"
+                moveScrollContainer="#parallax-demo-container"
                 class="bg-accent/60 absolute top-10 left-10 h-3 w-3 rounded-full"
               ></div>
               <div
                 [moveScroll]="{ y: [0, -40] }"
+                moveScrollContainer="#parallax-demo-container"
                 class="bg-accent/40 absolute top-20 right-16 h-2 w-2 rounded-full"
               ></div>
               <div
                 [moveScroll]="{ y: [0, -80], x: [0, -10] }"
+                moveScrollContainer="#parallax-demo-container"
                 class="bg-accent/50 absolute bottom-20 left-20 h-4 w-4 rounded-full"
               ></div>
             }
           </div>
 
           <!-- Bottom spacer -->
-          <div class="h-[350px]"></div>
+          <div class="h-[320px]"></div>
         </div>
       </div>
     </app-demo-container>

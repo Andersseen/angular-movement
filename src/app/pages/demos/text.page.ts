@@ -25,7 +25,7 @@ import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
             [moveTextStagger]="stagger()"
             [moveDuration]="duration()"
             [moveEasing]="easing()"
-            class="font-display text-text max-w-md text-center text-4xl leading-tight font-bold"
+            class="font-display text-text max-w-md text-center text-2xl leading-tight font-bold sm:text-4xl"
           >
             {{ text() }}
           </h2>

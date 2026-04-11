@@ -277,11 +277,11 @@ export interface DemoState {
         <div class="flex w-full flex-col gap-6 lg:w-[60%]">
           <!-- Live Preview Area -->
           <div
-            class="border-border group relative flex h-[320px] items-center justify-center overflow-hidden rounded-2xl border bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PjE8RXxKYIsIymIagGgYKAAAACv0E/7zZ9k0AAAAASUVORK5CYII=')] bg-repeat"
+            class="border-border group relative flex h-[300px] items-center justify-center overflow-hidden rounded-2xl border bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PjE8RXxKYIsIymIagGgYKAAAACv0E/7zZ9k0AAAAASUVORK5CYII=')] bg-repeat sm:h-[340px]"
           >
             <div class="bg-bg/80 absolute inset-0 z-0 backdrop-blur-[1px]"></div>
 
-            <div class="relative z-10 flex h-full w-full items-center justify-center p-8">
+            <div class="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-6">
               <ng-content select="[preview]" />
             </div>
 

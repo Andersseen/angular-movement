@@ -9,7 +9,7 @@ import { SmoothScrollService } from 'movement';
   imports: [RouterOutlet, Navbar, Footer],
   template: `
     <app-navbar />
-    <main class="min-h-screen">
+    <main class="min-h-screen pt-16">
       <router-outlet />
     </main>
     <app-footer />
