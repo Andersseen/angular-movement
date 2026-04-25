@@ -1,6 +1,7 @@
 {
   "name": "angular-movement",
   "version": "0.0.0",
+  "license": "MIT",
   "scripts": {
     "ng": "ng",
     "start": "pnpm exec vite",

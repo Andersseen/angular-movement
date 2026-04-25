@@ -1,93 +1,121 @@
-# AngularMovement
+# angular-movement
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.1.
+Angular motion ecosystem with two parts in one repository:
 
-## Development server
+- Reusable npm library for animation directives in Angular.
+- Demo and documentation site to explore behavior and integration patterns.
 
-To start a local development server, run:
+## What This Project Is
 
-```bash
-ng serve
-```
+This is an open source Angular monorepo focused on declarative UI motion.
+It provides production-ready directives for common animation workflows and a live playground-style app to evaluate them.
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Repository structure:
 
-## Code scaffolding
+- Library package: projects/movement
+- Demo and docs app: src
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+## What Problems It Solves
 
-```bash
-ng generate component component-name
-```
+UI animation in Angular often becomes repetitive and hard to maintain:
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+- Rewriting enter and leave transitions for each component.
+- Mixing imperative animation logic into component code.
+- Inconsistent timings and easing across teams.
+- Missing orchestration for staggered lists and exit animations.
+- Friction when implementing interactions like hover, in-view, parallax, and scroll progress.
 
-```bash
-ng generate --help
-```
+angular-movement addresses this with declarative directives and global configuration so animation rules stay consistent and composable.
 
-## Building
+## Core Capabilities
 
-To build the project run:
+- Preset animations: fade, slide, zoom, flip, blur, bounce, pulse, spin.
+- Custom keyframes for full control.
+- Spring physics support.
+- Interaction directives: hover, tap, focus, in-view, scroll, parallax, drag.
+- Presence orchestration to let leave animations finish before DOM removal.
+- Stagger orchestration for coordinated list motion.
 
-```bash
-ng build
-```
+## Install The Library
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+From npm:
 
-## Running unit tests
+npm install angular-movement
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+Peer dependencies:
 
-```bash
-ng test
-```
+- @angular/core ^21.2.0
+- @angular/common ^21.2.0
 
-## Running end-to-end tests
+## Use The Library In Your App
 
-For end-to-end (e2e) testing, run:
+1. Add global defaults with provideMovement.
+2. Import MOVEMENT_DIRECTIVES in standalone components.
+3. Use directives directly in templates.
 
-```bash
-ng e2e
-```
+Example:
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+import { ApplicationConfig } from '@angular/core';
+import { provideMovement } from 'angular-movement';
 
-## Additional Resources
+export const appConfig: ApplicationConfig = {
+providers: [
+provideMovement({
+duration: 320,
+easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+delay: 0,
+disabled: false,
+}),
+],
+};
 
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+import { Component } from '@angular/core';
+import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 
-## Cloudflare Deploy
+@Component({
+selector: 'app-demo-card',
+standalone: true,
+imports: [...MOVEMENT_DIRECTIVES],
+template: `
+		<h2 [move]="'fade-up'">Hello movement</h2>
+		<button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
+	`,
+})
+export class DemoCardComponent {}
 
-### Local deploy with Wrangler
+## What You Can Explore In The Demo
 
-1. Authenticate Wrangler once:
+The demo site includes focused pages for:
 
-```bash
-pnpm run cf:login
-```
+- Animate
+- Enter and Leave
+- Hover and Tap
+- In View
+- Scroll and Parallax
+- Presence
+- Layout
+- Drag
+- Variants
+- Text animation
 
-2. Optional: verify the active Cloudflare account:
+These pages show both visual behavior and integration patterns you can copy into real projects.
 
-```bash
-pnpm run cf:whoami
-```
+## Open Source Goals
 
-3. Deploy with one command:
+- Keep API ergonomic for Angular teams using standalone components.
+- Provide predictable animation defaults with opt-in customization.
+- Maintain examples and docs close to source code.
+- Favor SSR-safe and production-oriented implementation details.
 
-```bash
-pnpm run deploy
-```
+## Contributing
 
-This command builds the app and deploys `dist/angular-movement/browser` to the Cloudflare Pages project `angular-movement`.
+Contributions are welcome through issues and pull requests.
+When proposing changes, include:
 
-### CI deploy on `main`/`master`
+- Problem statement and expected behavior.
+- API impact, if any.
+- Tests or demo updates for new behavior.
 
-The workflow `.github/workflows/deploy-cloudflare.yml` deploys automatically on every push to `main` and `master`.
-It uses the same `wrangler` version from this repository (`pnpm exec wrangler`) to keep local and CI behavior aligned.
+## License
 
-Configure these GitHub repository secrets:
-
-- `CLOUDFLARE_API_TOKEN`
-- `CLOUDFLARE_ACCOUNT_ID`
+MIT

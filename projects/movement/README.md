@@ -1,64 +1,146 @@
-# Movement
+# angular-movement
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.0.
+Lightweight Angular motion library with declarative directives, presets, spring physics, scroll-driven animation, and presence/stagger orchestration.
 
-## Code scaffolding
+## Features
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+- Preset-based enter and leave animations
+- Custom keyframes for full control
+- Spring-driven transitions
+- Hover, tap, focus, in-view, and scroll interactions
+- Presence orchestration for exit animations before DOM removal
+- Stagger support for list choreography
+- Works with modern standalone Angular apps
+
+## Installation
 
 ```bash
-ng generate component component-name
+npm install angular-movement
 ```
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+Peer dependencies:
 
-```bash
-ng generate --help
+- @angular/core ^21.2.0
+- @angular/common ^21.2.0
+
+## Quick Start
+
+Register global config and import directives in your app config.
+
+```ts
+import { ApplicationConfig } from '@angular/core';
+import { provideMovement } from 'angular-movement';
+
+export const appConfig: ApplicationConfig = {
+  providers: [
+    provideMovement({
+      duration: 320,
+      easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
+      delay: 0,
+      disabled: false,
+    }),
+  ],
+};
 ```
 
-## Building
+```ts
+import { Component } from '@angular/core';
+import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 
-To build the library, run:
+@Component({
+  selector: 'app-demo',
+  standalone: true,
+  imports: [...MOVEMENT_DIRECTIVES],
+  template: `
+    <h2 [move]="'fade-up'">Hello movement</h2>
+    <button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
+  `,
+})
+export class DemoComponent {}
+```
+
+## Common Usage
+
+### Preset animation
+
+```html
+<section [move]="'slide-up'">Content</section>
+```
+
+### Custom keyframes
+
+```html
+<div [move]="{ opacity: [0, 1], y: [20, 0], scale: [0.96, 1] }">Card</div>
+```
+
+### Framer-style API
+
+```html
+<article
+  [moveAnimation]="{
+      initial: { opacity: 0, y: 24 },
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: -16 },
+      duration: 300
+   }"
+>
+  Item
+</article>
+```
+
+### Presence for exit transitions
+
+```html
+<ng-container *movePresence="isOpen">
+  <aside [move]="'fade-right'" [moveAnimateLeave]="'fade-left'">Panel</aside>
+</ng-container>
+```
+
+### Staggered lists
+
+```html
+<ul moveStagger [moveStaggerStep]="80">
+  <li [move]="'fade-up'">One</li>
+  <li [move]="'fade-up'">Two</li>
+  <li [move]="'fade-up'">Three</li>
+</ul>
+```
+
+## Available Presets
+
+fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in, zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, none
+
+## Exports
+
+Main entrypoint exports:
+
+- MOVEMENT_DIRECTIVES
+- All directives
+- provideMovement
+- Preset and keyframe types
+- Animation engine/control types
+- Tokens for advanced integration
+
+## Development
+
+Build library:
 
 ```bash
 ng build movement
 ```
 
-This command will compile your project, and the build artifacts will be placed in the `dist/` directory.
-
-### Publishing the Library
-
-Once the project is built, you can publish your library by following these steps:
-
-1. Navigate to the `dist` directory:
-
-   ```bash
-   cd dist/movement
-   ```
-
-2. Run the `npm publish` command to publish your library to the npm registry:
-   ```bash
-   npm publish
-   ```
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+Run library tests:
 
 ```bash
-ng test
+ng test movement
 ```
 
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
+Run coverage:
 
 ```bash
-ng e2e
+ng test movement --coverage --watch=false
 ```
 
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+## License
 
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+MIT
