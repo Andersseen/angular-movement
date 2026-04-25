@@ -18,7 +18,7 @@ const DEMO_GROUPS: DemoGroup[] = [
     items: [
       { path: 'enter', label: 'moveEnter', description: 'Animate on element enter' },
       { path: 'leave', label: 'moveLeave', description: 'Animate on element leave' },
-      { path: 'animate', label: 'moveAnimate', description: 'Shorthand for enter/leave' },
+      { path: 'animate', label: 'moveAnimation', description: 'Custom keyframe animations' },
     ],
   },
   {
