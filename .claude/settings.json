@@ -1,0 +1,5 @@
+{
+  "permissions": {
+    "allow": ["Bash(ng build *)", "Bash(pnpm test:coverage)"]
+  }
+}

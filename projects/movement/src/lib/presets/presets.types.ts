@@ -50,3 +50,26 @@ export interface MovePresetDefinition {
   enter: MoveKeyframes;
   leave: MoveKeyframes;
 }
+
+export interface MoveKeyframeState {
+  opacity?: number;
+  x?: number;
+  y?: number;
+  scale?: number;
+  scaleX?: number;
+  scaleY?: number;
+  rotate?: number;
+  rotateX?: number;
+  rotateY?: number;
+  blur?: number;
+}
+
+export interface MoveAnimationConfig {
+  initial?: MoveKeyframeState;
+  animate?: MoveKeyframeState;
+  exit?: MoveKeyframeState;
+  duration?: number;
+  easing?: string;
+  delay?: number;
+  spring?: MoveSpring;
+}
