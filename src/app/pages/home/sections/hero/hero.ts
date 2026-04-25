@@ -71,6 +71,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           <a
             href="https://github.com/angular-movement/core"
             target="_blank"
+            rel="noopener noreferrer"
             class="text-text border-border bg-surface hover:bg-surface-raised inline-flex min-w-[200px] items-center justify-center rounded-xl border px-8 py-3.5 text-base font-semibold transition-colors"
           >
             View on GitHub
@@ -90,7 +91,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           <button
             type="button"
             class="text-text-subtle hover:text-text hover:bg-surface-raised rounded-md p-2 transition-colors"
-            onclick="navigator.clipboard.writeText('npm install @angular-movement/core')"
+            (click)="copyInstallCommand()"
             aria-label="Copy install command"
           >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,4 +109,8 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Hero {}
+export class Hero {
+  protected copyInstallCommand(): void {
+    navigator.clipboard.writeText('npm install @angular-movement/core').catch(() => void 0);
+  }
+}

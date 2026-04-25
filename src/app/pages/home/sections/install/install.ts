@@ -34,7 +34,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
           <button
             type="button"
             class="text-text-subtle hover:text-text hover:bg-surface-raised rounded-md p-2 transition-colors"
-            onclick="navigator.clipboard.writeText('npm install @angular-movement/core')"
+            (click)="copyInstallCommand()"
             aria-label="Copy install command"
           >
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -61,4 +61,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Install {}
+export class Install {
+  protected copyInstallCommand(): void {
+    navigator.clipboard.writeText('npm install @angular-movement/core').catch(() => void 0);
+  }
+}

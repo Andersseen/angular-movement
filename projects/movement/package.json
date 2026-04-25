@@ -1,6 +1,30 @@
 {
-  "name": "movement",
+  "name": "@andersseen/movement",
   "version": "0.0.1",
+  "description": "Angular animation directives — presets, custom keyframes, spring physics, scroll & parallax.",
+  "keywords": [
+    "angular",
+    "animation",
+    "directives",
+    "motion",
+    "spring",
+    "scroll",
+    "parallax",
+    "movement"
+  ],
+  "author": "Andersseen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Andersseen/angular-movement.git"
+  },
+  "homepage": "https://github.com/Andersseen/angular-movement#readme",
+  "bugs": {
+    "url": "https://github.com/Andersseen/angular-movement/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "peerDependencies": {
     "@angular/common": "^21.2.0",
     "@angular/core": "^21.2.0"

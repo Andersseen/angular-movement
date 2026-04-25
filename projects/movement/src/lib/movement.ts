@@ -1,4 +1,5 @@
 import { MoveAnimateDirective } from './directives/move-animate.directive';
+import { MoveAnimationDirective } from './directives/move-animation.directive';
 import { MoveEnterDirective } from './directives/move-enter.directive';
 import { MoveLeaveDirective } from './directives/move-leave.directive';
 import { MoveHoverDirective } from './directives/move-hover.directive';
@@ -32,6 +33,7 @@ export const MOVEMENT_DIRECTIVES = [
   MoveSmoothScrollDirective,
   MoveFocusDirective,
   MoveParallaxDirective,
+  MoveAnimationDirective,
 ] as const;
 
 export * from './directives/move-animate.directive';
@@ -49,6 +51,7 @@ export * from './directives/move-in-view.directive';
 export * from './directives/move-text.directive';
 export * from './directives/move-focus.directive';
 export * from './directives/move-parallax.directive';
+export * from './directives/move-animation.directive';
 export * from './scroll/smooth-scroll.service';
 export * from './scroll/move-smooth-scroll.directive';
 export * from './engines/animation-controls';
