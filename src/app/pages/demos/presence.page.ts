@@ -35,25 +35,24 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
 
         <div class="relative h-40 w-full max-w-[256px]">
           @for (tab of tabs; track tab.id) {
-            @if (activeTab() === tab.id) {
+            <div *movePresence="activeTab() === tab.id" class="absolute inset-0">
               <div
-                [moveEnter]="preset()"
                 [moveLeave]="preset()"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                class="bg-surface border-accent/40 absolute inset-0 flex items-center justify-center rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)]"
+                class="bg-surface border-accent/40 flex h-full w-full items-center justify-center rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)]"
               >
                 <div class="text-center">
                   <div class="font-display text-text mb-2 text-xl font-bold">{{ tab.label }}</div>
                   <div class="text-text-muted text-sm">{{ presetLabel() }}</div>
                 </div>
               </div>
-            }
+            </div>
           }
         </div>
 
         <div class="text-text-muted max-w-xs text-center text-sm">
-          Note: movePresence is a structural directive (*movePresence) that coordinates animations.
+          *movePresence coordinates enter/leave animations when condition changes.
         </div>
       </div>
     </app-demo-container>

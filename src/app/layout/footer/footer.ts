@@ -44,12 +44,14 @@ import { RouterLink } from '@angular/router';
             <a
               href="https://github.com/angular-movement/core"
               target="_blank"
+              rel="noopener noreferrer"
               class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
               >GitHub Repository</a
             >
             <a
               href="https://www.npmjs.com/package/@angular-movement/core"
               target="_blank"
+              rel="noopener noreferrer"
               class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
               >npm Package</a
             >

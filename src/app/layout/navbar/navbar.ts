@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, HostListener, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MOVEMENT_DIRECTIVES } from 'movement';
 
@@ -64,6 +64,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
               <a
                 href="https://github.com/angular-movement/core"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="text-text-muted hover:text-text transition-colors"
                 aria-label="GitHub"
               >
@@ -80,7 +81,12 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
 
           <!-- Mobile menu button -->
           <div class="flex items-center md:hidden">
-            <button (click)="toggleMobileMenu()" class="text-text-muted hover:text-text p-2">
+            <button
+              (click)="toggleMobileMenu()"
+              [attr.aria-expanded]="mobileMenuOpen()"
+              aria-controls="mobile-menu"
+              class="text-text-muted hover:text-text p-2"
+            >
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 @if (mobileMenuOpen()) {
                   <path
@@ -106,6 +112,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
       <!-- Mobile Menu -->
       @if (mobileMenuOpen()) {
         <div
+          id="mobile-menu"
           class="bg-surface border-border border-b md:hidden"
           moveEnter="slide-down"
           [moveDuration]="200"
@@ -144,6 +151,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
               <a
                 href="https://github.com/angular-movement/core"
                 target="_blank"
+                rel="noopener noreferrer"
                 class="text-text-muted hover:text-text py-2"
                 (click)="closeMobileMenu()"
               >
@@ -164,14 +172,16 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
       }
     </nav>
   `,
+  host: {
+    '(window:scroll)': 'onWindowScroll()',
+  },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
   protected readonly scrolled = signal(false);
   protected readonly mobileMenuOpen = signal(false);
 
-  @HostListener('window:scroll')
-  onWindowScroll() {
+  protected onWindowScroll() {
     this.scrolled.set(window.scrollY > 20);
   }
 
