@@ -16,7 +16,7 @@
     "cf:whoami": "pnpm exec wrangler whoami",
     "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/analog/public --project-name=angular-movement",
     "deploy": "pnpm run deploy:cloudflare",
-    "lib:publish": "ng build movement && cd dist/movement && npm publish",
+    "lib:publish": "ng build movement && npm publish ./dist/movement",
     "lint": "ng lint",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
