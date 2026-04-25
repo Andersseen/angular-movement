@@ -1,5 +1,11 @@
 import { AnimationControls } from './animation-controls';
 import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
+import { composeInterpolatedKeyframe } from './keyframe-composer';
+import {
+  SIMULATION_MAX_ITERATIONS,
+  SIMULATION_SETTLED_THRESHOLD,
+  SIMULATION_TICK_RATE,
+} from '../constants';
 
 export class SpringPlayer implements AnimationControls {
   #resolveFinished!: () => void;
@@ -41,7 +47,7 @@ export class SpringPlayer implements AnimationControls {
     // Default duration of the calculated simulation is bound to the arrays output.
     // We run it over that specific time frame, we know exactly the duration by counting ticks * tick duration.
     // Let's assume tick rate is 16.66ms (60fps simulation)
-    const duration = keyframes.length * (1000 / 60);
+    const duration = keyframes.length * SIMULATION_TICK_RATE;
 
     this.#animation = host.animate(keyframes, {
       duration,
@@ -114,7 +120,7 @@ export class SpringPlayer implements AnimationControls {
       // Simulate the spring for this intermediate segment
       // Prevent infinite loops safely by bounding iterations
       let iterations = 0;
-      const maxIterations = 600; // max 10 seconds per step
+      const maxIterations = SIMULATION_MAX_ITERATIONS; // max 10 seconds per step
 
       while (!isSettled && iterations < maxIterations) {
         // Evaluate frame
@@ -129,7 +135,10 @@ export class SpringPlayer implements AnimationControls {
         velocity += acceleration * dt;
         progress += velocity * dt;
 
-        if (Math.abs(displacement) < 0.001 && Math.abs(velocity) < 0.001) {
+        if (
+          Math.abs(displacement) < SIMULATION_SETTLED_THRESHOLD &&
+          Math.abs(velocity) < SIMULATION_SETTLED_THRESHOLD
+        ) {
           isSettled = true;
         }
         iterations++;
@@ -143,55 +152,6 @@ export class SpringPlayer implements AnimationControls {
   }
 
   #composeFrame(frames: MoveKeyframes, i1: number, i2: number, p: number): Keyframe {
-    const frame: Keyframe = {};
-
-    const getVal = (arr: readonly number[] | undefined) => {
-      if (!arr || arr.length === 0) return undefined;
-      const v1 = arr[Math.min(i1, arr.length - 1)];
-      const v2 = arr[Math.min(i2, arr.length - 1)];
-      return v1 + (v2 - v1) * p;
-    };
-
-    const opacity = getVal(frames.opacity);
-    if (opacity !== undefined) {
-      frame['opacity'] = opacity;
-    }
-
-    const x = getVal(frames.x);
-    const y = getVal(frames.y);
-    if (x !== undefined || y !== undefined) {
-      frame['translate'] = `${x ?? 0}px ${y ?? 0}px`;
-    }
-
-    const scale = getVal(frames.scale);
-    if (scale !== undefined) {
-      frame['scale'] = `${scale}`;
-    } else {
-      const scaleX = getVal(frames.scaleX);
-      const scaleY = getVal(frames.scaleY);
-      if (scaleX !== undefined || scaleY !== undefined) {
-        frame['scale'] = `${scaleX ?? 1} ${scaleY ?? 1}`;
-      }
-    }
-
-    const rotate = getVal(frames.rotate);
-    if (rotate !== undefined) {
-      frame['rotate'] = `${rotate}deg`;
-    }
-
-    const blur = getVal(frames.blur);
-    if (blur !== undefined) {
-      frame['filter'] = `blur(${blur}px)`;
-    }
-
-    // 3D rotations for rotateX and rotateY via CSS rotate and transform perspective if needed
-    const rotateX = getVal(frames.rotateX);
-    const rotateY = getVal(frames.rotateY);
-    if (rotateX !== undefined || rotateY !== undefined) {
-      frame['transform'] =
-        `perspective(1200px) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
-    }
-
-    return frame;
+    return composeInterpolatedKeyframe(frames, i1, i2, p);
   }
 }
