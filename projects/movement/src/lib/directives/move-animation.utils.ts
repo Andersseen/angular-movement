@@ -7,7 +7,7 @@ import { MOVE_PRESETS } from '../presets/presets';
 import { MoveKeyframes, MovePreset } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
 
-export type MovePhase = 'enter' | 'leave';
+export type MovePhase = 'enter' | 'leave' | 'loop';
 
 export type MoveDirectiveInput = MovePreset | MoveKeyframes;
 
@@ -16,6 +16,7 @@ export interface MoveInputOverrides {
   easing?: string;
   delay?: number;
   disabled?: boolean;
+  iterations?: number;
 }
 
 export function resolveMovementConfig(
@@ -35,6 +36,7 @@ export function resolveMovementConfig(
     easing: overrides.easing ?? defaults.easing,
     delay: Math.max(0, overrides.delay ?? defaults.delay),
     disabled: reducedMotion || (overrides.disabled ?? defaults.disabled),
+    iterations: overrides.iterations ?? defaults.iterations,
   };
 }
 
@@ -45,9 +47,9 @@ export function resolveMoveFrames(value: MoveDirectiveInput, phase: MovePhase): 
       if (typeof ngDevMode !== 'undefined' && ngDevMode) {
         console.warn(`[Movement] Unknown preset: "${value}". Using "none" preset.`);
       }
-      return MOVE_PRESETS['none'][phase];
+      return MOVE_PRESETS['none'][phase] ?? MOVE_PRESETS['none'].enter;
     }
-    return preset[phase];
+    return preset[phase] ?? preset.enter;
   }
 
   return value;

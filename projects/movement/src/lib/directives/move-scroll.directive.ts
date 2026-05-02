@@ -66,7 +66,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
       if (!view) return;
 
       this.#player = this.#engine.play(this.#host.nativeElement, keyframes, {
-        config: { duration: 1000, easing: 'linear', delay: 0, disabled: false },
+        config: { duration: 1000, easing: 'linear', delay: 0, disabled: false, iterations: 1 },
       });
       this.#player?.pause();
 

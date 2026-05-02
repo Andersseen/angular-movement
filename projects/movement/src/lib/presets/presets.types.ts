@@ -37,6 +37,7 @@ export interface MoveKeyframes {
   rotateX?: MoveValuePair;
   rotateY?: MoveValuePair;
   blur?: MoveValuePair;
+  [key: string]: MoveValuePair | undefined;
 }
 
 export type MoveVariant = MoveKeyframes & {
@@ -49,6 +50,7 @@ export type MoveVariant = MoveKeyframes & {
 export interface MovePresetDefinition {
   enter: MoveKeyframes;
   leave: MoveKeyframes;
+  loop?: MoveKeyframes;
 }
 
 export interface MoveKeyframeState {
@@ -62,6 +64,7 @@ export interface MoveKeyframeState {
   rotateX?: number;
   rotateY?: number;
   blur?: number;
+  [key: string]: number | undefined;
 }
 
 export interface MoveAnimationConfig {

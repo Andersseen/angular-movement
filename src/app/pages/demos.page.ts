@@ -37,6 +37,7 @@ const DEMO_GROUPS: DemoGroup[] = [
       { path: 'stagger', label: 'moveStagger', description: 'Staggered children' },
       { path: 'layout', label: 'moveLayout', description: 'Layout animations' },
       { path: 'variants', label: 'moveVariants', description: 'Variant-based animations' },
+      { path: 'loop', label: 'moveLoop', description: 'Infinite loop animations' },
     ],
   },
   {

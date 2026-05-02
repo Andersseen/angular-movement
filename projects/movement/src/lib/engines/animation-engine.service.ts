@@ -12,6 +12,7 @@ export interface PlayAnimationOptions {
   spring?: MoveSpring;
   delay?: number;
   disabled?: boolean;
+  iterations?: number;
   onDone?: () => void;
 }
 
@@ -21,7 +22,7 @@ export class AnimationEngine {
   #defaults = inject(MOVEMENT_CONFIG);
 
   play(
-    host: HTMLElement,
+    host: Element,
     frames: MoveKeyframes,
     options: PlayAnimationOptions = {},
   ): AnimationControls | null {
@@ -38,6 +39,7 @@ export class AnimationEngine {
 
     const config = options.config ?? this.#defaults;
     const isSpring = options.spring || config.easing === 'spring';
+    const iterations = options.iterations ?? config.iterations;
 
     if (isSpring) {
       return new SpringPlayer(
@@ -45,6 +47,7 @@ export class AnimationEngine {
         frames,
         options.spring ?? {},
         options.delay ?? config.delay,
+        iterations,
         options.onDone,
       );
     } else {
@@ -56,13 +59,14 @@ export class AnimationEngine {
           easing: config.easing,
           delay: options.delay ?? config.delay,
           disabled: false,
+          iterations,
         },
         options.onDone,
       );
     }
   }
 
-  #applyFinalStyles(host: HTMLElement, frames: MoveKeyframes): void {
+  #applyFinalStyles(host: Element, frames: MoveKeyframes): void {
     applyComposedStyle(host, composeFinalStyle(frames));
   }
 }

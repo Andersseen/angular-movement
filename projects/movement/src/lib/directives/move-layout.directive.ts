@@ -42,7 +42,12 @@ export class MoveLayoutDirective implements OnDestroy {
           return null;
         }
 
-        const currentRect = this.#host.nativeElement.getBoundingClientRect();
+        const el = this.#host.nativeElement;
+        if (typeof el.getBoundingClientRect !== 'function') {
+          return null;
+        }
+
+        const currentRect = el.getBoundingClientRect();
 
         if (this.#snapshot) {
           const dx = this.#snapshot.left - currentRect.left;

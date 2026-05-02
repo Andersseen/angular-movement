@@ -55,6 +55,7 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
   'bounce-in': {
     enter: { opacity: DEFAULT_FADE_OPACITY, y: [30, 0], scale: [0.85, 1] },
     leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -20], scale: [1, 0.9] },
+    loop: { y: [0, -10, 0], scale: [1, 0.95, 1] },
   },
   'blur-in': {
     enter: { opacity: DEFAULT_FADE_OPACITY, blur: [10, 0] },
@@ -63,10 +64,12 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
   spin: {
     enter: { opacity: DEFAULT_FADE_OPACITY, rotate: [-360, 0] },
     leave: { opacity: DEFAULT_LEAVE_OPACITY, rotate: [0, 360] },
+    loop: { rotate: [0, 360] },
   },
   pulse: {
     enter: { scale: [1, 1.05, 1] },
     leave: { scale: [1, 0.95, 1] },
+    loop: { scale: [1, 1.05, 1] },
   },
   none: {
     enter: { opacity: [1, 1] },

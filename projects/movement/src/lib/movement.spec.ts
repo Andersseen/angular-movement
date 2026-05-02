@@ -33,6 +33,7 @@ describe('movement library', () => {
       easing: 'ease-out',
       delay: 60,
       disabled: true,
+      iterations: 1,
     });
   });
 
