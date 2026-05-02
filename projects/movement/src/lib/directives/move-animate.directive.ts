@@ -11,6 +11,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
+import { MOVE_VARIANTS_PARENT } from './move-variants.directive';
 
 @Directive({
   selector: '[move],[moveAnimate]',
@@ -31,12 +32,18 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly #engine = inject(AnimationEngine);
   readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
   readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
+  readonly #variantsParent = inject(MOVE_VARIANTS_PARENT, { optional: true });
 
   #config = this.#defaults;
   #enterPlayer: AnimationControls | null = null;
   #leavePlayer: AnimationControls | null = null;
 
   ngOnInit(): void {
+    // If moveVariants is on the same host, let it handle animation
+    if (this.#variantsParent) {
+      return;
+    }
+
     this.#stagger?.register(this.#host.nativeElement);
     this.#presence?.register(this);
 
@@ -75,7 +82,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   }
 
   playLeave(): Promise<void> {
-    if (this.#config.disabled) {
+    if (this.#variantsParent || this.#config.disabled) {
       return Promise.resolve();
     }
 

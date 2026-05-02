@@ -55,6 +55,7 @@ export * from './directives/move-focus.directive';
 export * from './directives/move-parallax.directive';
 export * from './directives/move-animation.directive';
 export * from './directives/move-loop.directive';
+export * from './directives/move-animation.utils';
 export * from './scroll/smooth-scroll.service';
 export * from './scroll/move-smooth-scroll.directive';
 export * from './engines/animation-controls';

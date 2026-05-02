@@ -19,6 +19,12 @@ class TestHostComponent {}
 })
 class DisabledHostComponent {}
 
+@Component({
+  template: `<div [moveLoop]="'none'">No Loop</div>`,
+  imports: [MoveLoopDirective],
+})
+class NoneHostComponent {}
+
 describe('MoveLoopDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let debugElement: DebugElement;
@@ -71,5 +77,20 @@ describe('MoveLoopDirective', () => {
 
     const callOpts = spy.mock.calls[0]?.[2];
     expect(callOpts?.disabled).toBe(true);
+  });
+
+  it('does not play when preset is none', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NoneHostComponent],
+      providers: [provideMovement()],
+    });
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const f = TestBed.createComponent(NoneHostComponent);
+    f.detectChanges();
+
+    expect(spy).not.toHaveBeenCalled();
   });
 });

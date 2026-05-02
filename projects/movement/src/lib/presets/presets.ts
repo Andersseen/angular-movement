@@ -55,6 +55,7 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
   'bounce-in': {
     enter: { opacity: DEFAULT_FADE_OPACITY, y: [30, 0], scale: [0.85, 1] },
     leave: { opacity: DEFAULT_LEAVE_OPACITY, y: [0, -20], scale: [1, 0.9] },
+    loop: { y: [0, -10, 0], scale: [1, 0.95, 1] },
   },
   'blur-in': {
     enter: { opacity: DEFAULT_FADE_OPACITY, blur: [10, 0] },

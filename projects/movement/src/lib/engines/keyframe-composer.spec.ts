@@ -52,19 +52,25 @@ describe('keyframe-composer', () => {
       el = document.createElement('div');
     });
 
-    it('applies arbitrary properties via inline styles when supported', () => {
+    it('applies arbitrary properties via inline styles', () => {
       const style = composeInitialStyle({ strokeDashoffset: [24, 0] });
       applyComposedStyle(el, style);
-      // strokeDashoffset is not a standard CSS property on divs, so it won't be set,
-      // but the function should not throw.
-      expect(el.style.opacity).toBe('');
+      expect((el.style as unknown as Record<string, string>)['strokeDashoffset']).toBe('24');
     });
 
-    it('clears composed styles', () => {
+    it('clears composed styles including known properties', () => {
       applyComposedStyle(el, { opacity: 0, translate: '10px 0px' });
       clearComposedStyle(el);
       expect(el.style.opacity).toBe('');
       expect(el.style.translate).toBe('');
+    });
+
+    it('clears arbitrary properties when extraKeys are provided', () => {
+      const style = composeInitialStyle({ strokeDashoffset: [24, 0] });
+      applyComposedStyle(el, style);
+      expect((el.style as unknown as Record<string, string>)['strokeDashoffset']).toBe('24');
+      clearComposedStyle(el, ['strokeDashoffset']);
+      expect((el.style as unknown as Record<string, string>)['strokeDashoffset']).toBe('');
     });
   });
 });

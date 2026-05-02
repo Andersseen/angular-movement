@@ -29,6 +29,13 @@ export class MoveLoopDirective implements OnDestroy, OnInit {
   #player: AnimationControls | null = null;
 
   ngOnInit(): void {
+    const frames = resolveMoveFrames(this.moveLoop(), 'loop');
+
+    // Skip noop presets to avoid creating an infinite animation that does nothing
+    if (this.moveLoop() === 'none' || Object.keys(frames).length === 0) {
+      return;
+    }
+
     const isReduced = prefersReducedMotion(this.#documentRef);
     const config = resolveMovementConfig(
       this.#defaults,
@@ -41,16 +48,12 @@ export class MoveLoopDirective implements OnDestroy, OnInit {
       isReduced,
     );
 
-    this.#player = this.#engine.play(
-      this.#host.nativeElement,
-      resolveMoveFrames(this.moveLoop(), 'loop'),
-      {
-        config,
-        spring: this.moveSpring(),
-        disabled: config.disabled,
-        iterations: Infinity,
-      },
-    );
+    this.#player = this.#engine.play(this.#host.nativeElement, frames, {
+      config,
+      spring: this.moveSpring(),
+      disabled: config.disabled,
+      iterations: Infinity,
+    });
   }
 
   ngOnDestroy(): void {

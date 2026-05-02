@@ -29,6 +29,13 @@ export class SpringPlayer implements AnimationControls {
       return;
     }
 
+    if (this.iterations !== 1 && typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn(
+        '[Movement] Spring animations with iterations !== 1 may produce visual glitches. ' +
+          'Consider using WaapiPlayer (no spring) for loops.',
+      );
+    }
+
     const config: MoveSpring = {
       stiffness: 100,
       damping: 10,

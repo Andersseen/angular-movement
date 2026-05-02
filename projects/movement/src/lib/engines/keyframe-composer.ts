@@ -118,6 +118,15 @@ export function composeFinalStyle(frames: MoveKeyframes): ComposedKeyframe {
   return buildKeyframe(frames, (arr) => (arr && arr.length > 0 ? arr[arr.length - 1] : undefined));
 }
 
+const KNOWN_STYLE_KEYS = new Set([
+  'opacity',
+  'translate',
+  'scale',
+  'rotate',
+  'transform',
+  'filter',
+]);
+
 export function applyComposedStyle(el: Element, style: ComposedKeyframe): void {
   const styledEl = el as HTMLElement;
   if (style.opacity !== undefined) styledEl.style.opacity = `${style.opacity}`;
@@ -126,9 +135,18 @@ export function applyComposedStyle(el: Element, style: ComposedKeyframe): void {
   if (style.rotate !== undefined) styledEl.style.rotate = style.rotate;
   if (style.transform !== undefined) styledEl.style.transform = style.transform;
   if (style.filter !== undefined) styledEl.style.filter = style.filter;
+
+  // Passthrough arbitrary properties (e.g. strokeDashoffset)
+  for (const key in style) {
+    if (KNOWN_STYLE_KEYS.has(key)) continue;
+    const val = (style as Record<string, unknown>)[key];
+    if (val !== undefined) {
+      (styledEl.style as unknown as Record<string, string>)[key] = String(val);
+    }
+  }
 }
 
-export function clearComposedStyle(el: Element): void {
+export function clearComposedStyle(el: Element, extraKeys?: readonly string[]): void {
   const styledEl = el as HTMLElement;
   styledEl.style.opacity = '';
   styledEl.style.translate = '';
@@ -136,4 +154,10 @@ export function clearComposedStyle(el: Element): void {
   styledEl.style.rotate = '';
   styledEl.style.transform = '';
   styledEl.style.filter = '';
+
+  if (extraKeys) {
+    for (const key of extraKeys) {
+      (styledEl.style as unknown as Record<string, string>)[key] = '';
+    }
+  }
 }
