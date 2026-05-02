@@ -112,7 +112,7 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     this.#player?.cancel();
 
     this.#player = this.#engine.play(this.#host.nativeElement, frames, {
-      config: { duration: 1000, delay: 0, easing: 'linear', disabled: false },
+      config: { duration: 1000, delay: 0, easing: 'linear', disabled: false, iterations: 1 },
     });
     this.#player?.pause();
 

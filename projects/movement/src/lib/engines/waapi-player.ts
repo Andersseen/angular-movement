@@ -10,26 +10,28 @@ export class WaapiPlayer implements AnimationControls {
     this.#resolveFinished = resolve;
   });
 
-  constructor(
-    host: HTMLElement,
-    frames: MoveKeyframes,
-    config: MovementConfig,
-    onDone?: () => void,
-  ) {
-    if (typeof host.animate !== 'function') {
+  constructor(host: Element, frames: MoveKeyframes, config: MovementConfig, onDone?: () => void) {
+    if (typeof (host as HTMLElement).animate !== 'function') {
       this.#resolveFinished();
       onDone?.();
       return;
     }
 
     const keyframes = this.#toWAAPIKeyframes(frames);
+    const iterations = config.iterations ?? 1;
 
-    this.#animation = host.animate(keyframes, {
+    this.#animation = (host as HTMLElement).animate(keyframes, {
       duration: config.duration,
       easing: config.easing,
       delay: config.delay,
       fill: 'both',
+      iterations,
     });
+
+    if (iterations === Infinity) {
+      // Infinite loops never finish; consumer must call cancel() manually.
+      return;
+    }
 
     this.#animation.addEventListener(
       'finish',

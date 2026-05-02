@@ -16,13 +16,14 @@ export class SpringPlayer implements AnimationControls {
   #animation: Animation | null = null;
 
   constructor(
-    private readonly host: HTMLElement,
+    private readonly host: Element,
     private readonly frames: MoveKeyframes,
     userConfig: MoveSpring,
     private readonly delay: number,
+    private readonly iterations = 1,
     private readonly onDone?: () => void,
   ) {
-    if (typeof host.animate !== 'function') {
+    if (typeof (host as HTMLElement).animate !== 'function') {
       this.#resolveFinished();
       onDone?.();
       return;
@@ -49,12 +50,18 @@ export class SpringPlayer implements AnimationControls {
     // Let's assume tick rate is 16.66ms (60fps simulation)
     const duration = keyframes.length * SIMULATION_TICK_RATE;
 
-    this.#animation = host.animate(keyframes, {
+    this.#animation = (host as HTMLElement).animate(keyframes, {
       duration,
       delay: this.delay,
       fill: 'both',
       easing: 'linear', // Spring physics already has the easing baked into the frames
+      iterations: this.iterations,
     });
+
+    if (this.iterations === Infinity) {
+      // Infinite loops never finish; consumer must call cancel() manually.
+      return;
+    }
 
     this.#animation.addEventListener(
       'finish',

@@ -27,6 +27,19 @@ function getInterpolated(
   return v1 + (v2 - v1) * p;
 }
 
+const KNOWN_KEYS = new Set([
+  'opacity',
+  'x',
+  'y',
+  'scale',
+  'scaleX',
+  'scaleY',
+  'rotate',
+  'rotateX',
+  'rotateY',
+  'blur',
+]);
+
 function buildKeyframe(
   frames: MoveKeyframes,
   getVal: (arr: readonly number[] | undefined) => number | undefined,
@@ -71,6 +84,16 @@ function buildKeyframe(
     keyframe.transform = `perspective(${DEFAULT_PERSPECTIVE}) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
   }
 
+  // Passthrough arbitrary properties for WAAPI (e.g. strokeDashoffset)
+  for (const key in frames) {
+    if (KNOWN_KEYS.has(key)) continue;
+    const arr = frames[key];
+    const val = getVal(arr);
+    if (val !== undefined) {
+      (keyframe as Record<string, unknown>)[key] = val;
+    }
+  }
+
   return keyframe;
 }
 
@@ -95,20 +118,22 @@ export function composeFinalStyle(frames: MoveKeyframes): ComposedKeyframe {
   return buildKeyframe(frames, (arr) => (arr && arr.length > 0 ? arr[arr.length - 1] : undefined));
 }
 
-export function applyComposedStyle(el: HTMLElement, style: ComposedKeyframe): void {
-  if (style.opacity !== undefined) el.style.opacity = `${style.opacity}`;
-  if (style.translate !== undefined) el.style.translate = style.translate;
-  if (style.scale !== undefined) el.style.scale = style.scale;
-  if (style.rotate !== undefined) el.style.rotate = style.rotate;
-  if (style.transform !== undefined) el.style.transform = style.transform;
-  if (style.filter !== undefined) el.style.filter = style.filter;
+export function applyComposedStyle(el: Element, style: ComposedKeyframe): void {
+  const styledEl = el as HTMLElement;
+  if (style.opacity !== undefined) styledEl.style.opacity = `${style.opacity}`;
+  if (style.translate !== undefined) styledEl.style.translate = style.translate;
+  if (style.scale !== undefined) styledEl.style.scale = style.scale;
+  if (style.rotate !== undefined) styledEl.style.rotate = style.rotate;
+  if (style.transform !== undefined) styledEl.style.transform = style.transform;
+  if (style.filter !== undefined) styledEl.style.filter = style.filter;
 }
 
-export function clearComposedStyle(el: HTMLElement): void {
-  el.style.opacity = '';
-  el.style.translate = '';
-  el.style.scale = '';
-  el.style.rotate = '';
-  el.style.transform = '';
-  el.style.filter = '';
+export function clearComposedStyle(el: Element): void {
+  const styledEl = el as HTMLElement;
+  styledEl.style.opacity = '';
+  styledEl.style.translate = '';
+  styledEl.style.scale = '';
+  styledEl.style.rotate = '';
+  styledEl.style.transform = '';
+  styledEl.style.filter = '';
 }

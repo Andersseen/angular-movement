@@ -99,6 +99,16 @@ describe('move-animation.utils', () => {
       expect(result).toEqual(MOVEMENT_DEFAULTS);
     });
 
+    it('preserves iterations from defaults when not overridden', () => {
+      const result = resolveMovementConfig(MOVEMENT_DEFAULTS, {}, false);
+      expect(result.iterations).toBe(MOVEMENT_DEFAULTS.iterations);
+    });
+
+    it('allows overriding iterations', () => {
+      const result = resolveMovementConfig(MOVEMENT_DEFAULTS, { iterations: Infinity }, false);
+      expect(result.iterations).toBe(Infinity);
+    });
+
     it('merges overrides on top of defaults', () => {
       const result = resolveMovementConfig(MOVEMENT_DEFAULTS, { duration: 600, delay: 100 }, false);
       expect(result.duration).toBe(600);
@@ -139,6 +149,17 @@ describe('move-animation.utils', () => {
     it('returns keyframes as-is when a MoveKeyframes object is passed', () => {
       const custom: MoveKeyframes = { scale: [0, 1] };
       expect(resolveMoveFrames(custom, 'enter')).toBe(custom);
+    });
+
+    it('returns loop keyframes for a preset that defines them', () => {
+      const frames = resolveMoveFrames('spin', 'loop');
+      expect(frames.rotate).toBeDefined();
+    });
+
+    it('falls back to enter keyframes when loop is not defined', () => {
+      const frames = resolveMoveFrames('fade-up', 'loop');
+      expect(frames.opacity).toBeDefined();
+      expect(frames.y).toBeDefined();
     });
   });
 

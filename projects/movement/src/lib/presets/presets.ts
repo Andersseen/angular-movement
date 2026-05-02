@@ -63,10 +63,12 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
   spin: {
     enter: { opacity: DEFAULT_FADE_OPACITY, rotate: [-360, 0] },
     leave: { opacity: DEFAULT_LEAVE_OPACITY, rotate: [0, 360] },
+    loop: { rotate: [0, 360] },
   },
   pulse: {
     enter: { scale: [1, 1.05, 1] },
     leave: { scale: [1, 0.95, 1] },
+    loop: { scale: [1, 1.05, 1] },
   },
   none: {
     enter: { opacity: [1, 1] },
