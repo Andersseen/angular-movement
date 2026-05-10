@@ -6,6 +6,7 @@ import { SpringPlayer } from './spring-player';
 import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { applyComposedStyle, composeFinalStyle } from './keyframe-composer';
+import { validateSpring } from '../directives/move-animation.utils';
 
 export interface PlayAnimationOptions {
   config?: MovementConfig;
@@ -38,14 +39,15 @@ export class AnimationEngine {
     }
 
     const config = options.config ?? this.#defaults;
-    const isSpring = options.spring || config.easing === 'spring';
+    const spring = validateSpring(options.spring);
+    const isSpring = spring || config.easing === 'spring';
     const iterations = options.iterations ?? config.iterations;
 
     if (isSpring) {
       return new SpringPlayer(
         host,
         frames,
-        options.spring ?? {},
+        spring ?? {},
         options.delay ?? config.delay,
         iterations,
         options.onDone,

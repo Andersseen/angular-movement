@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-hover',
@@ -14,6 +15,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [directiveBinding]="hoverCode()"
     >
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
@@ -71,6 +73,8 @@ export default class DemoHover {
   protected effect = signal<'scale' | 'lift' | 'pulse' | 'glow'>('scale');
   protected duration = signal(200);
   protected easing = signal('ease-out');
+
+  protected readonly hoverCode = computed(() => keyframesToString(this.hoverKeyframes()));
 
   protected readonly hoverKeyframes = (): MoveKeyframes => {
     switch (this.effect()) {

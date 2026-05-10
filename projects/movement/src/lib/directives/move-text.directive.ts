@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  Renderer2,
 } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
@@ -39,6 +40,7 @@ export class MoveTextDirective implements OnDestroy, OnInit {
   readonly #platformId = inject(PLATFORM_ID);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #renderer = inject(Renderer2);
 
   #players: AnimationControls[] = [];
   #spans: HTMLElement[] = [];
@@ -115,8 +117,12 @@ export class MoveTextDirective implements OnDestroy, OnInit {
   #splitText() {
     const el = this.#host.nativeElement;
     const text = (el.textContent ?? '').trim();
-    el.innerHTML = '';
-    el.setAttribute('aria-label', text);
+
+    // Clear existing content safely via Renderer2
+    while (el.firstChild) {
+      this.#renderer.removeChild(el, el.firstChild);
+    }
+    this.#renderer.setAttribute(el, 'aria-label', text);
 
     const byChars = this.moveTextSplit() === 'chars';
 
@@ -124,27 +130,31 @@ export class MoveTextDirective implements OnDestroy, OnInit {
       // Split character by character, preserving spaces as text nodes
       [...text].forEach((char) => {
         if (char === ' ') {
-          el.appendChild(this.#documentRef.createTextNode(' '));
+          this.#renderer.appendChild(el, this.#documentRef.createTextNode(' '));
           return;
         }
-        const span = this.#documentRef.createElement('span');
-        span.setAttribute('aria-hidden', 'true');
-        span.style.display = 'inline-block';
-        span.textContent = char;
-        el.appendChild(span);
-        this.#spans.push(span);
+        const span = this.#renderer.createElement('span');
+        this.#renderer.setAttribute(span, 'aria-hidden', 'true');
+        this.#renderer.setStyle(span, 'display', 'inline-block');
+        this.#renderer.setProperty(span, 'textContent', char);
+        this.#renderer.appendChild(el, span);
+        this.#spans.push(span as HTMLElement);
       });
     } else {
       // Split word by word
       const words = text.split(/\s+/);
       words.forEach((word: string, index: number) => {
-        const span = this.#documentRef.createElement('span');
-        span.setAttribute('aria-hidden', 'true');
-        span.style.display = 'inline-block';
-        span.style.whiteSpace = 'pre';
-        span.textContent = index < words.length - 1 ? word + ' ' : word;
-        el.appendChild(span);
-        this.#spans.push(span);
+        const span = this.#renderer.createElement('span');
+        this.#renderer.setAttribute(span, 'aria-hidden', 'true');
+        this.#renderer.setStyle(span, 'display', 'inline-block');
+        this.#renderer.setStyle(span, 'white-space', 'pre');
+        this.#renderer.setProperty(
+          span,
+          'textContent',
+          index < words.length - 1 ? word + ' ' : word,
+        );
+        this.#renderer.appendChild(el, span);
+        this.#spans.push(span as HTMLElement);
       });
     }
   }
@@ -152,5 +162,7 @@ export class MoveTextDirective implements OnDestroy, OnInit {
   ngOnDestroy(): void {
     this.#observer?.disconnect();
     this.#players.forEach((p) => p.cancel());
+    this.#players = [];
+    this.#spans = [];
   }
 }

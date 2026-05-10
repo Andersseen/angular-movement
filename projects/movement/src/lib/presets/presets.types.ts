@@ -15,6 +15,15 @@ export type MovePreset =
   | 'blur-in'
   | 'spin'
   | 'pulse'
+  | 'shake'
+  | 'swing'
+  | 'wobble'
+  | 'rubber-band'
+  | 'heart-beat'
+  | 'tada'
+  | 'jello'
+  | 'light-speed'
+  | 'roll-in'
   | 'none';
 
 export type MoveValuePair = readonly number[];

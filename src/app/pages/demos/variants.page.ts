@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MoveVariant } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
@@ -14,6 +14,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [customCode]="variantsCode()"
     >
       <!-- Preview -->
       <div preview class="flex h-full w-full flex-col items-center justify-center gap-6">
@@ -63,6 +64,10 @@ export default class DemoVariants {
   protected duration = signal(300);
   protected easing = signal('spring');
   protected currentVariant = signal('idle');
+
+  protected readonly variantsCode = computed(() => {
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveVariants]</span>=<span class="code-string">"variantsConfig"</span> <span class="code-attr">[moveAnimate]</span>=<span class="code-string">"'${this.currentVariant()}'"</span>&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+  });
 
   protected readonly variantsConfig: Record<string, MoveVariant> = {
     idle: { scale: [1, 1], rotate: [0, 0] },

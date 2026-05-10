@@ -4,7 +4,7 @@ import {
   composeInitialStyle,
 } from '../engines/keyframe-composer';
 import { MOVE_PRESETS } from '../presets/presets';
-import { MoveKeyframes, MovePreset } from '../presets/presets.types';
+import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
 
 export type MovePhase = 'enter' | 'leave' | 'loop';
@@ -95,4 +95,73 @@ export function applyInitialStyles(el: HTMLElement, frames: MoveKeyframes): void
  */
 export function clearInitialStyles(el: HTMLElement): void {
   clearComposedStyle(el);
+}
+
+/**
+ * Validates MoveSpring configuration and returns sanitized values.
+ * Warns in development mode for invalid values.
+ */
+export function validateSpring(spring: MoveSpring | undefined): MoveSpring | undefined {
+  if (!spring) return undefined;
+
+  const validated: MoveSpring = {};
+
+  if (spring.stiffness !== undefined) {
+    if (spring.stiffness <= 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn('[Movement] Spring stiffness must be > 0. Using default.');
+    }
+    validated.stiffness = spring.stiffness > 0 ? spring.stiffness : 100;
+  }
+
+  if (spring.damping !== undefined) {
+    if (spring.damping < 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn('[Movement] Spring damping must be >= 0. Using default.');
+    }
+    validated.damping = spring.damping >= 0 ? spring.damping : 10;
+  }
+
+  if (spring.mass !== undefined) {
+    if (spring.mass <= 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn('[Movement] Spring mass must be > 0. Using default.');
+    }
+    validated.mass = spring.mass > 0 ? spring.mass : 1;
+  }
+
+  if (spring.velocity !== undefined) {
+    validated.velocity = spring.velocity;
+  }
+
+  return validated;
+}
+
+/**
+ * Validates scroll offset string format "elFraction viewFraction".
+ * Returns true if valid, warns in dev mode if invalid.
+ */
+export function isValidScrollOffset(offset: string): boolean {
+  const parts = offset.split(' ').map(parseFloat);
+  if (parts.length !== 2 || parts.some(Number.isNaN)) {
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn(
+        `[Movement] Invalid scroll offset: "${offset}". Expected format "elFraction viewFraction" (e.g. "0 1").`,
+      );
+    }
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Validates drag elastic factor. Must be between 0 and 1.
+ */
+export function validateDragElastic(elastic: number): number {
+  if (elastic < 0 || elastic > 1) {
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn(
+        `[Movement] Drag elastic must be between 0 and 1. Got ${elastic}. Clamping to range.`,
+      );
+    }
+    return Math.max(0, Math.min(1, elastic));
+  }
+  return elastic;
 }

@@ -1,4 +1,4 @@
-import { MovePreset } from 'movement';
+import { MoveKeyframes, MovePreset } from 'movement';
 
 /** All available presets for demos */
 export const ALL_PRESETS: MovePreset[] = [
@@ -103,3 +103,17 @@ export const DEFAULT_CONTROLS = {
     showEasing: false,
   },
 } as const;
+
+/**
+ * Convert MoveKeyframes into a compact string representation suitable for code previews.
+ * Example: { scale: [1, 1.1], y: [0, -8] }
+ */
+export function keyframesToString(kf: MoveKeyframes): string {
+  const entries = Object.entries(kf)
+    .map(([key, val]) => {
+      if (!val || !Array.isArray(val)) return '';
+      return `${key}: [${val.join(', ')}]`;
+    })
+    .filter(Boolean);
+  return `{ ${entries.join(', ')} }`;
+}

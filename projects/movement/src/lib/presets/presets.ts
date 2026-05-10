@@ -71,6 +71,75 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
     leave: { scale: [1, 0.95, 1] },
     loop: { scale: [1, 1.05, 1] },
   },
+  shake: {
+    enter: { opacity: DEFAULT_FADE_OPACITY, x: [0, -10, 10, -10, 10, -5, 5, -5, 5, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, x: [0, 10, -10, 10, -10, 5, -5, 5, -5, 0] },
+  },
+  swing: {
+    enter: { opacity: DEFAULT_FADE_OPACITY, rotate: [0, 15, -10, 5, -5, 0] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, rotate: [0, -15, 10, -5, 5, 0] },
+  },
+  wobble: {
+    enter: {
+      opacity: DEFAULT_FADE_OPACITY,
+      x: [0, -25, 20, -15, 10, -5, 0],
+      rotate: [0, -5, 3, -3, 2, -1, 0],
+    },
+    leave: {
+      opacity: DEFAULT_LEAVE_OPACITY,
+      x: [0, 25, -20, 15, -10, 5, 0],
+      rotate: [0, 5, -3, 3, -2, 1, 0],
+    },
+  },
+  'rubber-band': {
+    enter: {
+      opacity: DEFAULT_FADE_OPACITY,
+      scaleX: [1, 1.25, 0.75, 1.15, 0.95, 1.05, 1],
+      scaleY: [1, 0.75, 1.25, 0.85, 1.05, 0.95, 1],
+    },
+    leave: {
+      opacity: DEFAULT_LEAVE_OPACITY,
+      scaleX: [1, 1.25, 0.75, 1.15, 0.95, 1.05, 1],
+      scaleY: [1, 0.75, 1.25, 0.85, 1.05, 0.95, 1],
+    },
+  },
+  'heart-beat': {
+    enter: { opacity: DEFAULT_FADE_OPACITY, scale: [1, 1.3, 1, 1.3, 1] },
+    leave: { opacity: DEFAULT_LEAVE_OPACITY, scale: [1, 1.3, 1, 1.3, 1] },
+    loop: { scale: [1, 1.3, 1, 1.3, 1] },
+  },
+  tada: {
+    enter: {
+      opacity: DEFAULT_FADE_OPACITY,
+      scale: [1, 0.9, 1.1, 1.1, 1.1, 1],
+      rotate: [0, -3, 3, -3, 3, 0],
+    },
+    leave: {
+      opacity: DEFAULT_LEAVE_OPACITY,
+      scale: [1, 0.9, 1.1, 1.1, 1.1, 1],
+      rotate: [0, 3, -3, 3, -3, 0],
+    },
+  },
+  jello: {
+    enter: {
+      opacity: DEFAULT_FADE_OPACITY,
+      scaleX: [1, 1.25, 0.75, 1.15, 0.95, 1.05, 1],
+      scaleY: [1, 0.75, 1.25, 0.85, 1.05, 0.95, 1],
+    },
+    leave: {
+      opacity: DEFAULT_LEAVE_OPACITY,
+      scaleX: [1, 1.25, 0.75, 1.15, 0.95, 1.05, 1],
+      scaleY: [1, 0.75, 1.25, 0.85, 1.05, 0.95, 1],
+    },
+  },
+  'light-speed': {
+    enter: { opacity: [0, 1], x: [200, 0], scaleX: [0, 1] },
+    leave: { opacity: [1, 0], x: [0, 200], scaleX: [1, 0] },
+  },
+  'roll-in': {
+    enter: { opacity: [0, 1], x: [-100, 0], rotate: [-120, 0] },
+    leave: { opacity: [1, 0], x: [0, 100], rotate: [0, 120] },
+  },
   none: {
     enter: { opacity: [1, 1] },
     leave: { opacity: [1, 1] },

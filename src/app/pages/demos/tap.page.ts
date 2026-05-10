@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-tap',
@@ -14,6 +15,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [directiveBinding]="tapCode()"
     >
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
@@ -63,6 +65,8 @@ export default class DemoTap {
   protected effect = signal<'press' | 'shrink' | 'ripple' | 'bounce'>('press');
   protected duration = signal(100);
   protected easing = signal('ease-out');
+
+  protected readonly tapCode = computed(() => keyframesToString(this.tapKeyframes()));
 
   protected readonly tapKeyframes = (): MoveKeyframes => {
     switch (this.effect()) {

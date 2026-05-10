@@ -351,9 +351,28 @@ export class DemoContainer {
     'flip-x',
     'flip-y',
     'bounce-in',
+    'shake',
+    'swing',
+    'wobble',
+    'rubber-band',
+    'heart-beat',
+    'tada',
+    'jello',
+    'light-speed',
+    'roll-in',
   ]);
   readonly directive = input<string>('');
   readonly showReplay = input<boolean>(true);
+
+  /**
+   * When showPreset is false, pass the directive binding value here
+   * so the generated code includes `[directive]="value"`.
+   * Pass empty string "" to render the directive as a boolean attribute.
+   */
+  readonly directiveBinding = input<string | undefined>(undefined);
+
+  /** Override the entire generated code block. Useful for multi-element demos. */
+  readonly customCode = input<string | undefined>(undefined);
 
   // Outputs
   readonly stateChange = output<DemoState>();
@@ -399,6 +418,9 @@ export class DemoContainer {
   });
 
   protected readonly highlightedCode = computed(() => {
+    const custom = this.customCode();
+    if (custom) return custom;
+
     const directive = this.directive();
     const preset = this.preset();
     const duration = this.duration();
@@ -409,6 +431,17 @@ export class DemoContainer {
 
     if (preset && this.controls().showPreset !== false) {
       code += `\n  <span class="code-attr">${directive}</span>=<span class="code-string">"${preset}"</span>`;
+    } else if (directive) {
+      const binding = this.directiveBinding();
+      if (binding !== undefined) {
+        if (binding === '') {
+          code += `\n  <span class="code-attr">${directive}</span>`;
+        } else {
+          code += `\n  <span class="code-attr">[${directive}]</span>=<span class="code-string">"${binding}"</span>`;
+        }
+      } else {
+        code += `\n  <span class="code-attr">${directive}</span>`;
+      }
     }
 
     if (duration !== 300 && this.controls().showDuration !== false) {
@@ -422,8 +455,8 @@ export class DemoContainer {
     }
 
     // Add custom controls to code if they exist
-    const custom = this.customValues();
-    Object.entries(custom).forEach(([key, value]) => {
+    const customValues = this.customValues();
+    Object.entries(customValues).forEach(([key, value]) => {
       if (value !== undefined && value !== '' && value !== false) {
         const attrName = `move${key.charAt(0).toUpperCase() + key.slice(1)}`;
         code += `\n  <span class="code-attr">${attrName}</span>=<span class="code-string">"${value}"</span>`;

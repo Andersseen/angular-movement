@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-loop',
@@ -14,6 +15,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
+      [directiveBinding]="loopCode()"
     >
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
@@ -118,6 +120,13 @@ export default class DemoLoop {
   protected duration = signal(1000);
   protected easing = signal('linear');
   protected showDemo = signal(true);
+
+  protected readonly loopCode = computed(() => {
+    const type = this.loopType();
+    if (type === 'spin') return "'spin'";
+    if (type === 'pulse') return "'pulse'";
+    return keyframesToString(this.drawKeyframes());
+  });
 
   protected readonly drawKeyframes = (): MoveKeyframes => ({
     strokeDashoffset: [24, 0],
