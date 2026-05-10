@@ -40,7 +40,9 @@ angular-movement addresses this with declarative directives and global configura
 
 From npm:
 
+```bash
 npm install angular-movement
+```
 
 Peer dependencies:
 
@@ -57,6 +59,7 @@ Example:
 
 import { ApplicationConfig } from '@angular/core';
 import { provideMovement } from 'angular-movement';
+import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 
 export const appConfig: ApplicationConfig = {
 providers: [

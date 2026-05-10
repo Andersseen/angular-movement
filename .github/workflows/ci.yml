@@ -40,14 +40,17 @@ jobs:
     - name: Install dependencies
       run: pnpm install
       
-    - name: Lint Code
+    - name: Lint App
       run: pnpm run lint
-      
+
+    - name: Lint Library
+      run: npx ng lint movement
+
     - name: Build Library
-      run: pnpm run build
-      
+      run: npx ng build movement
+
     - name: Build App
       run: pnpm run build:prod
-      
+
     - name: Run Tests
       run: pnpm run test:coverage

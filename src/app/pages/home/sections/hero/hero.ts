@@ -86,7 +86,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           class="bg-code-bg border-border mx-auto flex w-full max-w-md items-center justify-between gap-6 rounded-xl border p-4"
         >
           <code class="text-text-muted flex-1 text-left font-mono text-sm select-all"
-            >npm install @angular-movement/core</code
+            >npm install angular-movement</code
           >
           <button
             type="button"
@@ -111,6 +111,6 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
 })
 export class Hero {
   protected copyInstallCommand(): void {
-    navigator.clipboard.writeText('npm install @angular-movement/core').catch(() => void 0);
+    navigator.clipboard.writeText('npm install angular-movement').catch(() => void 0);
   }
 }

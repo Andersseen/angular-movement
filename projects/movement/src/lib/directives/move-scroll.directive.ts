@@ -13,6 +13,7 @@ import {
 import { AnimationControls } from '../engines/animation-controls';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MoveKeyframes } from '../presets/presets.types';
+import { isValidScrollOffset } from './move-animation.utils';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
 @Directive({
@@ -64,6 +65,12 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
       const view = this.#documentRef.defaultView;
       if (!view) return;
+
+      // Validate scroll offsets
+      const offsets = this.moveScrollOffset();
+      if (!isValidScrollOffset(offsets[0]) || !isValidScrollOffset(offsets[1])) {
+        return;
+      }
 
       this.#player = this.#engine.play(this.#host.nativeElement, keyframes, {
         config: { duration: 1000, easing: 'linear', delay: 0, disabled: false, iterations: 1 },

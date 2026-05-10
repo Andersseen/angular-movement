@@ -351,6 +351,15 @@ export class DemoContainer {
     'flip-x',
     'flip-y',
     'bounce-in',
+    'shake',
+    'swing',
+    'wobble',
+    'rubber-band',
+    'heart-beat',
+    'tada',
+    'jello',
+    'light-speed',
+    'roll-in',
   ]);
   readonly directive = input<string>('');
   readonly showReplay = input<boolean>(true);

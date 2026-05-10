@@ -31,9 +31,11 @@ export class MoveStaggerDirective implements MoveStaggerProvider {
     if (!this.#children.has(el)) return 0;
 
     const list = Array.from(this.#children).sort((a, b) => {
-      // Unreliable on detached elements, but they are in DOM when sorting
+      if (a === b) return 0;
       const pos = a.compareDocumentPosition(b);
-      return pos & Node.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+      return 0;
     });
 
     const index = list.indexOf(el);

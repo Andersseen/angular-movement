@@ -2,7 +2,7 @@ import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 
-import { prefersReducedMotion } from './move-animation.utils';
+import { prefersReducedMotion, validateDragElastic } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
@@ -44,7 +44,9 @@ export class MoveDragDirective implements OnDestroy {
     if (this.moveDrag() === false || e.button !== 0) return;
     this.#isDragging = true;
     this.#pointerId = e.pointerId;
-    this.#host.nativeElement.setPointerCapture(e.pointerId);
+    if (typeof this.#host.nativeElement.setPointerCapture === 'function') {
+      this.#host.nativeElement.setPointerCapture(e.pointerId);
+    }
 
     this.#player?.cancel();
     // read bounds cleanly before next render
@@ -70,7 +72,9 @@ export class MoveDragDirective implements OnDestroy {
   onPointerUp(e: PointerEvent) {
     if (!this.#isDragging || e.pointerId !== this.#pointerId) return;
     this.#isDragging = false;
-    this.#host.nativeElement.releasePointerCapture(e.pointerId);
+    if (typeof this.#host.nativeElement.releasePointerCapture === 'function') {
+      this.#host.nativeElement.releasePointerCapture(e.pointerId);
+    }
     this.#pointerId = null;
 
     this.#host.nativeElement.style.touchAction = '';
@@ -108,7 +112,7 @@ export class MoveDragDirective implements OnDestroy {
     let y = this.#_y;
 
     if (this.#dragBounds) {
-      const elastic = this.moveDragElastic();
+      const elastic = validateDragElastic(this.moveDragElastic());
 
       if (this.#dragBounds.left !== undefined && x < this.#dragBounds.left) {
         x = this.#dragBounds.left - (this.#dragBounds.left - x) * elastic;
@@ -147,7 +151,7 @@ export class MoveDragDirective implements OnDestroy {
       let currentVisX = this.#_x;
       let currentVisY = this.#_y;
 
-      const elastic = this.moveDragElastic();
+      const elastic = validateDragElastic(this.moveDragElastic());
       if (this.#dragBounds.left !== undefined && this.#_x < this.#dragBounds.left) {
         currentVisX = this.#dragBounds.left - (this.#dragBounds.left - this.#_x) * elastic;
       } else if (this.#dragBounds.right !== undefined && this.#_x > this.#dragBounds.right) {
@@ -178,6 +182,18 @@ export class MoveDragDirective implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.#pointerId !== null) {
+      try {
+        if (typeof this.#host.nativeElement.releasePointerCapture === 'function') {
+          this.#host.nativeElement.releasePointerCapture(this.#pointerId);
+        }
+      } catch {
+        // Element may already be detached
+      }
+      this.#pointerId = null;
+    }
+    this.#host.nativeElement.style.touchAction = '';
+    this.#host.nativeElement.style.userSelect = '';
     this.#player?.cancel();
   }
 }
