@@ -14,6 +14,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [directiveBinding]="''"
     >
       <!-- Preview -->
       <div preview class="flex h-full w-full flex-col items-center justify-center gap-6">

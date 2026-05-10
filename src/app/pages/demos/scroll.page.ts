@@ -14,6 +14,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [customCode]="scrollCode()"
     >
       <!-- Preview -->
       <div preview class="relative h-full w-full overflow-hidden">
@@ -102,6 +103,14 @@ export default class DemoScroll {
 
   protected effect = signal<'translate' | 'scale' | 'rotate' | 'mixed'>('mixed');
   protected intensity = signal(50);
+
+  protected readonly scrollCode = computed(() => {
+    const effect = this.effect();
+    const intensity = this.intensity();
+    const y = effect === 'translate' || effect === 'mixed' ? intensity : 0;
+    const rotate = effect === 'rotate' || effect === 'mixed' ? intensity : 0;
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveScroll]</span>=<span class="code-string">"{ y: [0, ${y}], rotate: [0, ${rotate}] }"</span> <span class="code-attr">moveScrollContainer</span>=<span class="code-string">"'.container'"</span>&gt;\n  Scroll Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+  });
 
   // Computed keyframes
   protected readonly bgKeyframes = computed(() => {

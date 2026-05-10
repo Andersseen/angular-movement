@@ -14,6 +14,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [customCode]="parallaxCode()"
     >
       <!-- Preview - Full height for scroll -->
       <div preview class="relative h-full w-full overflow-hidden">
@@ -139,6 +140,11 @@ export default class DemoParallax {
 
   protected intensity = signal<'subtle' | 'medium' | 'strong' | 'extreme'>('medium');
   protected showFloating = signal(true);
+
+  protected readonly parallaxCode = computed(() => {
+    const speed = this.fgSpeed();
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveScroll]</span>=<span class="code-string">"{ y: [0, ${speed}] }"</span> <span class="code-attr">moveScrollContainer</span>=<span class="code-string">"'.container'"</span>&gt;\n  Parallax Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+  });
 
   // Computed speeds based on intensity
   protected readonly bgSpeed = computed(() => {

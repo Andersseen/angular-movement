@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
@@ -14,6 +14,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [customCode]="dragCode()"
     >
       <!-- Preview -->
       <div preview class="relative flex h-full w-full items-center justify-center overflow-hidden">
@@ -61,6 +62,14 @@ export default class DemoDrag {
   };
 
   protected constrained = signal(false);
+
+  protected readonly dragCode = computed(() => {
+    const c = this.constrained();
+    const constraints = c
+      ? ' [moveDragConstraints]="{ left: -100, right: 100, top: -80, bottom: 80 }"'
+      : '';
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${constraints}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
+  });
 
   protected onStateChange(state: DemoState): void {
     this.constrained.set((state['constrained'] as boolean) ?? false);
