@@ -112,7 +112,7 @@
           "builder": "@angular-eslint/builder:lint",
           "options": {
             "lintFilePatterns": ["projects/movement/**/*.ts", "projects/movement/**/*.html"],
-            "eslintConfig": "projects/movement/eslint.config.js"
+            "eslintConfig": "projects/movement/eslint.config.cjs"
           }
         }
       }

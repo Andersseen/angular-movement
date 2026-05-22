@@ -13,6 +13,8 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
       directive="moveWhileHover"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      [initialDuration]="200"
+      initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
       [directiveBinding]="hoverCode()"

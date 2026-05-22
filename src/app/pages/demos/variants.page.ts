@@ -12,6 +12,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       directive="moveAnimate"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      initialEasing="spring"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
       [customCode]="variantsCode()"
@@ -57,6 +58,7 @@ export default class DemoVariants {
     showDuration: true,
     showDelay: false,
     showEasing: true,
+    easingOptions: ['spring', 'ease', 'ease-in', 'ease-out', 'ease-in-out'],
   };
 
   protected readonly variantNames = ['idle', 'hover', 'active'];

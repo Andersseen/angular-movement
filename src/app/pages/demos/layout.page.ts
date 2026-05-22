@@ -12,6 +12,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       directive="moveLayout"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      [initialDuration]="400"
+      initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
       [directiveBinding]="''"

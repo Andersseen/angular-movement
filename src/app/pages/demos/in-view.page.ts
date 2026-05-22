@@ -13,6 +13,8 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
       directive="moveInView"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      [initialDuration]="800"
+      initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
     >

@@ -13,6 +13,8 @@ import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
       directive="moveStagger"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      [initialDuration]="400"
+      initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >

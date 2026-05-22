@@ -33,10 +33,13 @@ export class AnimationEngine {
     }
 
     if (options.disabled) {
+      this.#prepareSvgStrokeDraw(host, frames);
       this.#applyFinalStyles(host, frames);
       options.onDone?.();
       return null;
     }
+
+    this.#prepareSvgStrokeDraw(host, frames);
 
     const config = options.config ?? this.#defaults;
     const spring = validateSpring(options.spring);
@@ -70,5 +73,33 @@ export class AnimationEngine {
 
   #applyFinalStyles(host: Element, frames: MoveKeyframes): void {
     applyComposedStyle(host, composeFinalStyle(frames));
+  }
+
+  #prepareSvgStrokeDraw(host: Element, frames: MoveKeyframes): void {
+    if (!frames['strokeDashoffset'] || !this.#isSvgGeometryElement(host)) {
+      return;
+    }
+
+    let length = 28;
+    try {
+      length = host.getTotalLength() || length;
+    } catch {
+      length = 28;
+    }
+
+    const styledHost = host as SVGElement;
+    styledHost.style.strokeDasharray = `${length}`;
+    styledHost.style.strokeDashoffset = `${length}`;
+  }
+
+  #isSvgGeometryElement(host: Element): host is SVGGeometryElement {
+    const view = host.ownerDocument?.defaultView;
+    const SvgGeometryElement = view?.SVGGeometryElement;
+
+    if (typeof SvgGeometryElement === 'function' && host instanceof SvgGeometryElement) {
+      return true;
+    }
+
+    return typeof (host as Partial<SVGGeometryElement>).getTotalLength === 'function';
   }
 }

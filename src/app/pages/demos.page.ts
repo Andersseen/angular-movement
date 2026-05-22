@@ -26,6 +26,7 @@ const DEMO_GROUPS: DemoGroup[] = [
     items: [
       { path: 'hover', label: 'moveWhileHover', description: 'Hover animations' },
       { path: 'tap', label: 'moveWhileTap', description: 'Click/tap animations' },
+      { path: 'target', label: 'moveTarget', description: 'Boolean target animations' },
       { path: 'in-view', label: 'moveInView', description: 'Scroll-triggered animations' },
       { path: 'drag', label: 'moveDrag', description: 'Draggable elements' },
     ],
