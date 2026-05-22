@@ -86,6 +86,62 @@ describe('AnimationEngine', () => {
     expect(animateSpy).toHaveBeenCalled();
   });
 
+  it('should prepare SVG stroke draw styles before animating strokeDashoffset', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const engine = TestBed.inject(AnimationEngine);
+    const host = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    Object.defineProperty(host, 'getTotalLength', {
+      value: vi.fn().mockReturnValue(42),
+    });
+
+    const animateSpy = vi.fn().mockReturnValue({
+      addEventListener: vi.fn(),
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+      commitStyles: vi.fn(),
+    });
+    (host as SVGElement).animate = animateSpy;
+
+    const result = engine.play(host, { strokeDashoffset: [42, 0] });
+
+    expect(result).toBeTruthy();
+    expect(host.style.strokeDasharray).toBe('42');
+    expect(host.style.strokeDashoffset).toBe('42');
+    expect(animateSpy).toHaveBeenCalled();
+  });
+
+  it('should fall back to a default SVG stroke length when getTotalLength fails', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const engine = TestBed.inject(AnimationEngine);
+    const host = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    Object.defineProperty(host, 'getTotalLength', {
+      value: vi.fn(() => {
+        throw new Error('not measurable');
+      }),
+    });
+
+    const animateSpy = vi.fn().mockReturnValue({
+      addEventListener: vi.fn(),
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+      commitStyles: vi.fn(),
+    });
+    (host as SVGElement).animate = animateSpy;
+
+    engine.play(host, { strokeDashoffset: [28, 0] });
+
+    expect(host.style.strokeDasharray).toBe('28');
+    expect(host.style.strokeDashoffset).toBe('28');
+  });
+
   it('should validate invalid spring values and fall back to defaults', () => {
     TestBed.configureTestingModule({ providers: [provideMovement()] });
     const engine = TestBed.inject(AnimationEngine);

@@ -68,6 +68,21 @@ const directives: DirectiveInfo[] = [
     ],
   },
   {
+    name: 'MoveTargetDirective',
+    selector: '[moveTarget]',
+    description: 'Animate any element from a boolean trigger, including smooth reverse',
+    inputs: [
+      { name: 'moveTarget', type: 'boolean', required: true },
+      { name: 'moveFrames', type: 'MoveKeyframes', required: true },
+      { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
+      { name: 'moveDelay', type: 'number', required: false, defaultValue: '0' },
+      { name: 'moveEasing', type: 'string', required: false, defaultValue: 'ease' },
+      { name: 'moveReverseDuration', type: 'number', required: false, defaultValue: '200' },
+      { name: 'moveReverseEasing', type: 'string', required: false, defaultValue: 'ease-out' },
+      { name: 'moveSpring', type: 'MoveSpring', required: false },
+    ],
+  },
+  {
     name: 'MoveInViewDirective',
     selector: '[moveInView]',
     description: 'Trigger animations when elements enter the viewport',
