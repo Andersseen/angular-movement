@@ -12,6 +12,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       directive="moveTarget"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      [initialDuration]="500"
+      initialEasing="ease-out"
       [showReplay]="false"
       [customCode]="targetCode()"
       (stateChange)="onStateChange($event)"

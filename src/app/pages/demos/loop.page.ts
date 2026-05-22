@@ -13,6 +13,8 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
       directive="moveLoop"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      [initialDuration]="1000"
+      initialEasing="linear"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
       [directiveBinding]="loopCode()"
@@ -101,6 +103,7 @@ export default class DemoLoop {
     showDuration: true,
     showDelay: false,
     showEasing: true,
+    easingOptions: ['linear', 'ease', 'ease-in', 'ease-out', 'ease-in-out'],
     customControls: [
       {
         id: 'loopType',

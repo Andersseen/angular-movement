@@ -1,4 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  OnInit,
+  computed,
+  input,
+  output,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MovePreset, MOVEMENT_DIRECTIVES } from 'movement';
 
@@ -8,6 +16,8 @@ export interface DemoControlConfig {
   showDelay?: boolean;
   showEasing?: boolean;
   showSpring?: boolean;
+  easingOptions?: string[];
+  includeCustomControlsInCode?: boolean;
   customControls?: CustomControl[];
 }
 
@@ -174,7 +184,7 @@ export interface DemoState {
                   <span class="text-text-subtle font-mono text-xs">{{ easing() }}</span>
                 </div>
                 <div class="grid grid-cols-2 gap-2">
-                  @for (ease of easings; track ease) {
+                  @for (ease of easings(); track ease) {
                     <button
                       (click)="updateEasing(ease)"
                       [class]="
@@ -201,8 +211,7 @@ export interface DemoState {
                     </label>
                     @if (control.type === 'range') {
                       <span class="text-text-subtle font-mono text-xs"
-                        >{{ customValues()[control.id]
-                        }}{{ control.id.includes('stagger') ? 'ms' : '' }}</span
+                        >{{ customValues()[control.id] }}{{ customControlUnit(control.id) }}</span
                       >
                     }
                   </div>
@@ -232,14 +241,8 @@ export interface DemoState {
                         class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
                       />
                       <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                        <span
-                          >{{ control.min ?? 0
-                          }}{{ control.id.includes('stagger') ? 'ms' : '' }}</span
-                        >
-                        <span
-                          >{{ control.max ?? 100
-                          }}{{ control.id.includes('stagger') ? 'ms' : '' }}</span
-                        >
+                        <span>{{ control.min ?? 0 }}{{ customControlUnit(control.id) }}</span>
+                        <span>{{ control.max ?? 100 }}{{ customControlUnit(control.id) }}</span>
                       </div>
                     }
                     @case ('text') {
@@ -332,7 +335,7 @@ export interface DemoState {
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class DemoContainer {
+export class DemoContainer implements OnInit {
   // Inputs
   readonly title = input.required<string>();
   readonly description = input.required<string>();
@@ -363,6 +366,9 @@ export class DemoContainer {
   ]);
   readonly directive = input<string>('');
   readonly showReplay = input<boolean>(true);
+  readonly initialDuration = input<number>(300);
+  readonly initialDelay = input<number>(0);
+  readonly initialEasing = input<string>('ease');
 
   /**
    * When showPreset is false, pass the directive binding value here
@@ -386,7 +392,11 @@ export class DemoContainer {
   readonly copied = signal(false);
   readonly customValues = signal<Record<string, unknown>>({});
 
-  protected readonly easings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
+  readonly #defaultEasings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
+
+  protected readonly easings = computed(
+    () => this.controls().easingOptions ?? this.#defaultEasings,
+  );
 
   protected readonly presetGroups = computed(() => {
     const presets = this.availablePresets();
@@ -454,19 +464,31 @@ export class DemoContainer {
       code += `\n  <span class="code-attr">moveEasing</span>=<span class="code-string">"${easing}"</span>`;
     }
 
-    // Add custom controls to code if they exist
-    const customValues = this.customValues();
-    Object.entries(customValues).forEach(([key, value]) => {
-      if (value !== undefined && value !== '' && value !== false) {
-        const attrName = `move${key.charAt(0).toUpperCase() + key.slice(1)}`;
-        code += `\n  <span class="code-attr">${attrName}</span>=<span class="code-string">"${value}"</span>`;
-      }
-    });
+    if (this.controls().includeCustomControlsInCode) {
+      const customValues = this.customValues();
+      Object.entries(customValues).forEach(([key, value]) => {
+        if (value !== undefined && value !== '' && value !== false) {
+          const attrName = `move${key.charAt(0).toUpperCase() + key.slice(1)}`;
+          code += `\n  <span class="code-attr">${attrName}</span>=<span class="code-string">"${value}"</span>`;
+        }
+      });
+    }
 
     code += `&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
 
     return code;
   });
+
+  ngOnInit(): void {
+    this.duration.set(this.initialDuration());
+    this.delay.set(this.initialDelay());
+    this.easing.set(this.initialEasing());
+
+    const initialCustomValues = Object.fromEntries(
+      (this.controls().customControls ?? []).map((control) => [control.id, control.value]),
+    );
+    this.customValues.set(initialCustomValues);
+  }
 
   protected updatePreset(value: MovePreset): void {
     this.preset.set(value);
@@ -491,6 +513,12 @@ export class DemoContainer {
   protected updateCustomValue(id: string, value: unknown): void {
     this.customValues.update((v) => ({ ...v, [id]: value }));
     this.emitStateChange();
+  }
+
+  protected customControlUnit(id: string): string {
+    return id.toLowerCase().includes('duration') || id.toLowerCase().includes('stagger')
+      ? 'ms'
+      : '';
   }
 
   private emitStateChange(): void {

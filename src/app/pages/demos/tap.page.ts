@@ -13,6 +13,8 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
       directive="moveWhileTap"
       [availablePresets]="[]"
       [controls]="controlsConfig"
+      [initialDuration]="100"
+      initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
       [directiveBinding]="tapCode()"
