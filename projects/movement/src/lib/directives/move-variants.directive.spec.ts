@@ -90,4 +90,48 @@ describe('MoveVariantsDirective', () => {
     // Should not have tried to animate undefined variant
     expect(callsForNonExistent.length).toBe(0);
   });
+
+  it('should pass transition config from variant to engine', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TransitionHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(TransitionHostComponent);
+    localFixture.detectChanges();
+
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    localFixture.componentInstance.activeVariant.set('active');
+    localFixture.detectChanges();
+
+    expect(playSpy).toHaveBeenCalled();
+    const lastCall = playSpy.mock.calls[playSpy.mock.calls.length - 1];
+    const options = lastCall[2] as Record<string, unknown>;
+    expect(options['transition']).toBeDefined();
+    expect(options['transition']).toEqual(
+      expect.objectContaining({ duration: 400, opacity: { duration: 120, delay: 100 } }),
+    );
+  });
 });
+
+@Component({
+  template: `
+    <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
+      Variant Child
+    </div>
+  `,
+  imports: [MoveVariantsDirective],
+})
+class TransitionHostComponent {
+  activeVariant = signal<string>('idle');
+  variants = signal({
+    idle: { opacity: [0.5, 1] },
+    active: {
+      opacity: [0, 1],
+      pathLength: [0, 1],
+      transition: { duration: 400, opacity: { duration: 120, delay: 100 } },
+    },
+  });
+}

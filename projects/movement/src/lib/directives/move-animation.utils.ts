@@ -3,6 +3,8 @@ import {
   clearComposedStyle,
   composeInitialStyle,
 } from '../engines/keyframe-composer';
+
+export { clearComposedStyle } from '../engines/keyframe-composer';
 import { MOVE_PRESETS } from '../presets/presets';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';

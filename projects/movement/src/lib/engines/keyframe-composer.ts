@@ -10,20 +10,26 @@ export interface ComposedKeyframe extends Keyframe {
   transform?: string;
 }
 
-function getValAt(arr: readonly number[] | undefined, index: number): number | undefined {
+function getValAt(
+  arr: readonly (number | string)[] | undefined,
+  index: number,
+): number | string | undefined {
   if (!arr || arr.length === 0) return undefined;
   return arr[Math.min(index, arr.length - 1)];
 }
 
 function getInterpolated(
-  arr: readonly number[] | undefined,
+  arr: readonly (number | string)[] | undefined,
   i1: number,
   i2: number,
   p: number,
-): number | undefined {
+): number | string | undefined {
   if (!arr || arr.length === 0) return undefined;
   const v1 = arr[Math.min(i1, arr.length - 1)];
   const v2 = arr[Math.min(i2, arr.length - 1)];
+  if (typeof v1 === 'string' || typeof v2 === 'string') {
+    return p >= 1 ? v2 : v1;
+  }
   return v1 + (v2 - v1) * p;
 }
 
@@ -42,46 +48,46 @@ const KNOWN_KEYS = new Set([
 
 function buildKeyframe(
   frames: MoveKeyframes,
-  getVal: (arr: readonly number[] | undefined) => number | undefined,
+  getVal: (arr: readonly (number | string)[] | undefined) => number | string | undefined,
 ): ComposedKeyframe {
   const keyframe: ComposedKeyframe = {};
 
   const opacity = getVal(frames.opacity);
   if (opacity !== undefined) {
-    keyframe.opacity = opacity;
+    keyframe.opacity = Number(opacity);
   }
 
   const x = getVal(frames.x);
   const y = getVal(frames.y);
   if (x !== undefined || y !== undefined) {
-    keyframe.translate = `${x ?? 0}px ${y ?? 0}px`;
+    keyframe.translate = `${Number(x ?? 0)}px ${Number(y ?? 0)}px`;
   }
 
   const scale = getVal(frames.scale);
   if (scale !== undefined) {
-    keyframe.scale = `${scale}`;
+    keyframe.scale = `${Number(scale)}`;
   } else {
     const scaleX = getVal(frames.scaleX);
     const scaleY = getVal(frames.scaleY);
     if (scaleX !== undefined || scaleY !== undefined) {
-      keyframe.scale = `${scaleX ?? 1} ${scaleY ?? 1}`;
+      keyframe.scale = `${Number(scaleX ?? 1)} ${Number(scaleY ?? 1)}`;
     }
   }
 
   const rotate = getVal(frames.rotate);
   if (rotate !== undefined) {
-    keyframe.rotate = `${rotate}deg`;
+    keyframe.rotate = `${Number(rotate)}deg`;
   }
 
   const blur = getVal(frames.blur);
   if (blur !== undefined) {
-    keyframe.filter = `blur(${blur}px)`;
+    keyframe.filter = `blur(${Number(blur)}px)`;
   }
 
   const rotateX = getVal(frames.rotateX);
   const rotateY = getVal(frames.rotateY);
   if (rotateX !== undefined || rotateY !== undefined) {
-    keyframe.transform = `perspective(${DEFAULT_PERSPECTIVE}) rotateX(${rotateX ?? 0}deg) rotateY(${rotateY ?? 0}deg)`;
+    keyframe.transform = `perspective(${DEFAULT_PERSPECTIVE}) rotateX(${Number(rotateX ?? 0)}deg) rotateY(${Number(rotateY ?? 0)}deg)`;
   }
 
   // Passthrough arbitrary properties for WAAPI (e.g. strokeDashoffset)

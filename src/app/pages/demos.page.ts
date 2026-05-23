@@ -42,6 +42,10 @@ const DEMO_GROUPS: DemoGroup[] = [
     ],
   },
   {
+    title: 'SVG',
+    items: [{ path: 'icons', label: 'SVG Icons', description: 'Path drawing and icon animations' }],
+  },
+  {
     title: 'Scroll Effects',
     items: [
       { path: 'scroll', label: 'moveScroll', description: 'Scroll-linked animations' },
