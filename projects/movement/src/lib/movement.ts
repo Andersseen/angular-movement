@@ -17,6 +17,7 @@ import { MoveFocusDirective } from './directives/move-focus.directive';
 import { MoveParallaxDirective } from './directives/move-parallax.directive';
 import { MoveLoopDirective } from './directives/move-loop.directive';
 import { MoveTargetDirective } from './directives/move-target.directive';
+import { MoveTriggerDirective } from './directives/move-trigger.directive';
 
 export const MOVEMENT_DIRECTIVES = [
   MoveEnterDirective,
@@ -38,6 +39,7 @@ export const MOVEMENT_DIRECTIVES = [
   MoveAnimationDirective,
   MoveLoopDirective,
   MoveTargetDirective,
+  MoveTriggerDirective,
 ] as const;
 
 export * from './directives/move-animate.directive';
@@ -58,6 +60,7 @@ export * from './directives/move-parallax.directive';
 export * from './directives/move-animation.directive';
 export * from './directives/move-loop.directive';
 export * from './directives/move-target.directive';
+export * from './directives/move-trigger.directive';
 export * from './directives/move-animation.utils';
 export * from './scroll/smooth-scroll.service';
 export * from './scroll/move-smooth-scroll.directive';
@@ -65,8 +68,10 @@ export * from './engines/animation-controls';
 export * from './engines/animation-engine.service';
 export * from './engines/spring-player';
 export * from './engines/waapi-player';
+export * from './engines/transition-composer';
 export * from './presets/presets';
 export * from './presets/presets.types';
+export * from './presets/icon-helpers';
 export * from './providers/provide-movement';
 export * from './tokens/movement.tokens';
 export * from './tokens/presence.tokens';

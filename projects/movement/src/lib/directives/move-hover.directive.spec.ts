@@ -45,4 +45,35 @@ describe('MoveHoverDirective', () => {
     debugElement.triggerEventHandler('mouseleave', null);
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
+
+  it('should clear styles immediately when reverseDuration is 0', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [InstantReverseHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(InstantReverseHostComponent);
+    localFixture.detectChanges();
+    const de = localFixture.debugElement.query(By.directive(MoveHoverDirective));
+
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    de.triggerEventHandler('mouseenter', null);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    playSpy.mockClear();
+
+    de.triggerEventHandler('mouseleave', null);
+    expect(playSpy).not.toHaveBeenCalled();
+    expect((de.nativeElement as HTMLElement).style.opacity).toBe('');
+  });
 });
+
+@Component({
+  template: `
+    <div [moveWhileHover]="{ opacity: [0, 1] }" [moveReverseDuration]="0">Hover Me</div>
+  `,
+  imports: [MoveHoverDirective],
+})
+class InstantReverseHostComponent {}

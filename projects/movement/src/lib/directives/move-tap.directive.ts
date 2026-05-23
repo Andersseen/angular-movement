@@ -3,6 +3,7 @@ import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  clearComposedStyle,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -10,6 +11,13 @@ import {
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+
+function optionalNumberAttribute(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  return Number(value);
+}
 
 @Directive({
   selector: '[moveWhileTap]',
@@ -22,11 +30,19 @@ import { AnimationControls } from '../engines/animation-controls';
 })
 export class MoveTapDirective implements OnDestroy {
   readonly moveWhileTap = input.required<MovePreset | MoveKeyframes>();
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
+  readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveReverseEasing = input<string | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
@@ -66,12 +82,30 @@ export class MoveTapDirective implements OnDestroy {
     if (config.disabled) return;
 
     let frames = resolveMoveFrames(this.moveWhileTap(), 'enter');
+
     if (reverse) {
+      const reverseDuration = this.moveReverseDuration();
+      if (reverseDuration === 0) {
+        clearComposedStyle(this.#host.nativeElement, Object.keys(frames));
+        return;
+      }
       frames = reverseFrames(frames);
     }
 
+    const reverseConfig = reverse
+      ? resolveMovementConfig(
+          { ...this.#defaults, duration: 200, easing: 'ease-out', delay: 0 },
+          {
+            duration: this.moveReverseDuration() ?? this.moveDuration(),
+            easing: this.moveReverseEasing(),
+            delay: 0,
+          },
+          isReduced,
+        )
+      : config;
+
     this.#currentPlayer = this.#engine.play(this.#host.nativeElement, frames, {
-      config,
+      config: reverseConfig,
       spring: this.moveSpring(),
       disabled: false,
     });

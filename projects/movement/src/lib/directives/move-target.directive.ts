@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, OnDestroy, effect, inject, input } from '@angular/core';
 import { AnimationControls } from '../engines/animation-controls';
 import { AnimationEngine } from '../engines/animation-engine.service';
-import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
+import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig, reverseFrames } from './move-animation.utils';
 
@@ -34,6 +34,7 @@ export class MoveTargetDirective implements OnDestroy {
     transform: optionalNumberAttribute,
   });
   readonly moveReverseEasing = input<string | undefined>(undefined);
+  readonly moveTransition = input<MoveTransitionConfig | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
@@ -77,6 +78,7 @@ export class MoveTargetDirective implements OnDestroy {
       config,
       spring: this.moveSpring(),
       disabled: config.disabled,
+      transition: this.moveTransition(),
     });
   }
 
@@ -99,6 +101,7 @@ export class MoveTargetDirective implements OnDestroy {
       config,
       spring: this.moveSpring(),
       disabled: config.disabled,
+      transition: this.moveTransition(),
     });
   }
 

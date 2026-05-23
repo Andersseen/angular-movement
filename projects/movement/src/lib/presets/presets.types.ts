@@ -24,9 +24,14 @@ export type MovePreset =
   | 'jello'
   | 'light-speed'
   | 'roll-in'
+  | 'icon-draw'
+  | 'icon-pulse'
+  | 'icon-bounce'
   | 'none';
 
-export type MoveValuePair = readonly number[];
+export type MoveValue = number | string;
+
+export type MoveValuePair = readonly MoveValue[];
 
 export interface MoveSpring {
   stiffness?: number;
@@ -35,7 +40,16 @@ export interface MoveSpring {
   velocity?: number;
 }
 
-export interface MoveKeyframes {
+export interface MovePropertyTransition {
+  duration?: number;
+  easing?: string;
+  delay?: number;
+}
+
+export type MoveTransitionConfig = MovePropertyTransition &
+  Record<string, MovePropertyTransition | MoveValue | undefined>;
+
+export interface MoveKeyframeProperties {
   opacity?: MoveValuePair;
   x?: MoveValuePair;
   y?: MoveValuePair;
@@ -46,14 +60,23 @@ export interface MoveKeyframes {
   rotateX?: MoveValuePair;
   rotateY?: MoveValuePair;
   blur?: MoveValuePair;
-  [key: string]: MoveValuePair | undefined;
+  pathLength?: MoveValuePair;
+  pathOffset?: MoveValuePair;
+  pathSpacing?: MoveValuePair;
+  strokeDashoffset?: MoveValuePair;
+  strokeDasharray?: MoveValuePair;
+  fillOpacity?: MoveValuePair;
+  strokeOpacity?: MoveValuePair;
 }
 
-export type MoveVariant = MoveKeyframes & {
+export type MoveKeyframes = MoveKeyframeProperties & Record<string, MoveValuePair | undefined>;
+
+export type MoveVariant = MoveKeyframeProperties & {
   spring?: MoveSpring;
   duration?: number;
   easing?: string;
   delay?: number;
+  transition?: MoveTransitionConfig;
 };
 
 export interface MovePresetDefinition {
@@ -73,7 +96,14 @@ export interface MoveKeyframeState {
   rotateX?: number;
   rotateY?: number;
   blur?: number;
-  [key: string]: number | undefined;
+  pathLength?: number;
+  pathOffset?: number;
+  pathSpacing?: number;
+  strokeDashoffset?: number;
+  strokeDasharray?: string;
+  fillOpacity?: number;
+  strokeOpacity?: number;
+  [key: string]: number | string | undefined;
 }
 
 export interface MoveAnimationConfig {

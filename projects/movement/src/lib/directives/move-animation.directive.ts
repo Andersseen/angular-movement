@@ -91,7 +91,7 @@ function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): Move
   for (const key of Object.keys(from) as (keyof MoveKeyframeState)[]) {
     const f = from[key];
     const t = to[key];
-    if (f !== undefined && t !== undefined) {
+    if (typeof f === 'number' && typeof t === 'number') {
       result[key] = [f, t];
     }
   }

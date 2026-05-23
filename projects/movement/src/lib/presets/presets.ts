@@ -140,6 +140,20 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
     enter: { opacity: [0, 1], x: [-100, 0], rotate: [-120, 0] },
     leave: { opacity: [1, 0], x: [0, 100], rotate: [0, 120] },
   },
+  'icon-draw': {
+    enter: { pathLength: [0, 1], opacity: [0, 1] },
+    leave: { pathLength: [1, 0], opacity: [1, 0] },
+  },
+  'icon-pulse': {
+    enter: { scale: [1, 1.08, 1], opacity: [1, 0.85, 1] },
+    leave: { scale: [1, 0.92, 1], opacity: [1, 1, 1] },
+    loop: { scale: [1, 1.08, 1], opacity: [1, 0.85, 1] },
+  },
+  'icon-bounce': {
+    enter: { y: [0, -3, 0], opacity: [1, 1, 1] },
+    leave: { y: [0, 0, 0], opacity: [1, 1, 1] },
+    loop: { y: [0, -3, 0] },
+  },
   none: {
     enter: { opacity: [1, 1] },
     leave: { opacity: [1, 1] },

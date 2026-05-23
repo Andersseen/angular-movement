@@ -74,7 +74,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
 
       this.#currentPlayer?.cancel();
 
-      const { spring, duration, easing, delay, ...keyframesMap } = state;
+      const { spring, duration, easing, delay, transition, ...keyframesMap } = state;
       const keyframes = keyframesMap as MoveKeyframes;
 
       const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
@@ -94,6 +94,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
         config,
         spring: spring ?? this.moveSpring(),
         disabled: config.disabled,
+        transition,
       });
     });
   }
