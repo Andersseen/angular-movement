@@ -1,6 +1,7 @@
 {
-  "name": "angular-movement",
-  "version": "0.1.0",
+  "name": "angular-movement-project",
+  "version": "0.0.0",
+  "private": true,
   "license": "MIT",
   "scripts": {
     "ng": "ng",
@@ -17,7 +18,7 @@
     "cf:whoami": "pnpm exec wrangler whoami",
     "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/analog/public --project-name=angular-movement",
     "deploy": "pnpm run deploy:cloudflare",
-    "lib:publish": "ng build movement && npm publish ./dist/movement",
+    "lib:publish": "ng build movement && pnpm publish ./dist/movement --no-git-checks",
     "lint": "ng lint",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
