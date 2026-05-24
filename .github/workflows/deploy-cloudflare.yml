@@ -72,7 +72,6 @@ jobs:
         run: |
           COMMIT_MSG=$(printf '%s' "${{ github.event.head_commit.message || github.event.pull_request.title || 'Deploy' }}" | head -c 200)
           pnpm exec wrangler pages deploy dist/analog/public \
-            --project-name="${{ env.CLOUDFLARE_PROJECT_NAME }}" \
             --branch="${{ github.head_ref || github.ref_name }}" \
             --commit-hash="${{ github.sha }}" \
             --commit-message="${COMMIT_MSG}"
