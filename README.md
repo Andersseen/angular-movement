@@ -34,6 +34,8 @@ angular-movement addresses this with declarative directives and global configura
 - Custom keyframes for full control.
 - Spring physics support.
 - Interaction directives: hover, tap, focus, in-view, scroll, parallax, drag.
+- Advanced drag gestures with axis lock, constraints, elasticity, momentum,
+  snap-to-origin, and start/move/end outputs.
 - Presence orchestration to let leave animations finish before DOM removal.
 - Stagger orchestration for coordinated list motion.
 - **SVG path drawing** with `pathLength` / `pathOffset` (WAAPI-powered).
@@ -95,6 +97,46 @@ export class DemoCardComponent {}
 ## SVG Icon Animations
 
 angular-movement v0.2.0 adds first-class support for SVG path drawing and icon micro-animations.
+
+## Motion-style API
+
+Use separate `initial`, `animate`, and `exit` state bindings when you want a
+Framer Motion-style template:
+
+```html
+<ng-container *movePresence="isOpen">
+  <article
+    [moveInitial]="{ opacity: 0, y: 24 }"
+    [moveAnimate]="{ opacity: 1, y: 0 }"
+    [moveExit]="{ opacity: 0, y: -16 }"
+    moveDuration="300"
+  >
+    Card
+  </article>
+</ng-container>
+```
+
+The existing `[moveAnimation]="{ initial, animate, exit }"` object API remains
+available for config-heavy cases.
+
+## Drag Gestures
+
+`moveDrag` supports free drag, axis-locked drag, constraints, elasticity,
+momentum, snap-to-origin, and output events:
+
+```html
+<div
+  moveDrag="x"
+  [moveDragConstraints]="{ left: -120, right: 120 }"
+  [moveDragElastic]="0.35"
+  [moveDragMomentum]="true"
+  (moveDragStart)="onDragStart($event)"
+  (moveDragMove)="onDragMove($event)"
+  (moveDragEnd)="onDragEnd($event)"
+>
+  Drag me
+</div>
+```
 
 ### Path drawing
 

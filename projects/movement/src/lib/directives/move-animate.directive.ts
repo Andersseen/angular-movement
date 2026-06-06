@@ -1,6 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
-import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import {
+  MoveKeyframes,
+  MoveKeyframeState,
+  MovePreset,
+  MoveSpring,
+  MoveValuePair,
+} from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   prefersReducedMotion,
@@ -18,7 +24,11 @@ import { MOVE_VARIANTS_PARENT } from './move-variants.directive';
 })
 export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly move = input<MovePreset | MoveKeyframes | undefined>(undefined);
-  readonly moveAnimate = input<MovePreset | MoveKeyframes | undefined>(undefined);
+  readonly moveAnimate = input<MovePreset | MoveKeyframes | MoveKeyframeState | undefined>(
+    undefined,
+  );
+  readonly moveInitial = input<MoveKeyframeState | undefined>(undefined);
+  readonly moveExit = input<MoveKeyframeState | undefined>(undefined);
   readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
   readonly moveDuration = input<number | undefined>(undefined);
   readonly moveEasing = input<string | undefined>(undefined);
@@ -61,16 +71,14 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
         prefersReducedMotion(this.#documentRef),
       );
 
-      const enterInput = this.resolveEnterInput();
-      this.#enterPlayer = this.#engine.play(
-        this.#host.nativeElement,
-        resolveMoveFrames(enterInput, 'enter'),
-        {
-          config: this.#config,
-          spring: this.moveSpring(),
-          disabled: this.#config.disabled,
-        },
-      );
+      const frames = this.resolveEnterFrames();
+      if (!frames) return;
+
+      this.#enterPlayer = this.#engine.play(this.#host.nativeElement, frames, {
+        config: this.#config,
+        spring: this.moveSpring(),
+        disabled: this.#config.disabled,
+      });
     });
   }
 
@@ -88,24 +96,78 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
 
     this.#enterPlayer?.cancel();
 
-    this.#leavePlayer = this.#engine.play(
-      this.#host.nativeElement,
-      resolveMoveFrames(this.resolveLeaveInput(), 'leave'),
-      {
-        config: this.#config,
-        spring: this.moveSpring(),
-        disabled: false,
-      },
-    );
+    const frames = this.resolveLeaveFrames();
+    if (!frames) return Promise.resolve();
+
+    this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
+      config: this.#config,
+      spring: this.moveSpring(),
+      disabled: false,
+    });
 
     return this.#leavePlayer?.finished ?? Promise.resolve();
   }
 
+  private resolveEnterFrames(): MoveKeyframes | null {
+    const initial = this.moveInitial();
+    const animate = this.moveAnimate();
+
+    if (initial && isMoveState(animate)) {
+      const frames = statesToKeyframes(initial, animate);
+      return Object.keys(frames).length > 0 ? frames : null;
+    }
+
+    return resolveMoveFrames(this.resolveEnterInput(), 'enter');
+  }
+
+  private resolveLeaveFrames(): MoveKeyframes | null {
+    const exit = this.moveExit();
+    const animate = this.moveAnimate();
+
+    if (exit && isMoveState(animate)) {
+      const frames = statesToKeyframes(animate, exit);
+      return Object.keys(frames).length > 0 ? frames : null;
+    }
+
+    return resolveMoveFrames(this.resolveLeaveInput(), 'leave');
+  }
+
   private resolveEnterInput(): MovePreset | MoveKeyframes {
-    return this.moveAnimate() ?? this.move() ?? 'none';
+    const animate = this.moveAnimate();
+    if (animate !== undefined && isMovePresetOrKeyframes(animate)) return animate;
+    return this.move() ?? 'none';
   }
 
   private resolveLeaveInput(): MovePreset | MoveKeyframes {
     return this.moveAnimateLeave() ?? this.resolveEnterInput();
   }
+}
+
+function isMovePresetOrKeyframes(
+  value: MovePreset | MoveKeyframes | MoveKeyframeState | undefined,
+): value is MovePreset | MoveKeyframes {
+  return typeof value === 'string' || hasArrayValue(value);
+}
+
+function isMoveState(
+  value: MovePreset | MoveKeyframes | MoveKeyframeState | undefined,
+): value is MoveKeyframeState {
+  return !!value && typeof value !== 'string' && !hasArrayValue(value);
+}
+
+function hasArrayValue(value: object | undefined): value is MoveKeyframes {
+  if (!value) return false;
+  return Object.values(value).some(Array.isArray);
+}
+
+function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): MoveKeyframes {
+  const result: Partial<Record<keyof MoveKeyframes, MoveValuePair>> = {};
+  for (const key of Object.keys(from) as (keyof MoveKeyframeState)[]) {
+    const f = from[key];
+    const t = to[key];
+    if (f !== undefined && t !== undefined) {
+      result[key] = [f, t];
+    }
+  }
+  return result as MoveKeyframes;
 }

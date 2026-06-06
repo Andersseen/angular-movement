@@ -73,26 +73,32 @@ export class DemoComponent {}
 <div [move]="{ opacity: [0, 1], y: [20, 0], scale: [0.96, 1] }">Card</div>
 ```
 
-### Framer-style API
+### Motion-style API
 
 ```html
 <article
-  [moveAnimation]="{
-      initial: { opacity: 0, y: 24 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: -16 },
-      duration: 300
-   }"
+  [moveInitial]="{ opacity: 0, y: 24 }"
+  [moveAnimate]="{ opacity: 1, y: 0 }"
+  [moveExit]="{ opacity: 0, y: -16 }"
+  moveDuration="300"
 >
   Item
 </article>
 ```
 
+The object-based `[moveAnimation]` API is still available when you prefer a single config object.
+
 ### Presence for exit transitions
 
 ```html
 <ng-container *movePresence="isOpen">
-  <aside [move]="'fade-right'" [moveAnimateLeave]="'fade-left'">Panel</aside>
+  <aside
+    [moveInitial]="{ opacity: 0, x: -24 }"
+    [moveAnimate]="{ opacity: 1, x: 0 }"
+    [moveExit]="{ opacity: 0, x: 24 }"
+  >
+    Panel
+  </aside>
 </ng-container>
 ```
 
@@ -120,6 +126,20 @@ angular-movement builds keyframes from the previous state to the next state.
   [moveAnimate]="isActive ? 'active' : 'idle'"
 >
   Card
+</div>
+```
+
+### Drag gestures
+
+```html
+<div
+  moveDrag="x"
+  [moveDragConstraints]="{ left: -120, right: 120 }"
+  [moveDragMomentum]="true"
+  [moveDragElastic]="0.35"
+  (moveDragEnd)="onDragEnd($event)"
+>
+  Drag me
 </div>
 ```
 

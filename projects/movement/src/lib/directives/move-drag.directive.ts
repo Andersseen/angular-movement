@@ -1,4 +1,4 @@
-import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 
@@ -9,6 +9,15 @@ import { AnimationControls } from '../engines/animation-controls';
 export type MoveDragConstraints =
   | { top?: number; right?: number; bottom?: number; left?: number }
   | HTMLElement;
+export type MoveDragAxis = boolean | '' | 'x' | 'y';
+
+export interface MoveDragEvent {
+  x: number;
+  y: number;
+  deltaX: number;
+  deltaY: number;
+  pointerEvent: PointerEvent;
+}
 
 @Directive({
   selector: '[moveDrag]',
@@ -20,10 +29,16 @@ export type MoveDragConstraints =
   },
 })
 export class MoveDragDirective implements OnDestroy {
-  readonly moveDrag = input<boolean | ''>(true);
+  readonly moveDrag = input<MoveDragAxis>(true);
   readonly moveDragConstraints = input<MoveDragConstraints | undefined>(undefined);
   readonly moveDragElastic = input<number>(0.5);
+  readonly moveDragMomentum = input<boolean>(false);
+  readonly moveDragSnapToOrigin = input<boolean>(false);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
+
+  readonly moveDragStart = output<MoveDragEvent>();
+  readonly moveDragMove = output<MoveDragEvent>();
+  readonly moveDragEnd = output<MoveDragEvent>();
 
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
@@ -33,6 +48,11 @@ export class MoveDragDirective implements OnDestroy {
   #pointerId: number | null = null;
   #startX = 0;
   #startY = 0;
+  #lastClientX = 0;
+  #lastClientY = 0;
+  #lastMoveTime = 0;
+  #velocityX = 0;
+  #velocityY = 0;
 
   #_x = 0;
   #_y = 0;
@@ -54,19 +74,39 @@ export class MoveDragDirective implements OnDestroy {
 
     this.#startX = e.clientX - this.#_x;
     this.#startY = e.clientY - this.#_y;
+    this.#lastClientX = e.clientX;
+    this.#lastClientY = e.clientY;
+    this.#lastMoveTime = e.timeStamp || performance.now();
+    this.#velocityX = 0;
+    this.#velocityY = 0;
 
     // Prevent text selection while dragging
     this.#host.nativeElement.style.touchAction = 'none';
     this.#host.nativeElement.style.userSelect = 'none';
+    this.moveDragStart.emit(this.#createDragEvent(e, 0, 0));
   }
 
   onPointerMove(e: PointerEvent) {
     if (!this.#isDragging || e.pointerId !== this.#pointerId) return;
 
-    this.#_x = e.clientX - this.#startX;
-    this.#_y = e.clientY - this.#startY;
+    const now = e.timeStamp || performance.now();
+    const dt = Math.max(1, now - this.#lastMoveTime);
+    const deltaClientX = e.clientX - this.#lastClientX;
+    const deltaClientY = e.clientY - this.#lastClientY;
+    this.#velocityX = deltaClientX / dt;
+    this.#velocityY = deltaClientY / dt;
+    this.#lastClientX = e.clientX;
+    this.#lastClientY = e.clientY;
+    this.#lastMoveTime = now;
+
+    const previousX = this.#_x;
+    const previousY = this.#_y;
+
+    this.#_x = this.#resolveAxisValue(e.clientX - this.#startX, 'x');
+    this.#_y = this.#resolveAxisValue(e.clientY - this.#startY, 'y');
 
     this.applyTransform();
+    this.moveDragMove.emit(this.#createDragEvent(e, this.#_x - previousX, this.#_y - previousY));
   }
 
   onPointerUp(e: PointerEvent) {
@@ -80,7 +120,8 @@ export class MoveDragDirective implements OnDestroy {
     this.#host.nativeElement.style.touchAction = '';
     this.#host.nativeElement.style.userSelect = '';
 
-    this.snapBackIfNeeded();
+    this.moveDragEnd.emit(this.#createDragEvent(e, 0, 0));
+    this.finishDrag();
   }
 
   private resolveBounds() {
@@ -108,77 +149,104 @@ export class MoveDragDirective implements OnDestroy {
   }
 
   private applyTransform() {
-    let x = this.#_x;
-    let y = this.#_y;
-
-    if (this.#dragBounds) {
-      const elastic = validateDragElastic(this.moveDragElastic());
-
-      if (this.#dragBounds.left !== undefined && x < this.#dragBounds.left) {
-        x = this.#dragBounds.left - (this.#dragBounds.left - x) * elastic;
-      } else if (this.#dragBounds.right !== undefined && x > this.#dragBounds.right) {
-        x = this.#dragBounds.right + (x - this.#dragBounds.right) * elastic;
-      }
-
-      if (this.#dragBounds.top !== undefined && y < this.#dragBounds.top) {
-        y = this.#dragBounds.top - (this.#dragBounds.top - y) * elastic;
-      } else if (this.#dragBounds.bottom !== undefined && y > this.#dragBounds.bottom) {
-        y = this.#dragBounds.bottom + (y - this.#dragBounds.bottom) * elastic;
-      }
-    }
-
+    const { x, y } = this.#visiblePosition(this.#_x, this.#_y);
     this.#host.nativeElement.style.translate = `${x}px ${y}px`;
   }
 
-  private snapBackIfNeeded() {
-    if (!this.#dragBounds) return;
+  private finishDrag() {
+    const projectedX = this.moveDragMomentum() ? this.#_x + this.#velocityX * 180 : this.#_x;
+    const projectedY = this.moveDragMomentum() ? this.#_y + this.#velocityY * 180 : this.#_y;
 
-    // We base the snap on the current logical _x, _y, calculating the nearest valid position.
-    let targetX = this.#_x;
-    let targetY = this.#_y;
+    const target = this.#resolveTarget(projectedX, projectedY);
 
-    if (this.#dragBounds.left !== undefined && targetX < this.#dragBounds.left)
-      targetX = this.#dragBounds.left;
-    if (this.#dragBounds.right !== undefined && targetX > this.#dragBounds.right)
-      targetX = this.#dragBounds.right;
-    if (this.#dragBounds.top !== undefined && targetY < this.#dragBounds.top)
-      targetY = this.#dragBounds.top;
-    if (this.#dragBounds.bottom !== undefined && targetY > this.#dragBounds.bottom)
-      targetY = this.#dragBounds.bottom;
+    if (target.x !== this.#_x || target.y !== this.#_y) {
+      const current = this.#visiblePosition(this.#_x, this.#_y);
+      this.#animateTo(current.x, current.y, target.x, target.y);
 
-    if (targetX !== this.#_x || targetY !== this.#_y) {
-      // Find the currently visible coordinates (which include elasticity)
-      let currentVisX = this.#_x;
-      let currentVisY = this.#_y;
-
-      const elastic = validateDragElastic(this.moveDragElastic());
-      if (this.#dragBounds.left !== undefined && this.#_x < this.#dragBounds.left) {
-        currentVisX = this.#dragBounds.left - (this.#dragBounds.left - this.#_x) * elastic;
-      } else if (this.#dragBounds.right !== undefined && this.#_x > this.#dragBounds.right) {
-        currentVisX = this.#dragBounds.right + (this.#_x - this.#dragBounds.right) * elastic;
-      }
-      if (this.#dragBounds.top !== undefined && this.#_y < this.#dragBounds.top) {
-        currentVisY = this.#dragBounds.top - (this.#dragBounds.top - this.#_y) * elastic;
-      } else if (this.#dragBounds.bottom !== undefined && this.#_y > this.#dragBounds.bottom) {
-        currentVisY = this.#dragBounds.bottom + (this.#_y - this.#dragBounds.bottom) * elastic;
-      }
-
-      this.#player = this.#engine.play(
-        this.#host.nativeElement,
-        {
-          x: [currentVisX, targetX],
-          y: [currentVisY, targetY],
-        },
-        {
-          config: { duration: 300, easing: 'ease', delay: 0, disabled: false },
-          spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
-          disabled: prefersReducedMotion(this.#documentRef),
-        },
-      );
-
-      this.#_x = targetX;
-      this.#_y = targetY;
+      this.#_x = target.x;
+      this.#_y = target.y;
     }
+  }
+
+  #resolveTarget(x: number, y: number): { x: number; y: number } {
+    let targetX = this.#resolveAxisValue(x, 'x');
+    let targetY = this.#resolveAxisValue(y, 'y');
+
+    if (this.moveDragSnapToOrigin()) {
+      targetX = this.#resolveAxisValue(0, 'x');
+      targetY = this.#resolveAxisValue(0, 'y');
+    } else if (this.#dragBounds) {
+      targetX = this.#clampToBounds(targetX, 'x');
+      targetY = this.#clampToBounds(targetY, 'y');
+    }
+
+    return { x: targetX, y: targetY };
+  }
+
+  #visiblePosition(x: number, y: number): { x: number; y: number } {
+    if (!this.#dragBounds) return { x, y };
+
+    const elastic = validateDragElastic(this.moveDragElastic());
+
+    let visibleX = x;
+    let visibleY = y;
+
+    if (this.#dragBounds.left !== undefined && visibleX < this.#dragBounds.left) {
+      visibleX = this.#dragBounds.left - (this.#dragBounds.left - visibleX) * elastic;
+    } else if (this.#dragBounds.right !== undefined && visibleX > this.#dragBounds.right) {
+      visibleX = this.#dragBounds.right + (visibleX - this.#dragBounds.right) * elastic;
+    }
+
+    if (this.#dragBounds.top !== undefined && visibleY < this.#dragBounds.top) {
+      visibleY = this.#dragBounds.top - (this.#dragBounds.top - visibleY) * elastic;
+    } else if (this.#dragBounds.bottom !== undefined && visibleY > this.#dragBounds.bottom) {
+      visibleY = this.#dragBounds.bottom + (visibleY - this.#dragBounds.bottom) * elastic;
+    }
+
+    return { x: visibleX, y: visibleY };
+  }
+
+  #clampToBounds(value: number, axis: 'x' | 'y'): number {
+    if (!this.#dragBounds) return value;
+
+    const min = axis === 'x' ? this.#dragBounds.left : this.#dragBounds.top;
+    const max = axis === 'x' ? this.#dragBounds.right : this.#dragBounds.bottom;
+
+    if (min !== undefined && value < min) return min;
+    if (max !== undefined && value > max) return max;
+    return value;
+  }
+
+  #resolveAxisValue(value: number, axis: 'x' | 'y'): number {
+    const drag = this.moveDrag();
+    if (drag === 'x' && axis === 'y') return 0;
+    if (drag === 'y' && axis === 'x') return 0;
+    return value;
+  }
+
+  #animateTo(fromX: number, fromY: number, toX: number, toY: number): void {
+    this.#player = this.#engine.play(
+      this.#host.nativeElement,
+      {
+        x: [fromX, toX],
+        y: [fromY, toY],
+      },
+      {
+        config: { duration: 300, easing: 'ease', delay: 0, disabled: false },
+        spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
+        disabled: prefersReducedMotion(this.#documentRef),
+      },
+    );
+  }
+
+  #createDragEvent(e: PointerEvent, deltaX: number, deltaY: number): MoveDragEvent {
+    return {
+      x: this.#_x,
+      y: this.#_y,
+      deltaX,
+      deltaY,
+      pointerEvent: e,
+    };
   }
 
   ngOnDestroy(): void {

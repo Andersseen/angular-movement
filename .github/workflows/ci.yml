@@ -2,40 +2,47 @@ name: CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
 
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Setup pnpm
-      uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '22'
-        cache: pnpm
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: pnpm
 
-    - name: Install dependencies
-      run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
 
-    - name: Lint App
-      run: pnpm run lint
+      - name: Install Playwright browsers
+        run: pnpm exec playwright install --with-deps chromium
 
-    - name: Lint Library
-      run: npx ng lint movement
+      - name: Lint
+        run: pnpm run lint
 
-    - name: Build Library
-      run: npx ng build movement
+      - name: Test library
+        run: pnpm run test:coverage
 
-    - name: Build App
-      run: pnpm run build:prod
+      - name: Build library
+        run: pnpm exec ng build movement
 
-    - name: Run Tests
-      run: pnpm run test:coverage
+      - name: Check npm package
+        run: pnpm run pack:check
+
+      - name: Build app
+        run: pnpm run build:prod
+
+      - name: Run e2e
+        run: pnpm run e2e

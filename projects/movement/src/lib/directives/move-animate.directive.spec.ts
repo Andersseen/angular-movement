@@ -8,16 +8,33 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 @Component({
+  selector: 'move-animate-host',
   template: `<div [move]="'fade-up'">Animate Me</div>`,
   imports: [MoveAnimateDirective],
 })
 class TestHostComponent {}
 
 @Component({
+  selector: 'move-animate-disabled-host',
   template: `<div [move]="'fade-up'" [moveDisabled]="true">Disabled</div>`,
   imports: [MoveAnimateDirective],
 })
 class DisabledHostComponent {}
+
+@Component({
+  selector: 'move-animate-state-host',
+  template: `
+    <div
+      [moveInitial]="{ opacity: 0, y: 24 }"
+      [moveAnimate]="{ opacity: 1, y: 0 }"
+      [moveExit]="{ opacity: 0, y: -24 }"
+    >
+      State Animate
+    </div>
+  `,
+  imports: [MoveAnimateDirective],
+})
+class StateHostComponent {}
 
 describe('MoveAnimateDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
@@ -76,5 +93,25 @@ describe('MoveAnimateDirective', () => {
 
     const callOpts = spy.mock.calls[0]?.[2];
     expect(callOpts?.disabled).toBe(true);
+  });
+
+  it('supports Motion-style initial and animate state inputs', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [StateHostComponent],
+      providers: [provideMovement()],
+    });
+    const f = TestBed.createComponent(StateHostComponent);
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    f.detectChanges();
+    await Promise.resolve();
+
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ opacity: [0, 1], y: [24, 0] }),
+      expect.any(Object),
+    );
   });
 });
