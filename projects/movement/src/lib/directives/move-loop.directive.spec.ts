@@ -8,18 +8,21 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 @Component({
+  selector: 'move-loop-host',
   template: `<div [moveLoop]="'spin'">Loop Me</div>`,
   imports: [MoveLoopDirective],
 })
 class TestHostComponent {}
 
 @Component({
+  selector: 'move-loop-disabled-host',
   template: `<div [moveLoop]="'spin'" [moveDisabled]="true">Disabled</div>`,
   imports: [MoveLoopDirective],
 })
 class DisabledHostComponent {}
 
 @Component({
+  selector: 'move-loop-none-host',
   template: `<div [moveLoop]="'none'">No Loop</div>`,
   imports: [MoveLoopDirective],
 })

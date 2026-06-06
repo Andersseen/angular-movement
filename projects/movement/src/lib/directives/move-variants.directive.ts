@@ -10,7 +10,13 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { MoveKeyframes, MoveSpring, MoveVariant } from '../presets/presets.types';
+import {
+  MoveKeyframes,
+  MoveSpring,
+  MoveStateValue,
+  MoveValue,
+  MoveVariant,
+} from '../presets/presets.types';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
@@ -53,6 +59,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
 
   #currentPlayer: AnimationControls | null = null;
   #isReducedMotion = false;
+  #previousState: Record<string, MoveStateValue | undefined> | null = null;
 
   readonly activeVariant = computed(() => {
     return this.moveAnimate() ?? this.#parent?.activeVariant();
@@ -75,7 +82,9 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
       this.#currentPlayer?.cancel();
 
       const { spring, duration, easing, delay, transition, ...keyframesMap } = state;
-      const keyframes = keyframesMap as MoveKeyframes;
+      const stateValues = pickStateValues(keyframesMap);
+      const keyframes = stateToKeyframes(stateValues, this.#previousState);
+      this.#previousState = stateValues;
 
       const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
 
@@ -103,4 +112,55 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
     this.#stagger?.unregister(this.#host.nativeElement);
     this.#currentPlayer?.cancel();
   }
+}
+
+function stateToKeyframes(
+  state: Record<string, MoveStateValue | undefined>,
+  previousState: Record<string, MoveStateValue | undefined> | null,
+): MoveKeyframes {
+  const keyframes: MoveKeyframes = {};
+
+  for (const key of Object.keys(state)) {
+    const value = state[key];
+    if (value === undefined) continue;
+
+    if (Array.isArray(value)) {
+      keyframes[key] = value;
+      continue;
+    }
+
+    const previousValue = previousState ? previousState[key] : undefined;
+    const from = resolvePreviousScalar(previousValue, value as MoveValue);
+    keyframes[key] = [from, value];
+  }
+
+  return keyframes;
+}
+
+function pickStateValues(
+  state: Record<string, unknown>,
+): Record<string, MoveStateValue | undefined> {
+  const result: Record<string, MoveStateValue | undefined> = {};
+
+  for (const key of Object.keys(state)) {
+    const value = state[key];
+    if (
+      value === undefined ||
+      typeof value === 'number' ||
+      typeof value === 'string' ||
+      Array.isArray(value)
+    ) {
+      result[key] = value as MoveStateValue | undefined;
+    }
+  }
+
+  return result;
+}
+
+function resolvePreviousScalar(previousValue: MoveStateValue | undefined, fallback: MoveValue) {
+  if (Array.isArray(previousValue)) {
+    return previousValue[previousValue.length - 1] ?? fallback;
+  }
+
+  return previousValue ?? fallback;
 }

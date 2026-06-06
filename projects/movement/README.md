@@ -106,6 +106,23 @@ export class DemoComponent {}
 </ul>
 ```
 
+### Motion-style variants
+
+Variants can be written as simple target states. When the active variant changes,
+angular-movement builds keyframes from the previous state to the next state.
+
+```html
+<div
+  [moveVariants]="{
+    idle: { scale: 1, rotate: 0 },
+    active: { scale: 1.08, rotate: 4 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+>
+  Card
+</div>
+```
+
 ## Available Presets
 
 fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in, zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, none
@@ -118,8 +135,9 @@ Main entrypoint exports:
 - All directives
 - provideMovement
 - Preset and keyframe types
-- Animation engine/control types
-- Tokens for advanced integration
+- AnimationControls
+- Movement config types and token
+- Presets and icon helper functions
 
 ## Development
 

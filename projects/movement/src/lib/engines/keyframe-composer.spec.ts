@@ -72,5 +72,15 @@ describe('keyframe-composer', () => {
       clearComposedStyle(el, ['strokeDashoffset']);
       expect((el.style as unknown as Record<string, string>)['strokeDashoffset']).toBe('');
     });
+
+    it('clears only style properties represented by provided frame keys', () => {
+      el.style.transform = 'rotate(12deg)';
+      el.style.translate = '24px 0px';
+
+      clearComposedStyle(el, ['x']);
+
+      expect(el.style.translate).toBe('');
+      expect(el.style.transform).toBe('rotate(12deg)');
+    });
   });
 });

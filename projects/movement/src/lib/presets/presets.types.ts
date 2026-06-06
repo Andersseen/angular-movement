@@ -32,6 +32,7 @@ export type MovePreset =
 export type MoveValue = number | string;
 
 export type MoveValuePair = readonly MoveValue[];
+export type MoveStateValue = MoveValue | MoveValuePair;
 
 export interface MoveSpring {
   stiffness?: number;
@@ -71,7 +72,14 @@ export interface MoveKeyframeProperties {
 
 export type MoveKeyframes = MoveKeyframeProperties & Record<string, MoveValuePair | undefined>;
 
-export type MoveVariant = MoveKeyframeProperties & {
+export type MoveVariantState = {
+  [K in keyof MoveKeyframeProperties]?: MoveStateValue;
+} & Record<
+  string,
+  MoveStateValue | MoveSpring | MovePropertyTransition | MoveTransitionConfig | undefined
+>;
+
+export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
   duration?: number;
   easing?: string;

@@ -9,6 +9,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 @Component({
+  selector: 'move-variants-host',
   template: `
     <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
       Variant Child
@@ -114,9 +115,28 @@ describe('MoveVariantsDirective', () => {
       expect.objectContaining({ duration: 400, opacity: { duration: 120, delay: 100 } }),
     );
   });
+
+  it('should convert scalar variant states into keyframes from the previous state', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [ScalarHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(ScalarHostComponent);
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    localFixture.detectChanges();
+    localFixture.componentInstance.activeVariant.set('active');
+    localFixture.detectChanges();
+
+    const lastCall = playSpy.mock.calls[playSpy.mock.calls.length - 1];
+    expect(lastCall[1]).toEqual(expect.objectContaining({ scale: [1, 1.2], rotate: [0, 8] }));
+  });
 });
 
 @Component({
+  selector: 'move-variants-transition-host',
   template: `
     <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
       Variant Child
@@ -133,5 +153,22 @@ class TransitionHostComponent {
       pathLength: [0, 1],
       transition: { duration: 400, opacity: { duration: 120, delay: 100 } },
     },
+  });
+}
+
+@Component({
+  selector: 'move-variants-scalar-host',
+  template: `
+    <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
+      Variant Child
+    </div>
+  `,
+  imports: [MoveVariantsDirective],
+})
+class ScalarHostComponent {
+  activeVariant = signal<string>('idle');
+  variants = signal({
+    idle: { scale: 1, rotate: 0 },
+    active: { scale: 1.2, rotate: 8 },
   });
 }

@@ -1,11 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const e2ePort = Number(process.env['E2E_PORT'] ?? 5173);
+const baseURL = `http://127.0.0.1:${e2ePort}`;
+
 export default defineConfig({
   testDir: './e2e',
   fullyParallel: true,
-  reporter: 'html',
+  reporter: [['list'], ['html', { open: 'never' }]],
   use: {
-    baseURL: 'http://localhost:4200',
+    baseURL,
     trace: 'on-first-retry',
   },
   projects: [
@@ -15,8 +18,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: 'pnpm start',
-    url: 'http://localhost:4200',
+    command: `pnpm exec vite --host 127.0.0.1 --port ${e2ePort}`,
+    url: baseURL,
     reuseExistingServer: true,
+    timeout: 120_000,
   },
 });

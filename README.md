@@ -132,7 +132,23 @@ import { movePathDraw, moveIconPulse } from 'angular-movement';
 
 ### Motion-style variants with per-property transitions
 
-Declare states like Framer Motion and override timing per property:
+Declare simple target states like Framer Motion. When `moveAnimate` changes,
+angular-movement creates keyframes from the previous state to the next one:
+
+```html
+<div
+  [moveVariants]="{
+    idle: { scale: 1, rotate: 0 },
+    active: { scale: 1.08, rotate: 4 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+>
+  Card
+</div>
+```
+
+For one-shot effects, variants can also use explicit keyframe arrays and override
+timing per property:
 
 ```html
 <path
@@ -196,6 +212,9 @@ These pages show both visual behavior and integration patterns you can copy into
 - Provide predictable animation defaults with opt-in customization.
 - Maintain examples and docs close to source code.
 - Favor SSR-safe and production-oriented implementation details.
+- Keep the public API small and stable: directives, config, presets, helpers,
+  and control interfaces are public; low-level players and composers are
+  implementation details.
 
 ## Contributing
 

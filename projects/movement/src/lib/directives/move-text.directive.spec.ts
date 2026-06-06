@@ -33,6 +33,7 @@ function mockIntersectionObserver(isIntersecting = true): void {
 }
 
 @Component({
+  selector: 'move-text-char-host',
   template: `<div moveText="fade-up" [moveTextSplit]="'chars'">Hello</div>`,
   imports: [MoveTextDirective],
 })
@@ -81,6 +82,7 @@ describe('MoveTextDirective', () => {
 
 describe('MoveTextDirective word split', () => {
   @Component({
+    selector: 'move-text-word-host',
     template: `<div moveText="fade-up" [moveTextSplit]="'words'">Hello world</div>`,
     imports: [MoveTextDirective],
   })
