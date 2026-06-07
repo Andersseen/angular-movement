@@ -172,6 +172,14 @@ import { movePathDraw, moveIconPulse } from 'angular-movement';
 />
 ```
 
+For preset-based icon animations, `moveTarget` also accepts `movePreset`:
+
+```html
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+  <!-- icon paths -->
+</svg>
+```
+
 ### Motion-style variants with per-property transitions
 
 Declare simple target states like Framer Motion. When `moveAnimate` changes,

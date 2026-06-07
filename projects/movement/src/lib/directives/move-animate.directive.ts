@@ -24,9 +24,7 @@ import { MOVE_VARIANTS_PARENT } from './move-variants.directive';
 })
 export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly move = input<MovePreset | MoveKeyframes | undefined>(undefined);
-  readonly moveAnimate = input<MovePreset | MoveKeyframes | MoveKeyframeState | undefined>(
-    undefined,
-  );
+  readonly moveAnimate = input<string | MoveKeyframes | MoveKeyframeState | undefined>(undefined);
   readonly moveInitial = input<MoveKeyframeState | undefined>(undefined);
   readonly moveExit = input<MoveKeyframeState | undefined>(undefined);
   readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
@@ -144,13 +142,13 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
 }
 
 function isMovePresetOrKeyframes(
-  value: MovePreset | MoveKeyframes | MoveKeyframeState | undefined,
+  value: string | MoveKeyframes | MoveKeyframeState | undefined,
 ): value is MovePreset | MoveKeyframes {
   return typeof value === 'string' || hasArrayValue(value);
 }
 
 function isMoveState(
-  value: MovePreset | MoveKeyframes | MoveKeyframeState | undefined,
+  value: string | MoveKeyframes | MoveKeyframeState | undefined,
 ): value is MoveKeyframeState {
   return !!value && typeof value !== 'string' && !hasArrayValue(value);
 }

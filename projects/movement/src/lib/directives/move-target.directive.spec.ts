@@ -27,6 +27,15 @@ class TestHostComponent {
   reverseDuration: number | undefined = undefined;
 }
 
+@Component({
+  selector: 'move-target-preset-host',
+  template: `<div [moveTarget]="active()" movePreset="icon-bounce"></div>`,
+  imports: [MoveTargetDirective],
+})
+class PresetHostComponent {
+  readonly active = signal(false);
+}
+
 describe('MoveTargetDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let engine: AnimationEngine;
@@ -128,5 +137,27 @@ describe('MoveTargetDirective', () => {
     fixture.detectChanges();
 
     expect(playSpy.mock.calls[0][2]?.disabled).toBe(true);
+  });
+
+  it('resolves frames from movePreset when moveFrames is not provided', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [PresetHostComponent],
+      providers: [provideMovement()],
+    });
+
+    const localFixture = TestBed.createComponent(PresetHostComponent);
+    const localEngine = TestBed.inject(AnimationEngine);
+    const localSpy = vi.spyOn(localEngine, 'play').mockReturnValue(player);
+    localFixture.detectChanges();
+
+    localFixture.componentInstance.active.set(true);
+    localFixture.detectChanges();
+
+    expect(localSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ y: [0, -3, 0] }),
+      expect.any(Object),
+    );
   });
 });

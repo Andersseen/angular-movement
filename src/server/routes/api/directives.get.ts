@@ -79,7 +79,8 @@ const directives: DirectiveInfo[] = [
     description: 'Animate any element from a boolean trigger, including smooth reverse',
     inputs: [
       { name: 'moveTarget', type: 'boolean', required: true },
-      { name: 'moveFrames', type: 'MoveKeyframes', required: true },
+      { name: 'moveFrames', type: 'MoveKeyframes', required: false },
+      { name: 'movePreset', type: 'MovePreset', required: false },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
       { name: 'moveDelay', type: 'number', required: false, defaultValue: '0' },
       { name: 'moveEasing', type: 'string', required: false, defaultValue: 'ease' },

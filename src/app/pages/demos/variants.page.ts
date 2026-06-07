@@ -36,7 +36,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
         <div
           [moveVariants]="variantsConfig"
-          [moveAnimate]="$any(currentVariant())"
+          [moveAnimate]="currentVariant()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
           class="bg-surface border-accent/40 flex h-32 w-32 items-center justify-center rounded-xl border shadow-[0_0_30px_var(--color-accent-glow)]"

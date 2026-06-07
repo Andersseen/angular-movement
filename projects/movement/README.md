@@ -129,6 +129,16 @@ angular-movement builds keyframes from the previous state to the next state.
 </div>
 ```
 
+### Target presets
+
+Use `moveTarget` with either custom frames or a named preset:
+
+```html
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+  <!-- icon paths -->
+</svg>
+```
+
 ### Drag gestures
 
 ```html

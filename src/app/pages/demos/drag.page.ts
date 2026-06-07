@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MOVEMENT_DIRECTIVES, type MoveDragAxis } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
@@ -19,7 +19,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       <!-- Preview -->
       <div preview class="relative flex h-full w-full items-center justify-center overflow-hidden">
         <div
-          [moveDrag]="axis() === 'free' ? true : axis()"
+          [moveDrag]="dragAxis()"
           [moveDragConstraints]="
             constrained() ? { left: -100, right: 100, top: -80, bottom: 80 } : undefined
           "
@@ -90,6 +90,11 @@ export default class DemoDrag {
   protected constrained = signal(false);
   protected momentum = signal(false);
   protected snapToOrigin = signal(false);
+
+  protected readonly dragAxis = computed<MoveDragAxis>(() => {
+    const axis = this.axis();
+    return axis === 'free' ? true : axis;
+  });
 
   protected readonly statusLabel = computed(() => {
     const parts = [
