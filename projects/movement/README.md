@@ -61,6 +61,21 @@ export class DemoComponent {}
 
 ## Common Usage
 
+### API quick reference
+
+| Directive                                        | Use it for                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `[move]` / `[moveAnimate]`                       | Preset, keyframe, or state-object entrance animations.                |
+| `[moveInitial]` / `[moveAnimate]` / `[moveExit]` | Motion-style initial, animate, and exit states.                       |
+| `*movePresence`                                  | Wait for child exit animations before removing DOM.                   |
+| `moveStagger`                                    | Choreograph children with DOM-order delays.                           |
+| `[moveVariants]`                                 | Named states driven by string variant names.                          |
+| `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false. |
+| `[moveTrigger]`                                  | One-shot boolean triggers with reset/imperative controls.             |
+| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap-to-origin. |
+| `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
+| `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
+
 ### Preset animation
 
 ```html
@@ -73,26 +88,32 @@ export class DemoComponent {}
 <div [move]="{ opacity: [0, 1], y: [20, 0], scale: [0.96, 1] }">Card</div>
 ```
 
-### Framer-style API
+### Motion-style API
 
 ```html
 <article
-  [moveAnimation]="{
-      initial: { opacity: 0, y: 24 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: -16 },
-      duration: 300
-   }"
+  [moveInitial]="{ opacity: 0, y: 24 }"
+  [moveAnimate]="{ opacity: 1, y: 0 }"
+  [moveExit]="{ opacity: 0, y: -16 }"
+  moveDuration="300"
 >
   Item
 </article>
 ```
 
+The object-based `[moveAnimation]` API is still available when you prefer a single config object.
+
 ### Presence for exit transitions
 
 ```html
 <ng-container *movePresence="isOpen">
-  <aside [move]="'fade-right'" [moveAnimateLeave]="'fade-left'">Panel</aside>
+  <aside
+    [moveInitial]="{ opacity: 0, x: -24 }"
+    [moveAnimate]="{ opacity: 1, x: 0 }"
+    [moveExit]="{ opacity: 0, x: 24 }"
+  >
+    Panel
+  </aside>
 </ng-container>
 ```
 
@@ -106,9 +127,73 @@ export class DemoComponent {}
 </ul>
 ```
 
+### Motion-style variants
+
+Variants can be written as simple target states. When the active variant changes,
+angular-movement builds keyframes from the previous state to the next state.
+
+```html
+<div
+  [moveVariants]="{
+    idle: { scale: 1, rotate: 0 },
+    active: { scale: 1.08, rotate: 4 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+>
+  Card
+</div>
+```
+
+### Target presets
+
+Use `moveTarget` when the same boolean should animate forward and back. It accepts either custom
+frames or a named preset:
+
+```html
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+  <!-- icon paths -->
+</svg>
+```
+
+Use `moveTrigger` when `false` should reset instead of reversing:
+
+```html
+<button
+  [moveTrigger]="submitted()"
+  [moveFrames]="{ scale: [1, 1.08, 1], opacity: [1, 0.72, 1] }"
+  moveResetState="clear"
+>
+  Submit
+</button>
+```
+
+### Drag gestures
+
+```html
+<div
+  moveDrag="x"
+  [moveDragConstraints]="{ left: -120, right: 120 }"
+  [moveDragMomentum]="true"
+  [moveDragElastic]="0.35"
+  (moveDragEnd)="onDragEnd($event)"
+>
+  Drag me
+</div>
+```
+
+### Scroll progress
+
+```html
+<section [moveScroll]="{ opacity: [0, 1], y: [48, 0] }" [moveScrollOffset]="['0 1', '1 0']">
+  Revealed by scroll
+</section>
+```
+
 ## Available Presets
 
-fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in, zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, none
+fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in,
+zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, shake, swing, wobble, rubber-band,
+heart-beat, tada, jello, light-speed, roll-in, icon-draw, icon-pulse, icon-bounce, none
 
 ## Exports
 
@@ -118,8 +203,9 @@ Main entrypoint exports:
 - All directives
 - provideMovement
 - Preset and keyframe types
-- Animation engine/control types
-- Tokens for advanced integration
+- AnimationControls
+- Movement config types and token
+- Presets and icon helper functions
 
 ## Development
 

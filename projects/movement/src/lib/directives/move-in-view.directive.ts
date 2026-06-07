@@ -105,7 +105,7 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
     );
 
     // Clear inline styles before animating so WAAPI can take over cleanly
-    clearInitialStyles(this.#host.nativeElement);
+    clearInitialStyles(this.#host.nativeElement, this.#frames);
 
     this.#player = this.#engine.play(this.#host.nativeElement, this.#frames, {
       config,

@@ -95,8 +95,8 @@ export function applyInitialStyles(el: HTMLElement, frames: MoveKeyframes): void
  * Clears all inline styles set by `applyInitialStyles`.
  * Called just before WAAPI animates so it can take full control.
  */
-export function clearInitialStyles(el: HTMLElement): void {
-  clearComposedStyle(el);
+export function clearInitialStyles(el: HTMLElement, frames?: MoveKeyframes): void {
+  clearComposedStyle(el, frames ? Object.keys(frames) : undefined);
 }
 
 /**

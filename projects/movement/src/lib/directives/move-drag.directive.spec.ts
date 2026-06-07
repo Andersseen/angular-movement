@@ -8,6 +8,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 @Component({
+  selector: 'move-drag-host',
   template: `
     <div
       moveDrag
@@ -20,6 +21,45 @@ import { AnimationControls } from '../engines/animation-controls';
   imports: [MoveDragDirective],
 })
 class TestHostComponent {}
+
+@Component({
+  selector: 'move-drag-axis-host',
+  template: `<div moveDrag="x">Drag X</div>`,
+  imports: [MoveDragDirective],
+})
+class AxisHostComponent {}
+
+@Component({
+  selector: 'move-drag-snap-host',
+  template: `<div moveDrag [moveDragSnapToOrigin]="true">Snap</div>`,
+  imports: [MoveDragDirective],
+})
+class SnapHostComponent {}
+
+@Component({
+  selector: 'move-drag-momentum-host',
+  template: `<div moveDrag [moveDragMomentum]="true">Momentum</div>`,
+  imports: [MoveDragDirective],
+})
+class MomentumHostComponent {}
+
+@Component({
+  selector: 'move-drag-output-host',
+  template: `
+    <div
+      moveDrag
+      (moveDragStart)="events.push($event)"
+      (moveDragMove)="events.push($event)"
+      (moveDragEnd)="events.push($event)"
+    >
+      Events
+    </div>
+  `,
+  imports: [MoveDragDirective],
+})
+class OutputHostComponent {
+  events: unknown[] = [];
+}
 
 describe('MoveDragDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
@@ -134,5 +174,104 @@ describe('MoveDragDirective', () => {
     expect(mockPlayer.cancel).toHaveBeenCalled();
     expect(el.style.touchAction).toBe('');
     expect(el.style.userSelect).toBe('');
+  });
+
+  it('should lock movement to the x axis when moveDrag is "x"', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [AxisHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(AxisHostComponent);
+    localFixture.detectChanges();
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 120, clientY: 160 }));
+
+    expect(el.style.translate).toBe('20px 0px');
+  });
+
+  it('should snap back to origin when moveDragSnapToOrigin is true', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [SnapHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(SnapHostComponent);
+    localFixture.detectChanges();
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 140, clientY: 130 }));
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 140, clientY: 130 }));
+
+    expect(playSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ x: [40, 0], y: [30, 0] }),
+      expect.any(Object),
+    );
+  });
+
+  it('should project release position when momentum is enabled', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [MomentumHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(MomentumHostComponent);
+    localFixture.detectChanges();
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', {
+        button: 0,
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+      }),
+    );
+    el.dispatchEvent(
+      new PointerEvent('pointermove', {
+        pointerId: 1,
+        clientX: 120,
+        clientY: 100,
+      }),
+    );
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 120, clientY: 100 }));
+
+    const frames = playSpy.mock.calls[0][1] as { x: number[]; y: number[] };
+    expect(frames.x[0]).toBe(20);
+    expect(frames.x[1]).toBeGreaterThan(20);
+  });
+
+  it('should emit start, move, and end events', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [OutputHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(OutputHostComponent);
+    localFixture.detectChanges();
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 120, clientY: 130 }));
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 120, clientY: 130 }));
+
+    expect(localFixture.componentInstance.events).toHaveLength(3);
+    expect(localFixture.componentInstance.events[1]).toEqual(
+      expect.objectContaining({ x: 20, y: 30, deltaX: 20, deltaY: 30 }),
+    );
   });
 });

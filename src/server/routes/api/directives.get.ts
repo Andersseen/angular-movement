@@ -39,9 +39,15 @@ const directives: DirectiveInfo[] = [
   {
     name: 'MoveAnimateDirective',
     selector: '[moveAnimate]',
-    description: 'Shorthand for enter and leave animations',
+    description: 'Shorthand for enter/leave animations, including Motion-style state inputs',
     inputs: [
-      { name: 'moveAnimate', type: 'MovePreset | MoveKeyframes', required: true },
+      {
+        name: 'moveAnimate',
+        type: 'MovePreset | MoveKeyframes | MoveKeyframeState',
+        required: true,
+      },
+      { name: 'moveInitial', type: 'MoveKeyframeState', required: false },
+      { name: 'moveExit', type: 'MoveKeyframeState', required: false },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
       { name: 'moveDelay', type: 'number', required: false, defaultValue: '0' },
       { name: 'moveEasing', type: 'string', required: false, defaultValue: 'ease' },
@@ -73,7 +79,8 @@ const directives: DirectiveInfo[] = [
     description: 'Animate any element from a boolean trigger, including smooth reverse',
     inputs: [
       { name: 'moveTarget', type: 'boolean', required: true },
-      { name: 'moveFrames', type: 'MoveKeyframes', required: true },
+      { name: 'moveFrames', type: 'MoveKeyframes', required: false },
+      { name: 'movePreset', type: 'MovePreset', required: false },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
       { name: 'moveDelay', type: 'number', required: false, defaultValue: '0' },
       { name: 'moveEasing', type: 'string', required: false, defaultValue: 'ease' },
@@ -122,10 +129,14 @@ const directives: DirectiveInfo[] = [
   {
     name: 'MoveDragDirective',
     selector: '[moveDrag]',
-    description: 'Make elements draggable',
+    description: 'Make elements draggable with constraints, axis locking, momentum, and outputs',
     inputs: [
-      { name: 'moveDrag', type: 'boolean', required: false, defaultValue: 'true' },
+      { name: 'moveDrag', type: 'boolean | "x" | "y"', required: false, defaultValue: 'true' },
       { name: 'moveDragConstraints', type: 'MoveDragConstraints', required: false },
+      { name: 'moveDragElastic', type: 'number', required: false, defaultValue: '0.5' },
+      { name: 'moveDragMomentum', type: 'boolean', required: false, defaultValue: 'false' },
+      { name: 'moveDragSnapToOrigin', type: 'boolean', required: false, defaultValue: 'false' },
+      { name: 'moveSpring', type: 'MoveSpring', required: false },
     ],
   },
   {

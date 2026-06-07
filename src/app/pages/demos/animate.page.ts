@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MoveAnimationConfig, MoveKeyframeState, MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveKeyframeState, MOVEMENT_DIRECTIVES } from 'movement';
 
 const NATURAL: Record<string, number> = {
   opacity: 1,
@@ -21,14 +21,14 @@ const NATURAL: Record<string, number> = {
         <h1
           class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
         >
-          moveAnimation
+          moveAnimate
           <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
         <p class="text-text-muted mt-6 max-w-2xl text-lg">
           Define <span class="text-text font-medium">initial</span>,
           <span class="text-text font-medium">animate</span>, and
-          <span class="text-text font-medium">exit</span> as plain state objects — no preset names,
-          full per-property control.
+          <span class="text-text font-medium">exit</span> as plain state objects with separate
+          Angular bindings.
         </p>
       </div>
 
@@ -271,7 +271,11 @@ const NATURAL: Record<string, number> = {
             <div class="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-6">
               @if (showElement()) {
                 <div
-                  [moveAnimation]="animationConfig()"
+                  [moveInitial]="initialState()"
+                  [moveAnimate]="animateState()"
+                  [moveDuration]="duration()"
+                  [moveDelay]="delay()"
+                  [moveEasing]="easing()"
                   class="bg-surface border-accent/40 flex w-full max-w-[280px] flex-col items-center justify-center gap-4 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] sm:p-8"
                 >
                   <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
@@ -355,14 +359,12 @@ export default class DemoAnimate {
   protected readonly copied = signal(false);
   protected readonly easings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
 
-  protected readonly animationConfig = computed((): MoveAnimationConfig => {
+  protected readonly initialState = computed((): MoveKeyframeState => {
     const initial: MoveKeyframeState = {};
-    const animate: MoveKeyframeState = {};
 
     const add = (key: keyof MoveKeyframeState, val: number) => {
       if (val !== NATURAL[key]) {
         initial[key] = val;
-        animate[key] = NATURAL[key];
       }
     };
 
@@ -373,25 +375,28 @@ export default class DemoAnimate {
     add('rotate', this.rotate());
     add('blur', this.blur());
 
-    return {
-      initial,
-      animate,
-      duration: this.duration(),
-      easing: this.easing(),
-      ...(this.delay() ? { delay: this.delay() } : {}),
-    };
+    return initial;
+  });
+
+  protected readonly animateState = computed((): MoveKeyframeState => {
+    const animate: MoveKeyframeState = {};
+
+    for (const key of Object.keys(this.initialState()) as (keyof MoveKeyframeState)[]) {
+      animate[key] = NATURAL[key];
+    }
+
+    return animate;
   });
 
   protected readonly highlightedCode = computed(() => {
-    const cfg = this.animationConfig();
-    const init = cfg.initial as Record<string, number>;
+    const init = this.initialState() as Record<string, number>;
     const keys = Object.keys(init);
 
     if (keys.length === 0) {
       return `<span class="code-comment">// move sliders away from their natural value to compose an animation</span>`;
     }
 
-    const anim = cfg.animate as Record<string, number>;
+    const anim = this.animateState() as Record<string, number>;
     const attr = (s: string) => `<span class="code-attr">${s}</span>`;
     const str = (s: string | number) => `<span class="code-string">${s}</span>`;
     const kw = (s: string) => `<span class="code-keyword">${s}</span>`;
@@ -401,21 +406,20 @@ export default class DemoAnimate {
         .join(', ');
 
     let code = `&lt;${kw('div')}\n`;
-    code += `  [${attr('moveAnimation')}]="{\n`;
-    code += `    ${attr('initial')}: { ${fmtState(init)} },\n`;
-    code += `    ${attr('animate')}: { ${fmtState(anim)} }`;
+    code += `  [${attr('moveInitial')}]="{ ${fmtState(init)} }"\n`;
+    code += `  [${attr('moveAnimate')}]="{ ${fmtState(anim)} }"`;
 
-    if (cfg.duration !== undefined && cfg.duration !== 300) {
-      code += `,\n    ${attr('duration')}: ${str(cfg.duration)}`;
+    if (this.duration() !== 300) {
+      code += `\n  ${attr('moveDuration')}=${str(`"${this.duration()}"`)}`;
     }
-    if (cfg.delay) {
-      code += `,\n    ${attr('delay')}: ${str(cfg.delay)}`;
+    if (this.delay()) {
+      code += `\n  ${attr('moveDelay')}=${str(`"${this.delay()}"`)}`;
     }
-    if (cfg.easing !== 'ease') {
-      code += `,\n    ${attr('easing')}: ${str("'" + cfg.easing + "'")}`;
+    if (this.easing() !== 'ease') {
+      code += `\n  ${attr('moveEasing')}=${str(`"${this.easing()}"`)}`;
     }
 
-    code += `\n  }"&gt;\n  Target Element\n&lt;/${kw('div')}&gt;`;
+    code += `&gt;\n  Target Element\n&lt;/${kw('div')}&gt;`;
     return code;
   });
 

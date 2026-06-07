@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MOVEMENT_DIRECTIVES, type MoveDragAxis } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
@@ -19,10 +19,12 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       <!-- Preview -->
       <div preview class="relative flex h-full w-full items-center justify-center overflow-hidden">
         <div
-          moveDrag
+          [moveDrag]="dragAxis()"
           [moveDragConstraints]="
             constrained() ? { left: -100, right: 100, top: -80, bottom: 80 } : undefined
           "
+          [moveDragMomentum]="momentum()"
+          [moveDragSnapToOrigin]="snapToOrigin()"
           class="bg-surface border-accent/40 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
         >
           <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
@@ -37,7 +39,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
           <div class="font-display text-text font-semibold">Drag Me</div>
           <div class="text-text-muted text-xs">
-            {{ constrained() ? 'Constrained' : 'Free movement' }}
+            {{ statusLabel() }}
           </div>
         </div>
       </div>
@@ -53,25 +55,73 @@ export default class DemoDrag {
     showEasing: false,
     customControls: [
       {
+        id: 'axis',
+        type: 'select' as const,
+        label: 'Axis',
+        value: 'free',
+        options: [
+          { label: 'Free', value: 'free' },
+          { label: 'X only', value: 'x' },
+          { label: 'Y only', value: 'y' },
+        ],
+      },
+      {
         id: 'constrained',
         type: 'toggle' as const,
         label: 'Constrain to Area',
         value: false,
       },
+      {
+        id: 'momentum',
+        type: 'toggle' as const,
+        label: 'Momentum',
+        value: false,
+      },
+      {
+        id: 'snapToOrigin',
+        type: 'toggle' as const,
+        label: 'Snap to Origin',
+        value: false,
+      },
     ],
   };
 
+  protected axis = signal<'free' | 'x' | 'y'>('free');
   protected constrained = signal(false);
+  protected momentum = signal(false);
+  protected snapToOrigin = signal(false);
+
+  protected readonly dragAxis = computed<MoveDragAxis>(() => {
+    const axis = this.axis();
+    return axis === 'free' ? true : axis;
+  });
+
+  protected readonly statusLabel = computed(() => {
+    const parts = [
+      this.axis() === 'free' ? 'Free' : `${this.axis().toUpperCase()} axis`,
+      this.constrained() ? 'constrained' : '',
+      this.momentum() ? 'momentum' : '',
+      this.snapToOrigin() ? 'snap origin' : '',
+    ].filter(Boolean);
+
+    return parts.join(' - ');
+  });
 
   protected readonly dragCode = computed(() => {
+    const axis = this.axis() === 'free' ? '' : `=<span class="code-string">"${this.axis()}"</span>`;
     const c = this.constrained();
     const constraints = c
       ? ' [moveDragConstraints]="{ left: -100, right: 100, top: -80, bottom: 80 }"'
       : '';
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${constraints}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    const momentum = this.momentum() ? ' [moveDragMomentum]="true"' : '';
+    const snap = this.snapToOrigin() ? ' [moveDragSnapToOrigin]="true"' : '';
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${axis}${constraints}${momentum}${snap}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
   });
 
   protected onStateChange(state: DemoState): void {
+    this.axis.set((state['axis'] as 'free' | 'x' | 'y') ?? 'free');
     this.constrained.set((state['constrained'] as boolean) ?? false);
+    this.momentum.set((state['momentum'] as boolean) ?? false);
+    this.snapToOrigin.set((state['snapToOrigin'] as boolean) ?? false);
   }
 }

@@ -34,6 +34,8 @@ angular-movement addresses this with declarative directives and global configura
 - Custom keyframes for full control.
 - Spring physics support.
 - Interaction directives: hover, tap, focus, in-view, scroll, parallax, drag.
+- Advanced drag gestures with axis lock, constraints, elasticity, momentum,
+  snap-to-origin, and start/move/end outputs.
 - Presence orchestration to let leave animations finish before DOM removal.
 - Stagger orchestration for coordinated list motion.
 - **SVG path drawing** with `pathLength` / `pathOffset` (WAAPI-powered).
@@ -96,6 +98,46 @@ export class DemoCardComponent {}
 
 angular-movement v0.2.0 adds first-class support for SVG path drawing and icon micro-animations.
 
+## Motion-style API
+
+Use separate `initial`, `animate`, and `exit` state bindings when you want a
+Framer Motion-style template:
+
+```html
+<ng-container *movePresence="isOpen">
+  <article
+    [moveInitial]="{ opacity: 0, y: 24 }"
+    [moveAnimate]="{ opacity: 1, y: 0 }"
+    [moveExit]="{ opacity: 0, y: -16 }"
+    moveDuration="300"
+  >
+    Card
+  </article>
+</ng-container>
+```
+
+The existing `[moveAnimation]="{ initial, animate, exit }"` object API remains
+available for config-heavy cases.
+
+## Drag Gestures
+
+`moveDrag` supports free drag, axis-locked drag, constraints, elasticity,
+momentum, snap-to-origin, and output events:
+
+```html
+<div
+  moveDrag="x"
+  [moveDragConstraints]="{ left: -120, right: 120 }"
+  [moveDragElastic]="0.35"
+  [moveDragMomentum]="true"
+  (moveDragStart)="onDragStart($event)"
+  (moveDragMove)="onDragMove($event)"
+  (moveDragEnd)="onDragEnd($event)"
+>
+  Drag me
+</div>
+```
+
 ### Path drawing
 
 Animate `pathLength` from `0` to `1` to draw a stroke. The engine automatically measures the element's total length and converts it to WAAPI-compatible `strokeDasharray` / `strokeDashoffset` keyframes.
@@ -130,9 +172,33 @@ import { movePathDraw, moveIconPulse } from 'angular-movement';
 />
 ```
 
+For preset-based icon animations, `moveTarget` also accepts `movePreset`:
+
+```html
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+  <!-- icon paths -->
+</svg>
+```
+
 ### Motion-style variants with per-property transitions
 
-Declare states like Framer Motion and override timing per property:
+Declare simple target states like Framer Motion. When `moveAnimate` changes,
+angular-movement creates keyframes from the previous state to the next one:
+
+```html
+<div
+  [moveVariants]="{
+    idle: { scale: 1, rotate: 0 },
+    active: { scale: 1.08, rotate: 4 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+>
+  Card
+</div>
+```
+
+For one-shot effects, variants can also use explicit keyframe arrays and override
+timing per property:
 
 ```html
 <path
@@ -196,6 +262,9 @@ These pages show both visual behavior and integration patterns you can copy into
 - Provide predictable animation defaults with opt-in customization.
 - Maintain examples and docs close to source code.
 - Favor SSR-safe and production-oriented implementation details.
+- Keep the public API small and stable: directives, config, presets, helpers,
+  and control interfaces are public; low-level players and composers are
+  implementation details.
 
 ## Contributing
 

@@ -18,6 +18,7 @@
     "cf:whoami": "pnpm exec wrangler whoami",
     "deploy:cloudflare": "pnpm run build:prod && pnpm exec wrangler pages deploy dist/analog/public --project-name=angular-movement",
     "deploy": "pnpm run deploy:cloudflare",
+    "pack:check": "ng build movement && pnpm --dir dist/movement pack --dry-run",
     "lib:publish": "ng build movement && pnpm publish ./dist/movement --no-git-checks",
     "lint": "ng lint",
     "prepare": "husky",

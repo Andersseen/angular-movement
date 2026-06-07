@@ -42,14 +42,14 @@ import { RouterLink } from '@angular/router';
               >Interactive Demos</a
             >
             <a
-              href="https://github.com/angular-movement/core"
+              href="https://github.com/Andersseen/angular-movement"
               target="_blank"
               rel="noopener noreferrer"
               class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
               >GitHub Repository</a
             >
             <a
-              href="https://www.npmjs.com/package/@angular-movement/core"
+              href="https://www.npmjs.com/package/angular-movement"
               target="_blank"
               rel="noopener noreferrer"
               class="text-text-muted hover:text-accent w-fit text-sm transition-colors"

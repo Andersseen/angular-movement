@@ -133,6 +133,19 @@ const KNOWN_STYLE_KEYS = new Set([
   'filter',
 ]);
 
+const FRAME_TO_STYLE_KEYS: Record<string, readonly string[]> = {
+  opacity: ['opacity'],
+  x: ['translate'],
+  y: ['translate'],
+  scale: ['scale'],
+  scaleX: ['scale'],
+  scaleY: ['scale'],
+  rotate: ['rotate'],
+  rotateX: ['transform'],
+  rotateY: ['transform'],
+  blur: ['filter'],
+};
+
 export function applyComposedStyle(el: Element, style: ComposedKeyframe): void {
   const styledEl = el as HTMLElement;
   if (style.opacity !== undefined) styledEl.style.opacity = `${style.opacity}`;
@@ -154,15 +167,38 @@ export function applyComposedStyle(el: Element, style: ComposedKeyframe): void {
 
 export function clearComposedStyle(el: Element, extraKeys?: readonly string[]): void {
   const styledEl = el as HTMLElement;
-  styledEl.style.opacity = '';
-  styledEl.style.translate = '';
-  styledEl.style.scale = '';
-  styledEl.style.rotate = '';
-  styledEl.style.transform = '';
-  styledEl.style.filter = '';
 
-  if (extraKeys) {
-    for (const key of extraKeys) {
+  if (!extraKeys) {
+    styledEl.style.opacity = '';
+    styledEl.style.translate = '';
+    styledEl.style.scale = '';
+    styledEl.style.rotate = '';
+    styledEl.style.transform = '';
+    styledEl.style.filter = '';
+    return;
+  }
+
+  const styleKeys = new Set<string>();
+
+  for (const key of extraKeys) {
+    const mapped = FRAME_TO_STYLE_KEYS[key];
+    if (mapped) {
+      for (const styleKey of mapped) {
+        styleKeys.add(styleKey);
+      }
+    } else {
+      styleKeys.add(key);
+    }
+  }
+
+  for (const key of styleKeys) {
+    if (key === 'opacity') styledEl.style.opacity = '';
+    else if (key === 'translate') styledEl.style.translate = '';
+    else if (key === 'scale') styledEl.style.scale = '';
+    else if (key === 'rotate') styledEl.style.rotate = '';
+    else if (key === 'transform') styledEl.style.transform = '';
+    else if (key === 'filter') styledEl.style.filter = '';
+    else {
       (styledEl.style as unknown as Record<string, string>)[key] = '';
     }
   }

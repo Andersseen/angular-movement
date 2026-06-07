@@ -2,9 +2,19 @@ import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, OnDestroy, effect, inject, input } from '@angular/core';
 import { AnimationControls } from '../engines/animation-controls';
 import { AnimationEngine } from '../engines/animation-engine.service';
-import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/presets.types';
+import {
+  MoveKeyframes,
+  MovePreset,
+  MoveSpring,
+  MoveTransitionConfig,
+} from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
-import { prefersReducedMotion, resolveMovementConfig, reverseFrames } from './move-animation.utils';
+import {
+  prefersReducedMotion,
+  resolveMovementConfig,
+  resolveMoveFrames,
+  reverseFrames,
+} from './move-animation.utils';
 
 function optionalNumberAttribute(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') {
@@ -20,7 +30,8 @@ function optionalNumberAttribute(value: unknown): number | undefined {
 })
 export class MoveTargetDirective implements OnDestroy {
   readonly moveTarget = input.required<boolean>();
-  readonly moveFrames = input.required<MoveKeyframes>();
+  readonly moveFrames = input<MoveKeyframes | undefined>(undefined);
+  readonly movePreset = input<MovePreset | undefined>(undefined);
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,
   });
@@ -46,7 +57,8 @@ export class MoveTargetDirective implements OnDestroy {
 
   readonly #targetEffect = effect(() => {
     const active = this.moveTarget();
-    const frames = this.moveFrames();
+    const frames = this.#resolveFrames();
+    if (!frames) return;
 
     if (active) {
       this.#playForward(frames);
@@ -108,5 +120,19 @@ export class MoveTargetDirective implements OnDestroy {
   ngOnDestroy(): void {
     this.#targetEffect.destroy();
     this.#currentPlayer?.cancel();
+  }
+
+  #resolveFrames(): MoveKeyframes | null {
+    const frames = this.moveFrames();
+    if (frames) return frames;
+
+    const preset = this.movePreset();
+    if (preset) return resolveMoveFrames(preset, 'enter');
+
+    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
+      console.warn('[Movement] moveTarget requires either moveFrames or movePreset.');
+    }
+
+    return null;
   }
 }

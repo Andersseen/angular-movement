@@ -27,7 +27,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
             <div class="bg-code-bg border-border overflow-x-auto rounded-xl border p-4">
               <pre
                 class="text-sm"
-              ><code class="font-mono text-text"><span class="code-keyword">npm</span> install @angular-movement/core</code></pre>
+              ><code class="font-mono text-text"><span class="code-keyword">npm</span> install angular-movement</code></pre>
             </div>
           </div>
         </div>
@@ -48,7 +48,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
               <pre
                 class="text-sm"
               ><code class="font-mono text-text"><span class="code-comment">// app.config.ts</span>
-<span class="code-keyword">import</span> {{ '{' }} provideMovement {{ '}' }} <span class="code-keyword">from</span> <span class="code-string">'@angular-movement/core'</span>;
+<span class="code-keyword">import</span> {{ '{' }} provideMovement {{ '}' }} <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
 
 <span class="code-keyword">export</span> <span class="code-keyword">const</span> appConfig: ApplicationConfig = {{ '{' }}
   providers: [

@@ -29,7 +29,7 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
           class="bg-surface border-border flex w-full max-w-md items-center justify-between gap-6 rounded-xl border p-4 shadow-2xl transition-transform hover:scale-[1.02]"
         >
           <code class="text-text-muted flex-1 text-left font-mono text-sm select-all"
-            >npm install @angular-movement/core</code
+            >npm install angular-movement</code
           >
           <button
             type="button"
@@ -63,6 +63,6 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 })
 export class Install {
   protected copyInstallCommand(): void {
-    navigator.clipboard.writeText('npm install @angular-movement/core').catch(() => void 0);
+    navigator.clipboard.writeText('npm install angular-movement').catch(() => void 0);
   }
 }
