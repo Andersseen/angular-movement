@@ -1,5 +1,28 @@
 # Changelog
 
+## [0.4.0] - 2026-06-07
+
+### Added
+
+- **Motion-style bindings** — `MoveAnimateDirective` now supports `[moveInitial]`,
+  `[moveAnimate]`, and `[moveExit]` state objects for a Framer Motion-like authoring flow.
+- **Target presets** — `MoveTargetDirective` can now resolve named presets via `movePreset`,
+  so boolean target animations work with either `[moveFrames]` or preset names.
+- **Demo smoke coverage** — Playwright now validates every demo route so regressions in the docs
+  app surface before publishing.
+
+### Changed
+
+- `moveAnimate` now accepts string variant names when used together with `moveVariants`, removing
+  the need for `$any()` casts in Angular templates.
+- Updated demos to use the new binding API and corrected install/import examples to the published
+  `angular-movement` package name.
+
+### Fixed
+
+- Fixed SSR/template type issues in the drag, variants, and icon demos.
+- Fixed icon target demos that used `movePreset` without custom `moveFrames`.
+
 ## [0.3.0] - 2026-05-23
 
 ### Added

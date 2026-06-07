@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -6,6 +6,7 @@ import { MoveAnimateDirective } from './move-animate.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { MoveVariantsDirective } from './move-variants.directive';
 
 @Component({
   selector: 'move-animate-host',
@@ -35,6 +36,28 @@ class DisabledHostComponent {}
   imports: [MoveAnimateDirective],
 })
 class StateHostComponent {}
+
+@Component({
+  selector: 'move-animate-unknown-string-host',
+  template: `<div [moveAnimate]="'missing-preset'">Unknown Animate</div>`,
+  imports: [MoveAnimateDirective],
+})
+class UnknownStringHostComponent {}
+
+@Component({
+  selector: 'move-animate-variant-host',
+  template: `
+    <div [moveVariants]="variants" [moveAnimate]="activeVariant()">Variant Animate</div>
+  `,
+  imports: [MoveAnimateDirective, MoveVariantsDirective],
+})
+class VariantHostComponent {
+  readonly activeVariant = signal('idle');
+  readonly variants = {
+    idle: { opacity: 1, scale: 1 },
+    active: { opacity: 0.75, scale: 1.08 },
+  };
+}
 
 describe('MoveAnimateDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
@@ -112,6 +135,74 @@ describe('MoveAnimateDirective', () => {
       expect.any(HTMLElement),
       expect.objectContaining({ opacity: [0, 1], y: [24, 0] }),
       expect.any(Object),
+    );
+  });
+
+  it('supports Motion-style exit state inputs for presence leave animations', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [StateHostComponent],
+      providers: [provideMovement()],
+    });
+    const f = TestBed.createComponent(StateHostComponent);
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    f.detectChanges();
+    await Promise.resolve();
+
+    const directive = f.debugElement
+      .query(By.directive(MoveAnimateDirective))
+      .injector.get(MoveAnimateDirective);
+    await directive.playLeave();
+
+    expect(spy).toHaveBeenLastCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ opacity: [1, 0], y: [0, -24] }),
+      expect.any(Object),
+    );
+  });
+
+  it('falls back to the none preset and warns for unknown string presets', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [UnknownStringHostComponent],
+      providers: [provideMovement()],
+    });
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+    const f = TestBed.createComponent(UnknownStringHostComponent);
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    f.detectChanges();
+    await Promise.resolve();
+
+    expect(warnSpy).toHaveBeenCalledWith(
+      '[Movement] Unknown preset: "missing-preset". Using "none" preset.',
+    );
+    expect(spy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ opacity: [1, 1] }),
+      expect.any(Object),
+    );
+  });
+
+  it('lets moveVariants own string moveAnimate values on the same host', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [VariantHostComponent],
+      providers: [provideMovement()],
+    });
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+    const f = TestBed.createComponent(VariantHostComponent);
+
+    f.detectChanges();
+    await Promise.resolve();
+
+    expect(spy).toHaveBeenCalledTimes(1);
+    expect(spy.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ opacity: [1, 1], scale: [1, 1] }),
     );
   });
 });

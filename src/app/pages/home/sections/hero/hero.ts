@@ -69,7 +69,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             Get Started &rarr;
           </a>
           <a
-            href="https://github.com/angular-movement/core"
+            href="https://github.com/Andersseen/angular-movement"
             target="_blank"
             rel="noopener noreferrer"
             class="text-text border-border bg-surface hover:bg-surface-raised inline-flex min-w-[200px] items-center justify-center rounded-xl border px-8 py-3.5 text-base font-semibold transition-colors"

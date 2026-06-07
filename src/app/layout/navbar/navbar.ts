@@ -59,10 +59,10 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             <div class="border-border flex items-center gap-4 border-l pl-6">
               <span
                 class="text-text-subtle bg-surface-raised border-border rounded-md border px-2 py-1 font-mono text-xs"
-                >v0.3.0</span
+                >v0.4.0</span
               >
               <a
-                href="https://github.com/angular-movement/core"
+                href="https://github.com/Andersseen/angular-movement"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-text-muted hover:text-text transition-colors"
@@ -146,10 +146,10 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             <div class="border-border mt-2 flex items-center justify-between border-t px-3 pt-2">
               <span
                 class="text-text-subtle bg-surface-raised border-border rounded-md border px-2 py-1 font-mono text-xs"
-                >v0.3.0</span
+                >v0.4.0</span
               >
               <a
-                href="https://github.com/angular-movement/core"
+                href="https://github.com/Andersseen/angular-movement"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="text-text-muted hover:text-text py-2"

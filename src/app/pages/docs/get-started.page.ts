@@ -93,11 +93,11 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class GetStarted {
-  protected readonly installCode = `<span class="code-keyword">npm</span> install @angular-movement/core`;
+  protected readonly installCode = `<span class="code-keyword">npm</span> install angular-movement`;
 
   protected readonly configCode = `<span class="code-comment">// app.config.ts</span>
 <span class="code-keyword">import</span> { ApplicationConfig } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { provideMovement } <span class="code-keyword">from</span> <span class="code-string">'@angular-movement/core'</span>;
+<span class="code-keyword">import</span> { provideMovement } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
 
 <span class="code-keyword">export const</span> appConfig: ApplicationConfig = {
   providers: [
@@ -110,7 +110,7 @@ export default class GetStarted {
 
   protected readonly componentCode = `<span class="code-comment">// my.component.ts</span>
 <span class="code-keyword">import</span> { Component } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { MOVEMENT_DIRECTIVES } <span class="code-keyword">from</span> <span class="code-string">'@angular-movement/core'</span>;
+<span class="code-keyword">import</span> { MOVEMENT_DIRECTIVES } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
 
 <span class="code-attr">@Component</span>({
   selector: <span class="code-string">'my-component'</span>,

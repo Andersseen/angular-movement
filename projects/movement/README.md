@@ -61,6 +61,21 @@ export class DemoComponent {}
 
 ## Common Usage
 
+### API quick reference
+
+| Directive                                        | Use it for                                                            |
+| ------------------------------------------------ | --------------------------------------------------------------------- |
+| `[move]` / `[moveAnimate]`                       | Preset, keyframe, or state-object entrance animations.                |
+| `[moveInitial]` / `[moveAnimate]` / `[moveExit]` | Motion-style initial, animate, and exit states.                       |
+| `*movePresence`                                  | Wait for child exit animations before removing DOM.                   |
+| `moveStagger`                                    | Choreograph children with DOM-order delays.                           |
+| `[moveVariants]`                                 | Named states driven by string variant names.                          |
+| `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false. |
+| `[moveTrigger]`                                  | One-shot boolean triggers with reset/imperative controls.             |
+| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap-to-origin. |
+| `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
+| `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
+
 ### Preset animation
 
 ```html
@@ -131,12 +146,25 @@ angular-movement builds keyframes from the previous state to the next state.
 
 ### Target presets
 
-Use `moveTarget` with either custom frames or a named preset:
+Use `moveTarget` when the same boolean should animate forward and back. It accepts either custom
+frames or a named preset:
 
 ```html
 <svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
   <!-- icon paths -->
 </svg>
+```
+
+Use `moveTrigger` when `false` should reset instead of reversing:
+
+```html
+<button
+  [moveTrigger]="submitted()"
+  [moveFrames]="{ scale: [1, 1.08, 1], opacity: [1, 0.72, 1] }"
+  moveResetState="clear"
+>
+  Submit
+</button>
 ```
 
 ### Drag gestures
@@ -153,9 +181,19 @@ Use `moveTarget` with either custom frames or a named preset:
 </div>
 ```
 
+### Scroll progress
+
+```html
+<section [moveScroll]="{ opacity: [0, 1], y: [48, 0] }" [moveScrollOffset]="['0 1', '1 0']">
+  Revealed by scroll
+</section>
+```
+
 ## Available Presets
 
-fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in, zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, none
+fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in,
+zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, shake, swing, wobble, rubber-band,
+heart-beat, tada, jello, light-speed, roll-in, icon-draw, icon-pulse, icon-bounce, none
 
 ## Exports
 
