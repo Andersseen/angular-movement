@@ -15,8 +15,8 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
         <p class="text-text-muted mt-6 text-xl">
-          Angular Movement is an attribute-based animation library for Angular 21. Inspired by
-          motion.dev and animate.style, but built natively for Angular.
+          Angular Movement is a motion library for Angular 21 with Angular-native directives, state
+          APIs, and Web Animations API-powered runtime playback.
         </p>
       </div>
 
@@ -25,11 +25,15 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
       >
         <h2>Why Angular Movement?</h2>
         <p>
-          Angular's native animation API (<code>@angular/animations</code>) is powerful but
-          extremely verbose. Writing triggers, transitions, and keyframes for simple enter/leave
-          effects requires a lot of boilerplate and clutters your component decorator.
+          Angular teams often need the same motion primitives that product interfaces use every day:
+          enter and exit animation, state variants, gestures, scroll progress, drag, SVG path
+          drawing, and layout transitions. Angular Movement packages those patterns as declarative
+          directives that fit standalone Angular components.
         </p>
-        <p>Angular Movement wraps this complexity behind a single declarative HTML attribute:</p>
+        <p>
+          The API feels native to Angular templates, while the runtime uses the browser Web
+          Animations API for efficient playback:
+        </p>
 
         <div class="my-6 h-28">
           <app-code-block title="html" [code]="htmlCode"></app-code-block>
@@ -51,7 +55,9 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
                 d="M5 13l4 4L19 7"
               ></path>
             </svg>
-            <span><strong>Zero TypeScript config</strong> for standard animations.</span>
+            <span
+              ><strong>Zero boilerplate</strong> for standard enter, leave, and reveal motion.</span
+            >
           </li>
           <li class="flex items-start gap-3">
             <svg
@@ -67,7 +73,9 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
                 d="M5 13l4 4L19 7"
               ></path>
             </svg>
-            <span><strong>Built natively</strong> on Angular's runtime animation API.</span>
+            <span
+              ><strong>Angular-native API</strong> powered by the browser Web Animations API.</span
+            >
           </li>
           <li class="flex items-start gap-3">
             <svg
@@ -83,7 +91,10 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
                 d="M5 13l4 4L19 7"
               ></path>
             </svg>
-            <span><strong>No external dependencies</strong> like GSAP or Framer Motion.</span>
+            <span
+              ><strong>No @angular/animations setup</strong> and no GSAP or Framer Motion
+              dependency.</span
+            >
           </li>
           <li class="flex items-start gap-3">
             <svg

@@ -7,8 +7,9 @@ Angular motion ecosystem with two parts in one repository:
 
 ## What This Project Is
 
-This is an open source Angular monorepo focused on declarative UI motion.
-It provides production-ready directives for common animation workflows and a live playground-style app to evaluate them.
+This is an open source Angular monorepo focused on declarative UI motion. The library exposes
+Angular-native directives and state APIs, while runtime playback is powered by the browser Web
+Animations API.
 
 Repository structure:
 
@@ -41,6 +42,7 @@ angular-movement addresses this with declarative directives and global configura
 - **SVG path drawing** with `pathLength` / `pathOffset` (WAAPI-powered).
 - **Per-property transitions** for different duration / delay per animated property.
 - **Trigger directive** for one-shot boolean triggers with imperative controls.
+- No `@angular/animations` setup required for library consumers.
 
 ## Install The Library
 
@@ -118,6 +120,19 @@ Framer Motion-style template:
 
 The existing `[moveAnimation]="{ initial, animate, exit }"` object API remains
 available for config-heavy cases.
+
+## Recommended API Path
+
+Start with the smallest primitive that matches the job:
+
+| Level             | Reach for                                                                    |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Basic             | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
+| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| State             | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
+| Orchestration     | `movePresence`, `moveStagger`                                                |
+| Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
+| Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
 ## Drag Gestures
 

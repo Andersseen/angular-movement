@@ -79,12 +79,12 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
         </a>
 
         <a
-          routerLink="/demos"
+          routerLink="/docs/api"
           class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
         >
           <span class="text-text-subtle text-sm font-medium">Next</span>
           <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            Try Demos <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
+            API Guide <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
           </span>
         </a>
       </div>

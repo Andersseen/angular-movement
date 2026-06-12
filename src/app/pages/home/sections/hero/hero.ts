@@ -52,7 +52,8 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           [moveDuration]="600"
           class="text-text-muted mb-10 max-w-2xl text-xl font-light md:text-2xl"
         >
-          Enter and leave animations for Angular 21. No boilerplate. Just HTML.
+          Motion-style states, presence, SVG drawing, drag, scroll, and layout primitives for
+          Angular 21. No animation boilerplate.
         </p>
 
         <!-- CTAs -->

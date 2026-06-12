@@ -1,6 +1,8 @@
 # angular-movement
 
-Lightweight Angular motion library with declarative directives, presets, spring physics, scroll-driven animation, and presence/stagger orchestration.
+Angular-native motion library powered by the browser Web Animations API. It provides declarative
+directives for motion-style states, presets, spring physics, SVG path drawing, drag, scroll-driven
+animation, and presence/stagger orchestration.
 
 ## Features
 
@@ -10,7 +12,11 @@ Lightweight Angular motion library with declarative directives, presets, spring 
 - Hover, tap, focus, in-view, and scroll interactions
 - Presence orchestration for exit animations before DOM removal
 - Stagger support for list choreography
+- Motion-style variants and per-property transitions
+- SVG path drawing with `pathLength` and `pathOffset`
+- Drag gestures with constraints, elasticity, momentum, and snap-to-origin
 - Works with modern standalone Angular apps
+- No `@angular/animations` setup required
 
 ## Installation
 
@@ -75,6 +81,19 @@ export class DemoComponent {}
 | `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap-to-origin. |
 | `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
 | `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
+
+### Recommended API path
+
+Start with the smallest primitive that matches the job:
+
+| Level             | Reach for                                                                    |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Basic             | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
+| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| State             | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
+| Orchestration     | `movePresence`, `moveStagger`                                                |
+| Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
+| Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
 ### Preset animation
 

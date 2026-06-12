@@ -29,7 +29,6 @@
     "@analogjs/content": "^2.4.4",
     "@analogjs/platform": "^2.4.4",
     "@analogjs/router": "^2.4.4",
-    "@angular/animations": "^21.2.0",
     "@angular/common": "^21.2.0",
     "@angular/compiler": "^21.2.0",
     "@angular/core": "^21.2.0",
