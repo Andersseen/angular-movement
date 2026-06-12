@@ -163,6 +163,43 @@ angular-movement builds keyframes from the previous state to the next state.
 </div>
 ```
 
+Use `moveTransition` to set a default transition for every variant. A variant-level `transition`
+overrides the default:
+
+```html
+<div
+  [moveVariants]="{
+    idle: { opacity: 0.6, scale: 1 },
+    active: { opacity: 1, scale: 1.08 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveTransition]="{ duration: 420, opacity: { duration: 180 } }"
+>
+  Card
+</div>
+```
+
+Use `moveExitVariant` inside `movePresence` when a named variant should play before removal:
+
+```html
+<ng-container *movePresence="isOpen">
+  <aside
+    [moveVariants]="{
+      visible: { opacity: 1, x: 0 },
+      hidden: { opacity: 0, x: 24 }
+    }"
+    moveAnimate="visible"
+    moveExitVariant="hidden"
+  >
+    Panel
+  </aside>
+</ng-container>
+```
+
+Per-property transitions support different `duration` and `delay` values per property. Different
+per-property `easing` values currently fall back to the global easing so the generated WAAPI
+keyframes stay in one composed timeline.
+
 ### Target presets
 
 Use `moveTarget` when the same boolean should animate forward and back. It accepts either custom

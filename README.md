@@ -229,6 +229,43 @@ timing per property:
 />
 ```
 
+You can also provide a default transition for every variant with `moveTransition`. A variant-level
+`transition` wins when both are present:
+
+```html
+<div
+  [moveVariants]="{
+    idle: { opacity: 0.6, scale: 1 },
+    active: { opacity: 1, scale: 1.08 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveTransition]="{ duration: 420, opacity: { duration: 180 } }"
+>
+  Card
+</div>
+```
+
+For presence exits, point `moveExitVariant` at the variant that should play before removal:
+
+```html
+<ng-container *movePresence="isOpen">
+  <aside
+    [moveVariants]="{
+      visible: { opacity: 1, x: 0 },
+      hidden: { opacity: 0, x: 24 }
+    }"
+    moveAnimate="visible"
+    moveExitVariant="hidden"
+  >
+    Panel
+  </aside>
+</ng-container>
+```
+
+Per-property transitions currently support different `duration` and `delay` values per property.
+Different per-property `easing` values are detected in development, but the animation falls back to
+the global easing so the generated WAAPI keyframes stay in one composed timeline.
+
 ### One-shot trigger (no reverse)
 
 Use `moveTrigger` when you want to play an animation on `true` and reset cleanly on `false` (no reverse animation):

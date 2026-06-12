@@ -1,39 +1,39 @@
 # angular-movement plan
 
-Ultima actualizacion: 2026-06-12
+Last updated: 2026-06-12
 
-## Objetivo
+## Objective
 
-Convertir `angular-movement` en una libreria de motion para Angular con una promesa parecida a
-Framer Motion, pero sin copiar React: API Angular-native, runtime basado en Web Animations API,
-integracion con standalone components, signals, SSR safety y cero boilerplate de
-`@angular/animations`.
+Turn `angular-movement` into a motion library for Angular with a promise close to Framer Motion,
+without copying React patterns directly: Angular-native APIs, a Web Animations API-powered runtime,
+standalone component ergonomics, signals-friendly design, SSR safety, and no
+`@angular/animations` boilerplate.
 
-La direccion de producto es:
+Product direction:
 
-- Declarar motion desde templates Angular.
-- Usar estados simples: initial, animate, exit, variants.
-- Coordinar presence, stagger, scroll, layout, SVG y drag con una API coherente.
-- Mantener el core pequeno, testeado y publicable.
+- Declare motion from Angular templates.
+- Use simple state concepts: initial, animate, exit, variants.
+- Coordinate presence, stagger, scroll, layout, SVG, and drag through one coherent API.
+- Keep the core small, tested, and publishable.
 
-## Como usar este archivo en una nueva sesion
+## How to use this file in a new session
 
-Al empezar una sesion nueva, pedir:
+At the start of a new session, ask:
 
 ```text
-Lee plan.md y continua con la fase X. No empieces de cero; revisa solo los archivos necesarios,
-implementa, y verifica con los comandos indicados.
+Read plan.md and continue with Phase X. Do not restart from scratch; inspect only the files needed
+for that phase, implement the change, and verify with the commands listed in the plan.
 ```
 
-Antes de tocar codigo:
+Before changing code:
 
-1. Ejecutar `git status --short`.
-2. Leer la fase activa de este archivo.
-3. Leer solo los archivos relacionados con esa fase.
-4. No revertir cambios ajenos.
-5. Al cerrar, actualizar la seccion "Estado actual".
+1. Run `git status --short`.
+2. Read the active phase in this file.
+3. Read only the files related to that phase.
+4. Do not revert unrelated user changes.
+5. Before finishing, update the "Current status" section.
 
-Comandos base de verificacion:
+Baseline verification commands:
 
 ```bash
 pnpm test:coverage
@@ -41,91 +41,92 @@ pnpm build
 pnpm e2e
 ```
 
-Para release/package:
+Release/package checks:
 
 ```bash
 ng build movement
 pnpm run pack:check
 ```
 
-## Analisis inicial
+## Initial Analysis
 
-### Que existe hoy
+### What exists today
 
-El repo contiene:
+The repository contains:
 
-- `projects/movement`: libreria Angular publicable.
-- `src`: demo/docs site con AnalogJS.
-- La app demo importa la libreria via alias Vite `movement -> projects/movement/src/public-api.ts`.
+- `projects/movement`: the publishable Angular library.
+- `src`: the AnalogJS demo/docs site.
+- The demo app imports the library through a Vite alias:
+  `movement -> projects/movement/src/public-api.ts`.
 
-El core actual ya incluye:
+The current core already includes:
 
-- Presets y custom keyframes.
-- API motion-style con `moveInitial`, `moveAnimate`, `moveExit`.
-- Variants con `moveVariants`.
-- Presence con `movePresence`.
-- Stagger con `moveStagger`.
-- Interacciones: hover, tap, focus, in-view.
+- Presets and custom keyframes.
+- Motion-style API with `moveInitial`, `moveAnimate`, and `moveExit`.
+- Variants through `moveVariants`.
+- Presence through `movePresence`.
+- Stagger through `moveStagger`.
+- Interactions: hover, tap, focus, in-view.
 - Scroll/parallax.
 - Layout.
 - Drag.
 - Spring.
-- SVG path drawing con `pathLength` / `pathOffset`.
+- SVG path drawing with `pathLength` / `pathOffset`.
 - Per-property transitions.
-- Runtime WAAPI y no `@angular/animations` como dependencia directa del package publicable.
+- WAAPI runtime, with no direct `@angular/animations` dependency in the publishable package.
 
-### Fortalezas
+### Strengths
 
-- La propuesta ya es diferenciable para Angular: poca friccion, directivas declarativas y API
-  familiar para usuarios de motion libraries.
-- SVG drawing, presence, variants, drag y scroll ya dan una base fuerte de producto.
-- La libreria no depende de Framer Motion, GSAP ni `@angular/animations`.
-- Hay buena cobertura unitaria en directivas y engines.
+- The proposal is already differentiated for Angular: low friction, declarative directives, and an
+  API that feels familiar to users of motion libraries.
+- SVG drawing, presence, variants, drag, and scroll already form a strong product foundation.
+- The library does not depend on Framer Motion, GSAP, or `@angular/animations`.
+- Unit coverage is already solid across directives and engines.
 
-### Riesgos
+### Risks
 
-- La API puede parecer una coleccion de directivas si la documentacion no guia el uso recomendado.
-- Variants todavia deben sentirse mas "sistema de estados" que helper puntual.
-- Layout animation necesita robustez de producto: FLIP, resize, reorder, edge cases y pruebas.
-- Drag necesita polish para acercarse al nivel esperado: inertia, snap points, constraints dinamicos.
-- Falta una capa tipo motion values/signals para valores reactivos derivados.
-- La demo/docs site necesita mas paginas de referencia para aprender solo desde la web.
-- Faltan e2e/visual tests especificos para demos criticas.
+- The API can feel like a collection of directives unless the docs guide the recommended path.
+- Variants still need to feel more like a state system than a one-off helper.
+- Layout animation needs product-level robustness: FLIP, resize, reorder, edge cases, and tests.
+- Drag needs polish to meet user expectations: inertia, snap points, dynamic constraints.
+- A motion-values/signals layer is still missing for derived reactive values.
+- The demo/docs site needs more reference pages so users can learn the library from the web alone.
+- Key demos need dedicated e2e or visual smoke tests.
 
-## Norte tecnico
+## Technical Positioning
 
-La libreria debe explicarse asi:
+The library should be described as:
 
 ```text
 Angular-native motion API powered by the browser Web Animations API.
 ```
 
-No decir:
+Avoid saying:
 
 - "Built on Angular runtime animation API".
-- Que requiere `@angular/animations`.
-- Que es un port literal de Framer Motion.
+- That the library requires `@angular/animations`.
+- That this is a literal Framer Motion port.
 
-Si se menciona Framer Motion, hacerlo como referencia mental:
+If Framer Motion is mentioned, use it as a mental-model reference:
 
 ```text
-Motion-style state API for Angular: initial, animate, exit, variants and presence.
+Motion-style state API for Angular: initial, animate, exit, variants, and presence.
 ```
 
-## API recomendada
+## Recommended API
 
-Orden de aprendizaje y recomendacion:
+Recommended learning path:
 
-| Nivel         | API principal                                                                |
+| Level         | Primary API                                                                  |
 | ------------- | ---------------------------------------------------------------------------- |
-| Basico        | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
-| Interacciones | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
-| Estado        | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
-| Orquestacion  | `movePresence`, `moveStagger`                                                |
+| Basic         | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
+| Interactions  | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| State         | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
+| Orchestration | `movePresence`, `moveStagger`                                                |
 | Scroll/layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
-| Avanzado      | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
+| Advanced      | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
-La API que deberia recomendarse primero para UI de producto:
+The API that should be recommended first for product UI:
 
 ```html
 <ng-container *movePresence="isOpen()">
@@ -139,241 +140,270 @@ La API que deberia recomendarse primero para UI de producto:
 </ng-container>
 ```
 
-## Plan por fases
+## Roadmap
 
-### Fase 1. Core runtime y transiciones
+### Phase 1. Core Runtime And Transitions
 
-Objetivo: que las features avanzadas funcionen de verdad.
+Goal: make the advanced features work reliably.
 
-Estado: completada la primera correccion importante.
+Status: complete.
 
-Hecho:
+Done:
 
-- `composeTransitionKeyframes` ya conserva valores string como `strokeDasharray`.
-- `x`, `y`, `scale`, `rotate`, `blur` y SVG passthrough pasan por el compositor normal.
-- Tests agregados para:
+- `composeTransitionKeyframes` preserves string values such as `strokeDasharray`.
+- `x`, `y`, `scale`, `rotate`, `blur`, and SVG passthrough values go through the normal keyframe
+  composer.
+- Tests cover:
   - `x/y + transition`
   - `scale/rotate + transition`
+  - `scaleX/scaleY + transition`
+  - `rotateX/rotateY + transition`
   - `blur + transition`
-  - `strokeDasharray` string
-  - `pathLength + opacity + transition` desde `AnimationEngine`
-- Verificado con `pnpm test:coverage`, `pnpm build`, `pnpm e2e`.
+  - string `strokeDasharray`
+  - discrete CSS string properties
+  - `pathLength + opacity + transition` through `AnimationEngine`
+  - `pathOffset + opacity + transition` through `AnimationEngine`
+- Documented current limitation: per-property transitions support `duration` and `delay` per
+  property; different per-property easings fall back to the global easing to keep a single composed
+  WAAPI timeline.
+- Verified with `pnpm test:coverage`, `pnpm build`, and `pnpm e2e`.
 
-Pendiente recomendado:
+Recommended follow-up:
 
-- Documentar explicitamente la limitacion actual de per-property easing distinto.
-- Decidir si se soportan easings por propiedad en WAAPI usando keyframes separados o warning actual.
-- Anadir tests para `scaleX/scaleY`, `rotateX/rotateY`, `pathOffset` y propiedades CSS string discretas.
-- Revisar `WaapiPlayer` y `SpringPlayer` para subir cobertura en finish/cancel/iterations.
+- Increase `WaapiPlayer` and `SpringPlayer` coverage for finish/cancel/iterations.
+- For a future version, decide whether per-property easings are worth supporting through separate
+  WAAPI animations per property. For now, the documented warning is the intended behavior.
 
-Criterio de exito:
+Success criteria:
 
-- Las transiciones por propiedad generan keyframes WAAPI correctos.
-- SVG drawing no pierde compatibilidad.
-- El comportamiento esta documentado y testeado.
+- Per-property transitions generate correct WAAPI keyframes.
+- SVG drawing compatibility is preserved.
+- The behavior is documented and tested.
 
-### Fase 2. API motion-style y variants
+### Phase 2. Motion-Style API And Variants
 
-Objetivo: que se sienta como un sistema de estados, no como directivas sueltas.
+Goal: make variants feel like a state system, not a loose directive.
 
-Tareas:
+Status: complete.
 
-- Definir oficialmente la API canonica:
-  - Primaria: `moveInitial`, `moveAnimate`, `moveExit`.
-  - Estado reutilizable: `moveVariants`.
+Tasks:
+
+- Officially define the canonical API:
+  - Primary: `moveInitial`, `moveAnimate`, `moveExit`.
+  - Reusable state: `moveVariants`.
   - Boolean/reversible: `moveTarget`.
   - One-shot/reset: `moveTrigger`.
-- Auditar `move-variants.directive.ts`.
-- Mejorar variants para:
-  - default transition por variant
-  - transiciones por propiedad dentro de variants
-  - posible `delayChildren` / `staggerChildren` si encaja con `moveStagger`
-  - mejor composicion con `movePresence`
-- Agregar tests de cambios de estado consecutivos y cancelacion de animacion previa.
-- Documentar patrones:
+- Audit `move-variants.directive.ts`.
+- Improve variants with:
+  - default transition at the directive level
+  - per-property transitions inside variants
+  - possible `delayChildren` / `staggerChildren` if it fits with `moveStagger`
+  - better composition with `movePresence`
+- Add tests for consecutive state changes and cancellation of the previous animation.
+- Document patterns:
   - idle/active
   - collapsed/expanded
   - loading/success
   - selected/unselected
 
-Criterio de exito:
+Done:
 
-- Un usuario puede construir UI stateful sin escribir logica imperativa de animacion.
-- Variants es la forma recomendada para estados reutilizables.
+- Added `moveTransition` as a default transition for all variants on a `moveVariants` host.
+- Kept variant-level `transition` as the higher-priority override.
+- Added `moveExitVariant` so a named variant can play before `movePresence` removes the view.
+- Added tests for default transition, transition override, and exit variant playback.
+- Documented `moveTransition` and `moveExitVariant` in the root README, package README, and API
+  Guide.
+- Verified with `pnpm test:coverage`, `pnpm build`, and `pnpm e2e`.
 
-### Fase 3. Layout animation
+Success criteria:
 
-Objetivo: acercarse a la magia de `layout` de Framer Motion, pero con constraints Angular.
+- Users can build stateful UI without writing imperative animation code.
+- Variants are the recommended API for reusable states.
 
-Tareas:
+### Phase 3. Layout Animation
 
-- Auditar `move-layout.directive.ts`.
-- Confirmar estrategia FLIP:
+Goal: get closer to the magic of Framer Motion `layout`, with Angular constraints.
+
+Tasks:
+
+- Audit `move-layout.directive.ts`.
+- Confirm the FLIP strategy:
   - First
   - Last
   - Invert
   - Play
-- Cubrir casos:
-  - cambio de tamano
-  - cambio de posicion
-  - reorder de lista
-  - elementos que entran/salen con presence
+- Cover:
+  - size changes
+  - position changes
+  - list reorder
+  - elements entering/leaving with presence
   - SSR/browser guards
-- Crear demo fuerte de layout/reorder.
-- Agregar e2e o visual smoke test.
+- Create a strong layout/reorder demo.
+- Add e2e or visual smoke tests.
 
-Criterio de exito:
+Success criteria:
 
-- Layout funciona en cambios reales de DOM Angular.
-- No hay saltos visuales obvios en demos.
+- Layout works across real Angular DOM changes.
+- The demos do not show obvious visual jumps.
 
-### Fase 4. Drag e interacciones avanzadas
+### Phase 4. Drag And Advanced Interactions
 
-Objetivo: que drag sea una feature de producto, no solo pointer movement.
+Goal: make drag feel like a product feature, not just pointer movement.
 
-Tareas:
+Tasks:
 
-- Auditar `move-drag.directive.ts`.
-- Revisar:
-  - constraints dinamicos
+- Audit `move-drag.directive.ts`.
+- Review:
+  - dynamic constraints
   - inertia/momentum
   - snap points
   - snap-to-origin
   - axis lock
-  - elasticidad
-  - outputs start/move/end
-- Mejorar tests de limites y momentum.
-- Crear demo con card draggable, snap y constraints visibles.
-- Documentar diferencias entre `moveWhileTap` y `moveDrag`.
+  - elasticity
+  - start/move/end outputs
+- Improve tests for constraints and momentum.
+- Create a demo with a draggable card, visible constraints, and snap behavior.
+- Document the difference between `moveWhileTap` and `moveDrag`.
 
-Criterio de exito:
+Success criteria:
 
-- Drag se siente fluido, predecible y facil de configurar.
+- Drag feels fluid, predictable, and easy to configure.
 
-### Fase 5. Motion values y Angular signals
+### Phase 5. Motion Values And Angular Signals
 
-Objetivo: crear una capa reactiva que sea natural para Angular.
+Goal: create a reactive layer that feels native to Angular.
 
 Idea:
 
-- Algo parecido a motion values, pero construido alrededor de signals.
-- Posibles APIs:
+- Something like motion values, but built around signals.
+- Possible APIs:
   - `moveValue(initial)`
   - `moveSpringValue(source, config)`
   - `moveTransform(source, inputRange, outputRange)`
-  - helpers para scroll progress
+  - helpers for scroll progress
 
-Tareas:
+Tasks:
 
-- Investigar si debe vivir como funciones exportadas o directivas.
-- Prototipar API pequena con tests.
-- Integrar con `moveScroll` y `moveParallax`.
-- Documentar ejemplos con `computed()`.
+- Decide whether this should live as exported functions or directives.
+- Prototype a small API with tests.
+- Integrate with `moveScroll` and `moveParallax`.
+- Document examples with `computed()`.
 
-Criterio de exito:
+Success criteria:
 
-- Se pueden derivar animaciones de valores reactivos sin escribir loops manuales.
+- Users can derive animations from reactive values without writing manual loops.
 
-### Fase 6. Docs y demo site
+### Phase 6. Docs And Demo Site
 
-Objetivo: que alguien pueda aprender la libreria solo desde la web.
+Goal: let users learn the library from the website alone.
 
-Hecho:
+Done:
 
-- Nueva pagina `src/app/pages/docs/api.page.ts`.
-- Sidebar de docs enlaza API Guide, Basic Motion, Variants, SVG Icons, Drag y Scroll.
-- `README.md` y `projects/movement/README.md` explican API Angular-native + WAAPI runtime.
-- Home copy menciona states, presence, SVG drawing, drag, scroll y layout.
-- `@angular/animations` removido como dependencia directa del workspace.
+- New page: `src/app/pages/docs/api.page.ts`.
+- Docs sidebar links to API Guide, Basic Motion, Variants, SVG Icons, Drag, and Scroll.
+- `README.md` and `projects/movement/README.md` explain Angular-native API + WAAPI runtime.
+- Home copy mentions states, presence, SVG drawing, drag, scroll, and layout.
+- `@angular/animations` removed as a direct workspace dependency.
 
-Pendiente:
+Pending:
 
-- Crear paginas docs por directiva o una API Reference unica.
-- Activar seccion de Presets con ejemplos reales.
-- Reutilizar mejor el bloque de instalacion entre hero e install.
-- Agregar selector npm/pnpm/yarn real en install docs/home.
-- Mejorar ejemplos de SVG, presence, variants, drag y scroll con copy orientado a producto.
-- Agregar seccion "How it works" clara: Angular directives -> WAAPI -> final styles.
+- Create per-directive docs pages or a single API Reference page.
+- Activate a Presets section with real examples.
+- Reuse the install block between hero and install sections.
+- Add a real npm/pnpm/yarn selector in install docs/home.
+- Improve SVG, presence, variants, drag, and scroll examples with product-oriented copy.
+- Add a clear "How it works" section: Angular directives -> WAAPI -> final styles.
 
-Criterio de exito:
+Success criteria:
 
-- El usuario entiende que instalar, que importar, que API usar primero y por que no necesita
-  boilerplate.
+- Users understand what to install, what to import, which API to use first, and why no boilerplate
+  is required.
 
-### Fase 7. Calidad de producto y release
+### Phase 7. Product Quality And Release
 
-Objetivo: publicar con confianza.
+Goal: publish with confidence.
 
-Tareas:
+Tasks:
 
-- Anadir e2e o visual smoke tests para:
+- Add e2e or visual smoke tests for:
   - home
   - `/docs/api`
   - `/demos/icons`
   - `/demos/variants`
   - `/demos/drag`
   - `/demos/layout`
-- Validar o eliminar `/api/generate` si no se usa.
-- Subir coverage de:
+- Validate or remove `/api/generate` if unused.
+- Raise coverage for:
   - `SmoothScrollService`
   - `WaapiPlayer`
   - `SpringPlayer`
-- Crear checklist de release:
+- Create release checklist:
   - `pnpm test:coverage`
   - `pnpm lint`
   - `pnpm e2e`
   - `pnpm build`
   - `pnpm run pack:check`
-- Revisar package exports, README de npm y changelog.
+- Review package exports, npm README, and changelog.
 
-Criterio de exito:
+Success criteria:
 
-- Antes de publicar hay confianza en runtime, docs, demos y package.
+- Before publishing, there is real confidence in runtime, docs, demos, and package output.
 
-## Primera tarea recomendada para la proxima sesion
+## Recommended Next Task
 
-Si se quiere seguir con maximo impacto tecnico:
-
-```text
-Lee plan.md y empieza la Fase 2: audita move-variants.directive.ts y mejora variants para que
-sean la API de estado recomendada. Mantén compatibilidad, agrega tests y verifica con
-pnpm test:coverage y pnpm build.
-```
-
-Si se quiere seguir con maximo impacto de producto/docs:
+For maximum technical impact:
 
 ```text
-Lee plan.md y continua la Fase 6: crea una API Reference navegable para directivas y presets,
-con ejemplos reales de motion-style, variants, presence, SVG, drag y scroll. Verifica con
-pnpm build y pnpm e2e.
+Read plan.md and continue Phase 2: finish the variants API work so variants are the recommended
+state API. Keep compatibility, add tests, document the API, and verify with pnpm test:coverage and
+pnpm build.
 ```
 
-## Estado actual
+For maximum product/docs impact:
 
-Fecha: 2026-06-12.
+```text
+Read plan.md and continue Phase 6: create a navigable API Reference for directives and presets,
+with real examples for motion-style states, variants, presence, SVG, drag, and scroll. Verify with
+pnpm build and pnpm e2e.
+```
 
-Estado del repo al crear este archivo:
+## Current Status
 
-- `git status --short` estaba limpio antes de crear `plan.md`.
-- `plan.md` es el unico archivo creado en esta tarea.
+Date: 2026-06-12.
 
-Estado tecnico actual:
+Repository status when this file was created:
 
-- Core de per-property transitions corregido.
-- Tests de transition composer y SVG drawing agregados previamente.
-- Docs ya tienen `API Guide`.
-- README raiz y README del paquete ya explican Angular-native API + WAAPI runtime.
-- `@angular/animations` ya no esta como dependencia directa en `package.json`.
+- `git status --short` was clean before creating `plan.md`.
+- `plan.md` was the only file created in that task.
 
-Ultimas verificaciones conocidas:
+Current technical status:
 
-- `pnpm test:coverage` paso con 24 archivos de test y 161 tests.
-- `pnpm build` paso.
-- `pnpm e2e` paso con 18 tests.
+- Phase 1 is complete.
+- Core per-property transitions are fixed.
+- Transition composer and SVG drawing tests cover `x/y`, `scale/rotate`, `scaleX/scaleY`,
+  `rotateX/rotateY`, `blur`, string `strokeDasharray`, discrete CSS strings, `pathLength`, and
+  `pathOffset`.
+- The per-property easing limitation is documented: `duration`/`delay` per property are supported;
+  different easings fall back to the global easing.
+- Docs include `API Guide`.
+- Root README and package README explain Angular-native API + WAAPI runtime.
+- `@angular/animations` is no longer a direct dependency in `package.json`.
+- Phase 2 is complete:
+  - `moveVariants` supports default `moveTransition`.
+  - Variant-level `transition` overrides default `moveTransition`.
+  - `moveExitVariant` lets variants participate in `movePresence` exits.
+  - README and API Guide document the new variants behavior.
 
-Notas:
+Latest known verification:
 
-- En e2e aparecio un warning de Vite sobre `front-matter` en `optimizeDeps.include`; no rompio la
-  suite, pero conviene revisarlo en Fase 7.
-- La herramienta de navegador integrado no estaba expuesta en la sesion anterior, asi que no hubo
-  revision visual manual dentro del browser plugin.
+- `pnpm test:coverage` passed with 24 test files and 168 tests.
+- `pnpm build` passed.
+- `pnpm e2e` passed with 18 tests.
+
+Notes:
+
+- e2e previously showed a Vite warning about `front-matter` in `optimizeDeps.include`; it did not
+  break the suite, but it should be reviewed in Phase 7.
+- The integrated browser tool was not exposed in the previous session, so there was no manual visual
+  review through the browser plugin.

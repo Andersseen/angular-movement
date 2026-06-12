@@ -76,6 +76,11 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           Use <code>moveVariants</code> when components move between named states such as idle,
           selected, expanded, collapsed, loading, or complete.
         </p>
+        <p>
+          Use <code>moveTransition</code> for shared variant timing and
+          <code>moveExitVariant</code> when a named variant should play inside
+          <code>movePresence</code> before Angular removes the view.
+        </p>
 
         <div class="my-6 h-80">
           <app-code-block title="variants.html" [code]="variantsCode"></app-code-block>
@@ -86,6 +91,11 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           Reach for SVG path drawing, per-property transitions, spring physics, drag, scroll,
           parallax, and layout directives when the motion is part of the product behavior rather
           than a simple reveal effect.
+        </p>
+        <p>
+          Per-property transitions support different <code>duration</code> and
+          <code>delay</code> values. Different per-property <code>easing</code> values currently
+          fall back to the global easing so WAAPI receives one composed timeline.
         </p>
 
         <div class="my-6 h-80">

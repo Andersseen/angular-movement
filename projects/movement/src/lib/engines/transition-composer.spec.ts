@@ -91,6 +91,40 @@ describe('composeTransitionKeyframes', () => {
     expect(last['rotate']).toBe('0deg');
   });
 
+  it('composes scaleX/scaleY transitions into WAAPI scale keyframes', () => {
+    const result = composeTransitionKeyframes(
+      { scaleX: [0.75, 1], scaleY: [1.25, 1], opacity: [0, 1] },
+      { duration: 500, scaleX: { duration: 200 }, scaleY: { delay: 100 } },
+      baseConfig,
+    );
+
+    expect(result).not.toBeNull();
+    const first = result!.keyframes[0] as Record<string, unknown>;
+    expect(first['scale']).toBe('0.75 1.25');
+    expect(first['scaleX']).toBeUndefined();
+    expect(first['scaleY']).toBeUndefined();
+
+    const last = result!.keyframes[result!.keyframes.length - 1] as Record<string, unknown>;
+    expect(last['scale']).toBe('1 1');
+  });
+
+  it('composes rotateX/rotateY transitions into WAAPI transform keyframes', () => {
+    const result = composeTransitionKeyframes(
+      { rotateX: [-45, 0], rotateY: [0, 20], opacity: [0, 1] },
+      { duration: 500, rotateX: { duration: 200 }, rotateY: { delay: 100 } },
+      baseConfig,
+    );
+
+    expect(result).not.toBeNull();
+    const first = result!.keyframes[0] as Record<string, unknown>;
+    expect(first['transform']).toBe('perspective(1200px) rotateX(-45deg) rotateY(0deg)');
+    expect(first['rotateX']).toBeUndefined();
+    expect(first['rotateY']).toBeUndefined();
+
+    const last = result!.keyframes[result!.keyframes.length - 1] as Record<string, unknown>;
+    expect(last['transform']).toBe('perspective(1200px) rotateX(0deg) rotateY(20deg)');
+  });
+
   it('composes blur transitions into WAAPI filter keyframes', () => {
     const result = composeTransitionKeyframes(
       { blur: [12, 0], opacity: [0, 1] },
@@ -138,6 +172,29 @@ describe('composeTransitionKeyframes', () => {
     expect(result!.keyframes).not.toContainEqual(
       expect.objectContaining({ strokeDasharray: Number.NaN }),
     );
+  });
+
+  it('preserves discrete CSS string properties during interpolation', () => {
+    const result = composeTransitionKeyframes(
+      {
+        opacity: [0, 1],
+        clipPath: ['inset(0% 0% 100% 0%)', 'inset(0% 0% 0% 0%)'],
+      },
+      { duration: 600, opacity: { duration: 200 } },
+      baseConfig,
+    );
+
+    expect(result).not.toBeNull();
+    const first = result!.keyframes[0] as Record<string, unknown>;
+    const middle = result!.keyframes.find((keyframe) => keyframe.offset === 1 / 3) as Record<
+      string,
+      unknown
+    >;
+    const last = result!.keyframes[result!.keyframes.length - 1] as Record<string, unknown>;
+
+    expect(first['clipPath']).toBe('inset(0% 0% 100% 0%)');
+    expect(middle['clipPath']).toBe('inset(0% 0% 100% 0%)');
+    expect(last['clipPath']).toBe('inset(0% 0% 0% 0%)');
   });
 
   it('warns in dev mode when easings differ', () => {
