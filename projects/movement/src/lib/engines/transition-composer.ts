@@ -4,6 +4,23 @@ import {
   MoveTransitionConfig,
 } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
+import { composeInterpolatedKeyframe } from './keyframe-composer';
+
+function interpolateValue(
+  values: readonly (number | string)[],
+  i1: number,
+  i2: number,
+  p: number,
+): number | string {
+  const v1 = values[i1];
+  const v2 = values[i2];
+
+  if (typeof v1 === 'string' || typeof v2 === 'string') {
+    return p >= 1 ? v2 : v1;
+  }
+
+  return v1 + (v2 - v1) * p;
+}
 
 export interface ResolvedTransition {
   keyframes: Keyframe[];
@@ -40,7 +57,7 @@ export function composeTransitionKeyframes(
       duration: parsed.duration ?? globalDuration,
       easing: parsed.easing ?? globalEasing,
       delay: parsed.delay ?? globalDelay,
-      values: frames[prop]!.map((v) => Number(v)),
+      values: frames[prop]!,
     };
   });
 
@@ -85,21 +102,21 @@ export function composeTransitionKeyframes(
   for (const time of sortedTimes) {
     const offset =
       totalDuration > totalDelay ? (time - totalDelay) / (totalDuration - totalDelay) : 0;
-    const kf: Keyframe = { offset };
+    const frameAtTime: MoveKeyframes = {};
 
     for (const t of timings) {
       const localTime = time - t.delay;
       const n = t.values.length;
 
       if (n === 1) {
-        (kf as Record<string, unknown>)[t.prop] = t.values[0];
+        frameAtTime[t.prop] = [t.values[0]];
         continue;
       }
 
       if (localTime <= 0) {
-        (kf as Record<string, unknown>)[t.prop] = t.values[0];
+        frameAtTime[t.prop] = [t.values[0]];
       } else if (localTime >= t.duration) {
-        (kf as Record<string, unknown>)[t.prop] = t.values[n - 1];
+        frameAtTime[t.prop] = [t.values[n - 1]];
       } else {
         const progress = t.duration > 0 ? localTime / t.duration : 0;
         const maxIdx = n - 1;
@@ -107,12 +124,11 @@ export function composeTransitionKeyframes(
         const i1 = Math.floor(idx);
         const i2 = Math.min(Math.ceil(idx), maxIdx);
         const p = idx - i1;
-        const v1 = t.values[i1];
-        const v2 = t.values[i2];
-        (kf as Record<string, unknown>)[t.prop] = v1 + (v2 - v1) * p;
+        frameAtTime[t.prop] = [interpolateValue(t.values, i1, i2, p)];
       }
     }
 
+    const kf: Keyframe = { ...composeInterpolatedKeyframe(frameAtTime, 0, 0, 0), offset };
     resultKeyframes.push(kf);
   }
 

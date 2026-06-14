@@ -14,14 +14,16 @@ import {
   MoveKeyframes,
   MoveSpring,
   MoveStateValue,
+  MoveTransitionConfig,
   MoveValue,
   MoveVariant,
 } from '../presets/presets.types';
 import { AnimationEngine } from '../engines/animation-engine.service';
-import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
+import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 export interface MoveVariantsProvider {
   activeVariant: () => string | undefined;
@@ -40,15 +42,17 @@ export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
     },
   ],
 })
-export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
+export class MoveVariantsDirective implements MoveVariantsProvider, MovePresenceChild, OnDestroy {
   readonly moveVariants = input.required<Record<string, MoveVariant>>();
   readonly moveAnimate = input<string | undefined>(undefined);
+  readonly moveExitVariant = input<string | undefined>(undefined);
 
   readonly moveDuration = input<number | undefined>(undefined);
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined>(undefined);
   readonly moveDisabled = input<boolean | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
+  readonly moveTransition = input<MoveTransitionConfig | undefined>(undefined);
 
   readonly #parent = inject(MOVE_VARIANTS_PARENT, { optional: true, skipSelf: true });
   readonly #engine = inject(AnimationEngine);
@@ -56,8 +60,10 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
+  readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
 
   #currentPlayer: AnimationControls | null = null;
+  #config: MovementConfig = this.#defaults;
   #isReducedMotion = false;
   #previousState: Record<string, MoveStateValue | undefined> | null = null;
 
@@ -68,49 +74,65 @@ export class MoveVariantsDirective implements MoveVariantsProvider, OnDestroy {
   constructor() {
     this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
     this.#stagger?.register(this.#host.nativeElement);
+    this.#presence?.register(this);
 
     effect(() => {
       const variantName = this.activeVariant();
       if (!variantName) return;
 
-      const variants = this.moveVariants();
-      if (!variants) return;
-
-      const state = variants[variantName];
-      if (!state) return;
-
       this.#currentPlayer?.cancel();
-
-      const { spring, duration, easing, delay, transition, ...keyframesMap } = state;
-      const stateValues = pickStateValues(keyframesMap);
-      const keyframes = stateToKeyframes(stateValues, this.#previousState);
-      this.#previousState = stateValues;
-
-      const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
-
-      const config = resolveMovementConfig(
-        this.#defaults,
-        {
-          duration: duration ?? this.moveDuration(),
-          easing: easing ?? this.moveEasing(),
-          delay: (delay ?? this.moveDelay() ?? 0) + staggerDelay,
-          disabled: this.moveDisabled(),
-        },
-        this.#isReducedMotion,
-      );
-
-      this.#currentPlayer = this.#engine.play(this.#host.nativeElement, keyframes, {
-        config,
-        spring: spring ?? this.moveSpring(),
-        disabled: config.disabled,
-        transition,
-      });
+      this.#currentPlayer = this.#playVariant(variantName);
     });
   }
 
   ngOnDestroy(): void {
     this.#stagger?.unregister(this.#host.nativeElement);
+    this.#presence?.unregister(this);
     this.#currentPlayer?.cancel();
+  }
+
+  playLeave(): Promise<void> {
+    const exitVariant = this.moveExitVariant();
+    if (this.#config.disabled || !exitVariant) {
+      return Promise.resolve();
+    }
+
+    this.#currentPlayer?.cancel();
+    this.#currentPlayer = this.#playVariant(exitVariant);
+    return this.#currentPlayer?.finished ?? Promise.resolve();
+  }
+
+  #playVariant(variantName: string): AnimationControls | null {
+    const variants = this.moveVariants();
+    if (!variants) return null;
+
+    const state = variants[variantName];
+    if (!state) return null;
+
+    const { spring, duration, easing, delay, transition, ...keyframesMap } = state;
+    const stateValues = pickStateValues(keyframesMap);
+    const keyframes = stateToKeyframes(stateValues, this.#previousState);
+    this.#previousState = stateValues;
+
+    const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
+
+    this.#config = resolveMovementConfig(
+      this.#defaults,
+      {
+        duration: duration ?? this.moveDuration(),
+        easing: easing ?? this.moveEasing(),
+        delay: (delay ?? this.moveDelay() ?? 0) + staggerDelay,
+        disabled: this.moveDisabled(),
+      },
+      this.#isReducedMotion,
+    );
+
+    return this.#engine.play(this.#host.nativeElement, keyframes, {
+      config: this.#config,
+      spring: spring ?? this.moveSpring(),
+      disabled: this.#config.disabled,
+      transition: transition ?? this.moveTransition(),
+    });
   }
 }
 

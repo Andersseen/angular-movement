@@ -271,4 +271,84 @@ describe('AnimationEngine', () => {
     expect(keyframes.length).toBeGreaterThan(0);
     expect(keyframes[0]).toHaveProperty('offset');
   });
+
+  it('should support pathLength with opacity per-property transitions for SVG drawing', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const engine = TestBed.inject(AnimationEngine);
+    const host = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    Object.defineProperty(host, 'getTotalLength', {
+      value: vi.fn().mockReturnValue(120),
+    });
+
+    const animateSpy = vi.fn().mockReturnValue({
+      addEventListener: vi.fn(),
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+      commitStyles: vi.fn(),
+    });
+    (host as SVGElement).animate = animateSpy;
+
+    engine.play(
+      host,
+      { pathLength: [0, 1], opacity: [0, 1] },
+      {
+        transition: { duration: 700, opacity: { duration: 200 } },
+      },
+    );
+
+    expect(animateSpy).toHaveBeenCalled();
+    const keyframes = animateSpy.mock.calls[0][0] as Keyframe[];
+    const first = keyframes[0] as Record<string, unknown>;
+    const last = keyframes[keyframes.length - 1] as Record<string, unknown>;
+
+    expect(first['strokeDasharray']).toBe('0 120');
+    expect(last['strokeDasharray']).toBe('120 120');
+    expect(Math.abs(first['strokeDashoffset'] as number)).toBe(0);
+    expect(Math.abs(last['strokeDashoffset'] as number)).toBe(0);
+    expect(last['opacity']).toBe(1);
+  });
+
+  it('should support pathOffset with opacity per-property transitions for SVG drawing', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const engine = TestBed.inject(AnimationEngine);
+    const host = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+    Object.defineProperty(host, 'getTotalLength', {
+      value: vi.fn().mockReturnValue(120),
+    });
+
+    const animateSpy = vi.fn().mockReturnValue({
+      addEventListener: vi.fn(),
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+      commitStyles: vi.fn(),
+    });
+    (host as SVGElement).animate = animateSpy;
+
+    engine.play(
+      host,
+      { pathOffset: [0, 0.5], opacity: [0, 1] },
+      {
+        transition: { duration: 700, opacity: { duration: 200 } },
+      },
+    );
+
+    expect(animateSpy).toHaveBeenCalled();
+    const keyframes = animateSpy.mock.calls[0][0] as Keyframe[];
+    const first = keyframes[0] as Record<string, unknown>;
+    const last = keyframes[keyframes.length - 1] as Record<string, unknown>;
+
+    expect(first['strokeDasharray']).toBe('120 120');
+    expect(last['strokeDasharray']).toBe('120 120');
+    expect(Math.abs(first['strokeDashoffset'] as number)).toBe(0);
+    expect(last['strokeDashoffset']).toBe(-60);
+    expect(last['opacity']).toBe(1);
+  });
 });

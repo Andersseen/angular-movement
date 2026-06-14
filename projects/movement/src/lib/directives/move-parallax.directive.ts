@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  signal,
 } from '@angular/core';
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { AnimationEngine } from '../engines/animation-engine.service';
@@ -21,6 +22,7 @@ import { MoveKeyframes } from '../presets/presets.types';
 export class MoveParallaxDirective implements OnInit, OnDestroy {
   readonly moveParallax = input<number>(0.2);
   readonly moveParallaxAxis = input<'x' | 'y'>('y');
+  readonly progress = signal(0);
 
   readonly #documentRef = inject(DOCUMENT);
   readonly #platformId = inject(PLATFORM_ID);
@@ -137,6 +139,8 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     // progress is 1 when element bottom hits window top (currentVirtualTop === -elHeight)
     let p = (this.#windowHeight - currentVirtualTop) / this.#totalDistance;
     p = Math.max(0, Math.min(1, p));
+
+    this.progress.set(p);
 
     if (this.#player) {
       this.#player.currentTime = p * 1000;

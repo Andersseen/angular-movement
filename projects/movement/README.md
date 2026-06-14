@@ -1,6 +1,8 @@
 # angular-movement
 
-Lightweight Angular motion library with declarative directives, presets, spring physics, scroll-driven animation, and presence/stagger orchestration.
+Angular-native motion library powered by the browser Web Animations API. It provides declarative
+directives for motion-style states, presets, spring physics, SVG path drawing, drag, scroll-driven
+animation, and presence/stagger orchestration.
 
 ## Features
 
@@ -10,7 +12,11 @@ Lightweight Angular motion library with declarative directives, presets, spring 
 - Hover, tap, focus, in-view, and scroll interactions
 - Presence orchestration for exit animations before DOM removal
 - Stagger support for list choreography
+- Motion-style variants and per-property transitions
+- SVG path drawing with `pathLength` and `pathOffset`
+- Drag gestures with constraints, elasticity, momentum, snap-to-origin, and snap points
 - Works with modern standalone Angular apps
+- No `@angular/animations` setup required
 
 ## Installation
 
@@ -72,9 +78,22 @@ export class DemoComponent {}
 | `[moveVariants]`                                 | Named states driven by string variant names.                          |
 | `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false. |
 | `[moveTrigger]`                                  | One-shot boolean triggers with reset/imperative controls.             |
-| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap-to-origin. |
+| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap behavior.  |
 | `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
 | `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
+
+### Recommended API path
+
+Start with the smallest primitive that matches the job:
+
+| Level             | Reach for                                                                    |
+| ----------------- | ---------------------------------------------------------------------------- |
+| Basic             | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
+| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| State             | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
+| Orchestration     | `movePresence`, `moveStagger`                                                |
+| Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
+| Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
 ### Preset animation
 
@@ -103,7 +122,29 @@ export class DemoComponent {}
 
 The object-based `[moveAnimation]` API is still available when you prefer a single config object.
 
+### Motion values with signals
+
+```ts
+import { computed } from '@angular/core';
+import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
+
+const progress = moveValue(0);
+const x = moveTransform(progress, [0, 1], [0, 120]);
+const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]));
+const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
+```
+
+`moveScroll` and `moveParallax` export a `progress` signal for derived values:
+
+```html
+<section #scroll="moveScroll" [moveScroll]="{ opacity: [0, 1] }">{{ scroll.progress() }}</section>
+```
+
 ### Presence for exit transitions
+
+Use `movePresence` when Angular conditionally removes a view. `moveLeave` and `moveExit` need the
+view to stay in the DOM until the exit animation finishes; a direct `@if` / `*ngIf` removal happens
+too early for a normal attribute directive to animate.
 
 ```html
 <ng-container *movePresence="isOpen">
@@ -144,6 +185,43 @@ angular-movement builds keyframes from the previous state to the next state.
 </div>
 ```
 
+Use `moveTransition` to set a default transition for every variant. A variant-level `transition`
+overrides the default:
+
+```html
+<div
+  [moveVariants]="{
+    idle: { opacity: 0.6, scale: 1 },
+    active: { opacity: 1, scale: 1.08 }
+  }"
+  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveTransition]="{ duration: 420, opacity: { duration: 180 } }"
+>
+  Card
+</div>
+```
+
+Use `moveExitVariant` inside `movePresence` when a named variant should play before removal:
+
+```html
+<ng-container *movePresence="isOpen">
+  <aside
+    [moveVariants]="{
+      visible: { opacity: 1, x: 0 },
+      hidden: { opacity: 0, x: 24 }
+    }"
+    moveAnimate="visible"
+    moveExitVariant="hidden"
+  >
+    Panel
+  </aside>
+</ng-container>
+```
+
+Per-property transitions support different `duration` and `delay` values per property. Different
+per-property `easing` values currently fall back to the global easing so the generated WAAPI
+keyframes stay in one composed timeline.
+
 ### Target presets
 
 Use `moveTarget` when the same boolean should animate forward and back. It accepts either custom
@@ -175,11 +253,15 @@ Use `moveTrigger` when `false` should reset instead of reversing:
   [moveDragConstraints]="{ left: -120, right: 120 }"
   [moveDragMomentum]="true"
   [moveDragElastic]="0.35"
+  [moveDragSnapPoints]="[{ x: -120, y: 0 }, { x: 0, y: 0 }, { x: 120, y: 0 }]"
   (moveDragEnd)="onDragEnd($event)"
 >
   Drag me
 </div>
 ```
+
+Use `moveWhileTap` for temporary press feedback. Use `moveDrag` when the element should follow the
+pointer and settle into a real position with constraints, momentum, snap-to-origin, or snap points.
 
 ### Scroll progress
 

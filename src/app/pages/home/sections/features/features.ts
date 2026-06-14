@@ -50,8 +50,11 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           </div>
           <h3 class="font-display text-text mb-3 text-xl font-bold">Angular-native</h3>
           <p class="text-text-muted leading-relaxed">
-            Built directly on top of Angular's native animation API. No external dependencies or
-            bloated CSS libraries. Zero Zone.js requirements.
+            Angular template APIs powered by the browser Web Animations API. No
+            <code class="bg-surface-raised text-text-subtle rounded px-1 py-0.5 font-mono text-sm"
+              >@angular/animations</code
+            >
+            setup, no CSS animation boilerplate, and zero Zone.js requirements.
           </p>
         </div>
 

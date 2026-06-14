@@ -1,5 +1,13 @@
-import { Directive, ElementRef, inject, input, OnDestroy, afterEveryRender } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
+import {
+  Directive,
+  ElementRef,
+  PLATFORM_ID,
+  inject,
+  input,
+  OnDestroy,
+  afterEveryRender,
+} from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
@@ -20,34 +28,38 @@ export class MoveLayoutDirective implements OnDestroy {
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
+  readonly #platformId = inject(PLATFORM_ID);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
 
   #snapshot: DOMRect | null = null;
   #currentPlayer: AnimationControls | null = null;
+  #isBrowser = isPlatformBrowser(this.#platformId);
   #isReducedMotion = false;
   #isAnimating = false;
 
   constructor() {
     this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
 
+    if (!this.#isBrowser) {
+      return;
+    }
+
     afterEveryRender({
       earlyRead: () => {
-        if (
-          this.moveLayout() === false ||
-          this.moveDisabled() ||
-          this.#isReducedMotion ||
-          this.#isAnimating
-        ) {
+        if (this.#isAnimating) {
           return null;
         }
 
-        const el = this.#host.nativeElement;
-        if (typeof el.getBoundingClientRect !== 'function') {
+        const currentRect = this.#readRect();
+        if (!currentRect) {
           return null;
         }
 
-        const currentRect = el.getBoundingClientRect();
+        if (this.moveLayout() === false || this.moveDisabled() || this.#isReducedMotion) {
+          this.#snapshot = currentRect;
+          return null;
+        }
 
         if (this.#snapshot) {
           const dx = this.#snapshot.left - currentRect.left;
@@ -82,6 +94,20 @@ export class MoveLayoutDirective implements OnDestroy {
         }
       },
     });
+  }
+
+  #readRect(): DOMRect | null {
+    const el = this.#host.nativeElement;
+    if (typeof el.getBoundingClientRect !== 'function') {
+      return null;
+    }
+
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) {
+      return null;
+    }
+
+    return rect;
   }
 
   private playFlip(flipData: {
@@ -123,13 +149,20 @@ export class MoveLayoutDirective implements OnDestroy {
         spring: this.moveSpring(),
         disabled: false,
         onDone: () => {
-          this.#isAnimating = false;
-          this.#host.nativeElement.style.transformOrigin = transformOrigin;
-          // Take final snapshot so next check is fresh
-          this.#snapshot = this.#host.nativeElement.getBoundingClientRect();
+          this.#finishLayoutAnimation(transformOrigin);
         },
       },
     );
+
+    if (!this.#currentPlayer) {
+      this.#finishLayoutAnimation(transformOrigin);
+    }
+  }
+
+  #finishLayoutAnimation(transformOrigin: string): void {
+    this.#isAnimating = false;
+    this.#host.nativeElement.style.transformOrigin = transformOrigin;
+    this.#snapshot = this.#readRect();
   }
 
   ngOnDestroy(): void {

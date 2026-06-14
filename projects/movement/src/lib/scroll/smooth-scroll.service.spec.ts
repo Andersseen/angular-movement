@@ -19,9 +19,15 @@ function makeScrollEl(scrollHeight = 2000, clientHeight = 800): HTMLElement {
 describe('SmoothScrollService', () => {
   let service: SmoothScrollService;
   let cancelRafSpy: ReturnType<typeof vi.spyOn>;
+  let rafCallbacks: FrameRequestCallback[];
 
   beforeEach(() => {
     // Stub RAF so ticks don't actually fire asynchronously
+    rafCallbacks = [];
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      rafCallbacks.push(callback);
+      return rafCallbacks.length;
+    });
     cancelRafSpy = vi.spyOn(window, 'cancelAnimationFrame').mockReturnValue(undefined);
 
     TestBed.configureTestingModule({
@@ -128,6 +134,41 @@ describe('SmoothScrollService', () => {
     service.init({ element: el });
     service.scrollTo(200, true);
     expect(service.scrollY()).toBe(200);
+  });
+
+  it('intercepts wheel events on the root scroll element', () => {
+    const el = makeScrollEl();
+    let scrollTop = 0;
+    Object.defineProperty(el, 'scrollTop', {
+      get: () => scrollTop,
+      set: (v: number) => {
+        scrollTop = v;
+      },
+      configurable: true,
+    });
+
+    service.init({ element: el, lerp: 0.5 });
+    const event = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 100 });
+    el.dispatchEvent(event);
+    rafCallbacks.at(-1)?.(16);
+
+    expect(event.defaultPrevented).toBe(true);
+    expect(scrollTop).toBeGreaterThan(0);
+  });
+
+  it('does not intercept wheel events inside nested scrollable containers', () => {
+    const root = makeScrollEl();
+    const scrollable = makeScrollEl(1000, 100);
+    const child = document.createElement('button');
+    scrollable.style.overflowY = 'auto';
+    scrollable.appendChild(child);
+    root.appendChild(scrollable);
+
+    service.init({ element: root });
+    const event = new WheelEvent('wheel', { bubbles: true, cancelable: true, deltaY: 100 });
+    child.dispatchEvent(event);
+
+    expect(event.defaultPrevented).toBe(false);
   });
 
   it('does not init on server (non-browser platform)', () => {

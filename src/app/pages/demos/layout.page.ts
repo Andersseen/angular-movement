@@ -19,10 +19,12 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [directiveBinding]="''"
     >
       <!-- Preview -->
-      <div preview class="flex h-full w-full flex-col items-center justify-center gap-6">
-        <div class="flex gap-2">
+      <div preview class="relative flex h-full w-full items-center justify-center">
+        <div class="absolute top-4 left-4 z-10 flex gap-2">
           <button
             (click)="setLayout('grid')"
+            data-testid="layout-grid-button"
+            [attr.aria-pressed]="layout() === 'grid'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'grid'"
             [class.text-white]="layout() === 'grid'"
@@ -32,6 +34,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </button>
           <button
             (click)="setLayout('list')"
+            data-testid="layout-list-button"
+            [attr.aria-pressed]="layout() === 'list'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'list'"
             [class.text-white]="layout() === 'list'"
@@ -41,6 +45,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </button>
           <button
             (click)="shuffle()"
+            data-testid="layout-shuffle-button"
             class="text-accent hover:text-accent-light bg-accent/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             Shuffle
@@ -49,29 +54,29 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
         <div
           moveLayout
+          data-testid="layout-demo-items"
+          [attr.data-layout]="layout()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="transition-all"
+          class="mx-auto transition-all"
           [class.grid]="layout() === 'grid'"
           [class.flex]="layout() === 'list'"
           [class.grid-cols-3]="layout() === 'grid'"
           [class.flex-col]="layout() === 'list'"
-          [class.gap-3]="true"
+          [class.gap-2]="true"
         >
           @for (item of items(); track item.id) {
             <div
-              class="bg-surface border-accent/40 font-display text-text flex items-center justify-center rounded-xl border p-4 font-bold"
-              [class.h-20]="layout() === 'grid'"
-              [class.w-20]="layout() === 'grid'"
-              [class.w-full]="layout() === 'list'"
+              data-testid="layout-demo-item"
+              class="bg-surface border-accent/40 font-display text-text flex items-center justify-center rounded-xl border font-bold shadow-[0_0_18px_rgba(80,120,255,0.12)]"
+              [class.h-16]="layout() === 'grid'"
+              [class.w-16]="layout() === 'grid'"
+              [class.h-11]="layout() === 'list'"
+              [class.w-40]="layout() === 'list'"
             >
               {{ item.label }}
             </div>
           }
-        </div>
-
-        <div class="text-text-muted max-w-xs text-center text-sm">
-          Toggle between grid/list or shuffle items to see layout animations
         </div>
       </div>
     </app-demo-container>
@@ -109,7 +114,8 @@ export default class DemoLayout {
 
   protected shuffle(): void {
     const current = this.items();
-    const shuffled = [...current].sort(() => Math.random() - 0.5);
+    const [first, ...rest] = current;
+    const shuffled = first ? [...rest, first] : current;
     this.items.set(shuffled);
   }
 }

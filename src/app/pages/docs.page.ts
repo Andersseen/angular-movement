@@ -43,43 +43,104 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
               </ul>
             </div>
 
-            <!-- Group 2 Placeholder -->
             <div>
               <h4
                 class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
               >
-                Directives
+                Motion API
               </h4>
-              <ul class="pointer-events-none space-y-1 opacity-50">
+              <ul class="space-y-1">
                 <li>
-                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">moveEnter</a>
-                </li>
-                <li>
-                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">moveLeave</a>
-                </li>
-                <li>
-                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm"
-                    >moveAnimate (shorthand)</a
+                  <a
+                    routerLink="api"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
+                    API Guide
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="reference"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    API Reference
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="presets"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Presets
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="/demos/animate"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Basic Motion
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="/demos/variants"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Variants
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="/demos/layout"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Layout
+                  </a>
                 </li>
               </ul>
             </div>
 
-            <!-- Group 3 Placeholder -->
+            <!-- Group 3 -->
             <div>
               <h4
                 class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
               >
-                Presets
+                Advanced
               </h4>
-              <ul class="pointer-events-none space-y-1 opacity-50">
+              <ul class="space-y-1">
                 <li>
-                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm"
-                    >Available Presets</a
+                  <a
+                    routerLink="/demos/icons"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
+                    SVG Icons
+                  </a>
                 </li>
                 <li>
-                  <a class="text-text-muted block rounded-lg px-3 py-2 text-sm">Custom Keyframes</a>
+                  <a
+                    routerLink="/demos/drag"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Drag
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="/demos/scroll"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Scroll
+                  </a>
                 </li>
               </ul>
             </div>

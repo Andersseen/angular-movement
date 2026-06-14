@@ -67,5 +67,6 @@ export * from './engines/animation-controls';
 export * from './presets/presets';
 export * from './presets/presets.types';
 export * from './presets/icon-helpers';
+export * from './values/move-values';
 export * from './providers/provide-movement';
 export * from './tokens/movement.tokens';
