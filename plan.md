@@ -379,6 +379,8 @@ Success criteria:
 
 Goal: let users learn the library from the website alone.
 
+Status: complete.
+
 Done:
 
 - New page: `src/app/pages/docs/api.page.ts`.
@@ -386,15 +388,19 @@ Done:
 - `README.md` and `projects/movement/README.md` explain Angular-native API + WAAPI runtime.
 - Home copy mentions states, presence, SVG drawing, drag, scroll, and layout.
 - `@angular/animations` removed as a direct workspace dependency.
-
-Pending:
-
-- Create per-directive docs pages or a single API Reference page.
-- Activate a Presets section with real examples.
-- Reuse the install block between hero and install sections.
-- Add a real npm/pnpm/yarn selector in install docs/home.
-- Improve SVG, presence, variants, drag, and scroll examples with product-oriented copy.
-- Add a clear "How it works" section: Angular directives -> WAAPI -> final styles.
+- Added a shared install command component with npm, pnpm, and yarn selectors.
+- Reused the install command component in the home hero, home install section, and Get Started docs.
+- Added `src/app/pages/docs/reference.page.ts` as a navigable API Reference grouped by product job:
+  basic motion, state/orchestration, interactions/gestures, scroll/layout/SVG, and helpers.
+- Added `src/app/pages/docs/presets.page.ts` with real examples for product UI reveals,
+  feedback/attention, and SVG icon presets.
+- Activated sidebar links for API Reference, Presets, and Layout.
+- Added a clear "How it works" explanation in the API Guide and home section:
+  Angular directives -> keyframe composition -> WAAPI -> final styles.
+- Added `e2e/docs.spec.ts` covering `/docs/api`, `/docs/reference`, `/docs/presets`, and the
+  package-manager selector in `/docs/get-started`.
+- Verified with `pnpm test:coverage`, `pnpm build`, and
+  `E2E_PORT=5174 pnpm exec playwright test`.
 
 Success criteria:
 
@@ -444,9 +450,8 @@ pack checks.
 For maximum product/docs impact:
 
 ```text
-Read plan.md and continue Phase 6: create a navigable API Reference for directives and presets,
-with real examples for motion-style states, variants, presence, SVG, drag, and scroll. Verify with
-pnpm build and pnpm e2e.
+Read plan.md and continue Phase 7: review package exports, npm README, changelog, and release
+checklist. Verify with ng build movement, pnpm run pack:check, pnpm build, and pnpm e2e.
 ```
 
 ## Current Status
@@ -495,12 +500,20 @@ Current technical status:
   - `moveSpringValue` provides spring-smoothed derived signals with disabled/immediate mode.
   - `moveScroll` and `moveParallax` both expose `progress` signals for derived values.
   - README and API Guide document signal-derived motion patterns.
+- Phase 6 is complete:
+  - Docs include a navigable API Reference and Presets page.
+  - Docs sidebar links to API Guide, API Reference, Presets, Basic Motion, Variants, Layout, SVG
+    Icons, Drag, and Scroll.
+  - Home, install docs, and install section share the npm/pnpm/yarn install selector.
+  - API Guide and home explain the runtime path: Angular directives -> composed keyframes -> WAAPI
+    -> committed final styles.
+  - e2e covers the new docs routes and package-manager selector.
 
 Latest known verification:
 
 - `pnpm test:coverage` passed with 26 test files and 186 tests.
 - `pnpm build` passed.
-- `E2E_PORT=5174 pnpm exec playwright test` passed with 19 tests.
+- `E2E_PORT=5174 pnpm exec playwright test` passed with 23 tests.
 
 Notes:
 

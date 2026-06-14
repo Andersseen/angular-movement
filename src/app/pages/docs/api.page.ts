@@ -50,6 +50,25 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           }
         </div>
 
+        <h2>How it works</h2>
+        <p>
+          Angular Movement is Angular-native at the template API level and powered by the browser
+          Web Animations API at runtime. Directives read Angular inputs and signals, compose
+          keyframes, run them through WAAPI, then commit final styles when the animation finishes.
+        </p>
+
+        <div class="not-prose my-8 grid gap-4 md:grid-cols-3">
+          @for (step of runtimeSteps; track step.title) {
+            <section class="border-border bg-surface rounded-lg border p-5">
+              <p class="text-accent mb-2 text-xs font-bold tracking-wider uppercase">
+                {{ step.stage }}
+              </p>
+              <h3 class="font-display text-text mb-2 text-lg font-bold">{{ step.title }}</h3>
+              <p class="text-text-muted text-sm leading-6">{{ step.description }}</p>
+            </section>
+          }
+        </div>
+
         <h2>First API to reach for</h2>
         <p>
           For app UI, prefer <code>moveInitial</code>, <code>moveAnimate</code>, and
@@ -131,12 +150,12 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
         </a>
 
         <a
-          routerLink="/demos"
+          routerLink="/docs/reference"
           class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
         >
           <span class="text-text-subtle text-sm font-medium">Next</span>
           <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            Try Demos <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
+            API Reference <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
           </span>
         </a>
       </div>
@@ -182,6 +201,24 @@ export default class ApiGuide {
       description:
         'Use WAAPI-powered SVG drawing, springs, and drag for distinctive product motion.',
       items: ['pathLength', 'pathOffset', 'transition', 'spring', 'moveDrag'],
+    },
+  ];
+
+  protected readonly runtimeSteps = [
+    {
+      stage: '1',
+      title: 'Declare',
+      description: 'Use directives and signal-driven inputs directly in Angular templates.',
+    },
+    {
+      stage: '2',
+      title: 'Compose',
+      description: 'Movement resolves presets, variants, transforms, SVG paths, and transitions.',
+    },
+    {
+      stage: '3',
+      title: 'Commit',
+      description: 'WAAPI plays the timeline and the engine writes the final styles back safely.',
     },
   ];
 

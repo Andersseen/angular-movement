@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'movement';
+import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 
 @Component({
   selector: 'app-hero',
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [...MOVEMENT_DIRECTIVES, InstallCommand],
   template: `
     <section
       class="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden pt-24 pb-16"
@@ -84,34 +85,13 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
           moveEnter="fade-up"
           [moveDelay]="400"
           [moveDuration]="600"
-          class="bg-code-bg border-border mx-auto flex w-full max-w-md items-center justify-between gap-6 rounded-xl border p-4"
+          class="mx-auto w-full max-w-md"
         >
-          <code class="text-text-muted flex-1 text-left font-mono text-sm select-all"
-            >npm install angular-movement</code
-          >
-          <button
-            type="button"
-            class="text-text-subtle hover:text-text hover:bg-surface-raised rounded-md p-2 transition-colors"
-            (click)="copyInstallCommand()"
-            aria-label="Copy install command"
-          >
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              ></path>
-            </svg>
-          </button>
+          <app-install-command [interactiveScale]="false" />
         </div>
       </div>
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Hero {
-  protected copyInstallCommand(): void {
-    navigator.clipboard.writeText('npm install angular-movement').catch(() => void 0);
-  }
-}
+export class Hero {}

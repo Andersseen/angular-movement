@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
+import { InstallCommand } from '../../shared/components/install-command/install-command';
 
 @Component({
   selector: 'app-docs-get-started',
-  imports: [RouterLink, CodeBlock],
+  imports: [RouterLink, CodeBlock, InstallCommand],
   template: `
     <article class="max-w-3xl">
       <div class="border-border mb-10 border-b pb-10">
@@ -25,20 +26,8 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
         <h2>1. Installation</h2>
         <p>Install the Angular Movement library using your preferred package manager.</p>
 
-        <div class="my-6 h-32">
-          <app-code-block title="Terminal" [code]="installCode">
-            <div class="absolute top-2 right-2 z-30 flex gap-2">
-              <button class="bg-surface text-text-muted hover:text-text rounded px-2 py-1 text-xs">
-                npm
-              </button>
-              <button class="text-text-subtle hover:text-text rounded px-2 py-1 text-xs">
-                pnpm
-              </button>
-              <button class="text-text-subtle hover:text-text rounded px-2 py-1 text-xs">
-                yarn
-              </button>
-            </div>
-          </app-code-block>
+        <div class="not-prose my-6 max-w-xl">
+          <app-install-command [interactiveScale]="false" />
         </div>
 
         <h2>2. Register the Provider</h2>
@@ -93,8 +82,6 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class GetStarted {
-  protected readonly installCode = `<span class="code-keyword">npm</span> install angular-movement`;
-
   protected readonly configCode = `<span class="code-comment">// app.config.ts</span>
 <span class="code-keyword">import</span> { ApplicationConfig } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
 <span class="code-keyword">import</span> { provideMovement } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;

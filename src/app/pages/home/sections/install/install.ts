@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 
 @Component({
   selector: 'app-install',
+  imports: [InstallCommand],
   template: `
     <section
       class="group relative mx-auto mb-16 max-w-7xl overflow-hidden rounded-3xl px-4 py-32 sm:px-6 lg:px-8"
@@ -25,27 +27,8 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </p>
 
         <!-- Install block -->
-        <div
-          class="bg-surface border-border flex w-full max-w-md items-center justify-between gap-6 rounded-xl border p-4 shadow-2xl transition-transform hover:scale-[1.02]"
-        >
-          <code class="text-text-muted flex-1 text-left font-mono text-sm select-all"
-            >npm install angular-movement</code
-          >
-          <button
-            type="button"
-            class="text-text-subtle hover:text-text hover:bg-surface-raised rounded-md p-2 transition-colors"
-            (click)="copyInstallCommand()"
-            aria-label="Copy install command"
-          >
-            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              ></path>
-            </svg>
-          </button>
+        <div class="w-full max-w-md">
+          <app-install-command />
         </div>
 
         <div class="mt-8 flex gap-4">
@@ -61,8 +44,4 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Install {
-  protected copyInstallCommand(): void {
-    navigator.clipboard.writeText('npm install angular-movement').catch(() => void 0);
-  }
-}
+export class Install {}

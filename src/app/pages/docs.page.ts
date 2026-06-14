@@ -43,7 +43,6 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
               </ul>
             </div>
 
-            <!-- Group 2 Placeholder -->
             <div>
               <h4
                 class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
@@ -62,6 +61,24 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                 </li>
                 <li>
                   <a
+                    routerLink="reference"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    API Reference
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="presets"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Presets
+                  </a>
+                </li>
+                <li>
+                  <a
                     routerLink="/demos/animate"
                     routerLinkActive="bg-accent/10 text-accent font-medium"
                     class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
@@ -76,6 +93,15 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                     class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
                   >
                     Variants
+                  </a>
+                </li>
+                <li>
+                  <a
+                    routerLink="/demos/layout"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Layout
                   </a>
                 </li>
               </ul>
