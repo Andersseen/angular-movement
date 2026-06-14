@@ -28,7 +28,7 @@ const directives: DirectiveInfo[] = [
   {
     name: 'MoveLeaveDirective',
     selector: '[moveLeave]',
-    description: 'Animate elements when they leave the DOM',
+    description: 'Animate elements before removal when used inside movePresence',
     inputs: [
       { name: 'moveLeave', type: 'MovePreset | MoveKeyframes', required: true },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },

@@ -1,5 +1,32 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- `moveDragSnapPoints` for snap-target drag interactions with axis-lock and constraint support.
+- Signals-native motion helpers: `moveValue`, `moveTransform`, and `moveSpringValue`.
+- `moveParallax` now exposes a `progress` signal, matching `moveScroll`.
+- Docs pages for API Reference and Presets, plus e2e coverage for docs routes.
+- Shared npm/pnpm/yarn install command selector across home and docs.
+- Release checklist for test, build, e2e, package, and publish checks.
+
+### Changed
+
+- Documentation now positions the package as an Angular-native API powered by the Web Animations
+  API.
+- Demo pages for layout, loop, target, SVG icons, and leave now better match production usage.
+- `moveLeave` examples now use `movePresence`, because direct `@if` / `*ngIf` removal happens
+  before an attribute directive can animate.
+
+### Fixed
+
+- Per-property transition composition now preserves string values such as `strokeDasharray`.
+- Transform and SVG properties such as `x`, `y`, `scale`, `rotate`, `blur`, and `pathLength` use
+  the same keyframe composition path as normal animations.
+- Layout animation handles browser guards, zero-size rects, disabled refresh, and no-player cleanup.
+- Removed unused `/api/generate` server endpoint.
+
 ## [0.4.0] - 2026-06-07
 
 ### Added

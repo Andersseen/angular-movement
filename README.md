@@ -134,6 +134,9 @@ Start with the smallest primitive that matches the job:
 | Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
 | Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
+`moveLeave` plays when a parent `movePresence` keeps the view alive during removal. A plain `@if`
+or `*ngIf` removes the element immediately, so there is no DOM node left to animate.
+
 ## Motion Values With Signals
 
 Use `moveValue`, `moveTransform`, and `moveSpringValue` when animation state should be derived from

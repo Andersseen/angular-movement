@@ -3,6 +3,7 @@ import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { MovePresenceDirective } from './move-presence.directive';
 import { MoveAnimateDirective } from './move-animate.directive';
+import { MoveLeaveDirective } from './move-leave.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -16,6 +17,18 @@ import { AnimationControls } from '../engines/animation-controls';
   imports: [MovePresenceDirective, MoveAnimateDirective],
 })
 class TestHostComponent {
+  show = signal(true);
+}
+
+@Component({
+  template: `
+    <ng-container *movePresence="show()">
+      <div [moveLeave]="'fade-up'" [moveDuration]="300">Leaving Child</div>
+    </ng-container>
+  `,
+  imports: [MovePresenceDirective, MoveLeaveDirective],
+})
+class LeaveHostComponent {
   show = signal(true);
 }
 
@@ -88,5 +101,33 @@ describe('MovePresenceDirective', () => {
     fixture.detectChanges();
 
     expect(fixture.nativeElement.textContent).toContain('Child');
+  });
+
+  it('should play moveLeave before removing the view', async () => {
+    const leaveFixture = TestBed.createComponent(LeaveHostComponent);
+    const engine = TestBed.inject(AnimationEngine);
+    const mockPlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    };
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(mockPlayer);
+
+    leaveFixture.componentInstance.show.set(true);
+    leaveFixture.detectChanges();
+    expect(leaveFixture.nativeElement.textContent).toContain('Leaving Child');
+
+    leaveFixture.componentInstance.show.set(false);
+    leaveFixture.detectChanges();
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(playSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ opacity: expect.any(Array), y: expect.any(Array) }),
+      expect.any(Object),
+    );
+    expect(leaveFixture.nativeElement.textContent).not.toContain('Leaving Child');
   });
 });

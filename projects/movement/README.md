@@ -142,6 +142,10 @@ const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
 
 ### Presence for exit transitions
 
+Use `movePresence` when Angular conditionally removes a view. `moveLeave` and `moveExit` need the
+view to stay in the DOM until the exit animation finishes; a direct `@if` / `*ngIf` removal happens
+too early for a normal attribute directive to animate.
+
 ```html
 <ng-container *movePresence="isOpen">
   <aside

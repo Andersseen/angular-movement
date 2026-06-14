@@ -71,4 +71,21 @@ test.describe('demo pages', () => {
       .evaluate((element) => (element as HTMLButtonElement).click());
     await expect(items.nth(5)).toHaveText(firstLabelBefore);
   });
+
+  test('leave demo keeps the element mounted until the exit animation finishes', async ({
+    page,
+  }) => {
+    await page.goto('/demos/leave');
+
+    const card = page.getByTestId('leave-demo-card');
+    await expect(card).toBeVisible();
+
+    await page
+      .getByTestId('leave-toggle-button')
+      .evaluate((element) => (element as HTMLButtonElement).click());
+
+    await expect(card).toBeAttached();
+    await expect(page.getByTestId('leave-hidden-message')).toBeVisible();
+    await expect(card).toBeHidden({ timeout: 1000 });
+  });
 });

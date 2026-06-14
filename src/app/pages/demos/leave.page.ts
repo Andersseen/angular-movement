@@ -9,9 +9,10 @@ import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/
   template: `
     <app-demo-container
       title="moveLeave"
-      description="Animate elements when they leave the DOM. Use with *ngIf or @if to trigger exit animations."
+      description="Animate elements before Angular removes them. Wrap conditional content in movePresence so moveLeave can play while the view is still in the DOM."
       directive="moveLeave"
       [availablePresets]="availablePresets"
+      [customCode]="leaveCode()"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
@@ -19,6 +20,7 @@ import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/
       <div preview class="flex h-full w-full flex-col items-center justify-center gap-4">
         <button
           (click)="toggleElement()"
+          data-testid="leave-toggle-button"
           class="text-accent hover:text-accent-light bg-accent/10 mb-4 flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors"
         >
           @if (showDemo()) {
@@ -44,12 +46,13 @@ import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/
           }
         </button>
 
-        @if (showDemo()) {
+        <ng-container *movePresence="showDemo()">
           <div
             [moveLeave]="preset()"
             [moveDuration]="duration()"
             [moveDelay]="delay()"
             [moveEasing]="easing()"
+            data-testid="leave-demo-card"
             class="bg-surface border-accent/40 flex w-full max-w-[280px] flex-col items-center justify-center gap-4 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] sm:p-8"
           >
             <div class="bg-accent/20 flex h-16 w-16 items-center justify-center rounded-full">
@@ -70,9 +73,11 @@ import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/
             <div class="font-display text-text text-xl font-bold">{{ presetLabel() }}</div>
             <div class="text-text-muted text-sm">{{ presetDescription() }}</div>
           </div>
-        } @else {
-          <div class="text-text-muted text-sm italic">
-            Element hidden. Click Show to see enter animation.
+        </ng-container>
+
+        @if (!showDemo()) {
+          <div data-testid="leave-hidden-message" class="text-text-muted text-sm italic">
+            Element hidden. Click Show to render it again.
           </div>
         }
       </div>
@@ -91,6 +96,18 @@ export default class DemoLeave {
 
   protected readonly presetLabel = () => getPresetLabel(this.preset());
   protected readonly presetDescription = () => getPresetDescription(this.preset(), 'leave');
+  protected readonly leaveCode = () => {
+    return `&lt;<span class="code-keyword">ng-container</span> *<span class="code-attr">movePresence</span>=<span class="code-string">"showCard()"</span>&gt;
+  &lt;<span class="code-keyword">article</span>
+    <span class="code-attr">moveLeave</span>=<span class="code-string">"${this.preset()}"</span>
+    <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
+    <span class="code-attr">moveDelay</span>=<span class="code-string">"${this.delay()}"</span>
+    <span class="code-attr">moveEasing</span>=<span class="code-string">"${this.easing()}"</span>
+  &gt;
+    Leaving card
+  &lt;/<span class="code-keyword">article</span>&gt;
+&lt;/<span class="code-keyword">ng-container</span>&gt;`;
+  };
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);
@@ -106,6 +123,6 @@ export default class DemoLeave {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    setTimeout(() => this.showDemo.set(true), this.duration() + this.delay() + 80);
   }
 }

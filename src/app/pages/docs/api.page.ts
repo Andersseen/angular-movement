@@ -85,8 +85,13 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           Use <code>[move]</code>, <code>moveEnter</code>, and <code>moveLeave</code> when a named
           preset is enough and you do not need stateful variants.
         </p>
+        <p>
+          For exits, wrap conditional content in <code>movePresence</code>. A direct
+          <code>&#64;if</code> or <code>*ngIf</code> removes the element before
+          <code>moveLeave</code> can run.
+        </p>
 
-        <div class="my-6 h-40">
+        <div class="my-6 h-64">
           <app-code-block title="preset.html" [code]="presetCode"></app-code-block>
         </div>
 
@@ -232,9 +237,15 @@ export default class ApiGuide {
   &lt;/<span class="code-keyword">article</span>&gt;
 &lt;/<span class="code-keyword">ng-container</span>&gt;`;
 
-  protected readonly presetCode = `&lt;<span class="code-keyword">section</span> [<span class="code-attr">move</span>]=<span class="code-string">"'fade-up'"</span>&gt;
+  protected readonly presetCode = `&lt;<span class="code-keyword">section</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"fade-up"</span>&gt;
   Content
-&lt;/<span class="code-keyword">section</span>&gt;`;
+&lt;/<span class="code-keyword">section</span>&gt;
+
+&lt;<span class="code-keyword">ng-container</span> *<span class="code-attr">movePresence</span>=<span class="code-string">"isOpen()"</span>&gt;
+  &lt;<span class="code-keyword">aside</span> <span class="code-attr">moveLeave</span>=<span class="code-string">"fade-down"</span>&gt;
+    Leaving panel
+  &lt;/<span class="code-keyword">aside</span>&gt;
+&lt;/<span class="code-keyword">ng-container</span>&gt;`;
 
   protected readonly variantsCode = `&lt;<span class="code-keyword">div</span>
   [<span class="code-attr">moveVariants</span>]=<span class="code-string">"{
