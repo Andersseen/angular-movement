@@ -1,6 +1,6 @@
 # angular-movement plan
 
-Last updated: 2026-06-12
+Last updated: 2026-06-14
 
 ## Objective
 
@@ -225,6 +225,8 @@ Success criteria:
 
 Goal: get closer to the magic of Framer Motion `layout`, with Angular constraints.
 
+Status: complete.
+
 Tasks:
 
 - Audit `move-layout.directive.ts`.
@@ -241,6 +243,32 @@ Tasks:
   - SSR/browser guards
 - Create a strong layout/reorder demo.
 - Add e2e or visual smoke tests.
+
+Done:
+
+- Audited `move-layout.directive.ts` and confirmed its FLIP strategy:
+  - First: keep the previous DOMRect snapshot.
+  - Last: read the current DOMRect after Angular render.
+  - Invert: animate from previous delta/scale to the new layout.
+  - Play: delegate the generated frames to `AnimationEngine`.
+- Added explicit browser guard with `PLATFORM_ID` / `isPlatformBrowser`.
+- Added zero-size rect protection to avoid invalid scale ratios.
+- Refreshed snapshots while layout animation is disabled or reduced motion is active, preventing
+  stale layout jumps when re-enabled.
+- Restored transform origin and internal state even when the animation engine returns no player.
+- Added `move-layout.directive.spec.ts` covering:
+  - position and size FLIP frames
+  - zero-sized rects
+  - disabled snapshot refresh
+  - no-player cleanup
+  - server platform guard
+- Improved the layout demo:
+  - deterministic reorder instead of random shuffle
+  - item-level `moveLayout`
+  - test ids and state attributes for e2e
+- Added an e2e smoke test for `/demos/layout` covering grid/list and reorder changes.
+- Verified with `pnpm test:coverage`, `pnpm build`, and
+  `E2E_PORT=5174 pnpm exec playwright test`.
 
 Success criteria:
 
@@ -355,9 +383,9 @@ Success criteria:
 For maximum technical impact:
 
 ```text
-Read plan.md and continue Phase 2: finish the variants API work so variants are the recommended
-state API. Keep compatibility, add tests, document the API, and verify with pnpm test:coverage and
-pnpm build.
+Read plan.md and continue Phase 4: audit move-drag.directive.ts and improve drag as a product
+feature. Focus on constraints, momentum/inertia, snap behavior, and tests. Keep compatibility and
+verify with pnpm test:coverage and pnpm build.
 ```
 
 For maximum product/docs impact:
@@ -394,12 +422,19 @@ Current technical status:
   - Variant-level `transition` overrides default `moveTransition`.
   - `moveExitVariant` lets variants participate in `movePresence` exits.
   - README and API Guide document the new variants behavior.
+- Phase 3 is complete:
+  - `moveLayout` has explicit browser guards, zero-size rect protection, disabled snapshot refresh,
+    and cleanup when no player is returned.
+  - Layout unit tests cover FLIP position/size, zero-size rects, disabled refresh, no-player cleanup,
+    and server platform behavior.
+  - The layout demo uses deterministic reorder and item-level `moveLayout`.
+  - e2e includes a `/demos/layout` grid/list/reorder smoke test.
 
 Latest known verification:
 
-- `pnpm test:coverage` passed with 24 test files and 168 tests.
+- `pnpm test:coverage` passed with 25 test files and 173 tests.
 - `pnpm build` passed.
-- `pnpm e2e` passed with 18 tests.
+- `E2E_PORT=5174 pnpm exec playwright test` passed with 19 tests.
 
 Notes:
 

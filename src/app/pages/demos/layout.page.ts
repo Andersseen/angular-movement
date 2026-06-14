@@ -23,6 +23,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
         <div class="flex gap-2">
           <button
             (click)="setLayout('grid')"
+            data-testid="layout-grid-button"
+            [attr.aria-pressed]="layout() === 'grid'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'grid'"
             [class.text-white]="layout() === 'grid'"
@@ -32,6 +34,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </button>
           <button
             (click)="setLayout('list')"
+            data-testid="layout-list-button"
+            [attr.aria-pressed]="layout() === 'list'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
             [class.bg-accent]="layout() === 'list'"
             [class.text-white]="layout() === 'list'"
@@ -41,6 +45,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </button>
           <button
             (click)="shuffle()"
+            data-testid="layout-shuffle-button"
             class="text-accent hover:text-accent-light bg-accent/10 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           >
             Shuffle
@@ -49,6 +54,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
         <div
           moveLayout
+          data-testid="layout-demo-items"
+          [attr.data-layout]="layout()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
           class="transition-all"
@@ -60,6 +67,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
         >
           @for (item of items(); track item.id) {
             <div
+              data-testid="layout-demo-item"
               class="bg-surface border-accent/40 font-display text-text flex items-center justify-center rounded-xl border p-4 font-bold"
               [class.h-20]="layout() === 'grid'"
               [class.w-20]="layout() === 'grid'"
@@ -109,7 +117,8 @@ export default class DemoLayout {
 
   protected shuffle(): void {
     const current = this.items();
-    const shuffled = [...current].sort(() => Math.random() - 0.5);
+    const [first, ...rest] = current;
+    const shuffled = first ? [...rest, first] : current;
     this.items.set(shuffled);
   }
 }
