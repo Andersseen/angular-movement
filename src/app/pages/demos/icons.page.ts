@@ -18,9 +18,9 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       [customCode]="iconsCode()"
       (stateChange)="onStateChange($event)"
     >
-      <div preview class="flex h-full w-full flex-col items-center justify-center gap-8">
+      <div preview class="relative flex h-full w-full items-center justify-center">
         <!-- Toggle -->
-        <div class="flex gap-2">
+        <div class="absolute top-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
           <button
             type="button"
             class="bg-accent hover:bg-accent-light rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
@@ -31,7 +31,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
         </div>
 
         <!-- Icon Grid -->
-        <div class="flex flex-wrap items-center justify-center gap-8">
+        <div class="grid grid-cols-2 place-items-center gap-x-16 gap-y-7">
           <!-- 1. Paperclip with pathLength + pathOffset -->
           <div class="flex flex-col items-center gap-2">
             <svg
@@ -155,9 +155,9 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           </div>
         </div>
 
-        <p class="text-text-muted max-w-md text-center text-sm">
-          pathLength is automatically converted to strokeDasharray/strokeDashoffset via
-          getTotalLength(). Per-property transitions let opacity fade faster than the stroke draws.
+        <p class="sr-only">
+          Each icon uses real SVG path drawing. The stroke is measured with getTotalLength(), then
+          WAAPI animates the generated dash values and commits the final visible state.
         </p>
       </div>
     </app-demo-container>
@@ -185,7 +185,7 @@ export default class DemoIcons {
     },
   });
 
-  protected readonly mailFrames = computed(() => movePathDraw({ opacity: [0, 0.72, 0] }));
+  protected readonly mailFrames = computed(() => movePathDraw({ opacity: [0, 0.72, 1] }));
 
   protected readonly mailTransition = computed(() => ({
     duration: this.duration(),
@@ -215,7 +215,7 @@ export default class DemoIcons {
 &lt;!-- Helper function --&gt;
 &lt;<span class="code-keyword">path</span>
   <span class="code-attr">[moveTarget]</span>=<span class="code-string">"animated()"</span>
-  <span class="code-attr">[moveFrames]</span>=<span class="code-string">"movePathDraw({ opacity: [0, 0.72, 0] })"</span>
+  <span class="code-attr">[moveFrames]</span>=<span class="code-string">"movePathDraw({ opacity: [0, 0.72, 1] })"</span>
   <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span> /&gt;`;
   });
 
