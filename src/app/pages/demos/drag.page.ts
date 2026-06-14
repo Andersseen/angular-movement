@@ -1,6 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, type MoveDragAxis } from 'movement';
+import { MOVEMENT_DIRECTIVES, type MoveDragAxis, type MoveDragSnapPoint } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
+  { x: -80, y: -56 },
+  { x: 0, y: 0 },
+  { x: 80, y: 56 },
+];
 
 @Component({
   selector: 'app-demo-drag',
@@ -18,6 +24,23 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
     >
       <!-- Preview -->
       <div preview class="relative flex h-full w-full items-center justify-center overflow-hidden">
+        @if (constrained()) {
+          <div
+            class="border-accent/35 bg-accent/5 pointer-events-none absolute h-48 w-64 rounded-2xl border border-dashed"
+            data-testid="drag-constraint-area"
+          ></div>
+        }
+
+        @if (snapPointsEnabled()) {
+          @for (point of snapPoints; track point.x + ':' + point.y) {
+            <span
+              class="bg-accent ring-background pointer-events-none absolute top-1/2 left-1/2 h-3 w-3 rounded-full ring-4"
+              [style.translate]="point.x + 'px ' + point.y + 'px'"
+              aria-hidden="true"
+            ></span>
+          }
+        }
+
         <div
           [moveDrag]="dragAxis()"
           [moveDragConstraints]="
@@ -25,7 +48,9 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           "
           [moveDragMomentum]="momentum()"
           [moveDragSnapToOrigin]="snapToOrigin()"
-          class="bg-surface border-accent/40 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
+          [moveDragSnapPoints]="snapPointsEnabled() ? snapPoints : undefined"
+          class="bg-surface border-accent/40 relative z-10 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
+          data-testid="drag-card"
         >
           <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
             <svg class="text-accent h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -83,13 +108,21 @@ export default class DemoDrag {
         label: 'Snap to Origin',
         value: false,
       },
+      {
+        id: 'snapPoints',
+        type: 'toggle' as const,
+        label: 'Snap Points',
+        value: false,
+      },
     ],
   };
 
+  protected readonly snapPoints = SNAP_POINTS;
   protected axis = signal<'free' | 'x' | 'y'>('free');
   protected constrained = signal(false);
   protected momentum = signal(false);
   protected snapToOrigin = signal(false);
+  protected snapPointsEnabled = signal(false);
 
   protected readonly dragAxis = computed<MoveDragAxis>(() => {
     const axis = this.axis();
@@ -102,6 +135,7 @@ export default class DemoDrag {
       this.constrained() ? 'constrained' : '',
       this.momentum() ? 'momentum' : '',
       this.snapToOrigin() ? 'snap origin' : '',
+      this.snapPointsEnabled() ? 'snap points' : '',
     ].filter(Boolean);
 
     return parts.join(' - ');
@@ -115,7 +149,10 @@ export default class DemoDrag {
       : '';
     const momentum = this.momentum() ? ' [moveDragMomentum]="true"' : '';
     const snap = this.snapToOrigin() ? ' [moveDragSnapToOrigin]="true"' : '';
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${axis}${constraints}${momentum}${snap}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    const snapPoints = this.snapPointsEnabled()
+      ? ' [moveDragSnapPoints]="[{ x: -80, y: -56 }, { x: 0, y: 0 }, { x: 80, y: 56 }]"'
+      : '';
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${axis}${constraints}${momentum}${snap}${snapPoints}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
   });
 
   protected onStateChange(state: DemoState): void {
@@ -123,5 +160,6 @@ export default class DemoDrag {
     this.constrained.set((state['constrained'] as boolean) ?? false);
     this.momentum.set((state['momentum'] as boolean) ?? false);
     this.snapToOrigin.set((state['snapToOrigin'] as boolean) ?? false);
+    this.snapPointsEnabled.set((state['snapPoints'] as boolean) ?? false);
   }
 }

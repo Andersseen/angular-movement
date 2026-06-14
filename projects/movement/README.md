@@ -14,7 +14,7 @@ animation, and presence/stagger orchestration.
 - Stagger support for list choreography
 - Motion-style variants and per-property transitions
 - SVG path drawing with `pathLength` and `pathOffset`
-- Drag gestures with constraints, elasticity, momentum, and snap-to-origin
+- Drag gestures with constraints, elasticity, momentum, snap-to-origin, and snap points
 - Works with modern standalone Angular apps
 - No `@angular/animations` setup required
 
@@ -78,7 +78,7 @@ export class DemoComponent {}
 | `[moveVariants]`                                 | Named states driven by string variant names.                          |
 | `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false. |
 | `[moveTrigger]`                                  | One-shot boolean triggers with reset/imperative controls.             |
-| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap-to-origin. |
+| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap behavior.  |
 | `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
 | `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
 
@@ -231,11 +231,15 @@ Use `moveTrigger` when `false` should reset instead of reversing:
   [moveDragConstraints]="{ left: -120, right: 120 }"
   [moveDragMomentum]="true"
   [moveDragElastic]="0.35"
+  [moveDragSnapPoints]="[{ x: -120, y: 0 }, { x: 0, y: 0 }, { x: 120, y: 0 }]"
   (moveDragEnd)="onDragEnd($event)"
 >
   Drag me
 </div>
 ```
+
+Use `moveWhileTap` for temporary press feedback. Use `moveDrag` when the element should follow the
+pointer and settle into a real position with constraints, momentum, snap-to-origin, or snap points.
 
 ### Scroll progress
 

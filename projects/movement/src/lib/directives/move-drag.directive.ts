@@ -11,6 +11,11 @@ export type MoveDragConstraints =
   | HTMLElement;
 export type MoveDragAxis = boolean | '' | 'x' | 'y';
 
+export interface MoveDragSnapPoint {
+  x: number;
+  y: number;
+}
+
 export interface MoveDragEvent {
   x: number;
   y: number;
@@ -34,6 +39,7 @@ export class MoveDragDirective implements OnDestroy {
   readonly moveDragElastic = input<number>(0.5);
   readonly moveDragMomentum = input<boolean>(false);
   readonly moveDragSnapToOrigin = input<boolean>(false);
+  readonly moveDragSnapPoints = input<readonly MoveDragSnapPoint[] | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly moveDragStart = output<MoveDragEvent>();
@@ -175,12 +181,44 @@ export class MoveDragDirective implements OnDestroy {
     if (this.moveDragSnapToOrigin()) {
       targetX = this.#resolveAxisValue(0, 'x');
       targetY = this.#resolveAxisValue(0, 'y');
-    } else if (this.#dragBounds) {
+    } else {
+      const snapPoint = this.#nearestSnapPoint(targetX, targetY);
+
+      if (snapPoint) {
+        targetX = snapPoint.x;
+        targetY = snapPoint.y;
+      }
+    }
+
+    if (this.#dragBounds) {
       targetX = this.#clampToBounds(targetX, 'x');
       targetY = this.#clampToBounds(targetY, 'y');
     }
 
     return { x: targetX, y: targetY };
+  }
+
+  #nearestSnapPoint(x: number, y: number): { x: number; y: number } | null {
+    const snapPoints = this.moveDragSnapPoints();
+    if (!snapPoints?.length) return null;
+
+    let nearest: { x: number; y: number } | null = null;
+    let nearestDistance = Number.POSITIVE_INFINITY;
+
+    for (const point of snapPoints) {
+      const candidateX = this.#resolveAxisValue(point.x, 'x');
+      const candidateY = this.#resolveAxisValue(point.y, 'y');
+      const dx = candidateX - x;
+      const dy = candidateY - y;
+      const distance = dx * dx + dy * dy;
+
+      if (distance < nearestDistance) {
+        nearest = { x: candidateX, y: candidateY };
+        nearestDistance = distance;
+      }
+    }
+
+    return nearest;
   }
 
   #visiblePosition(x: number, y: number): { x: number; y: number } {

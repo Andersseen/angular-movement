@@ -36,7 +36,7 @@ angular-movement addresses this with declarative directives and global configura
 - Spring physics support.
 - Interaction directives: hover, tap, focus, in-view, scroll, parallax, drag.
 - Advanced drag gestures with axis lock, constraints, elasticity, momentum,
-  snap-to-origin, and start/move/end outputs.
+  snap-to-origin, snap points, and start/move/end outputs.
 - Presence orchestration to let leave animations finish before DOM removal.
 - Stagger orchestration for coordinated list motion.
 - **SVG path drawing** with `pathLength` / `pathOffset` (WAAPI-powered).
@@ -137,7 +137,7 @@ Start with the smallest primitive that matches the job:
 ## Drag Gestures
 
 `moveDrag` supports free drag, axis-locked drag, constraints, elasticity,
-momentum, snap-to-origin, and output events:
+momentum, snap-to-origin, snap points, and output events:
 
 ```html
 <div
@@ -145,6 +145,7 @@ momentum, snap-to-origin, and output events:
   [moveDragConstraints]="{ left: -120, right: 120 }"
   [moveDragElastic]="0.35"
   [moveDragMomentum]="true"
+  [moveDragSnapPoints]="[{ x: -120, y: 0 }, { x: 0, y: 0 }, { x: 120, y: 0 }]"
   (moveDragStart)="onDragStart($event)"
   (moveDragMove)="onDragMove($event)"
   (moveDragEnd)="onDragEnd($event)"
@@ -152,6 +153,10 @@ momentum, snap-to-origin, and output events:
   Drag me
 </div>
 ```
+
+Use `moveWhileTap` for press feedback that returns when the pointer is released, such as button
+compression or a pressed card state. Use `moveDrag` when the element should follow the pointer and
+keep a real position, with optional constraints, momentum, snap-to-origin, or snap points.
 
 ### Path drawing
 

@@ -44,6 +44,46 @@ class SnapHostComponent {}
 class MomentumHostComponent {}
 
 @Component({
+  selector: 'move-drag-constrained-momentum-host',
+  template: `
+    <div
+      moveDrag
+      [moveDragConstraints]="{ left: -50, right: 50, top: -50, bottom: 50 }"
+      [moveDragMomentum]="true"
+    >
+      Constrained Momentum
+    </div>
+  `,
+  imports: [MoveDragDirective],
+})
+class ConstrainedMomentumHostComponent {}
+
+@Component({
+  selector: 'move-drag-snap-points-host',
+  template: ` <div moveDrag [moveDragSnapPoints]="snapPoints">Snap Points</div> `,
+  imports: [MoveDragDirective],
+})
+class SnapPointsHostComponent {
+  snapPoints = [
+    { x: 0, y: 0 },
+    { x: 80, y: 0 },
+    { x: 80, y: 80 },
+  ];
+}
+
+@Component({
+  selector: 'move-drag-axis-snap-points-host',
+  template: ` <div moveDrag="x" [moveDragSnapPoints]="snapPoints">Axis Snap Points</div> `,
+  imports: [MoveDragDirective],
+})
+class AxisSnapPointsHostComponent {
+  snapPoints = [
+    { x: 0, y: 0 },
+    { x: 80, y: 80 },
+  ];
+}
+
+@Component({
   selector: 'move-drag-output-host',
   template: `
     <div
@@ -232,25 +272,119 @@ describe('MoveDragDirective', () => {
 
     const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
     el.dispatchEvent(
-      new PointerEvent('pointerdown', {
+      pointerEvent('pointerdown', {
         button: 0,
         pointerId: 1,
         clientX: 100,
         clientY: 100,
+        timeStamp: 100,
       }),
     );
     el.dispatchEvent(
-      new PointerEvent('pointermove', {
+      pointerEvent('pointermove', {
         pointerId: 1,
         clientX: 120,
         clientY: 100,
+        timeStamp: 120,
       }),
     );
-    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 120, clientY: 100 }));
+    el.dispatchEvent(
+      pointerEvent('pointerup', { pointerId: 1, clientX: 120, clientY: 100, timeStamp: 121 }),
+    );
 
     const frames = playSpy.mock.calls[0][1] as { x: number[]; y: number[] };
     expect(frames.x[0]).toBe(20);
-    expect(frames.x[1]).toBeGreaterThan(20);
+    expect(frames.x[1]).toBe(200);
+  });
+
+  it('should clamp momentum to constraints on release', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [ConstrainedMomentumHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(ConstrainedMomentumHostComponent);
+    localFixture.detectChanges();
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      pointerEvent('pointerdown', {
+        button: 0,
+        pointerId: 1,
+        clientX: 100,
+        clientY: 100,
+        timeStamp: 100,
+      }),
+    );
+    el.dispatchEvent(
+      pointerEvent('pointermove', {
+        pointerId: 1,
+        clientX: 130,
+        clientY: 100,
+        timeStamp: 110,
+      }),
+    );
+    el.dispatchEvent(
+      pointerEvent('pointerup', { pointerId: 1, clientX: 130, clientY: 100, timeStamp: 111 }),
+    );
+
+    expect(playSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ x: [30, 50], y: [0, 0] }),
+      expect.any(Object),
+    );
+  });
+
+  it('should snap to the nearest configured snap point', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [SnapPointsHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(SnapPointsHostComponent);
+    localFixture.detectChanges();
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 165, clientY: 112 }));
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 165, clientY: 112 }));
+
+    expect(playSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ x: [65, 80], y: [12, 0] }),
+      expect.any(Object),
+    );
+  });
+
+  it('should keep locked axes at zero when snapping to configured points', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [AxisSnapPointsHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(AxisSnapPointsHostComponent);
+    localFixture.detectChanges();
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    const el = localFixture.nativeElement.querySelector('div') as HTMLElement;
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 165, clientY: 180 }));
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 165, clientY: 180 }));
+
+    expect(playSpy).toHaveBeenCalledWith(
+      expect.any(HTMLElement),
+      expect.objectContaining({ x: [65, 80], y: [0, 0] }),
+      expect.any(Object),
+    );
   });
 
   it('should emit start, move, and end events', () => {
@@ -275,3 +409,14 @@ describe('MoveDragDirective', () => {
     );
   });
 });
+
+function pointerEvent(type: string, init: PointerEventInit & { timeStamp?: number }): PointerEvent {
+  const { timeStamp, ...eventInit } = init;
+  const event = new PointerEvent(type, eventInit);
+
+  if (timeStamp !== undefined) {
+    Object.defineProperty(event, 'timeStamp', { value: timeStamp });
+  }
+
+  return event;
+}

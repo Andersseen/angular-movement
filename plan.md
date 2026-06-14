@@ -279,6 +279,8 @@ Success criteria:
 
 Goal: make drag feel like a product feature, not just pointer movement.
 
+Status: complete.
+
 Tasks:
 
 - Audit `move-drag.directive.ts`.
@@ -293,6 +295,33 @@ Tasks:
 - Improve tests for constraints and momentum.
 - Create a demo with a draggable card, visible constraints, and snap behavior.
 - Document the difference between `moveWhileTap` and `moveDrag`.
+
+Done:
+
+- Audited `move-drag.directive.ts` and confirmed the existing baseline:
+  - axis lock through `moveDrag="x"` / `moveDrag="y"`
+  - object and element constraints
+  - elasticity during overdrag
+  - optional momentum projection
+  - snap-to-origin
+  - start/move/end outputs
+- Added `moveDragSnapPoints` as a real public input.
+- Snap resolution now chooses the nearest configured point, respects axis locks, and clamps the
+  final target to constraints.
+- Strengthened drag tests for:
+  - deterministic momentum projection
+  - momentum clamped by constraints
+  - nearest snap point selection
+  - snap points with locked axes
+- Improved the drag demo with:
+  - visible constraint area
+  - visible snap points
+  - a Snap Points control
+  - updated live code output
+- Documented when to use `moveWhileTap` versus `moveDrag` in the root README, package README, and
+  API Guide.
+- Verified with `pnpm test:coverage`, `pnpm build`, and
+  `E2E_PORT=5174 pnpm exec playwright test`.
 
 Success criteria:
 
@@ -383,9 +412,8 @@ Success criteria:
 For maximum technical impact:
 
 ```text
-Read plan.md and continue Phase 4: audit move-drag.directive.ts and improve drag as a product
-feature. Focus on constraints, momentum/inertia, snap behavior, and tests. Keep compatibility and
-verify with pnpm test:coverage and pnpm build.
+Read plan.md and continue Phase 5: design a small Angular signals-native motion values layer.
+Prototype the API, add focused tests, and keep compatibility with the existing directive runtime.
 ```
 
 For maximum product/docs impact:
@@ -398,7 +426,7 @@ pnpm build and pnpm e2e.
 
 ## Current Status
 
-Date: 2026-06-12.
+Date: 2026-06-14.
 
 Repository status when this file was created:
 
@@ -429,10 +457,16 @@ Current technical status:
     and server platform behavior.
   - The layout demo uses deterministic reorder and item-level `moveLayout`.
   - e2e includes a `/demos/layout` grid/list/reorder smoke test.
+- Phase 4 is complete:
+  - `moveDrag` supports `moveDragSnapPoints`.
+  - Snap points work with axis locks and constraint clamping.
+  - Momentum behavior is covered with deterministic tests.
+  - The drag demo shows a visible constraint area and snap targets.
+  - README and API Guide explain the difference between `moveWhileTap` and `moveDrag`.
 
 Latest known verification:
 
-- `pnpm test:coverage` passed with 25 test files and 173 tests.
+- `pnpm test:coverage` passed with 25 test files and 176 tests.
 - `pnpm build` passed.
 - `E2E_PORT=5174 pnpm exec playwright test` passed with 19 tests.
 

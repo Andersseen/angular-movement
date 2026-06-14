@@ -97,6 +97,11 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           <code>delay</code> values. Different per-property <code>easing</code> values currently
           fall back to the global easing so WAAPI receives one composed timeline.
         </p>
+        <p>
+          Use <code>moveWhileTap</code> for temporary press feedback that returns on release. Use
+          <code>moveDrag</code> when the element should follow the pointer and settle into a real
+          position with constraints, momentum, snap-to-origin, or snap points.
+        </p>
 
         <div class="my-6 h-80">
           <app-code-block title="svg-draw.html" [code]="svgCode"></app-code-block>
