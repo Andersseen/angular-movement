@@ -86,6 +86,17 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           <app-code-block title="variants.html" [code]="variantsCode"></app-code-block>
         </div>
 
+        <h2>Derive motion values from signals</h2>
+        <p>
+          Use <code>moveValue</code>, <code>moveTransform</code>, and
+          <code>moveSpringValue</code> when motion should come from Angular signal state, scroll
+          progress, or a computed value instead of a fixed keyframe object.
+        </p>
+
+        <div class="my-6 h-72">
+          <app-code-block title="motion-values.ts" [code]="motionValuesCode"></app-code-block>
+        </div>
+
         <h2>Advanced features</h2>
         <p>
           Reach for SVG path drawing, per-property transitions, spring physics, drag, scroll,
@@ -197,6 +208,16 @@ export default class ApiGuide {
 &gt;
   Card
 &lt;/<span class="code-keyword">div</span>&gt;`;
+
+  protected readonly motionValuesCode = `<span class="code-keyword">const</span> progress = <span class="code-function">moveValue</span>(0);
+<span class="code-keyword">const</span> x = <span class="code-function">moveTransform</span>(progress, [0, 1], [0, 120]);
+<span class="code-keyword">const</span> scale = <span class="code-function">moveSpringValue</span>(
+  <span class="code-function">moveTransform</span>(progress, [0, 1], [0.9, 1])
+);
+
+<span class="code-keyword">const</span> transform = <span class="code-function">computed</span>(
+  () =&gt; <span class="code-string">\`translateX(\${x()}px) scale(\${scale()})\`</span>
+);`;
 
   protected readonly svgCode = `&lt;<span class="code-keyword">path</span>
   [<span class="code-attr">moveTarget</span>]=<span class="code-string">"draw()"</span>

@@ -331,6 +331,8 @@ Success criteria:
 
 Goal: create a reactive layer that feels native to Angular.
 
+Status: complete.
+
 Idea:
 
 - Something like motion values, but built around signals.
@@ -346,6 +348,28 @@ Tasks:
 - Prototype a small API with tests.
 - Integrate with `moveScroll` and `moveParallax`.
 - Document examples with `computed()`.
+
+Done:
+
+- Added a small exported signals-native API:
+  - `moveValue(initial)` returns a writable Angular signal.
+  - `moveTransform(source, inputRange, outputRange, options)` returns a derived `computed()` signal.
+  - `moveSpringValue(source, config)` returns a spring-smoothed readonly signal.
+- `moveTransform` supports:
+  - numeric interpolation
+  - multi-stop ranges
+  - default clamping
+  - optional extrapolation with `{ clamp: false }`
+  - matching CSS unit strings such as `px`
+  - discrete fallback for non-interpolable strings
+- `moveSpringValue` uses Angular `effect()` plus `requestAnimationFrame`, avoids tracking its own
+  internal value with `untracked()`, and supports disabled/immediate mode.
+- Exported the helpers from the package public API.
+- `moveScroll` already exposed `progress`; `moveParallax` now also exposes `progress` as a signal.
+- Added tests for the new values API and for `moveParallax.progress`.
+- Documented signal-derived motion in the root README, package README, and API Guide.
+- Verified with `pnpm test:coverage`, `pnpm build`, and
+  `E2E_PORT=5174 pnpm exec playwright test`.
 
 Success criteria:
 
@@ -412,8 +436,9 @@ Success criteria:
 For maximum technical impact:
 
 ```text
-Read plan.md and continue Phase 5: design a small Angular signals-native motion values layer.
-Prototype the API, add focused tests, and keep compatibility with the existing directive runtime.
+Read plan.md and continue Phase 7: add product-quality checks for release confidence. Start with
+visual/e2e smoke coverage for /docs/api and the strongest demos, then review package exports and
+pack checks.
 ```
 
 For maximum product/docs impact:
@@ -463,10 +488,17 @@ Current technical status:
   - Momentum behavior is covered with deterministic tests.
   - The drag demo shows a visible constraint area and snap targets.
   - README and API Guide explain the difference between `moveWhileTap` and `moveDrag`.
+- Phase 5 is complete:
+  - `moveValue`, `moveTransform`, and `moveSpringValue` are exported from the public API.
+  - Motion values are built on Angular signals and `computed()`.
+  - `moveTransform` covers numeric, multi-stop, unit-string, clamped, and extrapolated mappings.
+  - `moveSpringValue` provides spring-smoothed derived signals with disabled/immediate mode.
+  - `moveScroll` and `moveParallax` both expose `progress` signals for derived values.
+  - README and API Guide document signal-derived motion patterns.
 
 Latest known verification:
 
-- `pnpm test:coverage` passed with 25 test files and 176 tests.
+- `pnpm test:coverage` passed with 26 test files and 186 tests.
 - `pnpm build` passed.
 - `E2E_PORT=5174 pnpm exec playwright test` passed with 19 tests.
 

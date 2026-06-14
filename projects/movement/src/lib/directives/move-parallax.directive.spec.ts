@@ -128,5 +128,6 @@ describe('MoveParallaxDirective', () => {
     // windowHeight (500) - currentVirtualTop (0) = 500
     // p = 500 / totalDistance (600) = 0.8333
     expect(mockPlayer.currentTime).toBeCloseTo(833.3, 0);
+    expect(debugElement.injector.get(MoveParallaxDirective).progress()).toBeCloseTo(0.8333, 3);
   });
 });

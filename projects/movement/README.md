@@ -122,6 +122,24 @@ Start with the smallest primitive that matches the job:
 
 The object-based `[moveAnimation]` API is still available when you prefer a single config object.
 
+### Motion values with signals
+
+```ts
+import { computed } from '@angular/core';
+import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
+
+const progress = moveValue(0);
+const x = moveTransform(progress, [0, 1], [0, 120]);
+const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]));
+const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
+```
+
+`moveScroll` and `moveParallax` export a `progress` signal for derived values:
+
+```html
+<section #scroll="moveScroll" [moveScroll]="{ opacity: [0, 1] }">{{ scroll.progress() }}</section>
+```
+
 ### Presence for exit transitions
 
 ```html
