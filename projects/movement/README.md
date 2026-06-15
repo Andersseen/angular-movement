@@ -168,6 +168,8 @@ too early for a normal attribute directive to animate.
 </ul>
 ```
 
+For the compact form, bind the step directly: `<ul [moveStagger]="80">`.
+
 ### Motion-style variants
 
 Variants can be written as simple target states. When the active variant changes,

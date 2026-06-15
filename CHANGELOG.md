@@ -2,8 +2,11 @@
 
 ## Unreleased
 
+## [0.5.0] - 2026-06-15
+
 ### Added
 
+- `moveStaggerStep` as an explicit stagger interval alias, while keeping `[moveStagger]="80"`.
 - `moveDragSnapPoints` for snap-target drag interactions with axis-lock and constraint support.
 - Signals-native motion helpers: `moveValue`, `moveTransform`, and `moveSpringValue`.
 - `moveParallax` now exposes a `progress` signal, matching `moveScroll`.
@@ -21,6 +24,11 @@
 
 ### Fixed
 
+- Child `[move]` animations no longer get disabled by an ancestor `moveVariants`; only a same-host
+  `moveVariants` owns `moveAnimate`.
+- `movePresence` now cancels in-flight leave players when removal is interrupted by a quick toggle
+  back to visible.
+- The packaged npm artifact now includes the MIT license file.
 - Per-property transition composition now preserves string values such as `strokeDasharray`.
 - Transform and SVG properties such as `x`, `y`, `scale`, `rotate`, `blur`, and `pathLength` use
   the same keyframe composition path as normal animations.

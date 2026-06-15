@@ -14,7 +14,8 @@ export type MoveStaggerDirection = 'first' | 'last' | 'center';
   ],
 })
 export class MoveStaggerDirective implements MoveStaggerProvider {
-  readonly moveStagger = input.required<number | MoveSpring>();
+  readonly moveStagger = input<number | MoveSpring | ''>(100);
+  readonly moveStaggerStep = input<number | undefined>(undefined);
   readonly moveStaggerDirection = input<MoveStaggerDirection>('first');
 
   #children = new Set<HTMLElement>();
@@ -41,8 +42,7 @@ export class MoveStaggerDirective implements MoveStaggerProvider {
     const index = list.indexOf(el);
     if (index === -1) return 0;
 
-    const staggerConfig = this.moveStagger();
-    // If it's a spring config but used for stagger, default to 100ms or try to derive.
+    const staggerConfig = this.moveStaggerStep() ?? this.moveStagger();
     const staggerTime = typeof staggerConfig === 'number' ? staggerConfig : 100;
 
     const direction = this.moveStaggerDirection();

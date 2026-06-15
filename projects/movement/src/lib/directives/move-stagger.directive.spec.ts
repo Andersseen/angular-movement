@@ -81,6 +81,37 @@ describe('MoveStaggerDirective with direction=last', () => {
   });
 });
 
+describe('MoveStaggerDirective with moveStaggerStep alias', () => {
+  @Component({
+    template: `
+      <div moveStagger [moveStaggerStep]="80">
+        <div class="stagger-child">A</div>
+        <div class="stagger-child">B</div>
+        <div class="stagger-child">C</div>
+      </div>
+    `,
+    imports: [MoveStaggerDirective],
+  })
+  class StepAliasHostComponent {}
+
+  it('should compute stagger delays from moveStaggerStep', () => {
+    TestBed.configureTestingModule({ imports: [StepAliasHostComponent] });
+    const fixture = TestBed.createComponent(StepAliasHostComponent);
+    fixture.detectChanges();
+
+    const debugEl = fixture.debugElement.query(By.directive(MoveStaggerDirective));
+    const directive = debugEl.injector.get(MoveStaggerDirective);
+
+    const children = fixture.nativeElement.querySelectorAll('.stagger-child');
+    children.forEach((c: HTMLElement) => directive.register(c));
+
+    const delays = Array.from(children).map((c) => directive.getDelay(c as HTMLElement));
+    expect(delays).toEqual([0, 80, 160]);
+
+    TestBed.resetTestingModule();
+  });
+});
+
 describe('MoveStaggerDirective with direction=center', () => {
   @Component({
     template: `

@@ -2,6 +2,7 @@ import { InjectionToken } from '@angular/core';
 
 export interface MovePresenceChild {
   playLeave(): Promise<void> | void;
+  cancelLeave?(): void;
 }
 
 export interface MovePresenceProvider {

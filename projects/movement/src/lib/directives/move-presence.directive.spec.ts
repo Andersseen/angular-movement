@@ -79,7 +79,14 @@ describe('MovePresenceDirective', () => {
 
   it('should cancel removal if show toggles back quickly', async () => {
     const engine = TestBed.inject(AnimationEngine);
-    const mockPlayer: AnimationControls = {
+    const enterPlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    };
+    const leavePlayer: AnimationControls = {
       play: vi.fn(),
       pause: vi.fn(),
       cancel: vi.fn(),
@@ -88,10 +95,11 @@ describe('MovePresenceDirective', () => {
         /* intentionally never resolves */
       }),
     };
-    vi.spyOn(engine, 'play').mockReturnValue(mockPlayer);
+    vi.spyOn(engine, 'play').mockReturnValueOnce(enterPlayer).mockReturnValueOnce(leavePlayer);
 
     fixture.componentInstance.show.set(true);
     fixture.detectChanges();
+    await Promise.resolve();
 
     fixture.componentInstance.show.set(false);
     fixture.detectChanges();
@@ -100,6 +108,8 @@ describe('MovePresenceDirective', () => {
     fixture.componentInstance.show.set(true);
     fixture.detectChanges();
 
+    expect(enterPlayer.cancel).toHaveBeenCalledTimes(1);
+    expect(leavePlayer.cancel).toHaveBeenCalledTimes(1);
     expect(fixture.nativeElement.textContent).toContain('Child');
   });
 
