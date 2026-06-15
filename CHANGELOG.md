@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+### Added
+
+- Open source community files: contributing guide, code of conduct, support policy, security
+  policy, and roadmap.
+- GitHub issue forms, pull request template, and Dependabot configuration.
+
+### Changed
+
+- CI now has explicit permissions, concurrency, manual dispatch, and shared Node version config.
+- Cloudflare deploy now runs on `main` pushes and manual dispatch instead of all pull requests, so
+  external contributions are not blocked by missing deployment secrets.
+- README files now expose CI, npm, license, contribution, security, and roadmap entry points.
+
 ## [0.5.0] - 2026-06-15
 
 ### Added

@@ -17,7 +17,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Andersseen/angular-movement.git"
+    "url": "git+https://github.com/Andersseen/angular-movement.git",
+    "directory": "projects/movement"
   },
   "homepage": "https://github.com/Andersseen/angular-movement#readme",
   "bugs": {

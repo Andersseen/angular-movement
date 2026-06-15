@@ -1,0 +1,68 @@
+name: Bug report
+description: Report a reproducible problem in angular-movement.
+title: 'bug: '
+labels: ['bug', 'needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting a bug. A small reproduction is the fastest path to a fix.
+  - type: input
+    id: version
+    attributes:
+      label: angular-movement version
+      placeholder: '0.5.0'
+    validations:
+      required: true
+  - type: input
+    id: angular-version
+    attributes:
+      label: Angular version
+      placeholder: '21.2.0'
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Core animation engine
+        - Enter/leave/presence
+        - Variants/target/trigger
+        - Hover/tap/focus
+        - Scroll/parallax/in-view
+        - Drag/layout
+        - SVG/path drawing
+        - Docs/demo site
+        - Packaging/build
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link a repo, StackBlitz, or paste the smallest Angular template/component that shows the issue.
+      placeholder: |
+        <div [move]="'fade-up'">...</div>
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Browser and environment
+      placeholder: 'Chrome 126, macOS, SSR on/off, reduced motion on/off'
+    validations:
+      required: false

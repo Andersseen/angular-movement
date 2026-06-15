@@ -4,15 +4,11 @@ on:
   push:
     branches:
       - main
-  pull_request:
-    branches:
-      - main
   workflow_dispatch:
 
 permissions:
   contents: read
   deployments: write
-  pull-requests: write
 
 concurrency:
   group: cloudflare-pages-deploy-${{ github.ref }}
@@ -26,7 +22,7 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: ${{ github.event_name == 'pull_request' && 'Preview' || 'Production' }}
+      name: Production
 
     steps:
       - name: Checkout
