@@ -89,6 +89,11 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
 
     return this.#leavePlayer?.finished ?? Promise.resolve();
   }
+
+  cancelLeave(): void {
+    this.#leavePlayer?.cancel();
+    this.#leavePlayer = null;
+  }
 }
 
 function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): MoveKeyframes {

@@ -102,6 +102,11 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
     return this.#currentPlayer?.finished ?? Promise.resolve();
   }
 
+  cancelLeave(): void {
+    this.#currentPlayer?.cancel();
+    this.#currentPlayer = null;
+  }
+
   #playVariant(variantName: string): AnimationControls | null {
     const variants = this.moveVariants();
     if (!variants) return null;

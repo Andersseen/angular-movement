@@ -1,5 +1,9 @@
 # angular-movement
 
+[![CI](https://github.com/Andersseen/angular-movement/actions/workflows/ci.yml/badge.svg)](https://github.com/Andersseen/angular-movement/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/angular-movement.svg)](https://www.npmjs.com/package/angular-movement)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
 Angular motion ecosystem with two parts in one repository:
 
 - Reusable npm library for animation directives in Angular.
@@ -15,6 +19,13 @@ Repository structure:
 
 - Library package: projects/movement
 - Demo and docs app: src
+
+Community and maintenance:
+
+- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Roadmap: [ROADMAP.md](ROADMAP.md)
+- Security policy: [SECURITY.md](SECURITY.md)
+- Release checklist: [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
 
 ## What Problems It Solves
 

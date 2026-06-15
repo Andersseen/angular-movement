@@ -1,6 +1,6 @@
 {
   "name": "angular-movement",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "type": "module",
   "description": "Angular animation directives — presets, custom keyframes, spring physics, scroll & parallax.",
   "keywords": [
@@ -17,7 +17,8 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Andersseen/angular-movement.git"
+    "url": "git+https://github.com/Andersseen/angular-movement.git",
+    "directory": "projects/movement"
   },
   "homepage": "https://github.com/Andersseen/angular-movement#readme",
   "bugs": {

@@ -68,4 +68,9 @@ export class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild 
 
     return this.#player?.finished ?? Promise.resolve();
   }
+
+  cancelLeave(): void {
+    this.#player?.cancel();
+    this.#player = null;
+  }
 }

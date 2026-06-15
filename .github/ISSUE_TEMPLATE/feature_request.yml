@@ -1,0 +1,47 @@
+name: Feature request
+description: Suggest a new API, directive, preset, or behavior.
+title: 'feat: '
+labels: ['enhancement', 'needs triage']
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Good motion APIs start with a real UI use case. Please show where the feature would be used.
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: What product or UI problem should this solve?
+    validations:
+      required: true
+  - type: textarea
+    id: proposed-api
+    attributes:
+      label: Proposed API
+      description: Angular template examples are especially helpful.
+      placeholder: |
+        <div [moveNewFeature]="...">...</div>
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Core animation engine
+        - Directive API
+        - Presets
+        - Gesture/drag
+        - Scroll/layout
+        - SVG/icons
+        - Docs/demo site
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: How do you handle this today?
+    validations:
+      required: false

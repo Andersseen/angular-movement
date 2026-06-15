@@ -16,3 +16,13 @@ test('App loads and renders the Hero and Presets correctly', async ({ page }) =>
   const codeBlock = page.locator('app-code-block');
   await expect(codeBlock.first()).toBeVisible();
 });
+
+test('Templates page renders the landing example', async ({ page }) => {
+  await page.goto('/templates');
+
+  await expect(
+    page.getByRole('heading', { name: 'Launch polished Angular pages with motion built in.' }),
+  ).toBeVisible();
+  await expect(page.getByText('Standard landing blocks, Angular-native motion.')).toBeVisible();
+  await expect(page.getByText('Get the starter')).toBeVisible();
+});

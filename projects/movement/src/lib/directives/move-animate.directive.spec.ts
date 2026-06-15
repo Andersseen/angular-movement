@@ -59,6 +59,23 @@ class VariantHostComponent {
   };
 }
 
+@Component({
+  selector: 'move-animate-nested-variant-host',
+  template: `
+    <section [moveVariants]="variants" [moveAnimate]="activeVariant()">
+      <div [move]="'fade-up'">Nested Animate</div>
+    </section>
+  `,
+  imports: [MoveAnimateDirective, MoveVariantsDirective],
+})
+class NestedVariantHostComponent {
+  readonly activeVariant = signal('idle');
+  readonly variants = {
+    idle: { opacity: 1, scale: 1 },
+    active: { opacity: 0.75, scale: 1.08 },
+  };
+}
+
 describe('MoveAnimateDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let debugElement: DebugElement;
@@ -204,5 +221,25 @@ describe('MoveAnimateDirective', () => {
     expect(spy.mock.calls[0][1]).toEqual(
       expect.objectContaining({ opacity: [1, 1], scale: [1, 1] }),
     );
+  });
+
+  it('does not let parent moveVariants disable child move animations', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NestedVariantHostComponent],
+      providers: [provideMovement()],
+    });
+    const eng = TestBed.inject(AnimationEngine);
+    const spy = vi.spyOn(eng, 'play').mockReturnValue(null as unknown as AnimationControls);
+    const f = TestBed.createComponent(NestedVariantHostComponent);
+
+    f.detectChanges();
+    await Promise.resolve();
+
+    expect(spy).toHaveBeenCalledTimes(2);
+    expect(spy.mock.calls[0][1]).toEqual(
+      expect.objectContaining({ opacity: [1, 1], scale: [1, 1] }),
+    );
+    expect(spy.mock.calls[1][1]).toEqual(expect.objectContaining({ opacity: [0, 1], y: [24, 0] }));
   });
 });

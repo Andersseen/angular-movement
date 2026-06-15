@@ -40,7 +40,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly #engine = inject(AnimationEngine);
   readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
   readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
-  readonly #variantsParent = inject(MOVE_VARIANTS_PARENT, { optional: true });
+  readonly #variantsParent = inject(MOVE_VARIANTS_PARENT, { optional: true, self: true });
 
   #config = this.#defaults;
   #enterPlayer: AnimationControls | null = null;
@@ -104,6 +104,11 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
     });
 
     return this.#leavePlayer?.finished ?? Promise.resolve();
+  }
+
+  cancelLeave(): void {
+    this.#leavePlayer?.cancel();
+    this.#leavePlayer = null;
   }
 
   private resolveEnterFrames(): MoveKeyframes | null {

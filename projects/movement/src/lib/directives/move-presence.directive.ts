@@ -43,8 +43,8 @@ export class MovePresenceDirective implements MovePresenceProvider {
           this.#view = this.#viewContainer.createEmbeddedView(this.#template);
           this.#isRemoving = false;
         } else if (this.#isRemoving) {
-          // If we were removing, cancel the removal
           this.#isRemoving = false;
+          this.#cancelLeaveAnimations();
         }
       } else if (!show && this.#view && !this.#isRemoving) {
         this.#isRemoving = true;
@@ -82,6 +82,12 @@ export class MovePresenceDirective implements MovePresenceProvider {
       this.#view = null;
       this.#isRemoving = false;
       this.#children.clear();
+    }
+  }
+
+  #cancelLeaveAnimations(): void {
+    for (const child of this.#children) {
+      child.cancelLeave?.();
     }
   }
 }
