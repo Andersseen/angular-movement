@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Session Bootstrap (do this first)
+
+Extended agent documentation lives in `docs/ai/` — read it at the start of every session:
+
+1. `docs/ai/CONTEXT.md` — why the project exists and its goals
+2. `docs/ai/STATE.md` — current status, in-progress work, known gotchas (**update it when you finish a task**)
+3. `docs/ai/ARCHITECTURE.md` — file map, animation pipeline, directive/selector reference
+4. `docs/ai/BEST-PRACTICES.md` — mandatory coding rules with examples
+5. `docs/ai/SDD-WORKFLOW.md` — spec-driven workflow; non-trivial tasks need a spec in `docs/ai/specs/`
+
 ## Project Overview
 
 This is a monorepo containing two projects:
