@@ -1,7 +1,7 @@
 import { AnimationControls } from './animation-controls';
 import { MoveKeyframes } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
-import { composeKeyframeAt } from './keyframe-composer';
+import { composeElementKeyframes } from './keyframe-composer';
 
 export class WaapiPlayer implements AnimationControls {
   #animation: Animation | null = null;
@@ -24,7 +24,7 @@ export class WaapiPlayer implements AnimationControls {
 
     const keyframes = Array.isArray(frames)
       ? (frames as Keyframe[])
-      : this.#toWAAPIKeyframes(frames as MoveKeyframes);
+      : composeElementKeyframes(host, frames as MoveKeyframes);
     const iterations = config.iterations ?? 1;
 
     this.#animation = (host as HTMLElement).animate(keyframes, {
@@ -75,23 +75,5 @@ export class WaapiPlayer implements AnimationControls {
     if (this.#animation) {
       this.#animation.currentTime = time;
     }
-  }
-
-  #toWAAPIKeyframes(frames: MoveKeyframes): Keyframe[] {
-    let maxLength = 0;
-    for (const key in frames) {
-      const arr = frames[key as keyof MoveKeyframes];
-      if (Array.isArray(arr)) {
-        maxLength = Math.max(maxLength, arr.length);
-      }
-    }
-
-    if (maxLength === 0) return [];
-
-    const keyframes: Keyframe[] = [];
-    for (let i = 0; i < maxLength; i++) {
-      keyframes.push(composeKeyframeAt(frames, i));
-    }
-    return keyframes;
   }
 }

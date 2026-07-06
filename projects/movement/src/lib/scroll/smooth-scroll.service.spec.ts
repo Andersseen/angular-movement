@@ -183,4 +183,24 @@ describe('SmoothScrollService', () => {
     expect(addSpy).not.toHaveBeenCalled();
     expect(serverService.isActive).toBe(false);
   });
+
+  it('does not init when prefers-reduced-motion is active', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    );
+
+    const el = makeScrollEl();
+    const addSpy = vi.spyOn(el, 'addEventListener');
+    service.init({ element: el });
+
+    expect(addSpy).not.toHaveBeenCalled();
+    expect(service.isActive).toBe(false);
+
+    vi.unstubAllGlobals();
+  });
 });

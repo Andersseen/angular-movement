@@ -154,12 +154,14 @@ Use `moveValue`, `moveTransform`, and `moveSpringValue` when animation state sho
 Angular signals instead of fixed keyframes.
 
 ```ts
-import { computed } from '@angular/core';
+import { computed, inject, Injector } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
 
 const progress = moveValue(0);
 const x = moveTransform(progress, [0, 1], [0, 120]);
-const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]));
+const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
+  injector: inject(Injector),
+});
 const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
 ```
 

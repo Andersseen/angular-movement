@@ -113,6 +113,44 @@ describe('MovePresenceDirective', () => {
     expect(fixture.nativeElement.textContent).toContain('Child');
   });
 
+  it('should not remove the view if leave resolves after show toggles back', async () => {
+    const engine = TestBed.inject(AnimationEngine);
+    let resolveLeave: () => void = () => {
+      // resolved manually below
+    };
+    const leavePlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: new Promise((resolve) => {
+        resolveLeave = resolve;
+        // Intentionally deferred; we resolve manually after toggling back to visible.
+      }),
+    };
+    vi.spyOn(engine, 'play').mockReturnValue(leavePlayer);
+
+    fixture.componentInstance.show.set(true);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    // Toggle back before leave finishes
+    fixture.componentInstance.show.set(true);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    // Leave now resolves after the view has been recreated
+    resolveLeave();
+    await Promise.resolve();
+    await new Promise((r) => setTimeout(r, 50));
+
+    expect(fixture.nativeElement.textContent).toContain('Child');
+  });
+
   it('should play moveLeave before removing the view', async () => {
     const leaveFixture = TestBed.createComponent(LeaveHostComponent);
     const engine = TestBed.inject(AnimationEngine);

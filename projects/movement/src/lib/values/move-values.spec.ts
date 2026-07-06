@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, inject, Injector, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { vi } from 'vitest';
 import { moveSpringValue, moveTransform, moveValue } from './move-values';
@@ -14,6 +14,7 @@ class SpringHostComponent {
     damping: 18,
     precision: 0.001,
     restSpeed: 0.001,
+    injector: inject(Injector),
   });
 }
 
@@ -23,7 +24,7 @@ class SpringHostComponent {
 })
 class DisabledSpringHostComponent {
   source = signal(0);
-  spring = moveSpringValue(this.source, { disabled: true });
+  spring = moveSpringValue(this.source, { disabled: true, injector: inject(Injector) });
 }
 
 describe('move values', () => {
@@ -90,6 +91,14 @@ describe('move values', () => {
     expect(() => moveTransform(progress, [0, 1], [0])).toThrow(
       'moveTransform requires matching input and output ranges with at least two values.',
     );
+  });
+
+  it('throws when moveSpringValue is created without an injector', () => {
+    const source = signal(0);
+
+    expect(() =>
+      moveSpringValue(source, { stiffness: 100, damping: 10 } as unknown as { injector: Injector }),
+    ).toThrow('moveSpringValue requires an `injector`');
   });
 
   it('animates toward source changes with spring physics', () => {

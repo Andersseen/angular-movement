@@ -2,6 +2,7 @@ import { MoveKeyframes } from '../presets/presets.types';
 import {
   applyComposedStyle,
   clearComposedStyle,
+  composeElementKeyframes,
   composeInitialStyle,
   composeInterpolatedKeyframe,
   composeKeyframeAt,
@@ -81,6 +82,44 @@ describe('keyframe-composer', () => {
 
       expect(el.style.translate).toBe('');
       expect(el.style.transform).toBe('rotate(12deg)');
+    });
+  });
+
+  describe('composeElementKeyframes', () => {
+    let el: HTMLElement;
+
+    beforeEach(() => {
+      el = document.createElement('div');
+    });
+
+    it('uses atomic transform properties by default', () => {
+      const frames: MoveKeyframes = { x: [0, 100], opacity: [0, 1] };
+      const keyframes = composeElementKeyframes(el, frames);
+      expect(keyframes[0]).toEqual(expect.objectContaining({ translate: '0px 0px', opacity: 0 }));
+      expect(keyframes[1]).toEqual(expect.objectContaining({ translate: '100px 0px', opacity: 1 }));
+    });
+
+    it('composes on top of an existing inline transform', () => {
+      el.style.transform = 'translate(10px, 20px)';
+      const frames: MoveKeyframes = { x: [0, 100], opacity: [0, 1] };
+      const keyframes = composeElementKeyframes(el, frames);
+
+      expect((keyframes[0] as Record<string, unknown>)['transform']).toBe('translate(10px, 20px)');
+      expect((keyframes[1] as Record<string, unknown>)['transform']).toBe('translate(110px, 20px)');
+      expect(keyframes[0]['opacity']).toBe(0);
+    });
+
+    it('falls back to a composed transform when atomic and 3d transforms mix', () => {
+      const frames: MoveKeyframes = { x: [0, 100], rotateX: [0, 45], opacity: [0, 1] };
+      const keyframes = composeElementKeyframes(el, frames);
+
+      const first = (keyframes[0] as Record<string, unknown>)['transform'] as string;
+      const last = (keyframes[1] as Record<string, unknown>)['transform'] as string;
+
+      expect(first).toContain('perspective(1200px)');
+      expect(first).toContain('rotateX(0deg)');
+      expect(last).toContain('rotateX(45deg)');
+      expect(last).toContain('translate(100px, 0px)');
     });
   });
 });

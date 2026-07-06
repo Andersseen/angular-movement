@@ -5,7 +5,11 @@ import { WaapiPlayer } from './waapi-player';
 import { SpringPlayer } from './spring-player';
 import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/presets.types';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
-import { applyComposedStyle, composeFinalStyle } from './keyframe-composer';
+import {
+  applyComposedStyle,
+  composeElementKeyframes,
+  composeFinalStyle,
+} from './keyframe-composer';
 import { validateSpring } from '../directives/move-animation.utils';
 import { composeTransitionKeyframes } from './transition-composer';
 
@@ -95,6 +99,25 @@ export class AnimationEngine {
   }
 
   #applyFinalStyles(host: Element, frames: MoveKeyframes): void {
+    const inlineTransform = (host as HTMLElement).style.transform;
+    if (inlineTransform && inlineTransform !== 'none') {
+      const composed = composeElementKeyframes(host, frames);
+      if (composed.length > 0) {
+        const final = composed[composed.length - 1];
+        const record = final as Record<string, unknown>;
+        for (const key in record) {
+          const val = record[key];
+          if (val === undefined) continue;
+          if (key === 'transform' || key === 'opacity' || key === 'filter') {
+            (host as HTMLElement).style.setProperty(key, String(val));
+          } else {
+            (host as HTMLElement).style.setProperty(key, String(val));
+          }
+        }
+        return;
+      }
+    }
+
     applyComposedStyle(host, composeFinalStyle(frames));
   }
 

@@ -31,6 +31,7 @@ export class MovePresenceDirective implements MovePresenceProvider {
 
   #view: EmbeddedViewRef<unknown> | null = null;
   #isRemoving = false;
+  #removeToken = 0;
 
   readonly #children = new Set<MovePresenceChild>();
 
@@ -44,11 +45,13 @@ export class MovePresenceDirective implements MovePresenceProvider {
           this.#isRemoving = false;
         } else if (this.#isRemoving) {
           this.#isRemoving = false;
+          this.#removeToken += 1;
           this.#cancelLeaveAnimations();
         }
       } else if (!show && this.#view && !this.#isRemoving) {
         this.#isRemoving = true;
-        this.removeView();
+        this.#removeToken += 1;
+        this.removeView(this.#removeToken);
       }
     });
   }
@@ -61,7 +64,7 @@ export class MovePresenceDirective implements MovePresenceProvider {
     this.#children.delete(child);
   }
 
-  private async removeView(): Promise<void> {
+  private async removeView(token: number): Promise<void> {
     const promises: (Promise<void> | void)[] = [];
 
     // Trigger leave on all registered children
@@ -77,7 +80,9 @@ export class MovePresenceDirective implements MovePresenceProvider {
       // Ignore errors in animations
     }
 
-    if (this.#isRemoving && this.#view) {
+    // Only clear the view if this removal is still the active one.
+    // A quick toggle back to visible increments the token and cancels leaves.
+    if (token === this.#removeToken && this.#isRemoving && this.#view) {
       this.#viewContainer.clear();
       this.#view = null;
       this.#isRemoving = false;

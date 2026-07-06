@@ -45,6 +45,8 @@ Template directive (e.g. [moveWhileHover]="{ scale: [1, 1.1] }")
 
 `engines/keyframe-composer.ts` and `engines/transition-composer.ts` build WAAPI keyframes from
 `MoveKeyframes` (handling transform composition and per-property transitions).
+`engines/transform-state.ts` reads and writes composed CSS `transform` strings so `moveDrag`,
+`moveLayout`, and keyframe animations do not fight over inline styles.
 
 ## Directive reference (all 20 — selectors matter, several are NOT the obvious name)
 

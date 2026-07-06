@@ -20,7 +20,8 @@ export interface MoveSpringValueConfig extends MoveSpring {
   precision?: number;
   restSpeed?: number;
   disabled?: boolean;
-  injector?: Injector;
+  /** Required because `moveSpringValue` creates an `effect` that needs an injection context. */
+  injector: Injector;
 }
 
 export function moveValue<T>(initial: T): WritableSignal<T> {
@@ -65,8 +66,15 @@ export function moveTransform(
 
 export function moveSpringValue(
   source: Signal<number>,
-  config: MoveSpringValueConfig = {},
+  config: MoveSpringValueConfig = { injector: undefined! },
 ): Signal<number> {
+  if (!config.injector) {
+    throw new Error(
+      '[Movement] moveSpringValue requires an `injector` in its config. ' +
+        'Pass `inject(Injector)` from your component/service or provide an explicit injector.',
+    );
+  }
+
   const value = signal(config.initial ?? source());
   let velocity = config.velocity ?? 0;
   let rafId: number | null = null;

@@ -1,5 +1,6 @@
 import { MoveKeyframes } from '../presets/presets.types';
 import { DEFAULT_PERSPECTIVE } from '../constants';
+import { formatTransform, readTransformState, TransformState } from './transform-state';
 
 export interface ComposedKeyframe extends Keyframe {
   opacity?: number;
@@ -122,6 +123,168 @@ export function composeInitialStyle(frames: MoveKeyframes): ComposedKeyframe {
 
 export function composeFinalStyle(frames: MoveKeyframes): ComposedKeyframe {
   return buildKeyframe(frames, (arr) => (arr && arr.length > 0 ? arr[arr.length - 1] : undefined));
+}
+
+/**
+ * Converts a composed keyframe into a single `transform` string.
+ * Used when composing on top of an existing base transform.
+ */
+function keyframeToTransform(keyframe: ComposedKeyframe, base: TransformState): string {
+  const state: TransformState = { ...base };
+  const explicitTransform = keyframe.transform;
+  const hasExplicit3d = explicitTransform !== undefined;
+
+  if (keyframe.translate) {
+    const parts = keyframe.translate.split(' ').map((p) => parseFloat(p));
+    state.translateX += parts[0] ?? 0;
+    state.translateY += parts[1] ?? 0;
+  }
+
+  if (keyframe.scale) {
+    const parts = keyframe.scale.split(' ').map((p) => parseFloat(p));
+    const sx = parts[0] ?? 1;
+    const sy = parts[1] ?? sx;
+    state.scaleX *= sx;
+    state.scaleY *= sy;
+  }
+
+  if (keyframe.rotate) {
+    state.rotate += parseFloat(keyframe.rotate);
+  }
+
+  if (hasExplicit3d) {
+    // rotateX/Y are already expressed as a transform string; parse and add.
+    const rxMatch = /rotateX\(([^)]+)\)/.exec(explicitTransform);
+    const ryMatch = /rotateY\(([^)]+)\)/.exec(explicitTransform);
+    if (rxMatch) state.rotateX += parseFloat(rxMatch[1]);
+    if (ryMatch) state.rotateY += parseFloat(ryMatch[1]);
+  }
+
+  // When the keyframe defines 3d rotation, always emit perspective and the
+  // rotation functions so every keyframe has the same transform structure.
+  // This avoids WAAPI mismatch errors when animating from/to zero values.
+  if (hasExplicit3d) {
+    const parts: string[] = [`perspective(1200px)`];
+    if (state.translateX !== 0 || state.translateY !== 0) {
+      parts.push(`translate(${state.translateX}px, ${state.translateY}px)`);
+    }
+    if (state.rotate !== 0) parts.push(`rotate(${state.rotate}deg)`);
+    parts.push(`rotateX(${state.rotateX}deg)`);
+    parts.push(`rotateY(${state.rotateY}deg)`);
+    if (state.scaleX !== 1 || state.scaleY !== 1) {
+      parts.push(
+        state.scaleX === state.scaleY
+          ? `scale(${state.scaleX})`
+          : `scale(${state.scaleX}, ${state.scaleY})`,
+      );
+    }
+    return parts.join(' ');
+  }
+
+  return formatTransform(state);
+}
+
+function hasTransformConflict(frames: MoveKeyframes, keyframes: ComposedKeyframe[]): boolean {
+  const hasAtomic =
+    frames.x || frames.y || frames.scale || frames.scaleX || frames.scaleY || frames.rotate;
+  const hasTransform = frames.rotateX || frames.rotateY || keyframes.some((kf) => kf.transform);
+  return !!(hasAtomic && hasTransform);
+}
+
+function shouldComposeWithBase(
+  el: Element,
+  frames: MoveKeyframes,
+  keyframes: ComposedKeyframe[],
+): boolean {
+  const inlineTransform = (el as HTMLElement).style.transform;
+  if (inlineTransform && inlineTransform !== 'none') return true;
+  return hasTransformConflict(frames, keyframes);
+}
+
+/**
+ * Composes already-built keyframes on top of an element's base transform.
+ * Used by SpringPlayer which generates keyframes through interpolation.
+ */
+export function composeKeyframesWithBase(el: Element, keyframes: ComposedKeyframe[]): Keyframe[] {
+  if (keyframes.length === 0) return [];
+
+  const inlineTransform = (el as HTMLElement).style.transform;
+  const hasTransform = keyframes.some((kf) => kf.transform);
+  const hasAtomic = keyframes.some((kf) => kf.translate || kf.scale || kf.rotate);
+
+  if (!((inlineTransform && inlineTransform !== 'none') || (hasAtomic && hasTransform))) {
+    return keyframes as Keyframe[];
+  }
+
+  const base = readTransformState(el);
+
+  return keyframes.map((kf) => {
+    const result: Keyframe = {};
+
+    if (kf.opacity !== undefined) (result as Record<string, unknown>)['opacity'] = kf.opacity;
+    if (kf.filter !== undefined) (result as Record<string, unknown>)['filter'] = kf.filter;
+    (result as Record<string, unknown>)['transform'] = keyframeToTransform(kf, base);
+
+    for (const key in kf) {
+      if (['opacity', 'translate', 'scale', 'rotate', 'transform', 'filter'].includes(key))
+        continue;
+      const val = (kf as Record<string, unknown>)[key];
+      if (val !== undefined) {
+        (result as Record<string, unknown>)[key] = val;
+      }
+    }
+
+    return result;
+  });
+}
+
+/**
+ * Generates WAAPI-compatible keyframes for a specific element.
+ * If the element already has an inline `transform`, or if the frames mix
+ * atomic transform properties with 3D rotation, all transform-related values
+ * are composed into a single `transform` string so they do not fight with the
+ * element's existing transform state.
+ */
+export function composeElementKeyframes(el: Element, frames: MoveKeyframes): Keyframe[] {
+  let maxLength = 0;
+  for (const key in frames) {
+    const arr = frames[key as keyof MoveKeyframes];
+    if (Array.isArray(arr)) {
+      maxLength = Math.max(maxLength, arr.length);
+    }
+  }
+
+  if (maxLength === 0) return [];
+
+  const keyframes: ComposedKeyframe[] = [];
+  for (let i = 0; i < maxLength; i++) {
+    keyframes.push(composeKeyframeAt(frames, i));
+  }
+
+  const useComposedTransform = shouldComposeWithBase(el, frames, keyframes);
+  const base = useComposedTransform ? readTransformState(el) : null;
+
+  return keyframes.map((kf) => {
+    if (!useComposedTransform) return kf as Keyframe;
+
+    const result: Keyframe = {};
+
+    if (kf.opacity !== undefined) (result as Record<string, unknown>)['opacity'] = kf.opacity;
+    if (kf.filter !== undefined) (result as Record<string, unknown>)['filter'] = kf.filter;
+    (result as Record<string, unknown>)['transform'] = keyframeToTransform(kf, base!);
+
+    // Passthrough arbitrary non-transform properties.
+    for (const key in kf) {
+      if (['opacity', 'translate', 'scale', 'rotate', 'transform', 'filter'].includes(key))
+        continue;
+      const val = (kf as Record<string, unknown>)[key];
+      if (val !== undefined) {
+        (result as Record<string, unknown>)[key] = val;
+      }
+    }
+
+    return result;
+  });
 }
 
 const KNOWN_STYLE_KEYS = new Set([

@@ -162,7 +162,7 @@ describe('MoveDragDirective', () => {
     );
     el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 120, clientY: 130 }));
 
-    expect(el.style.translate).toBe('20px 30px');
+    expect(el.style.transform).toBe('translate(20px, 30px)');
   });
 
   it('should stop dragging on pointerup', () => {
@@ -185,8 +185,8 @@ describe('MoveDragDirective', () => {
     el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 200, clientY: 100 }));
 
     // 100px beyond bound with elastic 0.5 => 50 + 50*0.5 = 75
-    const translate = el.style.translate;
-    expect(translate).toContain('75px');
+    const transform = el.style.transform;
+    expect(transform).toContain('75px');
   });
 
   it('should cancel player and cleanup on destroy', () => {
@@ -231,7 +231,7 @@ describe('MoveDragDirective', () => {
     );
     el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: 120, clientY: 160 }));
 
-    expect(el.style.translate).toBe('20px 0px');
+    expect(el.style.transform).toBe('translate(20px, 0px)');
   });
 
   it('should snap back to origin when moveDragSnapToOrigin is true', () => {

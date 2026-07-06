@@ -7,6 +7,7 @@
 - Open source community files: contributing guide, code of conduct, support policy, security
   policy, and roadmap.
 - GitHub issue forms, pull request template, and Dependabot configuration.
+- `engines/transform-state.ts` and `composeElementKeyframes()` for unified transform composition.
 
 ### Changed
 
@@ -14,6 +15,17 @@
 - Cloudflare deploy now runs on `main` pushes and manual dispatch instead of all pull requests, so
   external contributions are not blocked by missing deployment secrets.
 - README files now expose CI, npm, license, contribution, security, and roadmap entry points.
+- `moveSpringValue` now requires `injector` in its config.
+- `SmoothScrollService` skips initialization when `prefers-reduced-motion` is active.
+- `moveText` is now reactive to input changes.
+
+### Fixed
+
+- Transform composition between `moveLayout`, `moveDrag`, and keyframe animations now uses a single
+  composed `transform` channel, avoiding fights over inline styles.
+- `moveDrag` guards against detached elements during pointer events and release animations.
+- `movePresence` no longer removes a recreated view if a stale leave promise resolves after a quick
+  toggle back to visible.
 
 ## [0.5.0] - 2026-06-15
 

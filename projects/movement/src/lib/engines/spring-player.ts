@@ -1,6 +1,6 @@
 import { AnimationControls } from './animation-controls';
 import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
-import { composeInterpolatedKeyframe } from './keyframe-composer';
+import { composeInterpolatedKeyframe, composeKeyframesWithBase } from './keyframe-composer';
 import {
   SIMULATION_MAX_ITERATIONS,
   SIMULATION_SETTLED_THRESHOLD,
@@ -44,7 +44,8 @@ export class SpringPlayer implements AnimationControls {
       ...userConfig,
     };
 
-    const keyframes = this.#generateSpringKeyframes(frames, config);
+    const generatedKeyframes = this.#generateSpringKeyframes(frames, config);
+    const keyframes = composeKeyframesWithBase(this.host, generatedKeyframes);
 
     if (keyframes.length === 0) {
       this.#resolveFinished();

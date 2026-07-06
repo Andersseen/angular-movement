@@ -5,6 +5,11 @@ import { MoveSpring } from '../presets/presets.types';
 import { prefersReducedMotion, validateDragElastic } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import {
+  applyComposedTransform,
+  readTransformState,
+  TransformState,
+} from '../engines/transform-state';
 
 export type MoveDragConstraints =
   | { top?: number; right?: number; bottom?: number; left?: number }
@@ -62,6 +67,7 @@ export class MoveDragDirective implements OnDestroy {
 
   #_x = 0;
   #_y = 0;
+  #baseTransform: TransformState | null = null;
 
   #dragBounds: { top?: number; right?: number; bottom?: number; left?: number } | null = null;
   #player: AnimationControls | null = null;
@@ -75,8 +81,9 @@ export class MoveDragDirective implements OnDestroy {
     }
 
     this.#player?.cancel();
-    // read bounds cleanly before next render
+    // read bounds and base transform cleanly before we start mutating styles
     this.#dragBounds = this.resolveBounds();
+    this.#baseTransform = readTransformState(this.#host.nativeElement);
 
     this.#startX = e.clientX - this.#_x;
     this.#startY = e.clientY - this.#_y;
@@ -94,6 +101,10 @@ export class MoveDragDirective implements OnDestroy {
 
   onPointerMove(e: PointerEvent) {
     if (!this.#isDragging || e.pointerId !== this.#pointerId) return;
+    if (!this.#host.nativeElement.isConnected) {
+      this.onPointerUp(e);
+      return;
+    }
 
     const now = e.timeStamp || performance.now();
     const dt = Math.max(1, now - this.#lastMoveTime);
@@ -119,15 +130,20 @@ export class MoveDragDirective implements OnDestroy {
     if (!this.#isDragging || e.pointerId !== this.#pointerId) return;
     this.#isDragging = false;
     if (typeof this.#host.nativeElement.releasePointerCapture === 'function') {
-      this.#host.nativeElement.releasePointerCapture(e.pointerId);
+      try {
+        this.#host.nativeElement.releasePointerCapture(e.pointerId);
+      } catch {
+        // Element may already be detached
+      }
     }
     this.#pointerId = null;
 
-    this.#host.nativeElement.style.touchAction = '';
-    this.#host.nativeElement.style.userSelect = '';
-
-    this.moveDragEnd.emit(this.#createDragEvent(e, 0, 0));
-    this.finishDrag();
+    if (this.#host.nativeElement.isConnected) {
+      this.#host.nativeElement.style.touchAction = '';
+      this.#host.nativeElement.style.userSelect = '';
+      this.moveDragEnd.emit(this.#createDragEvent(e, 0, 0));
+      this.finishDrag();
+    }
   }
 
   private resolveBounds() {
@@ -156,7 +172,11 @@ export class MoveDragDirective implements OnDestroy {
 
   private applyTransform() {
     const { x, y } = this.#visiblePosition(this.#_x, this.#_y);
-    this.#host.nativeElement.style.translate = `${x}px ${y}px`;
+    applyComposedTransform(
+      this.#host.nativeElement,
+      { translateX: x, translateY: y },
+      this.#baseTransform ?? undefined,
+    );
   }
 
   private finishDrag() {
@@ -263,6 +283,8 @@ export class MoveDragDirective implements OnDestroy {
   }
 
   #animateTo(fromX: number, fromY: number, toX: number, toY: number): void {
+    if (!this.#host.nativeElement.isConnected) return;
+
     this.#player = this.#engine.play(
       this.#host.nativeElement,
       {

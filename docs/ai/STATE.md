@@ -6,7 +6,7 @@
 **Last updated:** 2026-07-06
 **Library version:** `0.5.0` (published to npm as `angular-movement`, released 2026-06-15)
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` is the default and deploy branch; working tree clean at last update.
+**Branch state:** `main` is the default and deploy branch; working tree has critical fixes in progress.
 **Roadmap phase:** post-0.5 → working toward **0.6 "API hardening"** (see `ROADMAP.md`)
 
 ## What is DONE and stable
@@ -23,8 +23,15 @@
 
 ## In progress / recently merged (CHANGELOG "Unreleased")
 
+- Transform composition hardening: new `engines/transform-state.ts` + `composeElementKeyframes()` so
+  `moveDrag`, `moveLayout`, and keyframe animations share a single composed `transform` channel.
+- `moveSpringValue` now requires `injector` in its config (throws a clear error if missing).
+- `SmoothScrollService` respects `prefers-reduced-motion` and no longer overrides native scroll.
+- `moveDrag` guards against detached elements during drag/release and uses composed transforms.
+- `movePresence` race condition fixed: removal token prevents a stale leave promise from clearing a
+  view that was already recreated.
+- `moveText` is now reactive to input changes via `effect()`.
 - Community/CI hardening work is in `CHANGELOG.md → Unreleased` but not yet in an npm release.
-- Recent commits on `main`: template additions, best-practice docs, library updates (`git log` for detail).
 
 ## Next up (priority order)
 
@@ -40,8 +47,8 @@
 
 - `moveLeave` on its own cannot animate elements removed by `@if` — removal happens before the
   directive can run. Correct usage pairs it with `*movePresence`. Demo pages already reflect this.
-- Transform composition between `moveLayout` / `moveDrag` / keyframes is a known weak point (roadmap 0.6 item).
-- Some directives read their inputs once at init; making them reactive is a roadmap item, not a bug to hotfix.
+- Some directives still read certain inputs once at init; making them fully reactive is a roadmap
+  item, not a bug to hotfix.
 
 ## Release process (when asked to release)
 

@@ -1,5 +1,6 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
-import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
+import { inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
+import { prefersReducedMotion } from '../directives/move-animation.utils';
 
 /**
  * SmoothScrollService — Lenis-inspired smooth scroll for Angular.
@@ -22,7 +23,6 @@ import { inject, Injectable, NgZone, OnDestroy, PLATFORM_ID, signal } from '@ang
 export class SmoothScrollService implements OnDestroy {
   readonly #document = inject(DOCUMENT);
   readonly #platformId = inject(PLATFORM_ID);
-  readonly #zone = inject(NgZone);
 
   /** Lerp factor — lower = smoother/slower, higher = snappier. Range 0–1. */
   #lerp = 0.1;
@@ -101,25 +101,28 @@ export class SmoothScrollService implements OnDestroy {
     if (!isPlatformBrowser(this.#platformId)) return;
     if (this.#isRunning) return;
 
+    // Respect user motion preferences: smooth scroll overrides native scroll,
+    // which can be disorienting for users who prefer reduced motion.
+    if (prefersReducedMotion(this.#document)) {
+      return;
+    }
+
     this.#lerp = options.lerp ?? 0.1;
     this.#scrollElement = options.element ?? this.#document.documentElement;
     this.#currentY = this.#scrollElement.scrollTop;
     this.#targetY = this.#currentY;
 
-    // Run entirely outside Angular zone to avoid change detection on every RAF
-    this.#zone.runOutsideAngular(() => {
-      const el = this.#scrollElement!;
+    const el = this.#scrollElement;
 
-      el.addEventListener('wheel', this.#onWheel, { passive: false });
+    el.addEventListener('wheel', this.#onWheel, { passive: false });
 
-      // Touch events must also be non-passive to call preventDefault()
-      el.addEventListener('touchstart', this.#onTouchStart, { passive: true });
-      el.addEventListener('touchmove', this.#onTouchMove, { passive: false });
-      el.addEventListener('touchend', this.#onTouchEnd, { passive: true });
+    // Touch events must also be non-passive to call preventDefault()
+    el.addEventListener('touchstart', this.#onTouchStart, { passive: true });
+    el.addEventListener('touchmove', this.#onTouchMove, { passive: false });
+    el.addEventListener('touchend', this.#onTouchEnd, { passive: true });
 
-      this.#isRunning = true;
-      this.#tick();
-    });
+    this.#isRunning = true;
+    this.#tick();
   }
 
   destroy(): void {
