@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, type MoveDragAxis, type MoveDragSnapPoint } from 'movement';
+import { MoveDragDirective, type MoveDragAxis, type MoveDragSnapPoint } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
@@ -10,7 +10,7 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
 
 @Component({
   selector: 'app-demo-drag',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveDragDirective],
   template: `
     <app-demo-container
       title="moveDrag"

@@ -6,32 +6,28 @@ import {
   SIMULATION_SETTLED_THRESHOLD,
   SIMULATION_TICK_RATE,
 } from '../constants';
+import { BaseAnimationPlayer } from './base-player';
+import { movementWarn } from '../dev-warn';
 
-export class SpringPlayer implements AnimationControls {
-  #resolveFinished!: () => void;
-  public readonly finished = new Promise<void>((resolve) => {
-    this.#resolveFinished = resolve;
-  });
-
-  #animation: Animation | null = null;
-
+export class SpringPlayer extends BaseAnimationPlayer implements AnimationControls {
   constructor(
     private readonly host: Element,
     private readonly frames: MoveKeyframes,
     userConfig: MoveSpring,
     private readonly delay: number,
     private readonly iterations = 1,
-    private readonly onDone?: () => void,
+    onDone?: () => void,
   ) {
+    super();
+
     if (typeof (host as HTMLElement).animate !== 'function') {
-      this.#resolveFinished();
-      onDone?.();
+      this.resolveAndCleanup(onDone);
       return;
     }
 
-    if (this.iterations !== 1 && typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn(
-        '[Movement] Spring animations with iterations !== 1 may produce visual glitches. ' +
+    if (this.iterations !== 1) {
+      movementWarn(
+        'Spring animations with iterations !== 1 may produce visual glitches. ' +
           'Consider using WaapiPlayer (no spring) for loops.',
       );
     }
@@ -48,8 +44,7 @@ export class SpringPlayer implements AnimationControls {
     const keyframes = composeKeyframesWithBase(this.host, generatedKeyframes);
 
     if (keyframes.length === 0) {
-      this.#resolveFinished();
-      onDone?.();
+      this.resolveAndCleanup(onDone);
       return;
     }
 
@@ -58,7 +53,7 @@ export class SpringPlayer implements AnimationControls {
     // Let's assume tick rate is 16.66ms (60fps simulation)
     const duration = keyframes.length * SIMULATION_TICK_RATE;
 
-    this.#animation = (host as HTMLElement).animate(keyframes, {
+    const animation = (host as HTMLElement).animate(keyframes, {
       duration,
       delay: this.delay,
       fill: 'both',
@@ -68,44 +63,11 @@ export class SpringPlayer implements AnimationControls {
 
     if (this.iterations === Infinity) {
       // Infinite loops never finish; consumer must call cancel() manually.
+      this.attachAnimation(animation);
       return;
     }
 
-    this.#animation.addEventListener(
-      'finish',
-      () => {
-        this.#animation?.commitStyles?.();
-        this.#animation?.cancel();
-        this.#resolveFinished();
-        onDone?.();
-      },
-      { once: true },
-    );
-  }
-
-  play(): void {
-    this.#animation?.play();
-  }
-
-  pause(): void {
-    this.#animation?.pause();
-  }
-
-  cancel(): void {
-    if (this.#animation?.playState !== 'idle') {
-      this.#animation?.cancel();
-    }
-    this.#resolveFinished();
-  }
-
-  get currentTime(): number {
-    return (this.#animation?.currentTime as number) ?? 0;
-  }
-
-  set currentTime(time: number) {
-    if (this.#animation) {
-      this.#animation.currentTime = time;
-    }
+    this.attachAnimation(animation, onDone);
   }
 
   #generateSpringKeyframes(frames: MoveKeyframes, config: MoveSpring): Keyframe[] {

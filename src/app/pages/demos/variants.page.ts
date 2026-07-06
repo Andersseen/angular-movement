@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MoveVariant } from 'movement';
+import { MoveAnimateDirective, MoveVariantsDirective, MoveVariant } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-variants',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveVariantsDirective, MoveAnimateDirective],
   template: `
     <app-demo-container
       title="moveVariants"

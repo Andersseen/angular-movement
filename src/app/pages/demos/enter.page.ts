@@ -1,11 +1,11 @@
 import { Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveEnterDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-enter',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveEnterDirective],
   template: `
     <app-demo-container
       title="moveEnter"

@@ -6,12 +6,21 @@ import {
 
 export { clearComposedStyle } from '../engines/keyframe-composer';
 import { MOVE_PRESETS } from '../presets/presets';
-import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import {
+  MoveKeyframeState,
+  MoveKeyframes,
+  MovePreset,
+  MoveSpring,
+  MoveValuePair,
+} from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
+import { movementWarn } from '../dev-warn';
 
 export type MovePhase = 'enter' | 'leave' | 'loop';
 
 export type MoveDirectiveInput = MovePreset | MoveKeyframes;
+
+export type MoveKeyframeStateInput = string | MoveKeyframes | MoveKeyframeState | undefined;
 
 export interface MoveInputOverrides {
   duration?: number;
@@ -26,9 +35,9 @@ export function resolveMovementConfig(
   overrides: MoveInputOverrides,
   reducedMotion: boolean,
 ): MovementConfig {
-  if (reducedMotion && typeof ngDevMode !== 'undefined' && ngDevMode) {
-    console.warn(
-      '[Movement] Animations disabled: prefers-reduced-motion is active. ' +
+  if (reducedMotion) {
+    movementWarn(
+      'Animations disabled: prefers-reduced-motion is active. ' +
         'Disable "Reduce motion" in your OS accessibility settings to see animations.',
     );
   }
@@ -46,9 +55,7 @@ export function resolveMoveFrames(value: MoveDirectiveInput, phase: MovePhase): 
   if (typeof value === 'string') {
     const preset = MOVE_PRESETS[value];
     if (!preset) {
-      if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-        console.warn(`[Movement] Unknown preset: "${value}". Using "none" preset.`);
-      }
+      movementWarn(`Unknown preset: "${value}". Using "none" preset.`);
       return MOVE_PRESETS['none'][phase] ?? MOVE_PRESETS['none'].enter;
     }
     return preset[phase] ?? preset.enter;
@@ -109,22 +116,22 @@ export function validateSpring(spring: MoveSpring | undefined): MoveSpring | und
   const validated: MoveSpring = {};
 
   if (spring.stiffness !== undefined) {
-    if (spring.stiffness <= 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn('[Movement] Spring stiffness must be > 0. Using default.');
+    if (spring.stiffness <= 0) {
+      movementWarn('Spring stiffness must be > 0. Using default.');
     }
     validated.stiffness = spring.stiffness > 0 ? spring.stiffness : 100;
   }
 
   if (spring.damping !== undefined) {
-    if (spring.damping < 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn('[Movement] Spring damping must be >= 0. Using default.');
+    if (spring.damping < 0) {
+      movementWarn('Spring damping must be >= 0. Using default.');
     }
     validated.damping = spring.damping >= 0 ? spring.damping : 10;
   }
 
   if (spring.mass !== undefined) {
-    if (spring.mass <= 0 && typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn('[Movement] Spring mass must be > 0. Using default.');
+    if (spring.mass <= 0) {
+      movementWarn('Spring mass must be > 0. Using default.');
     }
     validated.mass = spring.mass > 0 ? spring.mass : 1;
   }
@@ -143,11 +150,9 @@ export function validateSpring(spring: MoveSpring | undefined): MoveSpring | und
 export function isValidScrollOffset(offset: string): boolean {
   const parts = offset.split(' ').map(parseFloat);
   if (parts.length !== 2 || parts.some(Number.isNaN)) {
-    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn(
-        `[Movement] Invalid scroll offset: "${offset}". Expected format "elFraction viewFraction" (e.g. "0 1").`,
-      );
-    }
+    movementWarn(
+      `Invalid scroll offset: "${offset}". Expected format "elFraction viewFraction" (e.g. "0 1").`,
+    );
     return false;
   }
   return true;
@@ -158,12 +163,39 @@ export function isValidScrollOffset(offset: string): boolean {
  */
 export function validateDragElastic(elastic: number): number {
   if (elastic < 0 || elastic > 1) {
-    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn(
-        `[Movement] Drag elastic must be between 0 and 1. Got ${elastic}. Clamping to range.`,
-      );
-    }
+    movementWarn(`Drag elastic must be between 0 and 1. Got ${elastic}. Clamping to range.`);
     return Math.max(0, Math.min(1, elastic));
   }
   return elastic;
+}
+
+export function isMovePresetOrKeyframes(
+  value: MoveKeyframeStateInput,
+): value is MovePreset | MoveKeyframes {
+  return typeof value === 'string' || hasArrayValue(value);
+}
+
+export function isMoveState(value: MoveKeyframeStateInput): value is MoveKeyframeState {
+  return !!value && typeof value !== 'string' && !hasArrayValue(value);
+}
+
+function hasArrayValue(value: object | undefined): value is MoveKeyframes {
+  if (!value) return false;
+  return Object.values(value).some(Array.isArray);
+}
+
+/**
+ * Converts two single-value animation states into a from/to keyframe pair.
+ * Only properties present in both `from` and `to` are animated.
+ */
+export function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): MoveKeyframes {
+  const result: Partial<Record<keyof MoveKeyframes, MoveValuePair>> = {};
+  for (const key of Object.keys(from) as (keyof MoveKeyframeState)[]) {
+    const f = from[key];
+    const t = to[key];
+    if (f !== undefined && t !== undefined) {
+      result[key] = [f, t];
+    }
+  }
+  return result as MoveKeyframes;
 }

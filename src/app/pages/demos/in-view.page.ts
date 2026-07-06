@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveInViewDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-in-view',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveInViewDirective],
   template: `
     <app-demo-container
       title="moveInView"

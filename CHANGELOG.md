@@ -18,6 +18,8 @@
 - `moveSpringValue` now requires `injector` in its config.
 - `SmoothScrollService` skips initialization when `prefers-reduced-motion` is active.
 - `moveText` is now reactive to input changes.
+- Demo pages and the demo container now import only the specific directives they use instead of
+  pulling in the full `MOVEMENT_DIRECTIVES` array, improving route-level tree-shaking.
 
 ### Fixed
 

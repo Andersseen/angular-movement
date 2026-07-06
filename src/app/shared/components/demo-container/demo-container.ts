@@ -8,7 +8,7 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MovePreset, MOVEMENT_DIRECTIVES } from 'movement';
+import { MovePreset } from 'movement';
 
 export interface DemoControlConfig {
   showPreset?: boolean;
@@ -42,7 +42,7 @@ export interface DemoState {
 
 @Component({
   selector: 'app-demo-container',
-  imports: [FormsModule, ...MOVEMENT_DIRECTIVES],
+  imports: [FormsModule],
   template: `
     <div class="space-y-8">
       <!-- Header -->

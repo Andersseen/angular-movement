@@ -1,10 +1,22 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, movePathDraw } from 'movement';
+import {
+  MoveAnimateDirective,
+  MoveTargetDirective,
+  MoveTriggerDirective,
+  MoveVariantsDirective,
+  movePathDraw,
+} from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-icons',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [
+    DemoContainer,
+    MoveTargetDirective,
+    MoveTriggerDirective,
+    MoveVariantsDirective,
+    MoveAnimateDirective,
+  ],
   template: `
     <app-demo-container
       title="SVG Icons"

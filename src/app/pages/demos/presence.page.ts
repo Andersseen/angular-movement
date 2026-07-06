@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveLeaveDirective, MovePresenceDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-presence',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MovePresenceDirective, MoveLeaveDirective],
   template: `
     <app-demo-container
       title="movePresence"

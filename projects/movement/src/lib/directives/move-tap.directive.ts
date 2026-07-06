@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -51,6 +51,26 @@ export class MoveTapDirective implements OnDestroy {
 
   #currentPlayer: AnimationControls | null = null;
   #isTapped = false;
+
+  constructor() {
+    effect(() => {
+      // Track reactive inputs so a change while tapped restarts the animation.
+      this.moveWhileTap();
+      this.moveDuration();
+      this.moveEasing();
+      this.moveDelay();
+      this.moveDisabled();
+      this.moveSpring();
+      this.moveReverseDuration();
+      this.moveReverseEasing();
+
+      if (this.#isTapped) {
+        this.play(false);
+      } else if (this.#currentPlayer) {
+        this.play(true);
+      }
+    });
+  }
 
   onPointerDown() {
     if (this.#isTapped) return;

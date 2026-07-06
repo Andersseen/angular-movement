@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -68,6 +68,29 @@ describe('MoveHoverDirective', () => {
     expect(playSpy).not.toHaveBeenCalled();
     expect((de.nativeElement as HTMLElement).style.opacity).toBe('');
   });
+
+  it('should restart animation when inputs change while hovered', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [ReactiveHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(ReactiveHostComponent);
+    localFixture.detectChanges();
+    const de = localFixture.debugElement.query(By.directive(MoveHoverDirective));
+
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    de.triggerEventHandler('mouseenter', null);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    localFixture.componentInstance.duration.set(500);
+    localFixture.detectChanges();
+    await Promise.resolve();
+
+    expect(playSpy).toHaveBeenCalledTimes(2);
+  });
 });
 
 @Component({
@@ -77,3 +100,12 @@ describe('MoveHoverDirective', () => {
   imports: [MoveHoverDirective],
 })
 class InstantReverseHostComponent {}
+
+@Component({
+  template: `<div [moveWhileHover]="frames()" [moveDuration]="duration()">Hover Me</div>`,
+  imports: [MoveHoverDirective],
+})
+class ReactiveHostComponent {
+  frames = signal<{ scale: number[] }>({ scale: [1, 1.1] });
+  duration = signal(300);
+}

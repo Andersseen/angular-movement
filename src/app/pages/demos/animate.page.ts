@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MoveKeyframeState, MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveAnimateDirective, MoveKeyframeState } from 'movement';
 
 const NATURAL: Record<string, number> = {
   opacity: 1,
@@ -13,7 +13,7 @@ const NATURAL: Record<string, number> = {
 
 @Component({
   selector: 'app-demo-animate',
-  imports: [FormsModule, ...MOVEMENT_DIRECTIVES],
+  imports: [FormsModule, MoveAnimateDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-8">

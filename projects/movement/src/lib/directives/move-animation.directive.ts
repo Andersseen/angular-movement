@@ -1,13 +1,12 @@
 import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
-import {
-  MoveAnimationConfig,
-  MoveKeyframes,
-  MoveKeyframeState,
-  MoveValuePair,
-} from '../presets/presets.types';
+import { MoveAnimationConfig } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
-import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
+import {
+  prefersReducedMotion,
+  resolveMovementConfig,
+  statesToKeyframes,
+} from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
@@ -94,16 +93,4 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
     this.#leavePlayer?.cancel();
     this.#leavePlayer = null;
   }
-}
-
-function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): MoveKeyframes {
-  const result: Partial<Record<keyof MoveKeyframes, MoveValuePair>> = {};
-  for (const key of Object.keys(from) as (keyof MoveKeyframeState)[]) {
-    const f = from[key];
-    const t = to[key];
-    if (f !== undefined && t !== undefined) {
-      result[key] = [f, t];
-    }
-  }
-  return result as MoveKeyframes;
 }

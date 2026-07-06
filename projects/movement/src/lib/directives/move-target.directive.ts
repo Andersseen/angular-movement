@@ -15,6 +15,7 @@ import {
   resolveMoveFrames,
   reverseFrames,
 } from './move-animation.utils';
+import { movementWarn } from '../dev-warn';
 
 function optionalNumberAttribute(value: unknown): number | undefined {
   if (value === undefined || value === null || value === '') {
@@ -130,7 +131,7 @@ export class MoveTargetDirective implements OnDestroy {
     if (preset) return resolveMoveFrames(preset, 'enter');
 
     if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn('[Movement] moveTarget requires either moveFrames or movePreset.');
+      movementWarn('moveTarget requires either moveFrames or movePreset.');
     }
 
     return null;

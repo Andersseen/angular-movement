@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveLayoutDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-layout',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveLayoutDirective],
   template: `
     <app-demo-container
       title="moveLayout"

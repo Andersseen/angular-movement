@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
+import { MoveTapDirective, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-tap',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveTapDirective],
   template: `
     <app-demo-container
       title="moveWhileTap"

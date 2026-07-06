@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -52,6 +52,26 @@ export class MoveHoverDirective implements OnDestroy {
 
   #currentPlayer: AnimationControls | null = null;
   #isHovered = false;
+
+  constructor() {
+    effect(() => {
+      // Track reactive inputs so a change while hovered restarts the animation.
+      this.moveWhileHover();
+      this.moveDuration();
+      this.moveEasing();
+      this.moveDelay();
+      this.moveDisabled();
+      this.moveSpring();
+      this.moveReverseDuration();
+      this.moveReverseEasing();
+
+      if (this.#isHovered) {
+        this.play(false);
+      } else if (this.#currentPlayer) {
+        this.play(true);
+      }
+    });
+  }
 
   onMouseEnter() {
     if (this.#isHovered) return;

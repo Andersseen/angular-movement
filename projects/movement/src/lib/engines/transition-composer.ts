@@ -5,6 +5,7 @@ import {
 } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
 import { composeInterpolatedKeyframe } from './keyframe-composer';
+import { movementWarn } from '../dev-warn';
 
 function interpolateValue(
   values: readonly (number | string)[],
@@ -75,11 +76,7 @@ export function composeTransitionKeyframes(
   const uniqueEasings = new Set(timings.map((t) => t.easing));
   let finalEasing = timings[0].easing;
   if (uniqueEasings.size > 1) {
-    if (typeof ngDevMode !== 'undefined' && ngDevMode) {
-      console.warn(
-        '[Movement] Per-property easing differences are not supported yet. Using global easing.',
-      );
-    }
+    movementWarn('Per-property easing differences are not supported yet. Using global easing.');
     finalEasing = globalEasing;
   }
 

@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -33,6 +33,24 @@ export class MoveFocusDirective implements OnDestroy {
 
   #currentPlayer: AnimationControls | null = null;
   #isFocused = false;
+
+  constructor() {
+    effect(() => {
+      // Track reactive inputs so a change while focused restarts the animation.
+      this.moveWhileFocus();
+      this.moveDuration();
+      this.moveEasing();
+      this.moveDelay();
+      this.moveDisabled();
+      this.moveSpring();
+
+      if (this.#isFocused) {
+        this.play(false);
+      } else if (this.#currentPlayer) {
+        this.play(true);
+      }
+    });
+  }
 
   onFocus() {
     if (this.#isFocused) return;

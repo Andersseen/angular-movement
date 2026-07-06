@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MoveKeyframes } from 'movement';
+import { MoveHoverDirective, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-hover',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveHoverDirective],
   template: `
     <app-demo-container
       title="moveWhileHover"

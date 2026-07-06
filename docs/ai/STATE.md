@@ -6,7 +6,7 @@
 **Last updated:** 2026-07-06
 **Library version:** `0.5.0` (published to npm as `angular-movement`, released 2026-06-15)
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` is the default and deploy branch; working tree has critical fixes in progress.
+**Branch state:** `main` is the default and deploy branch; working tree has demo bundle optimization complete.
 **Roadmap phase:** post-0.5 → working toward **0.6 "API hardening"** (see `ROADMAP.md`)
 
 ## What is DONE and stable
@@ -20,10 +20,7 @@
 - Unit tests (Vitest) colocated with every library source file; Playwright e2e for demo routes.
 - CI (GitHub Actions) with explicit permissions/concurrency; Cloudflare Pages deploy on `main` pushes.
 - OSS community files: CONTRIBUTING, CODE_OF_CONDUCT, SECURITY, SUPPORT, ROADMAP, RELEASE_CHECKLIST, issue forms, PR template, Dependabot.
-
-## In progress / recently merged (CHANGELOG "Unreleased")
-
-- Transform composition hardening: new `engines/transform-state.ts` + `composeElementKeyframes()` so
+- Transform composition hardening: `engines/transform-state.ts` + `composeElementKeyframes()` so
   `moveDrag`, `moveLayout`, and keyframe animations share a single composed `transform` channel.
 - `moveSpringValue` now requires `injector` in its config (throws a clear error if missing).
 - `SmoothScrollService` respects `prefers-reduced-motion` and no longer overrides native scroll.
@@ -31,7 +28,12 @@
 - `movePresence` race condition fixed: removal token prevents a stale leave promise from clearing a
   view that was already recreated.
 - `moveText` is now reactive to input changes via `effect()`.
-- Community/CI hardening work is in `CHANGELOG.md → Unreleased` but not yet in an npm release.
+- Demo bundle optimization: every demo page and the demo container import only the specific
+  directives they use, improving route-level tree-shaking.
+
+## In progress / recently merged (CHANGELOG "Unreleased")
+
+- Nothing currently in flight; all pending work is tracked in `PLAN-0.6.md`.
 
 ## Next up (priority order)
 

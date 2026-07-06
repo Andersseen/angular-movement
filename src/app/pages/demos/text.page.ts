@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveTextDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-text',
-  imports: [DemoContainer, ...MOVEMENT_DIRECTIVES],
+  imports: [DemoContainer, MoveTextDirective],
   template: `
     <app-demo-container
       title="moveText"

@@ -1,17 +1,14 @@
 import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
-import {
-  MoveKeyframes,
-  MoveKeyframeState,
-  MovePreset,
-  MoveSpring,
-  MoveValuePair,
-} from '../presets/presets.types';
+import { MoveKeyframes, MoveKeyframeState, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  isMovePresetOrKeyframes,
+  isMoveState,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
+  statesToKeyframes,
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -144,33 +141,4 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   private resolveLeaveInput(): MovePreset | MoveKeyframes {
     return this.moveAnimateLeave() ?? this.resolveEnterInput();
   }
-}
-
-function isMovePresetOrKeyframes(
-  value: string | MoveKeyframes | MoveKeyframeState | undefined,
-): value is MovePreset | MoveKeyframes {
-  return typeof value === 'string' || hasArrayValue(value);
-}
-
-function isMoveState(
-  value: string | MoveKeyframes | MoveKeyframeState | undefined,
-): value is MoveKeyframeState {
-  return !!value && typeof value !== 'string' && !hasArrayValue(value);
-}
-
-function hasArrayValue(value: object | undefined): value is MoveKeyframes {
-  if (!value) return false;
-  return Object.values(value).some(Array.isArray);
-}
-
-function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState): MoveKeyframes {
-  const result: Partial<Record<keyof MoveKeyframes, MoveValuePair>> = {};
-  for (const key of Object.keys(from) as (keyof MoveKeyframeState)[]) {
-    const f = from[key];
-    const t = to[key];
-    if (f !== undefined && t !== undefined) {
-      result[key] = [f, t];
-    }
-  }
-  return result as MoveKeyframes;
 }
