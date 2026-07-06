@@ -12,6 +12,11 @@ It exists so that any model — regardless of capability — produces consistent
 5. **[SDD-WORKFLOW.md](SDD-WORKFLOW.md)** — the spec-driven process every task must follow. Read before starting a task.
 6. **[specs/](specs/)** — one spec file per feature/change. Check for an existing spec before starting; create one from [specs/\_TEMPLATE.md](specs/_TEMPLATE.md) for any non-trivial task.
 
+## Active plan
+
+**[PLAN-0.6.md](PLAN-0.6.md)** — the current improvement backlog: ship library `0.6.0` + demo site
+refresh. If the user asks "what's next" or gives you free rein, work from that file top-down.
+
 ## Hard rules (summary — details in the files above)
 
 - Package manager is **pnpm**. Never use npm or yarn.

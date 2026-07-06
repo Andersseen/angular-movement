@@ -26,12 +26,15 @@
 - Community/CI hardening work is in `CHANGELOG.md → Unreleased` but not yet in an npm release.
 - Recent commits on `main`: template additions, best-practice docs, library updates (`git log` for detail).
 
-## Next up (priority order — from ROADMAP 0.6)
+## Next up (priority order)
 
-1. Define which APIs are **stable vs experimental** and document it.
-2. Tighten **transform composition** so `moveLayout`, `moveDrag`, and keyframe animations don't fight over inline styles.
-3. Clarify **dynamic input behavior** for directives that currently read inputs once on init.
-4. More tests: interrupted animations, reduced motion, SSR guards, nested directives.
+**Detailed backlog lives in [PLAN-0.6.md](PLAN-0.6.md)** (created 2026-07-06) — work it top-down. Summary:
+
+1. Test hardening: reduced-motion, interrupted-animation, SSR-guard tests (WS-1.x).
+2. Dynamic input behavior for the 8 init-only directives — needs spec + user sign-off (WS-2.1).
+3. Transform composition fix for `moveLayout`/`moveDrag`/keyframes — needs spec (WS-3.1).
+4. Demo gaps: `moveAnimation`, `moveWhileFocus`, smooth scroll, signals helpers; e2e expansion (WS-4.x).
+5. Release `0.6.0` + Cloudflare deploy (WS-5.x).
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
