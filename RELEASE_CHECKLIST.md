@@ -41,15 +41,17 @@ The [`Release` workflow](.github/workflows/release.yml) publishes to npm and cre
 Release automatically when a version tag is pushed.
 
 - [ ] One-time setup: add an npm **Automation** token as the `NPM_TOKEN` repository secret.
-- [ ] Bump the version in `projects/movement/package.json` and move the `CHANGELOG.md` entry out of
-      Unreleased into a versioned section.
-- [ ] Commit, then tag and push (tag must match the package version, e.g. `v0.6.0`):
+- [ ] Make sure the `CHANGELOG.md` **Unreleased** section lists everything in this release.
+- [ ] Run the release script — it bumps `projects/movement/package.json`, rolls the changelog
+      (`Unreleased` → `[X.Y.Z] - <date>`), commits `chore(release): vX.Y.Z`, and tags:
 
   ```bash
-  git tag v0.6.0
-  git push origin v0.6.0
+  pnpm release minor              # or: patch | major | an explicit 0.6.0
+  pnpm release minor --dry-run    # preview first, writes nothing
+  pnpm release minor --push       # also pushes the commit + tag (triggers CI)
   ```
 
+- [ ] If you didn't pass `--push`, trigger CI with `git push --follow-tags`.
 - [ ] Watch the run: it verifies the tag/version match, lints, tests, builds, validates the package,
       publishes to npm with provenance, and creates the GitHub Release.
 - [ ] Verify the published package page and install command.

@@ -10,6 +10,8 @@
 - `engines/transform-state.ts` and `composeElementKeyframes()` for unified transform composition.
 - `Release` GitHub Actions workflow that publishes the library to npm (with provenance) and creates
   a GitHub Release when a `v*.*.*` tag is pushed (requires the `NPM_TOKEN` secret).
+- `pnpm release <patch|minor|major|X.Y.Z>` script that bumps the library version, rolls the
+  `CHANGELOG.md` Unreleased section, commits, and tags (supports `--dry-run` and `--push`).
 - Redesigned, more visual root README with a screenshot hero, badge row, feature grid, and
   collapsible recipes.
 
