@@ -1,0 +1,84 @@
+name: Release
+
+# Publishes the `angular-movement` library to npm and creates a GitHub Release.
+#
+# How to cut a release:
+#   1. Bump the version in projects/movement/package.json and update CHANGELOG.md.
+#   2. Commit, then tag and push:  git tag v0.6.0 && git push origin v0.6.0
+#   3. This workflow verifies, builds, publishes to npm, and creates the GitHub Release.
+#
+# Required secret: NPM_TOKEN  (an npm "Automation" access token with publish rights).
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # npm provenance (public repo)
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify tag matches library version
+        run: |
+          PKG_VERSION=$(node -p "require('./projects/movement/package.json').version")
+          TAG_VERSION=${GITHUB_REF_NAME#v}
+          echo "package.json=$PKG_VERSION  tag=$TAG_VERSION"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag v$TAG_VERSION does not match projects/movement/package.json version $PKG_VERSION. Bump the package version before tagging."
+            exit 1
+          fi
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Test library
+        run: pnpm run test:coverage
+
+      - name: Build library
+        run: pnpm exec ng build movement
+
+      - name: Validate package contents
+        run: pnpm --dir dist/movement pack --dry-run
+
+      - name: Publish to npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          pnpm publish ./dist/movement --no-git-checks --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes \
+            --verify-tag

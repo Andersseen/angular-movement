@@ -8,6 +8,10 @@
   policy, and roadmap.
 - GitHub issue forms, pull request template, and Dependabot configuration.
 - `engines/transform-state.ts` and `composeElementKeyframes()` for unified transform composition.
+- `Release` GitHub Actions workflow that publishes the library to npm (with provenance) and creates
+  a GitHub Release when a `v*.*.*` tag is pushed (requires the `NPM_TOKEN` secret).
+- Redesigned, more visual root README with a screenshot hero, badge row, feature grid, and
+  collapsible recipes.
 
 ### Changed
 

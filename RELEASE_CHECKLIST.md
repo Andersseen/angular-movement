@@ -35,7 +35,26 @@ Use this checklist before publishing `angular-movement`.
 - [ ] Pull request checklist matches the checks maintainers expect.
 - [ ] CI and deploy workflows do not require secrets for normal pull request validation.
 
-## Publish
+## Publish via CI (recommended)
+
+The [`Release` workflow](.github/workflows/release.yml) publishes to npm and creates the GitHub
+Release automatically when a version tag is pushed.
+
+- [ ] One-time setup: add an npm **Automation** token as the `NPM_TOKEN` repository secret.
+- [ ] Bump the version in `projects/movement/package.json` and move the `CHANGELOG.md` entry out of
+      Unreleased into a versioned section.
+- [ ] Commit, then tag and push (tag must match the package version, e.g. `v0.6.0`):
+
+  ```bash
+  git tag v0.6.0
+  git push origin v0.6.0
+  ```
+
+- [ ] Watch the run: it verifies the tag/version match, lints, tests, builds, validates the package,
+      publishes to npm with provenance, and creates the GitHub Release.
+- [ ] Verify the published package page and install command.
+
+## Publish manually (fallback)
 
 - [ ] Confirm npm auth with `npm whoami`.
 - [ ] Run `pnpm run pack:check`.
