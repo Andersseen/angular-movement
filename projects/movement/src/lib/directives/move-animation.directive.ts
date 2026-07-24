@@ -1,8 +1,10 @@
 import { DOCUMENT } from '@angular/common';
 import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
-import { MoveAnimationConfig } from '../presets/presets.types';
+import { MoveAnimationConfig, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   statesToKeyframes,
@@ -17,6 +19,17 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 })
 export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceChild {
   readonly moveAnimation = input.required<MoveAnimationConfig>();
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveEasing = input<string | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
+  readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
@@ -40,10 +53,10 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
       this.#config = resolveMovementConfig(
         this.#defaults,
         {
-          duration: cfg.duration,
-          easing: cfg.easing,
-          delay: (cfg.delay ?? 0) + staggerDelay,
-          disabled: undefined,
+          duration: this.moveDuration() ?? cfg.duration,
+          easing: this.moveEasing() ?? cfg.easing,
+          delay: (this.moveDelay() ?? cfg.delay ?? 0) + staggerDelay,
+          disabled: this.moveDisabled(),
         },
         prefersReducedMotion(this.#documentRef),
       );
@@ -55,7 +68,7 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
 
       this.#enterPlayer = this.#engine.play(this.#host.nativeElement, frames, {
         config: this.#config,
-        spring: cfg.spring,
+        spring: this.moveSpring() ?? cfg.spring,
         disabled: this.#config.disabled,
       });
     });
@@ -82,7 +95,7 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
 
     this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
       config: this.#config,
-      spring: cfg.spring,
+      spring: this.moveSpring() ?? cfg.spring,
       disabled: false,
     });
 

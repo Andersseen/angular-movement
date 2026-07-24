@@ -10,6 +10,9 @@ import {
 } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  booleanAttribute,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -17,20 +20,12 @@ import {
 } from './move-animation.utils';
 import { movementWarn } from '../dev-warn';
 
-function optionalNumberAttribute(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
-
-  return Number(value);
-}
-
 @Directive({
   selector: '[moveTarget]',
   standalone: true,
 })
 export class MoveTargetDirective implements OnDestroy {
-  readonly moveTarget = input.required<boolean>();
+  readonly moveTarget = input.required<boolean, unknown>({ transform: booleanAttribute });
   readonly moveFrames = input<MoveKeyframes | undefined>(undefined);
   readonly movePreset = input<MovePreset | undefined>(undefined);
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
@@ -41,7 +36,9 @@ export class MoveTargetDirective implements OnDestroy {
     transform: optionalNumberAttribute,
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,
   });

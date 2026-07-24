@@ -14,13 +14,14 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 import { MoveKeyframes } from '../presets/presets.types';
+import { numberAttribute } from './move-animation.utils';
 
 @Directive({
   selector: '[moveParallax]',
   exportAs: 'moveParallax',
 })
 export class MoveParallaxDirective implements OnInit, OnDestroy {
-  readonly moveParallax = input<number>(0.2);
+  readonly moveParallax = input<number, unknown>(0.2, { transform: numberAttribute });
   readonly moveParallaxAxis = input<'x' | 'y'>('y');
   readonly progress = signal(0);
 

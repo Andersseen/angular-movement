@@ -10,7 +10,13 @@ import {
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
-import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
+import {
+  booleanAttribute,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
+  prefersReducedMotion,
+  resolveMovementConfig,
+} from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
@@ -18,12 +24,18 @@ import { AnimationControls } from '../engines/animation-controls';
   selector: '[moveLayout]',
 })
 export class MoveLayoutDirective implements OnDestroy {
-  readonly moveLayout = input<boolean | ''>(true);
+  readonly moveLayout = input<boolean | '', unknown>(true, { transform: booleanAttribute });
   readonly moveLayoutId = input<string | undefined>(undefined);
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);

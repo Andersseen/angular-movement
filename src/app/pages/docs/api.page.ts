@@ -180,13 +180,13 @@ export default class ApiGuide {
       stage: 'Interaction',
       title: 'Pointer and focus states',
       description: 'Micro-interactions without component-local animation code.',
-      items: ['moveWhileHover', 'moveWhileTap', 'moveFocus', 'moveInView'],
+      items: ['moveWhileHover', 'moveWhileTap', 'moveWhileFocus', 'moveInView'],
     },
     {
       stage: 'State',
       title: 'Targets and variants',
       description: 'Reusable states driven by Angular signals, inputs, or boolean conditions.',
-      items: ['moveVariants', 'moveAnimate', 'moveTarget', 'moveTrigger'],
+      items: ['moveVariants', 'moveVariant', 'moveTarget', 'moveTrigger'],
     },
     {
       stage: 'Orchestration',
@@ -252,7 +252,7 @@ export default class ApiGuide {
     idle: { scale: 1, rotate: 0 },
     active: { scale: 1.08, rotate: 4 }
   }"</span>
-  [<span class="code-attr">moveAnimate</span>]=<span class="code-string">"selected() ? 'active' : 'idle'"</span>
+  [<span class="code-attr">moveVariant</span>]=<span class="code-string">"selected() ? 'active' : 'idle'"</span>
 &gt;
   Card
 &lt;/<span class="code-keyword">div</span>&gt;`;

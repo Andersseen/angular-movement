@@ -11,7 +11,7 @@ import { AnimationControls } from '../engines/animation-controls';
 @Component({
   selector: 'move-variants-host',
   template: `
-    <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
+    <div [moveVariants]="variants()" [moveVariant]="activeVariant()" [moveDuration]="300">
       Variant Child
     </div>
   `,
@@ -211,7 +211,7 @@ describe('MoveVariantsDirective', () => {
 @Component({
   selector: 'move-variants-transition-host',
   template: `
-    <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
+    <div [moveVariants]="variants()" [moveVariant]="activeVariant()" [moveDuration]="300">
       Variant Child
     </div>
   `,
@@ -234,7 +234,7 @@ class TransitionHostComponent {
   template: `
     <div
       [moveVariants]="variants()"
-      [moveAnimate]="activeVariant()"
+      [moveVariant]="activeVariant()"
       [moveTransition]="{ duration: 500, opacity: { duration: 150 } }"
       [moveDuration]="300"
     >
@@ -256,7 +256,7 @@ class DefaultTransitionHostComponent {
   template: `
     <div
       [moveVariants]="variants()"
-      [moveAnimate]="activeVariant()"
+      [moveVariant]="activeVariant()"
       [moveTransition]="{ duration: 500, opacity: { duration: 150 } }"
       [moveDuration]="300"
     >
@@ -279,7 +279,7 @@ class TransitionOverrideHostComponent {
 @Component({
   selector: 'move-variants-scalar-host',
   template: `
-    <div [moveVariants]="variants()" [moveAnimate]="activeVariant()" [moveDuration]="300">
+    <div [moveVariants]="variants()" [moveVariant]="activeVariant()" [moveDuration]="300">
       Variant Child
     </div>
   `,
@@ -298,7 +298,7 @@ class ScalarHostComponent {
   template: `
     <div
       [moveVariants]="variants()"
-      [moveAnimate]="activeVariant()"
+      [moveVariant]="activeVariant()"
       moveExitVariant="hidden"
       [moveDuration]="300"
     >

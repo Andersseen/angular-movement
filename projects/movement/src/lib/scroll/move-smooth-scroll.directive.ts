@@ -8,6 +8,7 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
+import { numberAttribute } from '../directives/move-animation.utils';
 import { SmoothScrollService } from './smooth-scroll.service';
 
 /**
@@ -35,7 +36,9 @@ import { SmoothScrollService } from './smooth-scroll.service';
 })
 export class MoveSmoothScrollDirective implements OnInit, OnDestroy {
   /** Lerp factor passed to SmoothScrollService. Lower = smoother. Range: 0–1. */
-  readonly moveSmoothScrollLerp = input<number>(0.1);
+  readonly moveSmoothScrollLerp = input<number, unknown>(0.1, {
+    transform: numberAttribute,
+  });
 
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #scroll = inject(SmoothScrollService);

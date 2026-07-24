@@ -16,6 +16,46 @@ import {
 import { MovementConfig } from '../tokens/movement.tokens';
 import { movementWarn } from '../dev-warn';
 
+/**
+ * Coerces an attribute value to a number, preserving `undefined`/`null`/`''`.
+ * Use as the `transform` for optional numeric inputs.
+ */
+export function optionalNumberAttribute(value: unknown): number | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  return Number(value);
+}
+
+/**
+ * Coerces an attribute value to a required number.
+ * Use as the `transform` for numeric inputs that must always have a value.
+ */
+export function numberAttribute(value: unknown): number {
+  return Number(value);
+}
+
+/**
+ * Coerces an attribute value to a boolean, preserving `undefined`/`null`/`''`.
+ * Empty string becomes `true` (standard HTML boolean attribute behavior).
+ * The string `'false'` becomes `false`.
+ */
+export function optionalBooleanAttribute(value: unknown): boolean | undefined {
+  if (value === undefined || value === null || value === '') {
+    return undefined;
+  }
+  return value !== false && value !== 'false' && value !== '0' && value !== 0;
+}
+
+/**
+ * Coerces an attribute value to a required boolean.
+ * Empty string becomes `true`; the string `'false'` becomes `false`.
+ */
+export function booleanAttribute(value: unknown): boolean {
+  if (value === '' || value === true) return true;
+  return value !== false && value !== 'false' && value !== '0' && value !== 0;
+}
+
 export type MovePhase = 'enter' | 'leave' | 'loop';
 
 export type MoveDirectiveInput = MovePreset | MoveKeyframes;
@@ -83,7 +123,7 @@ export function reverseFrames(frames: MoveKeyframes): MoveKeyframes {
     const k = key as keyof MoveKeyframes;
     const arr = frames[k];
     if (arr) {
-      reversed[k] = [...arr].reverse() as readonly number[];
+      reversed[k] = [...arr].reverse() as MoveValuePair;
     }
   }
   return reversed;

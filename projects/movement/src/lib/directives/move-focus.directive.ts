@@ -3,6 +3,9 @@ import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angula
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  clearComposedStyle,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -20,11 +23,21 @@ import { AnimationControls } from '../engines/animation-controls';
 })
 export class MoveFocusDirective implements OnDestroy {
   readonly moveWhileFocus = input.required<MovePreset | MoveKeyframes>();
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
+  readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveReverseEasing = input<string | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
@@ -43,6 +56,8 @@ export class MoveFocusDirective implements OnDestroy {
       this.moveDelay();
       this.moveDisabled();
       this.moveSpring();
+      this.moveReverseDuration();
+      this.moveReverseEasing();
 
       if (this.#isFocused) {
         this.play(false);
@@ -82,12 +97,30 @@ export class MoveFocusDirective implements OnDestroy {
     if (config.disabled) return;
 
     let frames = resolveMoveFrames(this.moveWhileFocus(), 'enter');
+
     if (reverse) {
+      const reverseDuration = this.moveReverseDuration();
+      if (reverseDuration === 0) {
+        clearComposedStyle(this.#host.nativeElement, Object.keys(frames));
+        return;
+      }
       frames = reverseFrames(frames);
     }
 
+    const reverseConfig = reverse
+      ? resolveMovementConfig(
+          { ...this.#defaults, duration: 200, easing: 'ease-out', delay: 0 },
+          {
+            duration: this.moveReverseDuration() ?? this.moveDuration(),
+            easing: this.moveReverseEasing(),
+            delay: 0,
+          },
+          isReduced,
+        )
+      : config;
+
     this.#currentPlayer = this.#engine.play(this.#host.nativeElement, frames, {
-      config,
+      config: reverseConfig,
       spring: this.moveSpring(),
       disabled: false,
     });

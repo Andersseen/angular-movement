@@ -8,6 +8,7 @@ import {
   TemplateRef,
   ViewContainerRef,
 } from '@angular/core';
+import { booleanAttribute } from './move-animation.utils';
 import {
   MOVE_PRESENCE_PARENT,
   MovePresenceChild,
@@ -24,7 +25,7 @@ import {
   ],
 })
 export class MovePresenceDirective implements MovePresenceProvider {
-  readonly movePresence = input<unknown>();
+  readonly movePresence = input<boolean | '', unknown>(false, { transform: booleanAttribute });
 
   readonly #viewContainer = inject(ViewContainerRef);
   readonly #template = inject(TemplateRef);

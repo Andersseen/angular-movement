@@ -2,12 +2,18 @@ import { Directive, ElementRef, inject, input, OnDestroy, output } from '@angula
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 
-import { prefersReducedMotion, validateDragElastic } from './move-animation.utils';
+import {
+  booleanAttribute,
+  numberAttribute,
+  prefersReducedMotion,
+  validateDragElastic,
+} from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import {
   applyComposedTransform,
   readTransformState,
+  resetTransformToBase,
   TransformState,
 } from '../engines/transform-state';
 
@@ -39,11 +45,18 @@ export interface MoveDragEvent {
   },
 })
 export class MoveDragDirective implements OnDestroy {
-  readonly moveDrag = input<MoveDragAxis>(true);
+  readonly moveDrag = input<MoveDragAxis, unknown>(true, {
+    transform: (value) => {
+      if (value === '' || value === true) return true;
+      if (value === false || value === 'false') return false;
+      if (value === 'x' || value === 'y') return value;
+      return true;
+    },
+  });
   readonly moveDragConstraints = input<MoveDragConstraints | undefined>(undefined);
-  readonly moveDragElastic = input<number>(0.5);
-  readonly moveDragMomentum = input<boolean>(false);
-  readonly moveDragSnapToOrigin = input<boolean>(false);
+  readonly moveDragElastic = input<number, unknown>(0.5, { transform: numberAttribute });
+  readonly moveDragMomentum = input<boolean, unknown>(false, { transform: booleanAttribute });
+  readonly moveDragSnapToOrigin = input<boolean, unknown>(false, { transform: booleanAttribute });
   readonly moveDragSnapPoints = input<readonly MoveDragSnapPoint[] | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
@@ -151,13 +164,13 @@ export class MoveDragDirective implements OnDestroy {
     if (!constraints) return null;
 
     if (constraints instanceof HTMLElement) {
-      const oldTranslate = this.#host.nativeElement.style.translate;
-      this.#host.nativeElement.style.translate = 'none';
+      const oldTransform = this.#host.nativeElement.style.transform;
+      this.#host.nativeElement.style.transform = '';
 
       const elRect = this.#host.nativeElement.getBoundingClientRect();
       const containerRect = constraints.getBoundingClientRect();
 
-      this.#host.nativeElement.style.translate = oldTranslate;
+      this.#host.nativeElement.style.transform = oldTransform;
 
       return {
         left: containerRect.left - elRect.left,
@@ -285,6 +298,12 @@ export class MoveDragDirective implements OnDestroy {
   #animateTo(fromX: number, fromY: number, toX: number, toY: number): void {
     if (!this.#host.nativeElement.isConnected) return;
 
+    // Reset the inline transform to the base state so the engine animates the
+    // drag delta exactly once instead of composing it on top of itself.
+    if (this.#baseTransform) {
+      resetTransformToBase(this.#host.nativeElement, this.#baseTransform);
+    }
+
     this.#player = this.#engine.play(
       this.#host.nativeElement,
       {
@@ -292,7 +311,7 @@ export class MoveDragDirective implements OnDestroy {
         y: [fromY, toY],
       },
       {
-        config: { duration: 300, easing: 'ease', delay: 0, disabled: false },
+        config: { duration: 300, easing: 'ease', delay: 0, disabled: false, iterations: 1 },
         spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
         disabled: prefersReducedMotion(this.#documentRef),
       },

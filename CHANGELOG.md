@@ -20,6 +20,10 @@
 - `moveText` is now reactive to input changes.
 - Demo pages and the demo container now import only the specific directives they use instead of
   pulling in the full `MOVEMENT_DIRECTIVES` array, improving route-level tree-shaking.
+- `MoveVariantsDirective`'s active-variant input renamed from `moveAnimate` to `moveVariant` (with
+  `moveActiveVariant` as an alias), removing the selector collision with `MoveAnimateDirective`.
+- Numeric and boolean directive inputs now coerce attribute values, so bare/string attributes like
+  `moveDuration="400"` and `moveInViewOnce="false"` behave as expected.
 
 ### Fixed
 
@@ -28,6 +32,13 @@
 - `moveDrag` guards against detached elements during pointer events and release animations.
 - `movePresence` no longer removes a recreated view if a stale leave promise resolves after a quick
   toggle back to visible.
+- `MoveSmoothScrollDirective` no longer fails to compile — `moveSmoothScrollLerp` coerces to a
+  required number instead of an incompatible `number | undefined`.
+
+### Removed
+
+- Unused constants from the internal `constants.ts` (kept only `DEFAULT_PERSPECTIVE` and the spring
+  simulation constants that are actually referenced by the engines).
 
 ## [0.5.0] - 2026-06-15
 

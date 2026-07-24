@@ -4,6 +4,8 @@ import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types'
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   clearComposedStyle,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -11,13 +13,6 @@ import {
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
-
-function optionalNumberAttribute(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
-  return Number(value);
-}
 
 @Directive({
   selector: '[moveWhileHover]',
@@ -38,7 +33,9 @@ export class MoveHoverDirective implements OnDestroy {
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,
   });
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,

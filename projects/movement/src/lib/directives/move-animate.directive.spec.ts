@@ -47,9 +47,9 @@ class UnknownStringHostComponent {}
 @Component({
   selector: 'move-animate-variant-host',
   template: `
-    <div [moveVariants]="variants" [moveAnimate]="activeVariant()">Variant Animate</div>
+    <div [moveVariants]="variants" [moveVariant]="activeVariant()">Variant Animate</div>
   `,
-  imports: [MoveAnimateDirective, MoveVariantsDirective],
+  imports: [MoveVariantsDirective],
 })
 class VariantHostComponent {
   readonly activeVariant = signal('idle');
@@ -62,7 +62,7 @@ class VariantHostComponent {
 @Component({
   selector: 'move-animate-nested-variant-host',
   template: `
-    <section [moveVariants]="variants" [moveAnimate]="activeVariant()">
+    <section [moveVariants]="variants" [moveVariant]="activeVariant()">
       <div [move]="'fade-up'">Nested Animate</div>
     </section>
   `,
@@ -204,7 +204,7 @@ describe('MoveAnimateDirective', () => {
     );
   });
 
-  it('lets moveVariants own string moveAnimate values on the same host', async () => {
+  it('lets moveVariants own string moveVariant values on the same host', async () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
       imports: [VariantHostComponent],

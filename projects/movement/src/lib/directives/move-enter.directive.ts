@@ -3,6 +3,8 @@ import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angula
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -16,10 +18,16 @@ import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 })
 export class MoveEnterDirective implements OnDestroy, OnInit {
   readonly moveEnter = input<MovePreset | MoveKeyframes>('none');
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);

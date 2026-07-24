@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-07-06
+**Last updated:** 2026-07-24
 **Library version:** `0.5.0` (published to npm as `angular-movement`, released 2026-06-15)
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
 **Branch state:** `main` is the default and deploy branch; working tree has demo bundle optimization complete.
@@ -33,7 +33,13 @@
 
 ## In progress / recently merged (CHANGELOG "Unreleased")
 
-- Nothing currently in flight; all pending work is tracked in `PLAN-0.6.md`.
+- **Spec 001 — Base Hardening** (`docs/ai/specs/001-base-hardening.md`) is partially done:
+  - Done: `moveVariants` `moveAnimate`→`moveVariant` rename (+`moveActiveVariant` alias); numeric/boolean
+    input coercion across directives; `MoveSmoothScrollDirective` compile fix (`moveSmoothScrollLerp`
+    now uses `numberAttribute`); dead-constant cleanup in `constants.ts` (19→4). test/lint/build green.
+  - Remaining: parallax demo still wired to `[moveScroll]` instead of `[moveParallax]`; no
+    `demos/focus.page.ts`; docs/`api.page.ts`/`reference.page.ts` + server API route need a selector/input
+    audit. Track against the spec's acceptance criteria.
 
 ## Next up (priority order)
 

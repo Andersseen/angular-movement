@@ -1,5 +1,6 @@
 import { Directive, forwardRef, input } from '@angular/core';
 import { MoveSpring } from '../presets/presets.types';
+import { optionalNumberAttribute } from './move-animation.utils';
 import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.tokens';
 
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
@@ -14,8 +15,16 @@ export type MoveStaggerDirection = 'first' | 'last' | 'center';
   ],
 })
 export class MoveStaggerDirective implements MoveStaggerProvider {
-  readonly moveStagger = input<number | MoveSpring | ''>(100);
-  readonly moveStaggerStep = input<number | undefined>(undefined);
+  readonly moveStagger = input<number | MoveSpring | '', unknown>(100, {
+    transform: (value) => {
+      if (value === '' || typeof value === 'number' || typeof value === 'object')
+        return value as number | MoveSpring | '';
+      return Number(value);
+    },
+  });
+  readonly moveStaggerStep = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveStaggerDirection = input<MoveStaggerDirection>('first');
 
   #children = new Set<HTMLElement>();

@@ -5,6 +5,8 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   isMovePresetOrKeyframes,
   isMoveState,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -25,10 +27,16 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly moveInitial = input<MoveKeyframeState | undefined>(undefined);
   readonly moveExit = input<MoveKeyframeState | undefined>(undefined);
   readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
@@ -44,7 +52,8 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   #leavePlayer: AnimationControls | null = null;
 
   ngOnInit(): void {
-    // If moveVariants is on the same host, let it handle animation
+    // If moveVariants is on the same host, let it handle animation. Do not
+    // register with stagger/presence so we don't create no-op entries.
     if (this.#variantsParent) {
       return;
     }

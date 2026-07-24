@@ -11,14 +11,13 @@ import {
   composeInitialStyle,
   ComposedKeyframe,
 } from '../engines/keyframe-composer';
-import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
-
-function optionalNumberAttribute(value: unknown): number | undefined {
-  if (value === undefined || value === null || value === '') {
-    return undefined;
-  }
-  return Number(value);
-}
+import {
+  booleanAttribute,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
+  prefersReducedMotion,
+  resolveMovementConfig,
+} from './move-animation.utils';
 
 @Directive({
   selector: '[moveTrigger]',
@@ -26,7 +25,7 @@ function optionalNumberAttribute(value: unknown): number | undefined {
   exportAs: 'moveTrigger',
 })
 export class MoveTriggerDirective implements OnDestroy {
-  readonly moveTrigger = input.required<boolean>();
+  readonly moveTrigger = input.required<boolean, unknown>({ transform: booleanAttribute });
   readonly moveFrames = input.required<MoveKeyframes>();
   readonly moveResetFrames = input<MoveKeyframes | undefined>(undefined);
   readonly moveResetState = input<'initial' | 'final' | 'clear'>('clear');
@@ -39,7 +38,9 @@ export class MoveTriggerDirective implements OnDestroy {
     transform: optionalNumberAttribute,
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,
   });

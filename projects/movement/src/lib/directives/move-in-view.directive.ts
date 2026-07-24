@@ -12,7 +12,10 @@ import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types'
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyInitialStyles,
+  booleanAttribute,
   clearInitialStyles,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -26,14 +29,20 @@ import { AnimationControls } from '../engines/animation-controls';
 export class MoveInViewDirective implements OnDestroy, OnInit {
   readonly moveInView = input<MovePreset | MoveKeyframes>('none');
   readonly moveInViewMargin = input<string>('0px');
-  readonly moveInViewOnce = input<boolean>(true);
+  readonly moveInViewOnce = input<boolean, unknown>(true, { transform: booleanAttribute });
   /** CSS selector for the IntersectionObserver root (for inner scrollable containers). */
   readonly moveInViewRoot = input<string | null>(null);
 
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);

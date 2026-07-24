@@ -140,10 +140,10 @@ export default class ReferencePage {
         {
           name: 'moveVariants',
           use: 'Map named product states such as collapsed, expanded, selected, or complete.',
-          inputs: 'moveVariants, moveAnimate, moveTransition, moveExitVariant',
+          inputs: 'moveVariants, moveVariant, moveTransition, moveExitVariant',
           demo: `&lt;<span class="code-keyword">button</span>
   [<span class="code-attr">moveVariants</span>]=<span class="code-string">"cardVariants"</span>
-  [<span class="code-attr">moveAnimate</span>]=<span class="code-string">"selected() ? 'selected' : 'idle'"</span>
+  [<span class="code-attr">moveVariant</span>]=<span class="code-string">"selected() ? 'selected' : 'idle'"</span>
 &gt;
   Plan
 &lt;/<span class="code-keyword">button</span>&gt;`,
@@ -165,7 +165,7 @@ export default class ReferencePage {
       description: 'Use these when the pointer, focus, or viewport should drive the motion.',
       items: [
         {
-          name: 'moveWhileHover / moveWhileTap / moveFocus',
+          name: 'moveWhileHover / moveWhileTap / moveWhileFocus',
           use: 'Temporary interaction feedback for buttons, cards, and controls.',
           inputs: 'moveWhileHover, moveWhileTap, moveFocus',
           demo: `&lt;<span class="code-keyword">button</span>

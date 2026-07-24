@@ -20,7 +20,12 @@ import {
 } from '../presets/presets.types';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
-import { prefersReducedMotion, resolveMovementConfig } from './move-animation.utils';
+import {
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
+  prefersReducedMotion,
+  resolveMovementConfig,
+} from './move-animation.utils';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
@@ -44,13 +49,21 @@ export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
 })
 export class MoveVariantsDirective implements MoveVariantsProvider, MovePresenceChild, OnDestroy {
   readonly moveVariants = input.required<Record<string, MoveVariant>>();
-  readonly moveAnimate = input<string | undefined>(undefined);
+  /** Active variant name. Prefer `moveVariant`; `moveActiveVariant` is an alias. */
+  readonly moveVariant = input<string | undefined>(undefined);
+  readonly moveActiveVariant = input<string | undefined>(undefined);
   readonly moveExitVariant = input<string | undefined>(undefined);
 
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
   readonly moveTransition = input<MoveTransitionConfig | undefined>(undefined);
 
@@ -68,7 +81,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   #previousState: Record<string, MoveStateValue | undefined> | null = null;
 
   readonly activeVariant = computed(() => {
-    return this.moveAnimate() ?? this.#parent?.activeVariant();
+    return this.moveVariant() ?? this.moveActiveVariant() ?? this.#parent?.activeVariant();
   });
 
   constructor() {

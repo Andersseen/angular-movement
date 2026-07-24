@@ -14,6 +14,9 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyInitialStyles,
   clearInitialStyles,
+  numberAttribute,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -27,12 +30,18 @@ import { AnimationControls } from '../engines/animation-controls';
 export class MoveTextDirective implements OnDestroy {
   readonly moveText = input<MovePreset | MoveKeyframes>('fade-up');
   readonly moveTextSplit = input<'chars' | 'words'>('chars');
-  readonly moveTextStagger = input<number>(30);
+  readonly moveTextStagger = input<number, unknown>(30, { transform: numberAttribute });
 
-  readonly moveDuration = input<number | undefined>(undefined);
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
   readonly moveEasing = input<string | undefined>(undefined);
-  readonly moveDelay = input<number | undefined>(undefined);
-  readonly moveDisabled = input<boolean | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
   readonly #defaults = inject(MOVEMENT_CONFIG);
@@ -84,7 +93,7 @@ export class MoveTextDirective implements OnDestroy {
         // Create player and animate only when visible
         this.#observer = new IntersectionObserver((entries) => {
           if (entries[0].isIntersecting) {
-            this.#playAll({ duration, easing, delay, stagger, spring });
+            this.#playAll({ duration, easing, delay, stagger, spring, disabled });
             this.#observer?.disconnect();
           }
         });
@@ -100,6 +109,7 @@ export class MoveTextDirective implements OnDestroy {
     delay: number | undefined;
     stagger: number;
     spring: MoveSpring | undefined;
+    disabled: boolean | undefined;
   }): void {
     if (!this.#frames) return;
 
@@ -114,7 +124,7 @@ export class MoveTextDirective implements OnDestroy {
           duration: options.duration,
           easing: options.easing,
           delay: baseDelay + index * options.stagger,
-          disabled: false,
+          disabled: options.disabled,
         },
         false,
       );

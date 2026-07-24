@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveAnimateDirective, MoveVariantsDirective, MoveVariant } from 'movement';
+import { MoveVariant, MoveVariantsDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-variants',
-  imports: [DemoContainer, MoveVariantsDirective, MoveAnimateDirective],
+  imports: [DemoContainer, MoveVariantsDirective],
   template: `
     <app-demo-container
       title="moveVariants"
       description="Define multiple animation states and transition between them. Perfect for interactive components with multiple states."
-      directive="moveAnimate"
+      directive="moveVariant"
       [availablePresets]="[]"
       [controls]="controlsConfig"
       initialEasing="spring"
@@ -36,7 +36,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
         <div
           [moveVariants]="variantsConfig"
-          [moveAnimate]="currentVariant()"
+          [moveVariant]="currentVariant()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
           class="bg-surface border-accent/40 flex h-32 w-32 items-center justify-center rounded-xl border shadow-[0_0_30px_var(--color-accent-glow)]"
@@ -68,7 +68,7 @@ export default class DemoVariants {
   protected currentVariant = signal('idle');
 
   protected readonly variantsCode = computed(() => {
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveVariants]</span>=<span class="code-string">"variantsConfig"</span> <span class="code-attr">[moveAnimate]</span>=<span class="code-string">"'${this.currentVariant()}'"</span>&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveVariants]</span>=<span class="code-string">"variantsConfig"</span> <span class="code-attr">[moveVariant]</span>=<span class="code-string">"'${this.currentVariant()}'"</span>&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
   });
 
   protected readonly variantsConfig: Record<string, MoveVariant> = {
