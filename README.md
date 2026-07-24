@@ -1,85 +1,88 @@
-# angular-movement
+<div align="center">
 
-[![CI](https://github.com/Andersseen/angular-movement/actions/workflows/ci.yml/badge.svg)](https://github.com/Andersseen/angular-movement/actions/workflows/ci.yml)
-[![npm version](https://img.shields.io/npm/v/angular-movement.svg)](https://www.npmjs.com/package/angular-movement)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+<img src=".github/assets/logo.svg" width="84" alt="Angular Movement logo" />
 
-Angular motion ecosystem with two parts in one repository:
+# Angular Movement
 
-- Reusable npm library for animation directives in Angular.
-- Demo and documentation site to explore behavior and integration patterns.
+### Animate Angular with a single attribute.
 
-## What This Project Is
+Declarative motion for **Angular 21** — presets, spring physics, drag, scroll, parallax,
+presence orchestration & SVG path-drawing. SSR-safe. Zero `@angular/animations`. Standalone-ready.
 
-This is an open source Angular monorepo focused on declarative UI motion. The library exposes
-Angular-native directives and state APIs, while runtime playback is powered by the browser Web
-Animations API.
+<br/>
 
-Repository structure:
+[![CI](https://img.shields.io/github/actions/workflow/status/Andersseen/angular-movement/ci.yml?branch=main&style=flat-square&label=CI&labelColor=0d0b1a)](https://github.com/Andersseen/angular-movement/actions/workflows/ci.yml)
+[![npm version](https://img.shields.io/npm/v/angular-movement?style=flat-square&color=6533FF&labelColor=0d0b1a&label=npm)](https://www.npmjs.com/package/angular-movement)
+[![npm downloads](https://img.shields.io/npm/dm/angular-movement?style=flat-square&color=6533FF&labelColor=0d0b1a)](https://www.npmjs.com/package/angular-movement)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/angular-movement?style=flat-square&labelColor=0d0b1a&label=min%2Bgzip)](https://bundlephobia.com/package/angular-movement)
+[![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=flat-square&logo=angular&logoColor=white&labelColor=0d0b1a)](https://angular.dev)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square&labelColor=0d0b1a)](LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-6533FF?style=flat-square&labelColor=0d0b1a)](CONTRIBUTING.md)
 
-- Library package: projects/movement
-- Demo and docs app: src
+<p>
+  <a href="https://angular-movement.andersseen.dev"><b>🌐 Live Demo</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://angular-movement.andersseen.dev/docs"><b>📚 Docs</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://www.npmjs.com/package/angular-movement"><b>📦 npm</b></a>
+  &nbsp;·&nbsp;
+  <a href="ROADMAP.md"><b>🗺️ Roadmap</b></a>
+</p>
 
-Community and maintenance:
+<a href="https://angular-movement.andersseen.dev">
+  <img src=".github/assets/hero.png" alt="Angular Movement — animate Angular with a single attribute" width="880" />
+</a>
 
-- Contributing guide: [CONTRIBUTING.md](CONTRIBUTING.md)
-- Roadmap: [ROADMAP.md](ROADMAP.md)
-- Security policy: [SECURITY.md](SECURITY.md)
-- Release checklist: [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md)
+</div>
 
-## What Problems It Solves
+---
 
-UI animation in Angular often becomes repetitive and hard to maintain:
+## Why Angular Movement?
 
-- Rewriting enter and leave transitions for each component.
-- Mixing imperative animation logic into component code.
-- Inconsistent timings and easing across teams.
-- Missing orchestration for staggered lists and exit animations.
-- Friction when implementing interactions like hover, in-view, parallax, and scroll progress.
-- Lack of first-class SVG path-drawing animation support.
+UI animation in Angular tends to sprawl: enter/leave transitions rewritten per component,
+imperative logic tangled into templates, inconsistent timings across a team, and no clean way
+to orchestrate staggered lists or exit animations.
 
-angular-movement addresses this with declarative directives and global configuration so animation rules stay consistent and composable.
+**Angular Movement** replaces that boilerplate with declarative directives and one global config,
+so motion stays consistent, composable, and SSR-safe. Playback runs on the browser's native
+**Web Animations API** (with an optional spring physics engine) — no `@angular/animations` setup required.
 
-## Core Capabilities
+```html
+<h2 [move]="'fade-up'">Hello movement</h2>
+<button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
+```
 
-- Preset animations: fade, slide, zoom, flip, blur, bounce, pulse, spin, icon-draw, icon-pulse, icon-bounce.
-- Custom keyframes for full control.
-- Spring physics support.
-- Interaction directives: hover, tap, focus, in-view, scroll, parallax, drag.
-- Advanced drag gestures with axis lock, constraints, elasticity, momentum,
-  snap-to-origin, snap points, and start/move/end outputs.
-- Presence orchestration to let leave animations finish before DOM removal.
-- Stagger orchestration for coordinated list motion.
-- **SVG path drawing** with `pathLength` / `pathOffset` (WAAPI-powered).
-- **Per-property transitions** for different duration / delay per animated property.
-- **Trigger directive** for one-shot boolean triggers with imperative controls.
-- No `@angular/animations` setup required for library consumers.
+## ✨ Features
 
-## Install The Library
+|                                 |                                                                                          |
+| ------------------------------- | ---------------------------------------------------------------------------------------- |
+| 🎬 **30+ presets**              | fade, slide, zoom, flip, blur, bounce, pulse, spin, icon-draw/pulse/bounce               |
+| 🧬 **Custom keyframes**         | full control when a preset isn't enough                                                  |
+| 🍃 **Spring physics**           | pre-computed spring keyframes via a dedicated engine                                     |
+| 🖱️ **Interactions**             | hover, tap, focus, in-view, scroll, parallax, drag                                       |
+| 🎯 **Advanced drag**            | axis-lock, constraints, elasticity, momentum, snap-to-origin & snap points               |
+| 👻 **Presence**                 | let leave animations finish before the DOM node is removed                               |
+| 🪜 **Stagger**                  | coordinated, ordered list motion                                                         |
+| ✍️ **SVG path drawing**         | animate `pathLength` / `pathOffset`, WAAPI-powered                                       |
+| ⏱️ **Per-property transitions** | different duration / delay per animated property                                         |
+| 🔀 **Motion values**            | derive motion from Angular **signals** (`moveValue`, `moveTransform`, `moveSpringValue`) |
+| 🖥️ **SSR-safe**                 | every browser API guarded; no-ops on the server                                          |
+| 🧱 **Standalone-ready**         | tree-shakeable directives, no NgModule required                                          |
 
-From npm:
+## 🚀 Quick start
 
 ```bash
 npm install angular-movement
+# or: pnpm add angular-movement · yarn add angular-movement
 ```
 
-Peer dependencies:
+> **Peer dependencies:** `@angular/core` ^21.2.0 · `@angular/common` ^21.2.0
 
-- @angular/core ^21.2.0
-- @angular/common ^21.2.0
-
-## Use The Library In Your App
-
-1. Add global defaults with provideMovement.
-2. Import MOVEMENT_DIRECTIVES in standalone components.
-3. Use directives directly in templates.
-
-Example:
+**1. Provide global defaults**
 
 ```ts
 import { ApplicationConfig } from '@angular/core';
 import { provideMovement } from 'angular-movement';
-import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -91,7 +94,11 @@ export const appConfig: ApplicationConfig = {
     }),
   ],
 };
+```
 
+**2. Import the directives and use them in templates**
+
+```ts
 import { Component } from '@angular/core';
 import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 
@@ -107,14 +114,41 @@ import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 export class DemoCardComponent {}
 ```
 
-## SVG Icon Animations
+## 🧩 Pick the right primitive
 
-angular-movement v0.2.0 adds first-class support for SVG path drawing and icon micro-animations.
+Start with the smallest primitive that matches the job:
 
-## Motion-style API
+| Level               | Reach for                                                                    |
+| ------------------- | ---------------------------------------------------------------------------- |
+| **Basic**           | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
+| **Interactions**    | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| **State**           | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
+| **Orchestration**   | `movePresence`, `moveStagger`                                                |
+| **Scroll & layout** | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
+| **Advanced**        | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
-Use separate `initial`, `animate`, and `exit` state bindings when you want a
-Framer Motion-style template:
+> `moveLeave` plays only while a parent `movePresence` keeps the view alive during removal.
+> A plain `@if` removes the element immediately, so there is no node left to animate.
+
+## 🎛️ Explore the interactive playground
+
+Every directive has a focused page with a live config panel and copy-paste HTML output.
+
+<div align="center">
+  <a href="https://angular-movement.andersseen.dev/demos">
+    <img src=".github/assets/demos.png" alt="Interactive demos playground" width="820" />
+  </a>
+</div>
+
+**Demo pages:** Animate · Enter & Leave · Hover & Tap · In-View · Scroll & Parallax · Presence ·
+Layout · Drag · Variants · Text · SVG Icons
+
+## 📖 Recipes
+
+<details>
+<summary><b>Motion-style API — <code>initial</code> / <code>animate</code> / <code>exit</code></b></summary>
+
+<br/>
 
 ```html
 <ng-container *movePresence="isOpen">
@@ -129,59 +163,14 @@ Framer Motion-style template:
 </ng-container>
 ```
 
-The existing `[moveAnimation]="{ initial, animate, exit }"` object API remains
-available for config-heavy cases.
+The object form `[moveAnimation]="{ initial, animate, exit }"` is also available for config-heavy cases.
 
-## Recommended API Path
+</details>
 
-Start with the smallest primitive that matches the job:
+<details>
+<summary><b>Drag gestures — constraints, momentum, snap points</b></summary>
 
-| Level             | Reach for                                                                    |
-| ----------------- | ---------------------------------------------------------------------------- |
-| Basic             | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
-| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
-| State             | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
-| Orchestration     | `movePresence`, `moveStagger`                                                |
-| Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
-| Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
-
-`moveLeave` plays when a parent `movePresence` keeps the view alive during removal. A plain `@if`
-or `*ngIf` removes the element immediately, so there is no DOM node left to animate.
-
-## Motion Values With Signals
-
-Use `moveValue`, `moveTransform`, and `moveSpringValue` when animation state should be derived from
-Angular signals instead of fixed keyframes.
-
-```ts
-import { computed, inject, Injector } from '@angular/core';
-import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
-
-const progress = moveValue(0);
-const x = moveTransform(progress, [0, 1], [0, 120]);
-const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
-  injector: inject(Injector),
-});
-const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
-```
-
-Scroll directives expose progress as a signal, so you can derive other values without writing a
-manual scroll loop:
-
-```html
-<section
-  #scroll="moveScroll"
-  [moveScroll]="{ opacity: [0, 1] }"
-  [style.--progress]="scroll.progress()"
->
-  Scroll-linked content
-</section>
-```
-
-## Drag Gestures
-
-`moveDrag` supports free drag, axis-locked drag, constraints, elasticity,
-momentum, snap-to-origin, snap points, and output events:
+<br/>
 
 ```html
 <div
@@ -198,13 +187,18 @@ momentum, snap-to-origin, snap points, and output events:
 </div>
 ```
 
-Use `moveWhileTap` for press feedback that returns when the pointer is released, such as button
-compression or a pressed card state. Use `moveDrag` when the element should follow the pointer and
-keep a real position, with optional constraints, momentum, snap-to-origin, or snap points.
+Use `moveWhileTap` for press feedback that returns on release; use `moveDrag` when the element
+should follow the pointer and keep a real position.
 
-### Path drawing
+</details>
 
-Animate `pathLength` from `0` to `1` to draw a stroke. The engine automatically measures the element's total length and converts it to WAAPI-compatible `strokeDasharray` / `strokeDashoffset` keyframes.
+<details>
+<summary><b>SVG path drawing & icon helpers</b></summary>
+
+<br/>
+
+Animate `pathLength` from `0` to `1` to draw a stroke. The engine measures the element's total length
+and converts it to WAAPI-compatible `strokeDasharray` / `strokeDashoffset` keyframes.
 
 ```html
 <svg width="24" height="24" viewBox="0 0 24 24">
@@ -220,23 +214,11 @@ Animate `pathLength` from `0` to `1` to draw a stroke. The engine automatically 
 </svg>
 ```
 
-### Icon helpers
-
-Import helper functions to quickly create icon keyframes:
+Helper functions build icon keyframes quickly:
 
 ```ts
 import { movePathDraw, moveIconPulse } from 'angular-movement';
 ```
-
-```html
-<path
-  [moveTarget]="animate()"
-  [moveFrames]="movePathDraw({ opacity: [0, 0.72, 0] })"
-  moveDuration="760"
-/>
-```
-
-For preset-based icon animations, `moveTarget` also accepts `movePreset`:
 
 ```html
 <svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
@@ -244,10 +226,15 @@ For preset-based icon animations, `moveTarget` also accepts `movePreset`:
 </svg>
 ```
 
-### Motion-style variants with per-property transitions
+</details>
 
-Declare simple target states like Framer Motion. When `moveAnimate` changes,
-angular-movement creates keyframes from the previous state to the next one:
+<details>
+<summary><b>Variants with per-property transitions</b></summary>
+
+<br/>
+
+Declare target states like Framer Motion. When `moveAnimate` changes, keyframes are generated from
+the previous state to the next.
 
 ```html
 <div
@@ -261,40 +248,7 @@ angular-movement creates keyframes from the previous state to the next one:
 </div>
 ```
 
-For one-shot effects, variants can also use explicit keyframe arrays and override
-timing per property:
-
-```html
-<path
-  [moveVariants]="{
-    normal: { pathLength: 1, opacity: 1 },
-    draw: {
-      pathLength: [0, 1],
-      opacity: [0, 0.72, 0],
-      transition: { duration: 760, opacity: { duration: 300, delay: 100 } }
-    }
-  }"
-  [moveAnimate]="animate() ? 'draw' : 'normal'"
-/>
-```
-
-You can also provide a default transition for every variant with `moveTransition`. A variant-level
-`transition` wins when both are present:
-
-```html
-<div
-  [moveVariants]="{
-    idle: { opacity: 0.6, scale: 1 },
-    active: { opacity: 1, scale: 1.08 }
-  }"
-  [moveAnimate]="isActive ? 'active' : 'idle'"
-  [moveTransition]="{ duration: 420, opacity: { duration: 180 } }"
->
-  Card
-</div>
-```
-
-For presence exits, point `moveExitVariant` at the variant that should play before removal:
+Override timing per property, and point `moveExitVariant` at the variant that plays before removal:
 
 ```html
 <ng-container *movePresence="isOpen">
@@ -311,71 +265,80 @@ For presence exits, point `moveExitVariant` at the variant that should play befo
 </ng-container>
 ```
 
-Per-property transitions currently support different `duration` and `delay` values per property.
-Different per-property `easing` values are detected in development, but the animation falls back to
-the global easing so the generated WAAPI keyframes stay in one composed timeline.
+</details>
 
-### One-shot trigger (no reverse)
+<details>
+<summary><b>Motion values driven by signals</b></summary>
 
-Use `moveTrigger` when you want to play an animation on `true` and reset cleanly on `false` (no reverse animation):
-
-```html
-<path
-  #motion="moveTrigger"
-  [moveTrigger]="animate()"
-  [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-  moveDuration="700"
-  moveResetState="clear"
-/>
-```
-
-Or call it imperatively from TypeScript:
+<br/>
 
 ```ts
-@ViewChild('motion') motion!: MoveTriggerDirective;
+import { computed, inject, Injector } from '@angular/core';
+import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
 
-this.motion.play();
-this.motion.reset();
-this.motion.set({ opacity: 0.5, pathLength: 0.5 });
+const progress = moveValue(0);
+const x = moveTransform(progress, [0, 1], [0, 120]);
+const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
+  injector: inject(Injector),
+});
+const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
 ```
 
-## What You Can Explore In The Demo
+Scroll directives expose progress as a signal, so you can derive values without a manual scroll loop:
 
-The demo site includes focused pages for:
+```html
+<section
+  #scroll="moveScroll"
+  [moveScroll]="{ opacity: [0, 1] }"
+  [style.--progress]="scroll.progress()"
+>
+  Scroll-linked content
+</section>
+```
 
-- Animate
-- Enter and Leave
-- Hover and Tap
-- In View
-- Scroll and Parallax
-- Presence
-- Layout
-- Drag
-- Variants
-- Text animation
-- SVG Icons (new in v0.2.0)
+</details>
 
-These pages show both visual behavior and integration patterns you can copy into real projects.
+## 🏗️ Repository structure
 
-## Open Source Goals
+This is a **pnpm monorepo** with two parts:
 
-- Keep API ergonomic for Angular teams using standalone components.
-- Provide predictable animation defaults with opt-in customization.
-- Maintain examples and docs close to source code.
-- Favor SSR-safe and production-oriented implementation details.
-- Keep the public API small and stable: directives, config, presets, helpers,
-  and control interfaces are public; low-level players and composers are
-  implementation details.
+| Path                                     | What                                                                                 |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| [`projects/movement`](projects/movement) | The publishable npm library (`angular-movement`)                                     |
+| [`src`](src)                             | Demo & documentation site — [AnalogJS](https://analogjs.org/) (Vite + SSR, zoneless) |
 
-## Contributing
+The demo site imports the library via a Vite path alias, so library changes are reflected live
+without a build step.
 
-Contributions are welcome through issues and pull requests.
-When proposing changes, include:
+```bash
+pnpm dev            # run the demo site
+pnpm test           # library unit tests (Vitest)
+ng build movement   # build the library → dist/movement
+pnpm build          # build the demo site (client + SSR)
+```
 
-- Problem statement and expected behavior.
-- API impact, if any.
-- Tests or demo updates for new behavior.
+## 🚢 Deployment
 
-## License
+The demo site deploys to **Cloudflare Pages** — a single source of truth for hosting.
 
-MIT
+- **Automatic:** every push to `main` runs [`.github/workflows/deploy-cloudflare.yml`](.github/workflows/deploy-cloudflare.yml).
+- **Manual:** `pnpm deploy` builds and ships `dist/analog/public` via Wrangler.
+
+Live at **[angular-movement.andersseen.dev](https://angular-movement.andersseen.dev)**.
+
+## 🤝 Contributing
+
+Contributions are welcome through issues and pull requests. When proposing changes, include a
+problem statement, any public-API impact, and tests or demo updates for new behavior.
+
+- 📋 [Contributing guide](CONTRIBUTING.md)
+- 🤝 [Code of conduct](CODE_OF_CONDUCT.md)
+- 🔒 [Security policy](SECURITY.md)
+- 🗺️ [Roadmap](ROADMAP.md)
+- ✅ [Release checklist](RELEASE_CHECKLIST.md)
+
+## 📄 License
+
+[MIT](LICENSE) © [Andersseen](https://github.com/Andersseen)
+
+<div align="center"><sub>Built with Angular, AnalogJS & the Web Animations API.</sub></div>
