@@ -3,11 +3,11 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-07-24
-**Library version:** `0.5.0` (published to npm as `angular-movement`, released 2026-06-15)
+**Last updated:** 2026-08-04
+**Library version:** `0.6.0` (release prepared on `fix/v1-foundation-hardening`, ready to publish via `v0.6.0` tag)
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` is the default and deploy branch; working tree has demo bundle optimization complete.
-**Roadmap phase:** post-0.5 → working toward **0.6 "API hardening"** (see `ROADMAP.md`)
+**Branch state:** `fix/v1-foundation-hardening` — docs, demos, tests, e2e, and 0.6.0 release artifacts prepared. Awaiting push and PR to trigger CI publish.
+**Roadmap phase:** 0.6 "API hardening" release is staged (see `ROADMAP.md`)
 
 ## What is DONE and stable
 
@@ -30,16 +30,31 @@
 - `moveText` is now reactive to input changes via `effect()`.
 - Demo bundle optimization: every demo page and the demo container import only the specific
   directives they use, improving route-level tree-shaking.
+- Public docs aligned with real API: variants use `moveVariant`/`moveActiveVariant`, focus uses
+  `moveWhileFocus`, and `moveSpringValue` examples show `{ injector: inject(Injector) }`.
+- API stability and input-reactivity sections added to root README, package README, API Guide,
+  Reference page, and `docs/ai/ARCHITECTURE.md`.
+- Demo pages added for `[moveAnimation]` (object-based Framer-style API) and `[moveWhileFocus]`.
+- `MoveAnimationDirective` test suite expanded: keyframes, ignored properties, timing/spring/disabled
+  inputs, reduced motion, exit/presence, cancellation, and SSR safety.
+- Playwright e2e covers the two new demo routes plus basic interaction tests.
+- `moveParallaxContainer` input added to `MoveParallaxDirective` for custom scrollable containers;
+  parallax demo migrated from `[moveScroll]` to `[moveParallax]`.
+- `optionalBooleanAttribute` coercion bug fixed: empty-string boolean attributes now resolve to `true`.
+- `move-animation.utils.spec.ts` covers `optionalNumberAttribute`, `numberAttribute`,
+  `optionalBooleanAttribute`, and `booleanAttribute`.
 
 ## In progress / recently merged (CHANGELOG "Unreleased")
 
-- **Spec 001 — Base Hardening** (`docs/ai/specs/001-base-hardening.md`) is partially done:
-  - Done: `moveVariants` `moveAnimate`→`moveVariant` rename (+`moveActiveVariant` alias); numeric/boolean
-    input coercion across directives; `MoveSmoothScrollDirective` compile fix (`moveSmoothScrollLerp`
-    now uses `numberAttribute`); dead-constant cleanup in `constants.ts` (19→4). test/lint/build green.
-  - Remaining: parallax demo still wired to `[moveScroll]` instead of `[moveParallax]`; no
-    `demos/focus.page.ts`; docs/`api.page.ts`/`reference.page.ts` + server API route need a selector/input
-    audit. Track against the spec's acceptance criteria.
+- **Spec 001 — Base Hardening** (`docs/ai/specs/001-base-hardening.md`) is done enough for 0.6.0:
+  - Done: docs/demo selector/input audit; `moveAnimation` and `moveWhileFocus` demos; `MoveAnimationDirective`
+    test hardening; e2e expansion; API stability & input-reactivity docs; parallax demo migration to
+    `[moveParallax]`; numeric/boolean input coercion verified and bug-fixed. `test:coverage`, `ng lint`,
+    `pnpm build`, `pnpm build:prod`, `pnpm pack:check`, and `pnpm e2e` are green.
+  - Release `0.6.0` is staged: `projects/movement/package.json` bumped, `CHANGELOG.md` rolled, commit
+    `chore(release): v0.6.0` and tag `v0.6.0` created.
+  - Remaining from the original spec (post-0.6.0): `moveDrag`/`moveLayout` transform double-counting fixes
+    (needs dedicated spec).
 
 ## Next up (priority order)
 

@@ -121,7 +121,7 @@ Start with the smallest primitive that matches the job:
 | Level               | Reach for                                                                    |
 | ------------------- | ---------------------------------------------------------------------------- |
 | **Basic**           | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
-| **Interactions**    | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| **Interactions**    | `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`             |
 | **State**           | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
 | **Orchestration**   | `movePresence`, `moveStagger`                                                |
 | **Scroll & layout** | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
@@ -140,8 +140,8 @@ Every directive has a focused page with a live config panel and copy-paste HTML 
   </a>
 </div>
 
-**Demo pages:** Animate · Enter & Leave · Hover & Tap · In-View · Scroll & Parallax · Presence ·
-Layout · Drag · Variants · Text · SVG Icons
+**Demo pages:** Animate · Animation (object API) · Enter & Leave · Hover & Tap · Focus · In-View ·
+Scroll & Parallax · Presence · Layout · Drag · Variants · Text · SVG Icons
 
 ## 📖 Recipes
 
@@ -233,8 +233,9 @@ import { movePathDraw, moveIconPulse } from 'angular-movement';
 
 <br/>
 
-Declare target states like Framer Motion. When `moveAnimate` changes, keyframes are generated from
-the previous state to the next.
+Declare target states like Framer Motion. Use `moveVariant` to set the active state; `moveActiveVariant`
+is a legacy alias for the same input. When the active variant changes, keyframes are generated from the
+previous state to the next.
 
 ```html
 <div
@@ -242,7 +243,7 @@ the previous state to the next.
     idle: { scale: 1, rotate: 0 },
     active: { scale: 1.08, rotate: 4 }
   }"
-  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveVariant]="isActive ? 'active' : 'idle'"
 >
   Card
 </div>
@@ -257,7 +258,7 @@ Override timing per property, and point `moveExitVariant` at the variant that pl
       visible: { opacity: 1, x: 0 },
       hidden: { opacity: 0, x: 24 }
     }"
-    moveAnimate="visible"
+    moveVariant="visible"
     moveExitVariant="hidden"
   >
     Panel
@@ -297,6 +298,29 @@ Scroll directives expose progress as a signal, so you can derive values without 
 ```
 
 </details>
+
+## 🧪 API stability
+
+| Status               | APIs                                                                                                                                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
+| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+
+Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
+receive small naming or behavior adjustments. Experimental APIs can change significantly between
+minor versions.
+
+## 🔄 Input reactivity
+
+Most interaction directives react to input changes while they are active:
+
+- **Reactive after init**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`,
+  `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`.
+- **Init-only**: `moveAnimate` / `[move]`, `[moveAnimation]`, `moveEnter`, `moveLeave`,
+  `moveInView`, `moveLoop`, `moveText`, `moveSmoothScroll`. Changing their inputs after the
+  directive initializes does not re-run the animation; wrap the element in `*movePresence` or
+  re-create the view to play it again.
 
 ## 🏗️ Repository structure
 

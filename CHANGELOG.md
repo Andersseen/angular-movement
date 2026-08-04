@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.6.0] - 2026-08-04
+
 ### Added
 
 - Open source community files: contributing guide, code of conduct, support policy, security
@@ -14,6 +16,11 @@
   `CHANGELOG.md` Unreleased section, commits, and tags (supports `--dry-run` and `--push`).
 - Redesigned, more visual root README with a screenshot hero, badge row, feature grid, and
   collapsible recipes.
+- Live demo pages for `[moveAnimation]` and `[moveWhileFocus]`.
+- Playwright interaction tests for the new animation and focus demos.
+- API stability and input-reactivity tables/sections in the README, package README, API Guide,
+  Reference page, and `docs/ai/ARCHITECTURE.md`.
+- `moveParallaxContainer` input on `MoveParallaxDirective` for custom scrollable containers.
 
 ### Changed
 
@@ -30,6 +37,12 @@
   `moveActiveVariant` as an alias), removing the selector collision with `MoveAnimateDirective`.
 - Numeric and boolean directive inputs now coerce attribute values, so bare/string attributes like
   `moveDuration="400"` and `moveInViewOnce="false"` behave as expected.
+- Root and package README examples now use the correct active-variant input (`moveVariant` /
+  `moveActiveVariant`), focus selector (`moveWhileFocus`), and `moveSpringValue` config with
+  `{ injector: inject(Injector) }`.
+- `move-animation.utils.spec.ts` now covers `optionalNumberAttribute`, `numberAttribute`,
+  `optionalBooleanAttribute`, and `booleanAttribute` coercion.
+- `move-parallax.directive.spec.ts` now includes tests for `moveParallaxContainer` behavior.
 
 ### Fixed
 
@@ -40,6 +53,12 @@
   toggle back to visible.
 - `MoveSmoothScrollDirective` no longer fails to compile — `moveSmoothScrollLerp` coerces to a
   required number instead of an incompatible `number | undefined`.
+- `MoveAnimationDirective` test suite expanded to cover keyframe conversion, ignored properties,
+  timing/spring/disabled inputs, reduced motion, exit/presence behavior, cancellation, and SSR
+  safety.
+- `optionalBooleanAttribute` now treats an empty string attribute as `true`, matching standard HTML
+  boolean attribute behavior and the helper's documented contract.
+- Parallax demo now uses `[moveParallax]` with `moveParallaxContainer` instead of `[moveScroll]`.
 
 ### Removed
 

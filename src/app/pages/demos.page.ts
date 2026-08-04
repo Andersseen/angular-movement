@@ -19,6 +19,11 @@ const DEMO_GROUPS: DemoGroup[] = [
       { path: 'enter', label: 'moveEnter', description: 'Animate on element enter' },
       { path: 'leave', label: 'moveLeave', description: 'Animate on element leave' },
       { path: 'animate', label: 'moveAnimate', description: 'Shorthand for enter/leave' },
+      {
+        path: 'animation',
+        label: 'moveAnimation',
+        description: 'Object-based Framer-style API',
+      },
     ],
   },
   {
@@ -26,6 +31,7 @@ const DEMO_GROUPS: DemoGroup[] = [
     items: [
       { path: 'hover', label: 'moveWhileHover', description: 'Hover animations' },
       { path: 'tap', label: 'moveWhileTap', description: 'Click/tap animations' },
+      { path: 'focus', label: 'moveWhileFocus', description: 'Focus animations' },
       { path: 'target', label: 'moveTarget', description: 'Boolean target animations' },
       { path: 'in-view', label: 'moveInView', description: 'Scroll-triggered animations' },
       { path: 'drag', label: 'moveDrag', description: 'Draggable elements' },

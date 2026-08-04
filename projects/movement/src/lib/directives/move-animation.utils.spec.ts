@@ -1,6 +1,10 @@
 import {
   applyInitialStyles,
+  booleanAttribute,
   clearInitialStyles,
+  numberAttribute,
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
@@ -160,6 +164,85 @@ describe('move-animation.utils', () => {
       const frames = resolveMoveFrames('fade-up', 'loop');
       expect(frames.opacity).toBeDefined();
       expect(frames.y).toBeDefined();
+    });
+  });
+
+  // ─── Attribute coercion helpers ─────────────────────────────────────────────
+
+  describe('optionalNumberAttribute', () => {
+    it('returns undefined for undefined, null, and empty string', () => {
+      expect(optionalNumberAttribute(undefined)).toBeUndefined();
+      expect(optionalNumberAttribute(null)).toBeUndefined();
+      expect(optionalNumberAttribute('')).toBeUndefined();
+    });
+
+    it('coerces numeric strings to numbers', () => {
+      expect(optionalNumberAttribute('42')).toBe(42);
+      expect(optionalNumberAttribute('3.14')).toBe(3.14);
+      expect(optionalNumberAttribute('-10')).toBe(-10);
+    });
+
+    it('coerces booleans and other values to numbers', () => {
+      expect(optionalNumberAttribute(true)).toBe(1);
+      expect(optionalNumberAttribute(false)).toBe(0);
+    });
+
+    it('returns NaN for non-numeric strings', () => {
+      expect(optionalNumberAttribute('abc')).toBeNaN();
+    });
+  });
+
+  describe('numberAttribute', () => {
+    it('always returns a number', () => {
+      expect(numberAttribute('300')).toBe(300);
+      expect(numberAttribute(300)).toBe(300);
+      expect(numberAttribute(true)).toBe(1);
+      expect(numberAttribute('')).toBe(0);
+      expect(numberAttribute('invalid')).toBeNaN();
+    });
+  });
+
+  describe('optionalBooleanAttribute', () => {
+    it('returns undefined when the attribute is absent', () => {
+      expect(optionalBooleanAttribute(undefined)).toBeUndefined();
+      expect(optionalBooleanAttribute(null)).toBeUndefined();
+    });
+
+    it('treats empty string as true (HTML boolean attribute behavior)', () => {
+      expect(optionalBooleanAttribute('')).toBe(true);
+    });
+
+    it('returns true for truthy values', () => {
+      expect(optionalBooleanAttribute(true)).toBe(true);
+      expect(optionalBooleanAttribute('true')).toBe(true);
+      expect(optionalBooleanAttribute(1)).toBe(true);
+      expect(optionalBooleanAttribute('anything')).toBe(true);
+    });
+
+    it('returns false only for explicit false representations', () => {
+      expect(optionalBooleanAttribute(false)).toBe(false);
+      expect(optionalBooleanAttribute('false')).toBe(false);
+      expect(optionalBooleanAttribute(0)).toBe(false);
+      expect(optionalBooleanAttribute('0')).toBe(false);
+    });
+  });
+
+  describe('booleanAttribute', () => {
+    it('treats empty string as true', () => {
+      expect(booleanAttribute('')).toBe(true);
+    });
+
+    it('returns true for true and truthy strings', () => {
+      expect(booleanAttribute(true)).toBe(true);
+      expect(booleanAttribute('true')).toBe(true);
+      expect(booleanAttribute(1)).toBe(true);
+    });
+
+    it('returns false for explicit false representations', () => {
+      expect(booleanAttribute(false)).toBe(false);
+      expect(booleanAttribute('false')).toBe(false);
+      expect(booleanAttribute(0)).toBe(false);
+      expect(booleanAttribute('0')).toBe(false);
     });
   });
 
