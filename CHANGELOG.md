@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.6.0] - 2026-08-04
+
 ### Added
 
 - Open source community files: contributing guide, code of conduct, support policy, security
