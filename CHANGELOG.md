@@ -14,6 +14,10 @@
   `CHANGELOG.md` Unreleased section, commits, and tags (supports `--dry-run` and `--push`).
 - Redesigned, more visual root README with a screenshot hero, badge row, feature grid, and
   collapsible recipes.
+- Live demo pages for `[moveAnimation]` and `[moveWhileFocus]`.
+- Playwright interaction tests for the new animation and focus demos.
+- API stability and input-reactivity tables/sections in the README, package README, API Guide,
+  Reference page, and `docs/ai/ARCHITECTURE.md`.
 
 ### Changed
 
@@ -30,6 +34,9 @@
   `moveActiveVariant` as an alias), removing the selector collision with `MoveAnimateDirective`.
 - Numeric and boolean directive inputs now coerce attribute values, so bare/string attributes like
   `moveDuration="400"` and `moveInViewOnce="false"` behave as expected.
+- Root and package README examples now use the correct active-variant input (`moveVariant` /
+  `moveActiveVariant`), focus selector (`moveWhileFocus`), and `moveSpringValue` config with
+  `{ injector: inject(Injector) }`.
 
 ### Fixed
 
@@ -40,6 +47,9 @@
   toggle back to visible.
 - `MoveSmoothScrollDirective` no longer fails to compile — `moveSmoothScrollLerp` coerces to a
   required number instead of an incompatible `number | undefined`.
+- `MoveAnimationDirective` test suite expanded to cover keyframe conversion, ignored properties,
+  timing/spring/disabled inputs, reduced motion, exit/presence behavior, cancellation, and SSR
+  safety.
 
 ### Removed
 

@@ -49,30 +49,30 @@ Fixing these before adding new directives/animations gives the project a solid f
 ## Acceptance criteria
 
 - [ ] Parallax demo uses `[moveParallax]` and `MoveParallaxDirective`.
-- [ ] `MoveVariantsDirective` no longer declares a `moveAnimate` input; existing variants demos/tests use `moveVariant`.
+- [x] `MoveVariantsDirective` no longer declares a `moveAnimate` input; existing variants demos/tests use `moveVariant`.
 - [ ] All numeric inputs that may be written as attributes use `optionalNumberAttribute` or a required-number transform.
 - [ ] All boolean inputs that may be written as attributes coerce `''` / `'true'` / `'false'` correctly.
 - [ ] `moveDrag` release and `moveLayout` FLIP reset the inline transform before the engine plays, so deltas are not double-counted.
 - [ ] `moveDrag` bounds measurement ignores the current drag offset.
-- [ ] `MoveAnimationDirective` spec covers enter, exit/presence, reduced motion, SSR, and dynamic input changes.
-- [ ] Focus demo page exists and is registered in the demos navigation.
-- [ ] Docs and server API reference use correct selector names and complete input lists.
-- [ ] `constants.ts` no longer contains unused constants.
-- [ ] `pnpm test:coverage`, `ng lint`, and `pnpm build` pass.
-- [ ] `CHANGELOG.md` Unreleased section and `docs/ai/STATE.md` are updated.
+- [x] `MoveAnimationDirective` spec covers enter, exit/presence, reduced motion, SSR, and dynamic input changes.
+- [x] Focus demo page exists and is registered in the demos navigation.
+- [x] Docs and server API reference use correct selector names and complete input lists.
+- [x] `constants.ts` no longer contains unused constants.
+- [x] `pnpm test:coverage`, `ng lint`, `pnpm build`, `pnpm build:prod`, `pnpm pack:check`, and `pnpm e2e` pass.
+- [x] `CHANGELOG.md` Unreleased section and `docs/ai/STATE.md` are updated.
 
 ## Implementation plan
 
 - [ ] 1. Fix parallax demo wiring (`src/app/pages/demos/parallax.page.ts`).
 - [ ] 2. Add shared boolean coercion helper and optional number transform in `projects/movement/src/lib/directives/move-animation.utils.ts` (or a new shared file).
-- [ ] 3. Rename variants active input and update all consumers/tests/docs.
+- [x] 3. Rename variants active input and update all consumers/tests/docs.
 - [ ] 4. Apply boolean/number transforms across all directives.
 - [ ] 5. Fix `moveDrag` / `moveLayout` transform double-counting and bounds measurement.
-- [ ] 6. Add `moveAnimation` standalone inputs and backfill tests.
-- [ ] 7. Add focus reverse inputs and focus demo page.
-- [ ] 8. Update docs pages, server API route, and demo imports.
-- [ ] 9. Clean up `constants.ts` and duplicate server preset data.
-- [ ] 10. Run verification suite and update `STATE.md` / `CHANGELOG.md`.
+- [x] 6. Add `moveAnimation` standalone inputs and backfill tests.
+- [x] 7. Add focus reverse inputs and focus demo page.
+- [x] 8. Update docs pages, server API route, and demo imports.
+- [x] 9. Clean up `constants.ts` and duplicate server preset data.
+- [x] 10. Run verification suite and update `STATE.md` / `CHANGELOG.md`.
 
 ## Verification notes
 

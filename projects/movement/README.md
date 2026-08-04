@@ -93,7 +93,7 @@ Start with the smallest primitive that matches the job:
 | Level             | Reach for                                                                    |
 | ----------------- | ---------------------------------------------------------------------------- |
 | Basic             | `moveEnter`, `moveLeave`, `[move]`, `moveInitial`, `moveAnimate`, `moveExit` |
-| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveFocus`, `moveInView`                  |
+| Interactions      | `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`             |
 | State             | `moveVariants`, `moveTarget`, `moveTrigger`                                  |
 | Orchestration     | `movePresence`, `moveStagger`                                                |
 | Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
@@ -129,12 +129,14 @@ The object-based `[moveAnimation]` API is still available when you prefer a sing
 ### Motion values with signals
 
 ```ts
-import { computed } from '@angular/core';
+import { computed, inject, Injector } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
 
 const progress = moveValue(0);
 const x = moveTransform(progress, [0, 1], [0, 120]);
-const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]));
+const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
+  injector: inject(Injector),
+});
 const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
 ```
 
@@ -176,7 +178,8 @@ For the compact form, bind the step directly: `<ul [moveStagger]="80">`.
 
 ### Motion-style variants
 
-Variants can be written as simple target states. When the active variant changes,
+Variants can be written as simple target states. Use `moveVariant` to set the active state
+(`moveActiveVariant` is a legacy alias for the same input). When the active variant changes,
 angular-movement builds keyframes from the previous state to the next state.
 
 ```html
@@ -185,7 +188,7 @@ angular-movement builds keyframes from the previous state to the next state.
     idle: { scale: 1, rotate: 0 },
     active: { scale: 1.08, rotate: 4 }
   }"
-  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveVariant]="isActive ? 'active' : 'idle'"
 >
   Card
 </div>
@@ -216,7 +219,7 @@ Use `moveExitVariant` inside `movePresence` when a named variant should play bef
       visible: { opacity: 1, x: 0 },
       hidden: { opacity: 0, x: 24 }
     }"
-    moveAnimate="visible"
+    moveVariant="visible"
     moveExitVariant="hidden"
   >
     Panel
@@ -294,6 +297,27 @@ Main entrypoint exports:
 - AnimationControls
 - Movement config types and token
 - Presets and icon helper functions
+
+## API stability
+
+| Status               | APIs                                                                                                                                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
+| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+
+Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
+receive small adjustments. Experimental APIs can change significantly between minor versions.
+
+## Input reactivity
+
+Most interaction directives react to input changes while they are active:
+
+- **Reactive after init**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`,
+  `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`.
+- **Init-only**: `moveAnimate` / `[move]`, `[moveAnimation]`, `moveEnter`, `moveLeave`,
+  `moveInView`, `moveLoop`, `moveText`, `moveSmoothScroll`. Changing their inputs after the
+  directive initializes does not re-run the animation.
 
 ## Development
 

@@ -73,6 +73,26 @@ Template directive (e.g. [moveWhileHover]="{ scale: [1, 1.1] }")
 | `MoveTriggerDirective`      | `[moveTrigger]`              | Triggers animations on targets                                                                                     |
 | `MoveSmoothScrollDirective` | `[moveSmoothScroll]`         | Custom smooth-scroll containers (with `SmoothScrollService`)                                                       |
 
+## API stability
+
+Use this classification when documenting or consuming the public API. Stable APIs follow
+semantic-versioning expectations; experimental APIs can change significantly between minor
+versions.
+
+| Status               | Directives / helpers                                                                                                                                                                                           |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
+| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+
+## Input reactivity
+
+- **Reactive after init**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`,
+  `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`.
+- **Init-only by design**: `moveAnimate` / `[move]`, `[moveAnimation]`, `moveEnter`, `moveLeave`,
+  `moveInView`, `moveLoop`, `moveText`, `moveSmoothScroll`. Changing their inputs after init does
+  not re-run the animation; wrap the element in `*movePresence` or re-create the view to replay.
+
 ## DI tokens
 
 | Token                  | File                        | Provided by                                    | Consumed by                                                                   |

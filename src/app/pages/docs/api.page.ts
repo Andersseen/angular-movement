@@ -121,6 +121,73 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           <app-code-block title="motion-values.ts" [code]="motionValuesCode"></app-code-block>
         </div>
 
+        <h2>API stability</h2>
+        <p>
+          Not every API is frozen yet. Use this table when deciding whether an API is safe for
+          production UI or still subject to breaking changes.
+        </p>
+
+        <div class="not-prose my-6 overflow-hidden rounded-lg border">
+          <table class="w-full text-left text-sm">
+            <thead class="bg-surface-raised text-text font-display">
+              <tr>
+                <th class="px-4 py-3 font-semibold">Status</th>
+                <th class="px-4 py-3 font-semibold">Directives & helpers</th>
+              </tr>
+            </thead>
+            <tbody class="divide-border text-text-muted divide-y">
+              <tr>
+                <td class="px-4 py-3 font-medium text-emerald-400">Stable</td>
+                <td class="px-4 py-3">
+                  <code>provideMovement</code>, <code>MOVEMENT_DIRECTIVES</code>,
+                  <code>[move]</code>, <code>[moveAnimate]</code>, <code>moveEnter</code>,
+                  <code>moveLeave</code>, <code>*movePresence</code>, <code>moveStagger</code>,
+                  <code>moveWhileHover</code>, <code>moveWhileTap</code>,
+                  <code>moveWhileFocus</code>, <code>moveInView</code>, basic presets
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-amber-400">Stable candidate</td>
+                <td class="px-4 py-3">
+                  <code>[moveAnimation]</code>, <code>moveVariants</code>, <code>moveScroll</code>,
+                  <code>moveParallax</code>, <code>moveValue</code>, <code>moveTransform</code>,
+                  <code>moveSpringValue</code>
+                </td>
+              </tr>
+              <tr>
+                <td class="px-4 py-3 font-medium text-rose-400">Experimental</td>
+                <td class="px-4 py-3">
+                  <code>moveLayout</code>, advanced <code>moveDrag</code>,
+                  <code>moveSmoothScroll</code>, <code>moveTarget</code>,
+                  <code>moveTrigger</code>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h2>Input reactivity</h2>
+        <p>
+          Most interaction directives react to input changes while they are active. The following
+          directives read their configuration once at initialization by design:
+        </p>
+
+        <ul>
+          <li>
+            <strong>Reactive after init</strong>: <code>moveWhileHover</code>,
+            <code>moveWhileTap</code>, <code>moveWhileFocus</code>, <code>moveVariants</code>,
+            <code>moveTarget</code>, <code>moveTrigger</code>, <code>moveScroll</code>,
+            <code>moveParallax</code>, <code>moveDrag</code>.
+          </li>
+          <li>
+            <strong>Init-only</strong>: <code>moveAnimate</code> / <code>[move]</code>,
+            <code>[moveAnimation]</code>, <code>moveEnter</code>, <code>moveLeave</code>,
+            <code>moveInView</code>, <code>moveLoop</code>, <code>moveText</code>,
+            <code>moveSmoothScroll</code>. Wrap the element in <code>*movePresence</code> or
+            re-create the view to replay.
+          </li>
+        </ul>
+
         <h2>Advanced features</h2>
         <p>
           Reach for SVG path drawing, per-property transitions, spring physics, drag, scroll,
@@ -260,7 +327,8 @@ export default class ApiGuide {
   protected readonly motionValuesCode = `<span class="code-keyword">const</span> progress = <span class="code-function">moveValue</span>(0);
 <span class="code-keyword">const</span> x = <span class="code-function">moveTransform</span>(progress, [0, 1], [0, 120]);
 <span class="code-keyword">const</span> scale = <span class="code-function">moveSpringValue</span>(
-  <span class="code-function">moveTransform</span>(progress, [0, 1], [0.9, 1])
+  <span class="code-function">moveTransform</span>(progress, [0, 1], [0.9, 1]),
+  { <span class="code-attr">injector</span>: <span class="code-function">inject</span>(Injector) }
 );
 
 <span class="code-keyword">const</span> transform = <span class="code-function">computed</span>(

@@ -2,8 +2,10 @@ import { expect, test } from '@playwright/test';
 
 const demoRoutes = [
   'animate',
+  'animation',
   'drag',
   'enter',
+  'focus',
   'hover',
   'icons',
   'in-view',
@@ -87,5 +89,33 @@ test.describe('demo pages', () => {
     await expect(card).toBeAttached();
     await expect(page.getByTestId('leave-hidden-message')).toBeVisible();
     await expect(card).toBeHidden({ timeout: 1000 });
+  });
+
+  test('animation demo plays enter and exit through movePresence', async ({ page }) => {
+    await page.goto('/demos/animation');
+
+    const card = page.locator('.font-display', { hasText: 'Object Animation' }).locator('..');
+    const toggle = page.locator('button', { hasText: /Hide|Show/ });
+
+    await expect(card).toBeVisible();
+
+    await toggle.click();
+
+    await expect(card).toBeAttached();
+    await expect(card).toBeHidden({ timeout: 1000 });
+
+    await toggle.click();
+    await expect(card).toBeVisible({ timeout: 1000 });
+  });
+
+  test('focus demo keeps the focusable element visible after focus', async ({ page }) => {
+    await page.goto('/demos/focus');
+
+    const button = page.locator('button', { hasText: 'Focus me' });
+    await expect(button).toBeVisible();
+
+    await button.focus();
+    await expect(button).toBeVisible();
+    await expect(button).toBeFocused();
   });
 });
