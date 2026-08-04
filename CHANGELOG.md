@@ -18,6 +18,7 @@
 - Playwright interaction tests for the new animation and focus demos.
 - API stability and input-reactivity tables/sections in the README, package README, API Guide,
   Reference page, and `docs/ai/ARCHITECTURE.md`.
+- `moveParallaxContainer` input on `MoveParallaxDirective` for custom scrollable containers.
 
 ### Changed
 
@@ -37,6 +38,9 @@
 - Root and package README examples now use the correct active-variant input (`moveVariant` /
   `moveActiveVariant`), focus selector (`moveWhileFocus`), and `moveSpringValue` config with
   `{ injector: inject(Injector) }`.
+- `move-animation.utils.spec.ts` now covers `optionalNumberAttribute`, `numberAttribute`,
+  `optionalBooleanAttribute`, and `booleanAttribute` coercion.
+- `move-parallax.directive.spec.ts` now includes tests for `moveParallaxContainer` behavior.
 
 ### Fixed
 
@@ -50,6 +54,9 @@
 - `MoveAnimationDirective` test suite expanded to cover keyframe conversion, ignored properties,
   timing/spring/disabled inputs, reduced motion, exit/presence behavior, cancellation, and SSR
   safety.
+- `optionalBooleanAttribute` now treats an empty string attribute as `true`, matching standard HTML
+  boolean attribute behavior and the helper's documented contract.
+- Parallax demo now uses `[moveParallax]` with `moveParallaxContainer` instead of `[moveScroll]`.
 
 ### Removed
 

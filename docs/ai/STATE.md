@@ -38,16 +38,21 @@
 - `MoveAnimationDirective` test suite expanded: keyframes, ignored properties, timing/spring/disabled
   inputs, reduced motion, exit/presence, cancellation, and SSR safety.
 - Playwright e2e covers the two new demo routes plus basic interaction tests.
+- `moveParallaxContainer` input added to `MoveParallaxDirective` for custom scrollable containers;
+  parallax demo migrated from `[moveScroll]` to `[moveParallax]`.
+- `optionalBooleanAttribute` coercion bug fixed: empty-string boolean attributes now resolve to `true`.
+- `move-animation.utils.spec.ts` covers `optionalNumberAttribute`, `numberAttribute`,
+  `optionalBooleanAttribute`, and `booleanAttribute`.
 
 ## In progress / recently merged (CHANGELOG "Unreleased")
 
 - **Spec 001 — Base Hardening** (`docs/ai/specs/001-base-hardening.md`) is partially done:
   - Done: docs/demo selector/input audit; `moveAnimation` and `moveWhileFocus` demos; `MoveAnimationDirective`
-    test hardening; e2e expansion; API stability & input-reactivity docs. `test:coverage`, `ng lint`,
+    test hardening; e2e expansion; API stability & input-reactivity docs; parallax demo migration to
+    `[moveParallax]`; numeric/boolean input coercion verified and bug-fixed. `test:coverage`, `ng lint`,
     `pnpm build`, `pnpm build:prod`, `pnpm pack:check`, and `pnpm e2e` are green.
-  - Remaining from the original spec: parallax demo still wired to `[moveScroll]` instead of
-    `[moveParallax]`; numeric/boolean input coercion verification across all directives;
-    `moveDrag`/`moveLayout` transform double-counting fixes.
+  - Remaining from the original spec: `moveDrag`/`moveLayout` transform double-counting fixes (needs
+    dedicated spec).
 
 ## Next up (priority order)
 

@@ -1,15 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveScrollDirective } from 'movement';
+import { MoveParallaxDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-parallax',
-  imports: [DemoContainer, MoveScrollDirective],
+  imports: [DemoContainer, MoveParallaxDirective],
   template: `
     <app-demo-container
       title="Parallax Effect"
       description="Create depth with multiple layers moving at different speeds. Scroll down to see the effect."
-      directive="moveScroll"
+      directive="moveParallax"
       [availablePresets]="[]"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
@@ -31,8 +31,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           <div class="relative my-8 flex h-[280px] w-full items-center justify-center">
             <!-- Sky/Background layer (slowest - barely moves) -->
             <div
-              [moveScroll]="{ y: [0, bgSpeed()] }"
-              moveScrollContainer="#parallax-demo-container"
+              [moveParallax]="bgSpeed()"
+              moveParallaxContainer="#parallax-demo-container"
               class="absolute inset-x-0 top-0 flex h-full items-center justify-center"
             >
               <div
@@ -42,8 +42,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
             <!-- Mountains/Middle layer (medium speed) -->
             <div
-              [moveScroll]="{ y: [0, midSpeed()] }"
-              moveScrollContainer="#parallax-demo-container"
+              [moveParallax]="midSpeed()"
+              moveParallaxContainer="#parallax-demo-container"
               class="absolute bottom-0 flex items-end justify-center"
             >
               <svg
@@ -57,8 +57,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
             <!-- Foreground/Content (fastest - moves most) -->
             <div
-              [moveScroll]="{ y: [0, fgSpeed()], scale: [0.8, 1.1] }"
-              moveScrollContainer="#parallax-demo-container"
+              [moveParallax]="fgSpeed()"
+              moveParallaxContainer="#parallax-demo-container"
               class="bg-surface border-accent/50 relative z-10 flex flex-col items-center gap-3 rounded-2xl border-2 p-6 shadow-2xl"
             >
               <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
@@ -82,21 +82,21 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
               </div>
             </div>
 
-            <!-- Floating particles (varied speeds) -->
+            <!-- Floating particles (varied speeds, opposite direction) -->
             @if (showFloating()) {
               <div
-                [moveScroll]="{ y: [0, -60], x: [0, 20] }"
-                moveScrollContainer="#parallax-demo-container"
+                [moveParallax]="-0.15"
+                moveParallaxContainer="#parallax-demo-container"
                 class="bg-accent/60 absolute top-10 left-10 h-3 w-3 rounded-full"
               ></div>
               <div
-                [moveScroll]="{ y: [0, -40] }"
-                moveScrollContainer="#parallax-demo-container"
+                [moveParallax]="-0.1"
+                moveParallaxContainer="#parallax-demo-container"
                 class="bg-accent/40 absolute top-20 right-16 h-2 w-2 rounded-full"
               ></div>
               <div
-                [moveScroll]="{ y: [0, -80], x: [0, -10] }"
-                moveScrollContainer="#parallax-demo-container"
+                [moveParallax]="-0.2"
+                moveParallaxContainer="#parallax-demo-container"
                 class="bg-accent/50 absolute bottom-20 left-20 h-4 w-4 rounded-full"
               ></div>
             }
@@ -143,22 +143,26 @@ export default class DemoParallax {
 
   protected readonly parallaxCode = computed(() => {
     const speed = this.fgSpeed();
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveScroll]</span>=<span class="code-string">"{ y: [0, ${speed}] }"</span> <span class="code-attr">moveScrollContainer</span>=<span class="code-string">"'.container'"</span>&gt;\n  Parallax Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `&lt;<span class="code-keyword">div</span>
+  <span class="code-attr">[moveParallax]</span>=<span class="code-string">"${speed}"</span>
+  <span class="code-attr">moveParallaxContainer</span>=<span class="code-string">"'#parallax-demo-container'"</span>&gt;
+  Parallax Element
+&lt;/<span class="code-keyword">div</span>&gt;`;
   });
 
   // Computed speeds based on intensity
   protected readonly bgSpeed = computed(() => {
-    const speeds = { subtle: -10, medium: -25, strong: -50, extreme: -100 };
+    const speeds = { subtle: 0.05, medium: 0.1, strong: 0.15, extreme: 0.25 };
     return speeds[this.intensity()];
   });
 
   protected readonly midSpeed = computed(() => {
-    const speeds = { subtle: -30, medium: -70, strong: -130, extreme: -200 };
+    const speeds = { subtle: 0.1, medium: 0.2, strong: 0.35, extreme: 0.55 };
     return speeds[this.intensity()];
   });
 
   protected readonly fgSpeed = computed(() => {
-    const speeds = { subtle: -50, medium: -120, strong: -200, extreme: -300 };
+    const speeds = { subtle: 0.2, medium: 0.35, strong: 0.55, extreme: 0.85 };
     return speeds[this.intensity()];
   });
 

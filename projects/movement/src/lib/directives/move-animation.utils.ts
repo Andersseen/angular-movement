@@ -41,9 +41,10 @@ export function numberAttribute(value: unknown): number {
  * The string `'false'` becomes `false`.
  */
 export function optionalBooleanAttribute(value: unknown): boolean | undefined {
-  if (value === undefined || value === null || value === '') {
+  if (value === undefined || value === null) {
     return undefined;
   }
+  if (value === '' || value === true) return true;
   return value !== false && value !== 'false' && value !== '0' && value !== 0;
 }
 

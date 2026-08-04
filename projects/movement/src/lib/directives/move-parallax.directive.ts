@@ -23,6 +23,8 @@ import { numberAttribute } from './move-animation.utils';
 export class MoveParallaxDirective implements OnInit, OnDestroy {
   readonly moveParallax = input<number, unknown>(0.2, { transform: numberAttribute });
   readonly moveParallaxAxis = input<'x' | 'y'>('y');
+  /** Optional CSS selector for a custom scrollable container. Defaults to window scroll. */
+  readonly moveParallaxContainer = input<string | null>(null);
   readonly progress = signal(0);
 
   readonly #documentRef = inject(DOCUMENT);
@@ -35,6 +37,8 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
   #observer: IntersectionObserver | null = null;
   #isVisible = false;
   #scrollListener = () => this.#updateProgress();
+  #scrollTarget: EventTarget | null = null;
+  #containerEl: HTMLElement | null = null;
 
   #elHeight = 0;
   #windowHeight = 0;
@@ -56,6 +60,12 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     const view = this.#documentRef.defaultView;
     if (!view) return;
 
+    const containerSelector = this.moveParallaxContainer();
+    this.#containerEl = containerSelector
+      ? (this.#documentRef.querySelector(containerSelector) as HTMLElement | null)
+      : null;
+    this.#scrollTarget = this.#containerEl ?? view;
+
     this.#initAnimation();
 
     this.#observer = new IntersectionObserver(
@@ -65,19 +75,19 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
 
         if (entry.isIntersecting) {
           if (!this.#smoothScroll?.isActive) {
-            view.addEventListener('scroll', this.#scrollListener, { passive: true });
+            this.#scrollTarget!.addEventListener('scroll', this.#scrollListener, { passive: true });
           }
           this.#updateProgress();
         } else {
-          view.removeEventListener('scroll', this.#scrollListener);
+          this.#scrollTarget?.removeEventListener('scroll', this.#scrollListener);
         }
       },
-      { root: null },
+      { root: this.#containerEl ?? null },
     );
 
     this.#observer.observe(this.#host.nativeElement);
 
-    // Re-initialize animation on resize to update dimensions
+    // Re-initialize animation on window resize to update dimensions
     view.addEventListener('resize', this.#resizeListener, { passive: true });
   }
 
@@ -89,15 +99,26 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     const view = this.#documentRef.defaultView;
     if (!view) return;
 
-    this.#windowHeight = view.innerHeight;
+    this.#windowHeight = this.#containerEl ? this.#containerEl.clientHeight : view.innerHeight;
     this.#elHeight = this.#host.nativeElement.offsetHeight;
     this.#totalDistance = this.#windowHeight + this.#elHeight;
 
-    const scrollY = this.#smoothScroll?.isActive
+    const initialScrollY = this.#smoothScroll?.isActive
       ? this.#smoothScroll.scrollY()
-      : view.scrollY || view.pageYOffset || 0;
-    const rect = this.#host.nativeElement.getBoundingClientRect();
-    this.#initialAbsoluteTop = scrollY + rect.top;
+      : this.#containerEl
+        ? this.#containerEl.scrollTop
+        : view.scrollY || view.pageYOffset || 0;
+
+    let elTop: number;
+    if (this.#containerEl) {
+      const containerRect = this.#containerEl.getBoundingClientRect();
+      const elRect = this.#host.nativeElement.getBoundingClientRect();
+      elTop = elRect.top - containerRect.top + this.#containerEl.scrollTop;
+    } else {
+      const rect = this.#host.nativeElement.getBoundingClientRect();
+      elTop = initialScrollY + rect.top;
+    }
+    this.#initialAbsoluteTop = elTop;
 
     const speed = this.moveParallax();
     const axis = this.moveParallaxAxis();
@@ -130,14 +151,16 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
 
     const scrollY = this.#smoothScroll?.isActive
       ? this.#smoothScroll.scrollY()
-      : view.scrollY || view.pageYOffset || 0;
+      : this.#containerEl
+        ? this.#containerEl.scrollTop
+        : view.scrollY || view.pageYOffset || 0;
 
     // Efficiently calculate the current visual top without triggering layout thrashing
     // or feedback loops caused by the active CSS transform translating the element.
     const currentVirtualTop = this.#initialAbsoluteTop - scrollY;
 
-    // progress is 0 when element top hits window bottom (currentVirtualTop === windowHeight)
-    // progress is 1 when element bottom hits window top (currentVirtualTop === -elHeight)
+    // progress is 0 when element top hits viewport/container bottom (currentVirtualTop === windowHeight)
+    // progress is 1 when element bottom hits viewport/container top (currentVirtualTop === -elHeight)
     let p = (this.#windowHeight - currentVirtualTop) / this.#totalDistance;
     p = Math.max(0, Math.min(1, p));
 
@@ -150,9 +173,9 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.#player?.cancel();
+    this.#scrollTarget?.removeEventListener('scroll', this.#scrollListener);
     const view = this.#documentRef.defaultView;
     if (view) {
-      view.removeEventListener('scroll', this.#scrollListener);
       view.removeEventListener('resize', this.#resizeListener);
     }
     this.#observer?.disconnect();

@@ -2,7 +2,7 @@
 
 - **Status:** in-progress
 - **Created:** 2026-07-20
-- **Last updated:** 2026-07-20
+- **Last updated:** 2026-08-04
 - **Breaks public API:** yes (renames `moveVariants` active input; see details)
 - **Related:** `docs/ai/STATE.md` roadmap 0.6, `docs/ai/PLAN-0.6.md` WS-1.x / WS-2.1 / WS-3.1
 
@@ -24,7 +24,7 @@ Fixing these before adding new directives/animations gives the project a solid f
 
 1. Repair the parallax demo to use `MoveParallaxDirective` and `[moveParallax]`.
 2. Rename `MoveVariantsDirective.moveAnimate` to `moveVariant` (with `moveActiveVariant` as an alias) and update all usages/docs/tests.
-3. Add a shared boolean coercion transform and apply it to all boolean inputs that may be used as attributes; add `optionalNumberAttribute` to all numeric inputs that lack it.
+3. Add shared boolean/number coercion transforms and apply them to all boolean/numeric inputs that may be used as attributes. Verify behavior with unit tests.
 4. Reset the inline transform to the base state before the engine animates in `moveDrag` release and `moveLayout` FLIP.
 5. Harden `moveDrag` bounds measurement by clearing the active transform during measurement.
 6. Backfill tests for `moveAnimation`, boolean/numeric attribute coercion, and reduced-motion / SSR guards.
@@ -48,10 +48,10 @@ Fixing these before adding new directives/animations gives the project a solid f
 
 ## Acceptance criteria
 
-- [ ] Parallax demo uses `[moveParallax]` and `MoveParallaxDirective`.
+- [x] Parallax demo uses `[moveParallax]` and `MoveParallaxDirective`.
 - [x] `MoveVariantsDirective` no longer declares a `moveAnimate` input; existing variants demos/tests use `moveVariant`.
-- [ ] All numeric inputs that may be written as attributes use `optionalNumberAttribute` or a required-number transform.
-- [ ] All boolean inputs that may be written as attributes coerce `''` / `'true'` / `'false'` correctly.
+- [x] All numeric inputs that may be written as attributes use `optionalNumberAttribute` or a required-number transform.
+- [x] All boolean inputs that may be written as attributes coerce `''` / `'true'` / `'false'` correctly.
 - [ ] `moveDrag` release and `moveLayout` FLIP reset the inline transform before the engine plays, so deltas are not double-counted.
 - [ ] `moveDrag` bounds measurement ignores the current drag offset.
 - [x] `MoveAnimationDirective` spec covers enter, exit/presence, reduced motion, SSR, and dynamic input changes.
@@ -63,10 +63,10 @@ Fixing these before adding new directives/animations gives the project a solid f
 
 ## Implementation plan
 
-- [ ] 1. Fix parallax demo wiring (`src/app/pages/demos/parallax.page.ts`).
-- [ ] 2. Add shared boolean coercion helper and optional number transform in `projects/movement/src/lib/directives/move-animation.utils.ts` (or a new shared file).
+- [x] 1. Fix parallax demo wiring (`src/app/pages/demos/parallax.page.ts`).
+- [x] 2. Add shared boolean/number coercion helpers in `projects/movement/src/lib/directives/move-animation.utils.ts` and verify with unit tests.
 - [x] 3. Rename variants active input and update all consumers/tests/docs.
-- [ ] 4. Apply boolean/number transforms across all directives.
+- [x] 4. Apply boolean/number transforms across all directives.
 - [ ] 5. Fix `moveDrag` / `moveLayout` transform double-counting and bounds measurement.
 - [x] 6. Add `moveAnimation` standalone inputs and backfill tests.
 - [x] 7. Add focus reverse inputs and focus demo page.
