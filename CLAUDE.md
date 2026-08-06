@@ -136,3 +136,37 @@ GitHub work goes through the authenticated `gh` CLI, not an MCP server.
 - **Angular signals API**: Use `input()`, `signal()`, `effect()` — no `@Input()` decorators in new code.
 - **SSR safety**: All DOM/browser APIs must be guarded with `isPlatformBrowser(PLATFORM_ID)`.
 - **Library prefix**: Directives use the `move` attribute selector prefix (e.g. `[moveEnter]`, `[moveScroll]`). App components use `app-` prefix.
+
+<!-- rtk-instructions v2 -->
+
+## RTK (Rust Token Killer)
+
+`rtk <command>` compresses command output before it reaches the model. Unrecognised commands pass
+through unchanged, so the prefix is always safe — including inside `&&` chains, where **each**
+command needs its own prefix (`rtk git add . && rtk git commit -m "…"`).
+
+Claude Code's Read, Grep and Glob tools bypass rtk entirely; it only affects Bash.
+
+### Measured on this repo
+
+| Command                  | Output          | Saving |
+| ------------------------ | --------------- | ------ |
+| `rtk git status`         | 378 → 48 B      | −87%   |
+| `rtk git log -20`        | 5678 → 1976 B   | −65%   |
+| `rtk git diff HEAD`      | 5789 → 4298 B   | −26%   |
+| `rtk pnpm test:coverage` | 16684 → 16681 B | **0%** |
+
+The last row is the important one. RTK's built-in filters key off bare tool names (`vitest`,
+`eslint`, `tsc`); this repo runs everything through `pnpm run <script>` → `ng test` / `ng lint`,
+which those filters never match. `.rtk/filters.toml` closes that gap — it takes the same command to
+16684 → 10370 B (−38%) while keeping every test result line. **Those filters only apply after
+`rtk trust`.**
+
+### Use it for
+
+- Every `git` and `gh` call — biggest measured win, works today with no setup.
+- The verification gate, once `.rtk/filters.toml` is trusted: `rtk pnpm test:coverage`,
+  `rtk pnpm run lint`, `rtk pnpm build`, `rtk pnpm e2e`.
+- Do **not** wrap `.claude/scripts/*` — they already emit compact output by design.
+
+<!-- /rtk-instructions -->

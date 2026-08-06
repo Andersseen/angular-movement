@@ -1,0 +1,57 @@
+# Project-local RTK filters — committed with the repo.
+# Filters here override user-global and built-in filters.
+#
+# Why these exist: RTK's built-in filters key off bare tool names (vitest, eslint, tsc).
+# This repo runs everything through `pnpm run <script>` → `ng test` / `ng lint`, which those
+# filters never match — measured 16684 → 16681 bytes on `rtk pnpm test:coverage`, i.e. nothing.
+#
+# Design rule: strip only banners and build-chunk tables. Never strip a line that could carry a
+# test result, an error, or a warning — a filter that hides a failure is worse than no filter.
+#
+# Requires `rtk trust` before it applies.
+schema_version = 1
+
+[filters.pnpm-test]
+description = "ng test / Vitest: drop the spec bundle table and pnpm banners, keep every test result"
+match_command = '^(pnpm (run )?test|ng test)'
+strip_ansi = true
+strip_lines_matching = [
+  '^\s*WARN\s+Issue while reading',
+  '^> angular-movement-project@',
+  '^> ng test ',
+  '^[✔❯] Building\.\.\.$',
+  '^Initial chunk files\s+\|',
+  '^spec-lib-\S+\.js\s+\|',
+  '^\s*\|\s*Initial total\s*\|',
+  '^Application bundle generation complete',
+]
+
+[filters.pnpm-lint]
+description = "ng lint: drop pnpm banners and per-project headers, keep every violation"
+match_command = '^(pnpm (run )?lint|ng lint)'
+strip_ansi = true
+strip_lines_matching = [
+  '^\s*WARN\s+Issue while reading',
+  '^> angular-movement-project@',
+  '^> ng lint',
+  '^Linting "',
+]
+on_empty = "lint: clean"
+
+[filters.pnpm-build]
+description = "Vite/Analog build: collapse the per-chunk table, keep totals, errors and warnings"
+match_command = '^(pnpm (run )?build(:prod)?|ng build)'
+strip_ansi = true
+strip_lines_matching = [
+  '^\s*WARN\s+Issue while reading',
+  '^> angular-movement-project@',
+  '^> (pnpm exec )?vite build',
+  '^(chunk-|assets/|dist/)\S*\.(js|css|mjs)\s+\|',
+  '^\s*\d+\.\d+\s*kB\b',
+]
+
+[filters.pnpm-e2e]
+description = "Playwright: drop the pnpm banner; the built-in playwright filter handles the rest"
+match_command = '^(pnpm (run )?e2e)'
+strip_ansi = true
+strip_lines_matching = ['^\s*WARN\s+Issue while reading', '^> angular-movement-project@', '^> playwright test']
