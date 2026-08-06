@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Session Bootstrap (do this first)
 
-Extended agent documentation lives in `docs/ai/` — read it at the start of every session:
+Start with `.claude/scripts/context.sh` — it prints repo state, the live parts of `STATE.md`, open
+specs and the Unreleased changelog in one call. That answers "where am I"; the docs below answer
+"how do I", so read the relevant one **in full** before touching the area it covers.
+
+Extended agent documentation lives in `docs/ai/`:
 
 1. `docs/ai/CONTEXT.md` — why the project exists and its goals
 2. `docs/ai/STATE.md` — current status, in-progress work, known gotchas (**update it when you finish a task**)
@@ -89,6 +93,40 @@ Built with AnalogJS (file-based routing + SSR). App config uses `provideZoneless
 - `src/server/routes/api/` — Nitro API routes (`.get.ts`, `.post.ts`).
 - `src/app/shared/` — shared `CodeBlock`, `DemoContainer` components and demo utilities.
 
+## Claude Code Automation (`.claude/`)
+
+Checked in and shared with the team. Prefer these over re-deriving the same information by hand.
+
+**Scripts** — call these instead of reading many files:
+
+| Script                                 | Use                                                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `.claude/scripts/context.sh`           | Session bootstrap: repo state, STATE.md highlights, open specs                                                                  |
+| `node .claude/scripts/api-surface.mjs` | Every directive's selector, inputs, outputs and barrel registration. Add `--json` to diff, `--ref <ref>` to read a past version |
+
+**Skills** (`/name`): `/spec` (start or resume a spec), `/new-directive` (6-step scaffold with
+templates), `/verify` (Phase 5 gate), `/release` (audit + cut a version).
+
+**Agents**: `public-api-guard` (classifies API changes BREAKING/ADDITIVE/INTERNAL against a base
+ref), `docs-drift-checker` (documented selectors vs real source). Both read-only.
+
+**Hooks** (`.claude/settings.json`):
+
+- `PostToolUse` on Edit/Write → `ssr-guard.sh` blocks library edits that use browser globals with no
+  `isPlatformBrowser` / `DOCUMENT` guard. Deliberate exceptions need an `// ssr-safe: <reason>` comment.
+- `Stop` → `record-check.sh` warns when library source changed without the Phase 6 bookkeeping
+  (`CHANGELOG.md`, `docs/ai/STATE.md`).
+
+**MCP** (`.mcp.json`):
+
+- `playwright` — drives demo routes. Animation bugs are visual; unit tests cannot see them.
+- `context7` — live Angular 21 / AnalogJS docs, both too recent to recall reliably.
+- `memory` — knowledge graph persisted at `~/.claude/memory/angular-movement-kg.json`. Record
+  decisions, dead ends and gotchas that are **not** derivable from the code, so the next session does
+  not re-derive them. Anything the code already states belongs in the code, not here.
+
+GitHub work goes through the authenticated `gh` CLI, not an MCP server.
+
 ## Key Conventions
 
 - **Package manager**: `pnpm` exclusively.
@@ -98,3 +136,155 @@ Built with AnalogJS (file-based routing + SSR). App config uses `provideZoneless
 - **Angular signals API**: Use `input()`, `signal()`, `effect()` — no `@Input()` decorators in new code.
 - **SSR safety**: All DOM/browser APIs must be guarded with `isPlatformBrowser(PLATFORM_ID)`.
 - **Library prefix**: Directives use the `move` attribute selector prefix (e.g. `[moveEnter]`, `[moveScroll]`). App components use `app-` prefix.
+
+<!-- rtk-instructions v2 -->
+
+# RTK (Rust Token Killer) - Token-Optimized Commands
+
+## Golden Rule
+
+**Always prefix commands with `rtk`**. If RTK has a dedicated filter, it uses it. If not, it passes through unchanged. This means RTK is always safe to use.
+
+**Important**: Even in command chains with `&&`, use `rtk`:
+
+```bash
+# ❌ Wrong
+git add . && git commit -m "msg" && git push
+
+# ✅ Correct
+rtk git add . && rtk git commit -m "msg" && rtk git push
+```
+
+## RTK Commands by Workflow
+
+### Build & Compile (80-90% savings)
+
+```bash
+rtk cargo build         # Cargo build output
+rtk cargo check         # Cargo check output
+rtk cargo clippy        # Clippy warnings grouped by file (80%)
+rtk tsc                 # TypeScript errors grouped by file/code (83%)
+rtk lint                # ESLint/Biome violations grouped (84%)
+rtk prettier --check    # Files needing format only (70%)
+rtk next build          # Next.js build with route metrics (87%)
+```
+
+### Test (60-99% savings)
+
+```bash
+rtk cargo test          # Cargo test failures only (90%)
+rtk go test             # Go test failures only (90%)
+rtk jest                # Jest failures only (99.5%)
+rtk vitest              # Vitest failures only (99.5%)
+rtk playwright test     # Playwright failures only (94%)
+rtk pytest              # Python test failures only (90%)
+rtk rake test           # Ruby test failures only (90%)
+rtk rspec               # RSpec test failures only (60%)
+rtk test <cmd>          # Generic test wrapper - failures only
+```
+
+### Git (59-80% savings)
+
+```bash
+rtk git status          # Compact status
+rtk git log             # Compact log (works with all git flags)
+rtk git diff            # Compact diff (80%)
+rtk git show            # Compact show (80%)
+rtk git add             # Ultra-compact confirmations (59%)
+rtk git commit          # Ultra-compact confirmations (59%)
+rtk git push            # Ultra-compact confirmations
+rtk git pull            # Ultra-compact confirmations
+rtk git branch          # Compact branch list
+rtk git fetch           # Compact fetch
+rtk git stash           # Compact stash
+rtk git worktree        # Compact worktree
+```
+
+Note: Git passthrough works for ALL subcommands, even those not explicitly listed.
+
+### GitHub (26-87% savings)
+
+```bash
+rtk gh pr view <num>    # Compact PR view (87%)
+rtk gh pr checks        # Compact PR checks (79%)
+rtk gh run list         # Compact workflow runs (82%)
+rtk gh issue list       # Compact issue list (80%)
+rtk gh api              # Compact API responses (26%)
+```
+
+### JavaScript/TypeScript Tooling (70-90% savings)
+
+```bash
+rtk pnpm list           # Compact dependency tree (70%)
+rtk pnpm outdated       # Compact outdated packages (80%)
+rtk pnpm install        # Compact install output (90%)
+rtk npm run <script>    # Compact npm script output
+rtk npx <cmd>           # Compact npx command output
+rtk prisma              # Prisma without ASCII art (88%)
+```
+
+### Files & Search (60-75% savings)
+
+```bash
+rtk ls <path>           # Tree format, compact (65%)
+rtk read <file>         # Code reading with filtering (60%)
+rtk grep <pattern>      # Search grouped by file (75%). Format flags (-c, -l, -L, -o, -Z) run raw.
+rtk find <pattern>      # Find grouped by directory (70%)
+```
+
+### Analysis & Debug (70-90% savings)
+
+```bash
+rtk err <cmd>           # Filter errors only from any command
+rtk log <file>          # Deduplicated logs with counts
+rtk json <file>         # JSON structure without values
+rtk deps                # Dependency overview
+rtk env                 # Environment variables compact
+rtk summary <cmd>       # Smart summary of command output
+rtk diff                # Ultra-compact diffs
+```
+
+### Infrastructure (85% savings)
+
+```bash
+rtk docker ps           # Compact container list
+rtk docker images       # Compact image list
+rtk docker logs <c>     # Deduplicated logs
+rtk kubectl get         # Compact resource list
+rtk kubectl logs        # Deduplicated pod logs
+```
+
+### Network (65-70% savings)
+
+```bash
+rtk curl <url>          # Compact HTTP responses (70%)
+rtk wget <url>          # Compact download output (65%)
+```
+
+### Meta Commands
+
+```bash
+rtk gain                # View token savings statistics
+rtk gain --history      # View command history with savings
+rtk discover            # Analyze Claude Code sessions for missed RTK usage
+rtk proxy <cmd>         # Run command without filtering (for debugging)
+rtk init                # Add RTK instructions to CLAUDE.md
+rtk init --global       # Add RTK to ~/.claude/CLAUDE.md
+```
+
+## Token Savings Overview
+
+| Category         | Commands                       | Typical Savings |
+| ---------------- | ------------------------------ | --------------- |
+| Tests            | vitest, playwright, cargo test | 90-99%          |
+| Build            | next, tsc, lint, prettier      | 70-87%          |
+| Git              | status, log, diff, add, commit | 59-80%          |
+| GitHub           | gh pr, gh run, gh issue        | 26-87%          |
+| Package Managers | pnpm, npm, npx                 | 70-90%          |
+| Files            | ls, read, grep, find           | 60-75%          |
+| Infrastructure   | docker, kubectl                | 85%             |
+| Network          | curl, wget                     | 65-70%          |
+
+Overall average: **60-90% token reduction** on common development operations.
+
+<!-- /rtk-instructions -->
