@@ -4,7 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Session Bootstrap (do this first)
 
-Extended agent documentation lives in `docs/ai/` — read it at the start of every session:
+Start with `.claude/scripts/context.sh` — it prints repo state, the live parts of `STATE.md`, open
+specs and the Unreleased changelog in one call. That answers "where am I"; the docs below answer
+"how do I", so read the relevant one **in full** before touching the area it covers.
+
+Extended agent documentation lives in `docs/ai/`:
 
 1. `docs/ai/CONTEXT.md` — why the project exists and its goals
 2. `docs/ai/STATE.md` — current status, in-progress work, known gotchas (**update it when you finish a task**)
@@ -88,6 +92,40 @@ Built with AnalogJS (file-based routing + SSR). App config uses `provideZoneless
 - `src/app/pages/` — file-based routes. Nested folders use layout components (e.g. `demos-layout.ts`).
 - `src/server/routes/api/` — Nitro API routes (`.get.ts`, `.post.ts`).
 - `src/app/shared/` — shared `CodeBlock`, `DemoContainer` components and demo utilities.
+
+## Claude Code Automation (`.claude/`)
+
+Checked in and shared with the team. Prefer these over re-deriving the same information by hand.
+
+**Scripts** — call these instead of reading many files:
+
+| Script                                 | Use                                                                                                                             |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `.claude/scripts/context.sh`           | Session bootstrap: repo state, STATE.md highlights, open specs                                                                  |
+| `node .claude/scripts/api-surface.mjs` | Every directive's selector, inputs, outputs and barrel registration. Add `--json` to diff, `--ref <ref>` to read a past version |
+
+**Skills** (`/name`): `/spec` (start or resume a spec), `/new-directive` (6-step scaffold with
+templates), `/verify` (Phase 5 gate), `/release` (audit + cut a version).
+
+**Agents**: `public-api-guard` (classifies API changes BREAKING/ADDITIVE/INTERNAL against a base
+ref), `docs-drift-checker` (documented selectors vs real source). Both read-only.
+
+**Hooks** (`.claude/settings.json`):
+
+- `PostToolUse` on Edit/Write → `ssr-guard.sh` blocks library edits that use browser globals with no
+  `isPlatformBrowser` / `DOCUMENT` guard. Deliberate exceptions need an `// ssr-safe: <reason>` comment.
+- `Stop` → `record-check.sh` warns when library source changed without the Phase 6 bookkeeping
+  (`CHANGELOG.md`, `docs/ai/STATE.md`).
+
+**MCP** (`.mcp.json`):
+
+- `playwright` — drives demo routes. Animation bugs are visual; unit tests cannot see them.
+- `context7` — live Angular 21 / AnalogJS docs, both too recent to recall reliably.
+- `memory` — knowledge graph persisted at `~/.claude/memory/angular-movement-kg.json`. Record
+  decisions, dead ends and gotchas that are **not** derivable from the code, so the next session does
+  not re-derive them. Anything the code already states belongs in the code, not here.
+
+GitHub work goes through the authenticated `gh` CLI, not an MCP server.
 
 ## Key Conventions
 

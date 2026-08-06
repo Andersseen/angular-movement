@@ -1,5 +1,48 @@
 {
   "permissions": {
-    "allow": ["Bash(ng build *)", "Bash(pnpm test:coverage)", "Bash(pnpm exec *)"]
+    "allow": [
+      "Bash(ng build *)",
+      "Bash(pnpm test:coverage)",
+      "Bash(pnpm exec *)",
+      "Bash(pnpm run lint)",
+      "Bash(pnpm run build)",
+      "Bash(pnpm run build:prod)",
+      "Bash(pnpm run pack:check)",
+      "Bash(pnpm format)",
+      "Bash(pnpm test *)",
+      "Bash(node .claude/scripts/*)",
+      "Bash(git status *)",
+      "Bash(git diff *)",
+      "Bash(git log *)",
+      "Bash(git show *)",
+      "Read"
+    ],
+    "deny": ["Read(./.env)", "Read(./.env.*)", "Edit(./pnpm-lock.yaml)", "Edit(./dist/**)"]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/scripts/ssr-guard.sh\"",
+            "statusMessage": "Checking SSR safety",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/scripts/record-check.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
   }
 }

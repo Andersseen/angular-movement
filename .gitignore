@@ -41,6 +41,10 @@ testem.log
 /typings
 __screenshots__/
 
+# Claude Code — local state (config in .claude/ IS committed)
+.claude/settings.local.json
+.claude/memory/
+
 # System files
 .DS_Store
 Thumbs.db
