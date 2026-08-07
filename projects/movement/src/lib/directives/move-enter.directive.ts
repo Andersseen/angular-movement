@@ -13,6 +13,11 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[moveEnter]',
 })

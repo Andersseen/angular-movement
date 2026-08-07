@@ -30,6 +30,11 @@ import { SmoothScrollService } from './smooth-scroll.service';
  *   constructor() {
  *     inject(SmoothScrollService).init({ lerp: 0.1 });
  *   }
+ *
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
  */
 @Directive({
   selector: '[moveSmoothScroll]',

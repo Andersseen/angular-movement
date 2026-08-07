@@ -19,7 +19,14 @@ import {
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { hasInlineTransform } from '../engines/transform-state';
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 @Directive({
   selector: '[moveLayout]',
 })
@@ -108,13 +115,35 @@ export class MoveLayoutDirective implements OnDestroy {
     });
   }
 
+  /**
+   * Measures the host in **untransformed layout space**.
+   *
+   * `getBoundingClientRect()` reports the box *after* the element's own CSS transform, so any other
+   * transform channel — a `moveDrag` offset, a committed `moveWhileHover` scale, the tail of a
+   * previous FLIP — would be baked into the snapshot. The engine then composes the FLIP delta on
+   * top of that very same base transform (`composeElementKeyframes`), counting it twice: a plain
+   * hover scale on a `[moveLayout]` element is enough to trigger a spurious FLIP.
+   *
+   * Clearing the inline transform for the duration of the measurement puts snapshot and target in
+   * the same space, so the delta is pure layout. Same technique `moveDrag` uses to measure bounds.
+   */
   #readRect(): DOMRect | null {
     const el = this.#host.nativeElement;
     if (typeof el.getBoundingClientRect !== 'function') {
       return null;
     }
 
+    const inlineTransform = hasInlineTransform(el) ? el.style.transform : null;
+    if (inlineTransform !== null) {
+      el.style.transform = '';
+    }
+
     const rect = el.getBoundingClientRect();
+
+    if (inlineTransform !== null) {
+      el.style.transform = inlineTransform;
+    }
+
     if (rect.width === 0 || rect.height === 0) {
       return null;
     }

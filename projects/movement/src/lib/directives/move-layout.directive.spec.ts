@@ -25,6 +25,7 @@ describe('MoveLayoutDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let host: HTMLElement;
   let currentRect: DOMRect;
+  let layoutRect: DOMRect;
   let playSpy: ReturnType<typeof vi.spyOn>;
   let mockPlayer: AnimationControls;
 
@@ -112,6 +113,55 @@ describe('MoveLayoutDirective', () => {
     expect(host.style.transformOrigin).toBe('50% 50%');
   });
 
+  it('should not animate when only the host inline transform changed', async () => {
+    useTransformAwareRect();
+    await render();
+
+    // A committed hover scale / drag offset changes the painted box but not the layout box.
+    host.style.transform = 'translate(40px, 0px) scale(1.2)';
+    await render();
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('should exclude the host inline transform from the FLIP delta', async () => {
+    useTransformAwareRect();
+    host.style.transform = 'translate(40px, 0px)';
+    await render();
+
+    // The layout moves while the drag offset also grows — the realistic drag + layout case.
+    layoutRect = rect({ left: 30, top: 20, width: 100, height: 50 });
+    host.style.transform = 'translate(70px, 0px)';
+    await render();
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    const [, frames] = playSpy.mock.calls[0];
+
+    // Pure layout delta (10 - 30). The +40px translate must NOT leak in — the engine composes
+    // the FLIP on top of that same base transform, so counting it here would double it.
+    expect(frames).toEqual(
+      expect.objectContaining({
+        x: [-20, 0],
+        y: [0, 0],
+        scaleX: [1, 1],
+        scaleY: [1, 1],
+      }),
+    );
+  });
+
+  it('should restore the inline transform after measuring', async () => {
+    useTransformAwareRect();
+    host.style.transform = 'translate(40px, 0px)';
+    const before = host.style.transform;
+
+    await render();
+    layoutRect = rect({ left: 30, top: 20, width: 100, height: 50 });
+    await render();
+
+    expect(before).toBe('translate(40px, 0px)');
+    expect(host.style.transform).toBe(before);
+  });
+
   it('should not register render work on the server platform', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
@@ -131,6 +181,33 @@ describe('MoveLayoutDirective', () => {
     fixture.componentInstance.renderTick.update((value) => value + 1);
     fixture.detectChanges();
     await fixture.whenStable();
+  }
+
+  /**
+   * Replaces the flat rect mock with one that behaves like the real
+   * `getBoundingClientRect()`: the reported box reflects the host's inline transform on top of
+   * `layoutRect`. Clearing the transform before measuring must therefore yield `layoutRect`.
+   */
+  function useTransformAwareRect(): void {
+    layoutRect = rect({ left: 10, top: 20, width: 100, height: 50 });
+
+    vi.spyOn(host, 'getBoundingClientRect').mockImplementation(() => {
+      const transform = host.style.transform;
+      const translate = /translate\(([^)]+)\)/.exec(transform);
+      const scale = /scale\(([^)]+)\)/.exec(transform);
+
+      const [tx = 0, ty = 0] = translate
+        ? translate[1].split(',').map((part) => parseFloat(part))
+        : [];
+      const s = scale ? parseFloat(scale[1]) : 1;
+
+      return rect({
+        left: layoutRect.left + tx,
+        top: layoutRect.top + ty,
+        width: layoutRect.width * s,
+        height: layoutRect.height * s,
+      });
+    });
   }
 });
 

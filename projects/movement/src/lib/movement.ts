@@ -19,6 +19,25 @@ import { MoveLoopDirective } from './directives/move-loop.directive';
 import { MoveTargetDirective } from './directives/move-target.directive';
 import { MoveTriggerDirective } from './directives/move-trigger.directive';
 
+/**
+ * Every public declaration carries a `@stability` JSDoc tag so the guarantee is visible in the IDE,
+ * not just in the README table:
+ *
+ * - `@stability stable` — semantic-versioning guarantees apply.
+ * - `@stability candidate` — feature-complete; small naming/behaviour adjustments possible before 1.0.
+ * - `@stability experimental` — may change significantly between minor versions (also `@experimental`).
+ *
+ * The authoritative summary lives in the "API stability" table in `README.md`.
+ */
+
+/**
+ * All directives the library ships, ready to spread into a standalone component's `imports`.
+ *
+ * Prefer importing only the directives a component actually uses — it keeps route-level
+ * tree-shaking effective.
+ *
+ * @stability stable
+ */
 export const MOVEMENT_DIRECTIVES = [
   MoveEnterDirective,
   MoveLeaveDirective,

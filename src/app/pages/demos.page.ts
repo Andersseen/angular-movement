@@ -56,11 +56,19 @@ const DEMO_GROUPS: DemoGroup[] = [
     items: [
       { path: 'scroll', label: 'moveScroll', description: 'Scroll-linked animations' },
       { path: 'parallax', label: 'Parallax', description: 'Multi-layer depth effect' },
+      {
+        path: 'smooth-scroll',
+        label: 'moveSmoothScroll',
+        description: 'Inertial smooth scrolling',
+      },
     ],
   },
   {
     title: 'Special',
-    items: [{ path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' }],
+    items: [
+      { path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' },
+      { path: 'values', label: 'Signal values', description: 'moveValue / moveTransform / spring' },
+    ],
   },
 ];
 

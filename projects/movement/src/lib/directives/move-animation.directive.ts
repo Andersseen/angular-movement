@@ -14,6 +14,11 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 @Directive({
   selector: '[moveAnimation]',
 })

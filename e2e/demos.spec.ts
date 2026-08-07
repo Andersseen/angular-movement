@@ -15,10 +15,12 @@ const demoRoutes = [
   'parallax',
   'presence',
   'scroll',
+  'smooth-scroll',
   'stagger',
   'tap',
   'target',
   'text',
+  'values',
   'variants',
 ] as const;
 
@@ -117,5 +119,53 @@ test.describe('demo pages', () => {
     await button.focus();
     await expect(button).toBeVisible();
     await expect(button).toBeFocused();
+  });
+
+  test('values demo maps the driver signal onto transform outputs', async ({ page }) => {
+    await page.goto('/demos/values');
+
+    const slider = page.getByTestId('values-slider');
+    const linear = page.getByTestId('values-linear-box');
+    await expect(slider).toBeVisible();
+
+    const initial = await linear.evaluate((el) => getComputedStyle(el).transform);
+
+    await page.getByTestId('values-end').click();
+    await expect(page.getByTestId('values-progress')).toHaveText('100');
+
+    // moveTransform is synchronous, so the linear box has already moved.
+    await expect
+      .poll(async () => linear.evaluate((el) => getComputedStyle(el).transform))
+      .not.toBe(initial);
+
+    // moveSpringValue settles asynchronously toward the same target.
+    await expect
+      .poll(
+        async () =>
+          page
+            .getByTestId('values-spring-box')
+            .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41),
+        { timeout: 3000 },
+      )
+      .toBeGreaterThan(200);
+  });
+
+  test('smooth scroll demo exposes the live service readout', async ({ page }) => {
+    await page.goto('/demos/smooth-scroll');
+
+    await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
+    await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
+
+    const active = await page.getByTestId('smooth-scroll-active').textContent();
+    await page.getByTestId('smooth-scroll-instant').click();
+
+    // scrollTo(400, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
+    // Under reduced motion the service never starts, so the readout legitimately stays at 0.
+    await expect
+      .poll(async () => {
+        const text = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
+        return Number.parseInt(text.trim(), 10);
+      })
+      .toBe(active?.trim() === 'yes' ? 400 : 0);
   });
 });

@@ -13,6 +13,11 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[moveLeave]',
 })

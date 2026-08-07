@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+### Fixed
+
+- `moveLayout` no longer double-counts the host's own CSS transform. FLIP snapshots are now measured
+  in untransformed layout space, so a committed `moveWhileHover` scale, a `moveDrag` offset, or the
+  tail of a previous FLIP can no longer leak into the delta — a plain hover scale on a
+  `[moveLayout]` element used to trigger a spurious layout animation. Closes the last open item of
+  spec 001.
+- Documentation drift found by the new `docs:check` gate: six directive inputs were documented as
+  required when they are optional in the source (`moveEnter`, `moveLeave`, `moveInView`, `moveText`,
+  `moveScroll`, `moveLoop`), `moveParallaxContainer` (shipped in 0.6.0) was never documented, and a
+  `moveSmoothScroll` input was documented that has never existed.
+
+### Added
+
+- `@stability` JSDoc tag (`stable` / `candidate` / `experimental`) on every public declaration, so
+  the guarantee is visible in the IDE instead of only in the README table. Experimental declarations
+  also carry the standard `@experimental` tag.
+- `pnpm docs:check` (`scripts/check-docs-drift.mjs`) — validates documented selectors, input names
+  and required flags against the parsed library source, and checks that both docs pages only mention
+  identifiers that still exist. Runs in CI.
+- `src/app/shared/api/directive-reference.ts` — single definition of the structured directive
+  reference, now consumed by the `/api/directives` route.
+- Live demo pages for `moveSmoothScroll` / `SmoothScrollService` and for the signal helpers
+  `moveValue` / `moveTransform` / `moveSpringValue`, both registered in the demos nav and covered by
+  Playwright.
+- Test coverage for the two weakest files: `MoveScrollDirective` (66.7% → 87.8% statements; custom
+  container mode, malformed offsets, RAF lerp settle, teardown) and `SmoothScrollService`
+  (66.7% → 96.5%; touch drag, momentum decay, nested scrollables, clamping).
+
+### Changed
+
+- `moveText` and `moveLoop` are now classified as stable candidates in the API-stability table; they
+  were previously unlisted.
+
 ## [0.6.0] - 2026-08-04
 
 ### Added

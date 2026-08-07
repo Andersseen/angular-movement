@@ -1,6 +1,6 @@
 # Spec 001 — Base Hardening Before New Directives
 
-- **Status:** in-progress
+- **Status:** done
 - **Created:** 2026-07-20
 - **Last updated:** 2026-08-04
 - **Breaks public API:** yes (renames `moveVariants` active input; see details)
@@ -52,8 +52,8 @@ Fixing these before adding new directives/animations gives the project a solid f
 - [x] `MoveVariantsDirective` no longer declares a `moveAnimate` input; existing variants demos/tests use `moveVariant`.
 - [x] All numeric inputs that may be written as attributes use `optionalNumberAttribute` or a required-number transform.
 - [x] All boolean inputs that may be written as attributes coerce `''` / `'true'` / `'false'` correctly.
-- [ ] `moveDrag` release and `moveLayout` FLIP reset the inline transform before the engine plays, so deltas are not double-counted.
-- [ ] `moveDrag` bounds measurement ignores the current drag offset.
+- [x] `moveDrag` release and `moveLayout` FLIP reset the inline transform before the engine plays, so deltas are not double-counted. (`moveLayout` closed in spec 002.)
+- [x] `moveDrag` bounds measurement ignores the current drag offset.
 - [x] `MoveAnimationDirective` spec covers enter, exit/presence, reduced motion, SSR, and dynamic input changes.
 - [x] Focus demo page exists and is registered in the demos navigation.
 - [x] Docs and server API reference use correct selector names and complete input lists.
@@ -67,7 +67,7 @@ Fixing these before adding new directives/animations gives the project a solid f
 - [x] 2. Add shared boolean/number coercion helpers in `projects/movement/src/lib/directives/move-animation.utils.ts` and verify with unit tests.
 - [x] 3. Rename variants active input and update all consumers/tests/docs.
 - [x] 4. Apply boolean/number transforms across all directives.
-- [ ] 5. Fix `moveDrag` / `moveLayout` transform double-counting and bounds measurement.
+- [x] 5. Fix `moveDrag` / `moveLayout` transform double-counting and bounds measurement. (`moveLayout` half done in spec 002.)
 - [x] 6. Add `moveAnimation` standalone inputs and backfill tests.
 - [x] 7. Add focus reverse inputs and focus demo page.
 - [x] 8. Update docs pages, server API route, and demo imports.

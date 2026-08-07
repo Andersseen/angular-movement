@@ -22,6 +22,7 @@
     "lib:publish": "ng build movement && pnpm publish ./dist/movement --no-git-checks",
     "release": "node scripts/release.mjs",
     "lint": "ng lint",
+    "docs:check": "node scripts/check-docs-drift.mjs",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },

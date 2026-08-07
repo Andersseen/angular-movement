@@ -24,22 +24,42 @@ export interface MoveSpringValueConfig extends MoveSpring {
   injector: Injector;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export function moveValue<T>(initial: T): WritableSignal<T> {
   return signal(initial);
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export function moveTransform(
   source: Signal<number>,
   inputRange: readonly number[],
   outputRange: readonly number[],
   options?: MoveTransformOptions,
 ): Signal<number>;
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export function moveTransform(
   source: Signal<number>,
   inputRange: readonly number[],
   outputRange: readonly string[],
   options?: MoveTransformOptions,
 ): Signal<string>;
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export function moveTransform(
   source: Signal<number>,
   inputRange: readonly number[],
@@ -64,6 +84,11 @@ export function moveTransform(
   });
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export function moveSpringValue(
   source: Signal<number>,
   config: MoveSpringValueConfig = { injector: undefined! },

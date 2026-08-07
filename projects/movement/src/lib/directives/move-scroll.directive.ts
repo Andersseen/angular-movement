@@ -16,6 +16,11 @@ import { MoveKeyframes } from '../presets/presets.types';
 import { isValidScrollOffset } from './move-animation.utils';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 @Directive({
   selector: '[moveScroll]',
   exportAs: 'moveScroll',

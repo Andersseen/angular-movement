@@ -14,6 +14,11 @@ import {
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[moveWhileHover]',
   host: {
