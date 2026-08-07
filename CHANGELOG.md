@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.7.0] - 2026-08-07
+
 ### Fixed
 
 - **`moveScroll` and `moveParallax` ignored `prefers-reduced-motion`.** Both hardcoded
