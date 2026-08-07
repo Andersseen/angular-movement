@@ -4,10 +4,11 @@
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
 **Last updated:** 2026-08-07
-**Library version:** `0.6.0` — **published to npm** (`latest`) on 2026-08-07 via the `v0.6.0` tag; GitHub Release created.
+**Library version:** `0.7.0` — published to npm (`latest`) on 2026-08-07 via the `v0.7.0` tag.
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `chore/0.7-hardening` — spec 002 complete (see below). Full gate green; not yet merged or released.
-**Roadmap phase:** 0.6 shipped; now in 0.7 "Real app validation" (see `ROADMAP.md`)
+**Branch state:** `main` — specs 002 and 003 merged and released as `0.7.0`.
+**Roadmap phase:** 0.7 shipped. Its one open item — validating the library in ≥2 non-demo Angular
+apps — carries into 1.0 (see `ROADMAP.md`).
 
 ## What is DONE and stable
 
@@ -44,18 +45,18 @@
 - `move-animation.utils.spec.ts` covers `optionalNumberAttribute`, `numberAttribute`,
   `optionalBooleanAttribute`, and `booleanAttribute`.
 
-## In progress / recently merged (CHANGELOG "Unreleased")
+## Recently released (in `0.7.0`)
 
 - **Spec 001 — Base Hardening** is fully closed. Its last open item (`moveLayout` transform
   double-counting) was fixed in spec 002.
-- **Spec 002 — 0.7 Hardening** (`docs/ai/specs/002-07-hardening.md`) — **done** on `chore/0.7-hardening`:
+- **Spec 002 — 0.7 Hardening** (`docs/ai/specs/002-07-hardening.md`) — **done**, released in `0.7.0`:
   - `moveLayout` FLIP now measures in untransformed layout space (the double-counting fix).
   - Coverage: `MoveScrollDirective` 66.7% → 87.8%, `SmoothScrollService` 66.7% → 96.5%.
     Suite is 261 tests / 89.69% stmts / 82.26% branch.
   - New demos: `/demos/smooth-scroll` and `/demos/values` (signal helpers), both with e2e.
   - `@stability` JSDoc on every public declaration; `moveText`/`moveLoop` classified as candidates.
   - `pnpm docs:check` guard wired into CI — it found and fixed 8 pre-existing doc errors.
-- **Spec 003 — Test hardening** (`docs/ai/specs/003-test-hardening.md`) — **done**, same branch.
+- **Spec 003 — Test hardening** (`docs/ai/specs/003-test-hardening.md`) — **done**, released in `0.7.0`.
   Closes PLAN-0.6 WS-1.1 / WS-1.2 / WS-1.3 / WS-4.5, all previously open.
   - **372 unit tests** (from 241), **93.49% stmts / 86.36% branch**, **39 e2e** (from 25).
     No library file below 87.5% stmts; `base-player.ts` and `waapi-player.ts` at 100%.
@@ -73,13 +74,14 @@
     `movePresence` / `moveStagger` need no `ngOnDestroy` (ViewContainerRef and child unregistration
     handle it).
 
-## Next up (priority order)
+## Next up (priority order) — the road to 1.0
 
-1. Merge `chore/0.7-hardening` into `main`, then Cloudflare deploy.
-2. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. This is the
+1. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. This is the
    main blocker for freezing the API at 1.0.
-3. Validate the library in ≥2 non-demo Angular apps (ROADMAP 0.7's headline item, still untouched).
-4. Decide the Angular peer-range policy for 1.0.
+2. Validate the library in ≥2 non-demo Angular apps. Carried over from 0.7 and still untouched;
+   nothing has exercised the library outside this repo.
+3. Decide the Angular peer-range policy for 1.0.
+4. Upgrade notes from the latest `0.x`, and docs for `@if` / `@for` / SSR / standalone patterns.
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
