@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
 
 @Component({
   selector: 'app-navbar',
@@ -66,7 +67,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             <div class="border-border flex items-center gap-4 border-l pl-6">
               <span
                 class="text-text-subtle bg-surface-raised border-border rounded-md border px-2 py-1 font-mono text-xs"
-                >v0.5.0</span
+                >{{ version }}</span
               >
               <a
                 href="https://github.com/Andersseen/angular-movement"
@@ -161,7 +162,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
             <div class="border-border mt-2 flex items-center justify-between border-t px-3 pt-2">
               <span
                 class="text-text-subtle bg-surface-raised border-border rounded-md border px-2 py-1 font-mono text-xs"
-                >v0.5.0</span
+                >{{ version }}</span
               >
               <a
                 href="https://github.com/Andersseen/angular-movement"
@@ -193,6 +194,7 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
+  protected readonly version = MOVEMENT_VERSION_LABEL;
   protected readonly scrolled = signal(false);
   protected readonly mobileMenuOpen = signal(false);
 

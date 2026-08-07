@@ -305,3 +305,66 @@ test.describe('demo pages', () => {
       .toBe(active?.trim() === 'yes' ? 400 : 0);
   });
 });
+
+/**
+ * The accessibility contract, verified in a real browser rather than a jsdom mock.
+ *
+ * Scroll-linked and parallax motion is precisely what WCAG 2.3.3 asks to suppress, and it used to
+ * run regardless of the user's preference because both directives hardcoded `disabled: false`.
+ */
+/** Window allowed for observers to fire and players to be created before asserting an absence. */
+const SETTLE_MS = 800;
+
+test.describe('prefers-reduced-motion', () => {
+  // Emulated explicitly per page rather than through the `reducedMotion` fixture: the fixture did
+  // not reach `matchMedia` here, which silently turned these into no-op assertions.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('about:blank');
+    expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(
+      true,
+    );
+  });
+
+  test('scroll-linked motion does not run', async ({ page }) => {
+    await page.goto('/demos/scroll');
+
+    const foreground = page.getByTestId('scroll-foreground');
+    await foreground.scrollIntoViewIfNeeded();
+    await expect(foreground).toBeVisible();
+
+    const container = page.getByTestId('scroll-container');
+    await container.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+      el.dispatchEvent(new Event('scroll'));
+    });
+
+    // Asserting an absence needs a settle window, not `expect.poll`: the count starts at 0 before
+    // the observer fires, so a poll would match its first sample and never test anything.
+    await page.waitForTimeout(SETTLE_MS);
+
+    // With motion allowed this element carries exactly one scroll-driven animation.
+    expect(await foreground.evaluate((el) => el.getAnimations().length)).toBe(0);
+  });
+
+  test('parallax does not run', async ({ page }) => {
+    await page.goto('/demos/parallax');
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(SETTLE_MS);
+
+    expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+  });
+
+  test('content that animates in is still readable', async ({ page }) => {
+    await page.goto('/demos/stagger');
+
+    // Suppressing motion must never leave content stuck at an invisible initial keyframe.
+    const items = page.getByTestId('stagger-item');
+    await expect(items.first()).toBeVisible();
+    await expect
+      .poll(async () =>
+        items.evaluateAll((els) => els.every((el) => Number(getComputedStyle(el).opacity) > 0.9)),
+      )
+      .toBe(true);
+  });
+});

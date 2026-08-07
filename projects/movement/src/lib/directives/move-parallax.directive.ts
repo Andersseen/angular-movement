@@ -14,7 +14,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 import { MoveKeyframes } from '../presets/presets.types';
-import { numberAttribute } from './move-animation.utils';
+import { numberAttribute, prefersReducedMotion } from './move-animation.utils';
 
 /**
  * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
@@ -61,6 +61,11 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!isPlatformBrowser(this.#platformId)) return;
+
+    // Scroll-linked parallax is exactly the motion `prefers-reduced-motion` exists to suppress
+    // (WCAG 2.3.3). Bail out entirely rather than applying a final state: leaving no transform is
+    // the correct resting appearance for a parallax layer.
+    if (prefersReducedMotion(this.#documentRef)) return;
 
     const view = this.#documentRef.defaultView;
     if (!view) return;

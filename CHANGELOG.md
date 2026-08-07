@@ -4,6 +4,15 @@
 
 ### Fixed
 
+- **`moveScroll` and `moveParallax` ignored `prefers-reduced-motion`.** Both hardcoded
+  `disabled: false` in the config handed to the engine and never consulted the user's preference, so
+  scroll-linked and parallax motion — precisely the kind WCAG 2.3.3 asks to suppress, and the kind
+  most likely to affect users with vestibular disorders — kept running with "Reduce motion" enabled.
+  Both now skip animating entirely, leaving the element in its natural CSS state so scroll-driven
+  reveals stay readable rather than stuck at an invisible initial keyframe. Covered by unit tests
+  and by browser-level e2e that emulates the media query.
+- The demo site advertised **v0.5.0** in the navbar while npm was on 0.6.0. The version is now
+  injected from `projects/movement/package.json` at build time, so it cannot go stale again.
 - `moveLayout` no longer double-counts the host's own CSS transform. FLIP snapshots are now measured
   in untransformed layout space, so a committed `moveWhileHover` scale, a `moveDrag` offset, or the
   tail of a previous FLIP can no longer leak into the delta — a plain hover scale on a

@@ -63,6 +63,15 @@
     `ssr.spec.ts` — assert at the `Element.animate()` boundary instead of on config plumbing.
   - e2e interaction tests for drag, presence, variants, stagger, in-view, scroll.
   - Gate green: tests, lint, build, e2e (39), pack:check, docs:check, no API-surface diff vs `main`.
+- **Audit pass (post-003)** — two real defects found and fixed:
+  - `moveScroll` / `moveParallax` ignored `prefers-reduced-motion` (both hardcoded
+    `disabled: false`). Now guarded, with unit tests plus browser-level e2e using `emulateMedia`.
+  - The navbar advertised `v0.5.0`; the version is now injected from the library `package.json`
+    via `vite.config.ts` (`__MOVEMENT_VERSION__` → `src/app/shared/version.ts`).
+  - Checked and found healthy: no listener leaks, all internal `routerLink`s resolve, peer range
+    matches the installed Angular (21.2.2 vs `^21.2.0`), `movementWarn` is `ngDevMode`-guarded, and
+    `movePresence` / `moveStagger` need no `ngOnDestroy` (ViewContainerRef and child unregistration
+    handle it).
 
 ## Next up (priority order)
 
@@ -91,6 +100,14 @@
 - Several directives defer their first play by a microtask, and `moveText` / `moveInView` need an
   `IntersectionObserver` hit. Tests that only call `detectChanges()` pass vacuously — always await
   `whenStable()` and include a control case.
+- **Never assert an absence with `expect.poll`.** `expect.poll(...).toBe(0)` on an animation count
+  matches its first sample (before anything is created) and silently tests nothing — this produced a
+  green reduced-motion e2e over a live bug. Wait a settle window, then assert once. Likewise,
+  Playwright's `reducedMotion` fixture did not reach `matchMedia` here; use
+  `page.emulateMedia({ reducedMotion: 'reduce' })` and assert the emulation took effect.
+- `AnimationEngine.play()` keys off `options.disabled`, **not** `options.config.disabled`. A
+  directive that resolves a disabled config but still passes `disabled: false` will animate anyway —
+  that is exactly how the `moveScroll` / `moveParallax` accessibility bug survived.
 
 ## Release process (when asked to release)
 

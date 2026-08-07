@@ -13,7 +13,7 @@ import {
 import { AnimationControls } from '../engines/animation-controls';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MoveKeyframes } from '../presets/presets.types';
-import { isValidScrollOffset } from './move-animation.utils';
+import { isValidScrollOffset, prefersReducedMotion } from './move-animation.utils';
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
 /**
@@ -55,6 +55,10 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
     // to the [0,1] scroll progress without easing distortion or premature finish.
     effect(() => {
       if (!isPlatformBrowser(this.#platformId)) return;
+      // Scroll-linked motion is what `prefers-reduced-motion` exists to suppress (WCAG 2.3.3).
+      // Skipping the player leaves the element in its natural CSS state, so a scroll-driven reveal
+      // stays readable instead of being stuck at its initial (often invisible) keyframe.
+      if (prefersReducedMotion(this.#documentRef)) return;
       const keyframes = this.moveScroll();
 
       if (this.#rafId !== null) {
@@ -97,6 +101,8 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
 
   ngOnInit() {
     if (!isPlatformBrowser(this.#platformId)) return;
+    // No player will exist under reduced motion, so skip the observer and scroll listener too.
+    if (prefersReducedMotion(this.#documentRef)) return;
 
     const view = this.#documentRef.defaultView;
     if (!view) return;

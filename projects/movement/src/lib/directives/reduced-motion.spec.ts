@@ -1,4 +1,4 @@
-import { Component, Type } from '@angular/core';
+import { Component, signal, Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -9,7 +9,11 @@ import { MoveEnterDirective } from './move-enter.directive';
 import { MoveFocusDirective } from './move-focus.directive';
 import { MoveHoverDirective } from './move-hover.directive';
 import { MoveInViewDirective } from './move-in-view.directive';
+import { MoveLeaveDirective } from './move-leave.directive';
 import { MoveLoopDirective } from './move-loop.directive';
+import { MoveParallaxDirective } from './move-parallax.directive';
+import { MovePresenceDirective } from './move-presence.directive';
+import { MoveScrollDirective } from './move-scroll.directive';
 import { MoveTapDirective } from './move-tap.directive';
 import { MoveTargetDirective } from './move-target.directive';
 import { MoveTextDirective } from './move-text.directive';
@@ -109,6 +113,30 @@ class VariantsHost {}
 })
 class InViewHost {}
 
+@Component({
+  template: `<div [moveScroll]="{ opacity: [0, 1], y: [50, 0] }">scroll</div>`,
+  imports: [MoveScrollDirective],
+})
+class ScrollHost {}
+
+@Component({
+  template: `<div [moveParallax]="0.4">parallax</div>`,
+  imports: [MoveParallaxDirective],
+})
+class ParallaxHost {}
+
+@Component({
+  template: `
+    <ng-container *movePresence="visible()">
+      <div [moveLeave]="{ opacity: [1, 0] }">leave</div>
+    </ng-container>
+  `,
+  imports: [MovePresenceDirective, MoveLeaveDirective],
+})
+class LeaveHost {
+  visible = signal(true);
+}
+
 interface Case {
   name: string;
   host: Type<unknown>;
@@ -145,6 +173,16 @@ const CASES: Case[] = [
   { name: 'moveWhileFocus', host: FocusHost, trigger: triggerOn('focusin') },
   { name: 'moveText', host: TextHost, trigger: enterViewport },
   { name: 'moveInView', host: InViewHost, trigger: enterViewport },
+  { name: 'moveScroll', host: ScrollHost, trigger: enterViewport },
+  { name: 'moveParallax', host: ParallaxHost, trigger: enterViewport },
+  {
+    name: 'moveLeave',
+    host: LeaveHost,
+    trigger: (fixture) => {
+      (fixture.componentInstance as LeaveHost).visible.set(false);
+      fixture.detectChanges();
+    },
+  },
 ];
 
 let ioCallbacks: IntersectionObserverCallback[] = [];
