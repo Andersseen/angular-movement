@@ -3,6 +3,11 @@ import { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MovementConfig } from '../tokens/mo
 
 export type MovementConfigInput = Partial<MovementConfig>;
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export function provideMovement(config: MovementConfigInput = {}): EnvironmentProviders {
   return makeEnvironmentProviders([
     {

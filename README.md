@@ -304,12 +304,16 @@ Scroll directives expose progress as a signal, so you can derive values without 
 | Status               | APIs                                                                                                                                                                                                           |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
+| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                       |
 | **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small naming or behavior adjustments. Experimental APIs can change significantly between
 minor versions.
+
+Each level is also declared in the source as a `@stability` JSDoc tag (`stable` / `candidate` /
+`experimental`), so your editor shows the guarantee at the point of use. Experimental declarations
+additionally carry the standard `@experimental` tag.
 
 ## 🔄 Input reactivity
 

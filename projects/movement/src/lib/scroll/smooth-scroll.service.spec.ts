@@ -16,6 +16,28 @@ function makeScrollEl(scrollHeight = 2000, clientHeight = 800): HTMLElement {
   return el;
 }
 
+/** Scrollable element whose `scrollTop` is a real read/write value. */
+function makeTrackedScrollEl(scrollHeight = 2000, clientHeight = 800): HTMLElement {
+  const el = makeScrollEl(scrollHeight, clientHeight);
+  let scrollTop = 0;
+  Object.defineProperty(el, 'scrollTop', {
+    get: () => scrollTop,
+    set: (value: number) => {
+      scrollTop = value;
+    },
+    configurable: true,
+  });
+  return el;
+}
+
+/** jsdom has no real TouchEvent constructor, so build the shape the service reads. */
+function touchEvent(type: string, clientY: number, timeStamp: number): TouchEvent {
+  const event = new Event(type, { bubbles: true, cancelable: true });
+  Object.defineProperty(event, 'touches', { value: [{ clientY }], configurable: true });
+  Object.defineProperty(event, 'timeStamp', { value: timeStamp, configurable: true });
+  return event as TouchEvent;
+}
+
 describe('SmoothScrollService', () => {
   let service: SmoothScrollService;
   let cancelRafSpy: ReturnType<typeof vi.spyOn>;
@@ -169,6 +191,116 @@ describe('SmoothScrollService', () => {
     child.dispatchEvent(event);
 
     expect(event.defaultPrevented).toBe(false);
+  });
+
+  it('scrolls on touch drag and prevents the native scroll', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    el.dispatchEvent(touchEvent('touchstart', 500, 0));
+    const move = touchEvent('touchmove', 400, 16); // swipe up 100px → scroll down
+    el.dispatchEvent(move);
+    rafCallbacks.at(-1)?.(16);
+
+    expect(move.defaultPrevented).toBe(true);
+    expect(el.scrollTop).toBeGreaterThan(0);
+  });
+
+  it('ignores touchmove that was not preceded by touchstart', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    const move = touchEvent('touchmove', 400, 16);
+    el.dispatchEvent(move);
+    rafCallbacks.at(-1)?.(16);
+
+    expect(move.defaultPrevented).toBe(false);
+    expect(el.scrollTop).toBe(0);
+  });
+
+  it('does not intercept touch drags inside nested scrollable containers', () => {
+    const root = makeTrackedScrollEl();
+    const scrollable = makeScrollEl(1000, 100);
+    const child = document.createElement('button');
+    scrollable.style.overflowY = 'auto';
+    scrollable.appendChild(child);
+    root.appendChild(scrollable);
+
+    service.init({ element: root });
+
+    child.dispatchEvent(touchEvent('touchstart', 500, 0));
+    const move = touchEvent('touchmove', 400, 16);
+    child.dispatchEvent(move);
+
+    expect(move.defaultPrevented).toBe(false);
+  });
+
+  it('applies momentum after the finger lifts', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    el.dispatchEvent(touchEvent('touchstart', 500, 0));
+    el.dispatchEvent(touchEvent('touchmove', 400, 16));
+
+    const scheduledBeforeLift = rafCallbacks.length;
+    el.dispatchEvent(touchEvent('touchend', 400, 32));
+
+    // touchend schedules a momentum step in addition to the running tick loop.
+    expect(rafCallbacks.length).toBeGreaterThan(scheduledBeforeLift);
+
+    const beforeMomentum = el.scrollTop;
+    // Drain a few momentum + tick frames.
+    for (let i = 0; i < 10; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+
+    expect(el.scrollTop).toBeGreaterThan(beforeMomentum);
+  });
+
+  it('stops momentum once the service is destroyed', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    el.dispatchEvent(touchEvent('touchstart', 500, 0));
+    el.dispatchEvent(touchEvent('touchmove', 300, 16));
+    el.dispatchEvent(touchEvent('touchend', 300, 32));
+
+    service.destroy();
+    const afterDestroy = el.scrollTop;
+    for (let i = 0; i < 5; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+
+    expect(el.scrollTop).toBe(afterDestroy);
+  });
+
+  it('destroy is safe before init', () => {
+    expect(() => service.destroy()).not.toThrow();
+    expect(service.isActive).toBe(false);
+  });
+
+  it('clamps scrollTo to the scrollable range', () => {
+    const el = makeTrackedScrollEl(2000, 800); // maxScroll = 1200
+    service.init({ element: el });
+
+    service.scrollTo(9999, true);
+    expect(el.scrollTop).toBe(1200);
+
+    service.scrollTo(-500, true);
+    expect(el.scrollTop).toBe(0);
+  });
+
+  it('settles exactly on the target once the lerp gap closes', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    service.scrollTo(100);
+    for (let i = 0; i < 30; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+
+    expect(el.scrollTop).toBe(100);
+    expect(service.scrollY()).toBe(100);
   });
 
   it('does not init on server (non-browser platform)', () => {

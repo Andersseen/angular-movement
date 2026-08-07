@@ -43,6 +43,9 @@ jobs:
       - name: Lint
         run: pnpm run lint
 
+      - name: Check docs against the library API
+        run: pnpm run docs:check
+
       - name: Test library
         run: pnpm run test:coverage
 

@@ -20,6 +20,12 @@ import {
 } from './move-animation.utils';
 import { movementWarn } from '../dev-warn';
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 @Directive({
   selector: '[moveTarget]',
   standalone: true,

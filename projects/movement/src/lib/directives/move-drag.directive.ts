@@ -35,6 +35,12 @@ export interface MoveDragEvent {
   pointerEvent: PointerEvent;
 }
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 @Directive({
   selector: '[moveDrag]',
   host: {

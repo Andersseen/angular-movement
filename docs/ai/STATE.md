@@ -3,11 +3,11 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-08-04
-**Library version:** `0.6.0` (release prepared on `fix/v1-foundation-hardening`, ready to publish via `v0.6.0` tag)
+**Last updated:** 2026-08-07
+**Library version:** `0.6.0` — **published to npm** (`latest`) on 2026-08-07 via the `v0.6.0` tag; GitHub Release created.
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `fix/v1-foundation-hardening` — docs, demos, tests, e2e, and 0.6.0 release artifacts prepared. Awaiting push and PR to trigger CI publish.
-**Roadmap phase:** 0.6 "API hardening" release is staged (see `ROADMAP.md`)
+**Branch state:** `chore/0.7-hardening` — spec 002 complete (see below). Full gate green; not yet merged or released.
+**Roadmap phase:** 0.6 shipped; now in 0.7 "Real app validation" (see `ROADMAP.md`)
 
 ## What is DONE and stable
 
@@ -46,25 +46,40 @@
 
 ## In progress / recently merged (CHANGELOG "Unreleased")
 
-- **Spec 001 — Base Hardening** (`docs/ai/specs/001-base-hardening.md`) is done enough for 0.6.0:
-  - Done: docs/demo selector/input audit; `moveAnimation` and `moveWhileFocus` demos; `MoveAnimationDirective`
-    test hardening; e2e expansion; API stability & input-reactivity docs; parallax demo migration to
-    `[moveParallax]`; numeric/boolean input coercion verified and bug-fixed. `test:coverage`, `ng lint`,
-    `pnpm build`, `pnpm build:prod`, `pnpm pack:check`, and `pnpm e2e` are green.
-  - Release `0.6.0` is staged: `projects/movement/package.json` bumped, `CHANGELOG.md` rolled, commit
-    `chore(release): v0.6.0` and tag `v0.6.0` created.
-  - Remaining from the original spec (post-0.6.0): `moveDrag`/`moveLayout` transform double-counting fixes
-    (needs dedicated spec).
+- **Spec 001 — Base Hardening** is fully closed. Its last open item (`moveLayout` transform
+  double-counting) was fixed in spec 002.
+- **Spec 002 — 0.7 Hardening** (`docs/ai/specs/002-07-hardening.md`) — **done** on `chore/0.7-hardening`:
+  - `moveLayout` FLIP now measures in untransformed layout space (the double-counting fix).
+  - Coverage: `MoveScrollDirective` 66.7% → 87.8%, `SmoothScrollService` 66.7% → 96.5%.
+    Suite is 261 tests / 89.69% stmts / 82.26% branch.
+  - New demos: `/demos/smooth-scroll` and `/demos/values` (signal helpers), both with e2e.
+  - `@stability` JSDoc on every public declaration; `moveText`/`moveLoop` classified as candidates.
+  - `pnpm docs:check` guard wired into CI — it found and fixed 8 pre-existing doc errors.
+- **Spec 003 — Test hardening** (`docs/ai/specs/003-test-hardening.md`) — **done**, same branch.
+  Closes PLAN-0.6 WS-1.1 / WS-1.2 / WS-1.3 / WS-4.5, all previously open.
+  - **372 unit tests** (from 241), **93.49% stmts / 86.36% branch**, **39 e2e** (from 25).
+    No library file below 87.5% stmts; `base-player.ts` and `waapi-player.ts` at 100%.
+  - Three cross-cutting contract specs — `reduced-motion.spec.ts`, `teardown.spec.ts`,
+    `ssr.spec.ts` — assert at the `Element.animate()` boundary instead of on config plumbing.
+  - e2e interaction tests for drag, presence, variants, stagger, in-view, scroll.
+  - Gate green: tests, lint, build, e2e (39), pack:check, docs:check, no API-surface diff vs `main`.
+- **Audit pass (post-003)** — two real defects found and fixed:
+  - `moveScroll` / `moveParallax` ignored `prefers-reduced-motion` (both hardcoded
+    `disabled: false`). Now guarded, with unit tests plus browser-level e2e using `emulateMedia`.
+  - The navbar advertised `v0.5.0`; the version is now injected from the library `package.json`
+    via `vite.config.ts` (`__MOVEMENT_VERSION__` → `src/app/shared/version.ts`).
+  - Checked and found healthy: no listener leaks, all internal `routerLink`s resolve, peer range
+    matches the installed Angular (21.2.2 vs `^21.2.0`), `movementWarn` is `ngDevMode`-guarded, and
+    `movePresence` / `moveStagger` need no `ngOnDestroy` (ViewContainerRef and child unregistration
+    handle it).
 
 ## Next up (priority order)
 
-**Detailed backlog lives in [PLAN-0.6.md](PLAN-0.6.md)** (created 2026-07-06) — work it top-down. Summary:
-
-1. Test hardening: reduced-motion, interrupted-animation, SSR-guard tests (WS-1.x).
-2. Dynamic input behavior for the 8 init-only directives — needs spec + user sign-off (WS-2.1).
-3. Transform composition fix for `moveLayout`/`moveDrag`/keyframes — needs spec (WS-3.1).
-4. Demo gaps: `moveAnimation`, `moveWhileFocus`, smooth scroll, signals helpers; e2e expansion (WS-4.x).
-5. Release `0.6.0` + Cloudflare deploy (WS-5.x).
+1. Merge `chore/0.7-hardening` into `main`, then Cloudflare deploy.
+2. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. This is the
+   main blocker for freezing the API at 1.0.
+3. Validate the library in ≥2 non-demo Angular apps (ROADMAP 0.7's headline item, still untouched).
+4. Decide the Angular peer-range policy for 1.0.
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
@@ -72,6 +87,27 @@
   directive can run. Correct usage pairs it with `*movePresence`. Demo pages already reflect this.
 - Some directives still read certain inputs once at init; making them fully reactive is a roadmap
   item, not a bug to hotfix.
+- **`SmoothScrollService` is a root singleton and the demo app calls `init()` in `App`.** Therefore
+  `[moveSmoothScroll]` on any container is a silent no-op, and destroying that element tears down the
+  global instance. The `/demos/smooth-scroll` page demonstrates the _service_ for this reason. Needs
+  a dev-mode warning or a scoped-instance API before `moveSmoothScroll` leaves experimental.
+- `docs:check` runs in CI: renaming any selector or input now fails the build until
+  `src/app/shared/api/directive-reference.ts` is updated in the same commit. That is intentional.
+- **The engine writes atomic `translate` / `scale` / `rotate`, and only switches to a composed
+  `transform` when the element already has one.** Asserting on `getComputedStyle(el).transform`
+  alone will report `"none"` for a working animation — this cost two false e2e failures. Read every
+  channel (see `motionState()` in `e2e/demos.spec.ts`). Pinned by a unit test; do not "unify" it.
+- Several directives defer their first play by a microtask, and `moveText` / `moveInView` need an
+  `IntersectionObserver` hit. Tests that only call `detectChanges()` pass vacuously — always await
+  `whenStable()` and include a control case.
+- **Never assert an absence with `expect.poll`.** `expect.poll(...).toBe(0)` on an animation count
+  matches its first sample (before anything is created) and silently tests nothing — this produced a
+  green reduced-motion e2e over a live bug. Wait a settle window, then assert once. Likewise,
+  Playwright's `reducedMotion` fixture did not reach `matchMedia` here; use
+  `page.emulateMedia({ reducedMotion: 'reduce' })` and assert the emulation took effect.
+- `AnimationEngine.play()` keys off `options.disabled`, **not** `options.config.disabled`. A
+  directive that resolves a disabled config but still passes `disabled: false` will animate anyway —
+  that is exactly how the `moveScroll` / `moveParallax` accessibility bug survived.
 
 ## Release process (when asked to release)
 

@@ -5,6 +5,11 @@ import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.toke
 
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[moveStagger]',
   providers: [

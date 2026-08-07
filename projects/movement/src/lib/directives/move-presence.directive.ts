@@ -15,6 +15,11 @@ import {
   MovePresenceProvider,
 } from '../tokens/presence.tokens';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[movePresence]',
   providers: [

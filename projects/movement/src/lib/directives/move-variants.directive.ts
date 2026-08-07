@@ -34,6 +34,11 @@ export interface MoveVariantsProvider {
   activeVariant: () => string | undefined;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
   'MOVE_VARIANTS_PARENT',
 );

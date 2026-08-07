@@ -19,6 +19,12 @@ import {
   resolveMovementConfig,
 } from './move-animation.utils';
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 @Directive({
   selector: '[moveTrigger]',
   standalone: true,

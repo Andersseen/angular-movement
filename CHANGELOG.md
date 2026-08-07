@@ -2,6 +2,68 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`moveScroll` and `moveParallax` ignored `prefers-reduced-motion`.** Both hardcoded
+  `disabled: false` in the config handed to the engine and never consulted the user's preference, so
+  scroll-linked and parallax motion — precisely the kind WCAG 2.3.3 asks to suppress, and the kind
+  most likely to affect users with vestibular disorders — kept running with "Reduce motion" enabled.
+  Both now skip animating entirely, leaving the element in its natural CSS state so scroll-driven
+  reveals stay readable rather than stuck at an invisible initial keyframe. Covered by unit tests
+  and by browser-level e2e that emulates the media query.
+- The demo site advertised **v0.5.0** in the navbar while npm was on 0.6.0. The version is now
+  injected from `projects/movement/package.json` at build time, so it cannot go stale again.
+- `moveLayout` no longer double-counts the host's own CSS transform. FLIP snapshots are now measured
+  in untransformed layout space, so a committed `moveWhileHover` scale, a `moveDrag` offset, or the
+  tail of a previous FLIP can no longer leak into the delta — a plain hover scale on a
+  `[moveLayout]` element used to trigger a spurious layout animation. Closes the last open item of
+  spec 001.
+- Documentation drift found by the new `docs:check` gate: six directive inputs were documented as
+  required when they are optional in the source (`moveEnter`, `moveLeave`, `moveInView`, `moveText`,
+  `moveScroll`, `moveLoop`), `moveParallaxContainer` (shipped in 0.6.0) was never documented, and a
+  `moveSmoothScroll` input was documented that has never existed.
+
+### Added
+
+- Test hardening for 1.0 (spec 003). The suite went from 241 to **372** unit tests and 25 to **39**
+  e2e tests; statement coverage 86.66% → **93.49%**, branch 80.65% → **86.36%**. No library file is
+  below 87.5% statements, and `base-player.ts` / `waapi-player.ts` are at 100%.
+  - Three cross-cutting contract specs replace what would have been ~50 near-identical per-directive
+    tests, asserting at the `Element.animate()` boundary rather than on internal config:
+    `reduced-motion.spec.ts` (12 directives, each with a control case proving the assertion can
+    fail), `teardown.spec.ts` (no animation survives destroy; re-triggering cancels the previous
+    one), and `ssr.spec.ts` (18 directives render on the server without touching `Element.animate`,
+    `IntersectionObserver` or `requestAnimationFrame`).
+  - `base-player.ts` had no spec at all; it now has one covering the finish/commit/cancel sequence,
+    `once` listener registration, missing `commitStyles`, and the idle-cancel branch.
+  - `waapi-player.ts` covers the infinite-iteration path used by `moveLoop`, which must never fire
+    `onDone`.
+  - e2e interaction tests for drag, presence, variants, stagger, in-view and scroll — the coverage
+    ROADMAP 0.7 asks for.
+  - `moveStagger` gained integration coverage: its previous tests registered plain elements by hand,
+    so a broken `MOVE_STAGGER_PARENT` wiring would not have been caught.
+- `data-testid` anchors on the presence, variants, stagger, in-view and scroll demo pages so e2e has
+  stable selectors.
+- `@stability` JSDoc tag (`stable` / `candidate` / `experimental`) on every public declaration, so
+  the guarantee is visible in the IDE instead of only in the README table. Experimental declarations
+  also carry the standard `@experimental` tag.
+- `pnpm docs:check` (`scripts/check-docs-drift.mjs`) — validates documented selectors, input names
+  and required flags against the parsed library source, and checks that both docs pages only mention
+  identifiers that still exist. Runs in CI.
+- `src/app/shared/api/directive-reference.ts` — single definition of the structured directive
+  reference, now consumed by the `/api/directives` route.
+- Live demo pages for `moveSmoothScroll` / `SmoothScrollService` and for the signal helpers
+  `moveValue` / `moveTransform` / `moveSpringValue`, both registered in the demos nav and covered by
+  Playwright.
+- Test coverage for the two weakest files: `MoveScrollDirective` (66.7% → 87.8% statements; custom
+  container mode, malformed offsets, RAF lerp settle, teardown) and `SmoothScrollService`
+  (66.7% → 96.5%; touch drag, momentum decay, nested scrollables, clamping).
+
+### Changed
+
+- `moveText` and `moveLoop` are now classified as stable candidates in the API-stability table; they
+  were previously unlisted.
+
 ## [0.6.0] - 2026-08-04
 
 ### Added

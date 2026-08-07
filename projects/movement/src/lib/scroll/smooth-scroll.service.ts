@@ -18,6 +18,11 @@ import { prefersReducedMotion } from '../directives/move-animation.utils';
  *   constructor() {
  *     inject(SmoothScrollService).init();
  *   }
+ *
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
  */
 @Injectable({ providedIn: 'root' })
 export class SmoothScrollService implements OnDestroy {

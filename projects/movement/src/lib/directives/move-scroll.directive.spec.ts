@@ -105,6 +105,262 @@ describe('MoveScrollDirective — native scroll (no SmoothScrollService)', () =>
   });
 });
 
+@Component({
+  template: ` <div [moveScroll]="frames()" [moveScrollOffset]="offset()">Scroll Me</div> `,
+  imports: [MoveScrollDirective],
+})
+class ConfigurableHostComponent {
+  frames = signal<Record<string, number[]> | undefined>({ opacity: [0, 1] });
+  offset = signal<[string, string]>(['0 1', '1 0']);
+}
+
+describe('MoveScrollDirective — progress mapping and teardown', () => {
+  let fixture: ComponentFixture<ConfigurableHostComponent>;
+  let engine: AnimationEngine;
+  let fakePlayer: AnimationControls & { currentTime: number };
+  let ioHolder: { getCallback: () => IntersectionObserverCallback };
+  let rafCallbacks: FrameRequestCallback[];
+
+  beforeEach(() => {
+    fakePlayer = makeFakePlayer();
+    ioHolder = mockIntersectionObserver();
+    rafCallbacks = [];
+
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      rafCallbacks.push(callback);
+      return rafCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockReturnValue(undefined);
+    vi.spyOn(window, 'addEventListener').mockImplementation(() => undefined);
+
+    TestBed.configureTestingModule({
+      imports: [ConfigurableHostComponent],
+      providers: [
+        { provide: SmoothScrollService, useValue: { scrollY: signal(0), isActive: false } },
+      ],
+    });
+    fixture = TestBed.createComponent(ConfigurableHostComponent);
+    engine = TestBed.inject(AnimationEngine);
+    vi.spyOn(engine, 'play').mockReturnValue(fakePlayer);
+    fixture.detectChanges();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    TestBed.resetTestingModule();
+  });
+
+  function directive(): MoveScrollDirective {
+    return fixture.debugElement
+      .query(By.directive(MoveScrollDirective))
+      .injector.get(MoveScrollDirective);
+  }
+
+  function drainRaf(frames = 40): void {
+    for (let i = 0; i < frames; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+  }
+
+  it('drives the player currentTime from the scroll progress', () => {
+    const host = fixture.debugElement.query(By.directive(MoveScrollDirective))
+      .nativeElement as HTMLElement;
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({
+      top: 100,
+      height: 200,
+    } as DOMRect);
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    drainRaf();
+
+    const progress = directive().progress();
+    expect(progress).toBeGreaterThan(0);
+    expect(progress).toBeLessThanOrEqual(0.999);
+    expect(fakePlayer.currentTime).toBeCloseTo(progress * 1000, 5);
+  });
+
+  it('never reaches currentTime 1000, so the player cannot auto-finish', () => {
+    const host = fixture.debugElement.query(By.directive(MoveScrollDirective))
+      .nativeElement as HTMLElement;
+    // Element far above the viewport → raw progress well beyond 1.
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({
+      top: -5000,
+      height: 200,
+    } as DOMRect);
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    drainRaf();
+
+    expect(directive().progress()).toBeLessThanOrEqual(0.999);
+    expect(fakePlayer.currentTime).toBeLessThanOrEqual(999);
+  });
+
+  it('does not create a player when a scroll offset is malformed', () => {
+    vi.mocked(engine.play).mockClear();
+    fixture.componentInstance.offset.set(['not-an-offset', '1 0']);
+    fixture.detectChanges();
+
+    expect(engine.play).not.toHaveBeenCalled();
+  });
+
+  it('cancels and recreates the player when the keyframes change', () => {
+    const first = fakePlayer;
+    const second = makeFakePlayer();
+    vi.mocked(engine.play).mockReturnValue(second);
+
+    fixture.componentInstance.frames.set({ opacity: [1, 0] });
+    fixture.detectChanges();
+
+    expect(first.cancel).toHaveBeenCalled();
+    expect(second.pause).toHaveBeenCalled();
+  });
+
+  it('tears down the player, listener and observer on destroy', () => {
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+    const cancelRafSpy = vi.spyOn(window, 'cancelAnimationFrame');
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+
+    fixture.destroy();
+
+    expect(fakePlayer.cancel).toHaveBeenCalled();
+    expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+    expect(cancelRafSpy).toHaveBeenCalled();
+  });
+
+  it('detaches the scroll listener when the element leaves the viewport', () => {
+    const removeSpy = vi.spyOn(window, 'removeEventListener');
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    ioHolder.getCallback()(
+      [{ isIntersecting: false } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+
+    expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+  });
+});
+
+@Component({
+  template: `
+    <div class="scroll-container">
+      <div [moveScroll]="{ opacity: [0, 1] }" moveScrollContainer=".scroll-container">
+        Scroll Me
+      </div>
+    </div>
+  `,
+  imports: [MoveScrollDirective],
+})
+class ContainerHostComponent {}
+
+describe('MoveScrollDirective — custom scroll container', () => {
+  let fixture: ComponentFixture<ContainerHostComponent>;
+  let engine: AnimationEngine;
+  let fakePlayer: AnimationControls & { currentTime: number };
+  let ioHolder: { getCallback: () => IntersectionObserverCallback };
+  let rafCallbacks: FrameRequestCallback[];
+  let container: HTMLElement;
+
+  beforeEach(() => {
+    fakePlayer = makeFakePlayer();
+    ioHolder = mockIntersectionObserver();
+    rafCallbacks = [];
+
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      rafCallbacks.push(callback);
+      return rafCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockReturnValue(undefined);
+
+    TestBed.configureTestingModule({
+      imports: [ContainerHostComponent],
+      providers: [
+        { provide: SmoothScrollService, useValue: { scrollY: signal(0), isActive: false } },
+      ],
+    });
+    fixture = TestBed.createComponent(ContainerHostComponent);
+    engine = TestBed.inject(AnimationEngine);
+    vi.spyOn(engine, 'play').mockReturnValue(fakePlayer);
+    fixture.detectChanges();
+
+    container = fixture.nativeElement.querySelector('.scroll-container') as HTMLElement;
+    Object.defineProperty(container, 'clientHeight', { value: 500, configurable: true });
+    Object.defineProperty(container, 'scrollTop', {
+      value: 300,
+      writable: true,
+      configurable: true,
+    });
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({ top: 0 } as DOMRect);
+
+    const host = fixture.debugElement.query(By.directive(MoveScrollDirective))
+      .nativeElement as HTMLElement;
+    Object.defineProperty(host, 'offsetHeight', { value: 200, configurable: true });
+    vi.spyOn(host, 'getBoundingClientRect').mockReturnValue({ top: 100, height: 200 } as DOMRect);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    TestBed.resetTestingModule();
+  });
+
+  it('attaches the scroll listener to the container instead of the window', () => {
+    const containerSpy = vi.spyOn(container, 'addEventListener');
+    const windowSpy = vi.spyOn(window, 'addEventListener');
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+
+    expect(containerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), { passive: true });
+    expect(windowSpy).not.toHaveBeenCalledWith('scroll', expect.any(Function), expect.anything());
+  });
+
+  it('computes progress from the container scrollTop', () => {
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    for (let i = 0; i < 40; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+
+    const directive = fixture.debugElement
+      .query(By.directive(MoveScrollDirective))
+      .injector.get(MoveScrollDirective);
+
+    expect(directive.progress()).toBeGreaterThan(0);
+    expect(directive.progress()).toBeLessThanOrEqual(0.999);
+    expect(fakePlayer.currentTime).toBeCloseTo(directive.progress() * 1000, 5);
+  });
+
+  it('removes the container listener on destroy', () => {
+    const removeSpy = vi.spyOn(container, 'removeEventListener');
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    fixture.destroy();
+
+    expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+  });
+});
+
 describe('MoveScrollDirective — with SmoothScrollService active', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let engine: AnimationEngine;

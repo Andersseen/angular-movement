@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 const demoRoutes = [
   'animate',
@@ -15,12 +15,26 @@ const demoRoutes = [
   'parallax',
   'presence',
   'scroll',
+  'smooth-scroll',
   'stagger',
   'tap',
   'target',
   'text',
+  'values',
   'variants',
 ] as const;
+
+/**
+ * The engine writes motion into the atomic CSS properties (`translate` / `scale` / `rotate`) and
+ * only falls back to a composed `transform` when the element already has one. Asserting on
+ * `transform` alone therefore misses most animations — read every channel.
+ */
+async function motionState(locator: Locator): Promise<string> {
+  return locator.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return [style.transform, style.translate, style.scale, style.rotate, style.opacity].join(' | ');
+  });
+}
 
 test.describe('demo pages', () => {
   for (const route of demoRoutes) {
@@ -117,5 +131,240 @@ test.describe('demo pages', () => {
     await button.focus();
     await expect(button).toBeVisible();
     await expect(button).toBeFocused();
+  });
+
+  test('values demo maps the driver signal onto transform outputs', async ({ page }) => {
+    await page.goto('/demos/values');
+
+    const slider = page.getByTestId('values-slider');
+    const linear = page.getByTestId('values-linear-box');
+    await expect(slider).toBeVisible();
+
+    const initial = await linear.evaluate((el) => getComputedStyle(el).transform);
+
+    await page.getByTestId('values-end').click();
+    await expect(page.getByTestId('values-progress')).toHaveText('100');
+
+    // moveTransform is synchronous, so the linear box has already moved.
+    await expect
+      .poll(async () => linear.evaluate((el) => getComputedStyle(el).transform))
+      .not.toBe(initial);
+
+    // moveSpringValue settles asynchronously toward the same target.
+    await expect
+      .poll(
+        async () =>
+          page
+            .getByTestId('values-spring-box')
+            .evaluate((el) => new DOMMatrix(getComputedStyle(el).transform).m41),
+        { timeout: 3000 },
+      )
+      .toBeGreaterThan(200);
+  });
+
+  test('drag demo moves the card with the pointer and keeps it in bounds', async ({ page }) => {
+    await page.goto('/demos/drag');
+
+    const card = page.getByTestId('drag-card');
+    await expect(card).toBeVisible();
+
+    const start = await card.boundingBox();
+    if (!start) throw new Error('drag demo did not lay out');
+
+    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(start.x + start.width / 2 + 80, start.y + start.height / 2 + 40, {
+      steps: 12,
+    });
+
+    const dragged = await card.boundingBox();
+    expect(dragged!.x).toBeGreaterThan(start.x + 20);
+
+    await page.mouse.up();
+
+    // The release animation must settle without detaching the card or throwing it off-screen.
+    await expect(card).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const box = await card.boundingBox();
+          const viewport = page.viewportSize()!;
+          return !!box && box.x > -box.width && box.x < viewport.width;
+        },
+        { timeout: 3000 },
+      )
+      .toBe(true);
+  });
+
+  test('presence demo waits for the exit animation before swapping panels', async ({ page }) => {
+    await page.goto('/demos/presence');
+
+    const first = page.getByTestId('presence-panel-1');
+    await expect(first).toBeVisible();
+
+    await page.getByTestId('presence-tab-2').click();
+
+    // The outgoing panel must stay in the DOM while its leave animation plays — that is the whole
+    // point of *movePresence.
+    await expect(first).toBeAttached();
+    await expect(page.getByTestId('presence-panel-2')).toBeVisible();
+    await expect(first).toBeHidden({ timeout: 2000 });
+  });
+
+  test('variants demo animates between named states', async ({ page }) => {
+    await page.goto('/demos/variants');
+
+    const target = page.getByTestId('variants-target');
+    await expect(target).toBeVisible();
+
+    const buttons = page.locator('[data-testid^="variant-button-"]');
+    const count = await buttons.count();
+    expect(count).toBeGreaterThan(1);
+
+    const before = await motionState(target);
+    await buttons.nth(1).click();
+
+    await expect.poll(async () => motionState(target), { timeout: 3000 }).not.toBe(before);
+
+    // Switching back must settle again rather than leave the element mid-transform.
+    await buttons.nth(0).click();
+    await expect(target).toBeVisible();
+  });
+
+  test('stagger demo reveals every child', async ({ page }) => {
+    await page.goto('/demos/stagger');
+
+    const items = page.getByTestId('stagger-item');
+    await expect(items.first()).toBeVisible();
+    const count = await items.count();
+    expect(count).toBeGreaterThan(2);
+
+    // Staggered children start hidden; all of them must end up visible, or the stagger delay is
+    // being applied without a matching play.
+    await expect
+      .poll(
+        async () =>
+          items.evaluateAll((els) => els.every((el) => Number(getComputedStyle(el).opacity) > 0.9)),
+        { timeout: 3000 },
+      )
+      .toBe(true);
+  });
+
+  test('in-view demo animates the target once it is scrolled into view', async ({ page }) => {
+    await page.goto('/demos/in-view');
+
+    const target = page.getByTestId('in-view-target');
+    await target.scrollIntoViewIfNeeded();
+
+    await expect(target).toBeVisible();
+    await expect
+      .poll(async () => Number(await target.evaluate((el) => getComputedStyle(el).opacity)), {
+        timeout: 3000,
+      })
+      .toBeGreaterThan(0.9);
+  });
+
+  test('scroll demo maps container scroll onto the element transform', async ({ page }) => {
+    await page.goto('/demos/scroll');
+
+    const container = page.getByTestId('scroll-container');
+    const foreground = page.getByTestId('scroll-foreground');
+
+    // The directive only creates its player once the element intersects its scroll container.
+    await foreground.scrollIntoViewIfNeeded();
+    await expect(foreground).toBeVisible();
+    await expect.poll(async () => foreground.evaluate((el) => el.getAnimations().length)).toBe(1);
+
+    const before = await motionState(foreground);
+
+    await container.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+      el.dispatchEvent(new Event('scroll'));
+    });
+
+    // moveScroll lerps toward the target, so poll rather than asserting on the next frame.
+    await expect.poll(async () => motionState(foreground), { timeout: 3000 }).not.toBe(before);
+  });
+
+  test('smooth scroll demo exposes the live service readout', async ({ page }) => {
+    await page.goto('/demos/smooth-scroll');
+
+    await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
+    await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
+
+    const active = await page.getByTestId('smooth-scroll-active').textContent();
+    await page.getByTestId('smooth-scroll-instant').click();
+
+    // scrollTo(400, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
+    // Under reduced motion the service never starts, so the readout legitimately stays at 0.
+    await expect
+      .poll(async () => {
+        const text = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
+        return Number.parseInt(text.trim(), 10);
+      })
+      .toBe(active?.trim() === 'yes' ? 400 : 0);
+  });
+});
+
+/**
+ * The accessibility contract, verified in a real browser rather than a jsdom mock.
+ *
+ * Scroll-linked and parallax motion is precisely what WCAG 2.3.3 asks to suppress, and it used to
+ * run regardless of the user's preference because both directives hardcoded `disabled: false`.
+ */
+/** Window allowed for observers to fire and players to be created before asserting an absence. */
+const SETTLE_MS = 800;
+
+test.describe('prefers-reduced-motion', () => {
+  // Emulated explicitly per page rather than through the `reducedMotion` fixture: the fixture did
+  // not reach `matchMedia` here, which silently turned these into no-op assertions.
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await page.goto('about:blank');
+    expect(await page.evaluate(() => matchMedia('(prefers-reduced-motion: reduce)').matches)).toBe(
+      true,
+    );
+  });
+
+  test('scroll-linked motion does not run', async ({ page }) => {
+    await page.goto('/demos/scroll');
+
+    const foreground = page.getByTestId('scroll-foreground');
+    await foreground.scrollIntoViewIfNeeded();
+    await expect(foreground).toBeVisible();
+
+    const container = page.getByTestId('scroll-container');
+    await container.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+      el.dispatchEvent(new Event('scroll'));
+    });
+
+    // Asserting an absence needs a settle window, not `expect.poll`: the count starts at 0 before
+    // the observer fires, so a poll would match its first sample and never test anything.
+    await page.waitForTimeout(SETTLE_MS);
+
+    // With motion allowed this element carries exactly one scroll-driven animation.
+    expect(await foreground.evaluate((el) => el.getAnimations().length)).toBe(0);
+  });
+
+  test('parallax does not run', async ({ page }) => {
+    await page.goto('/demos/parallax');
+    await page.mouse.wheel(0, 600);
+    await page.waitForTimeout(SETTLE_MS);
+
+    expect(await page.evaluate(() => document.getAnimations().length)).toBe(0);
+  });
+
+  test('content that animates in is still readable', async ({ page }) => {
+    await page.goto('/demos/stagger');
+
+    // Suppressing motion must never leave content stuck at an invisible initial keyframe.
+    const items = page.getByTestId('stagger-item');
+    await expect(items.first()).toBeVisible();
+    await expect
+      .poll(async () =>
+        items.evaluateAll((els) => els.every((el) => Number(getComputedStyle(el).opacity) > 0.9)),
+      )
+      .toBe(true);
   });
 });
