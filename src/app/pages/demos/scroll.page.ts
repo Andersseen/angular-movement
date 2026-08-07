@@ -18,7 +18,11 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
     >
       <!-- Preview -->
       <div preview class="relative h-full w-full overflow-hidden">
-        <div id="scroll-demo-container" class="h-full w-full overflow-y-auto pr-2">
+        <div
+          id="scroll-demo-container"
+          data-testid="scroll-container"
+          class="h-full w-full overflow-y-auto pr-2"
+        >
           <!-- Top spacer — must be taller than the container to push content below the fold -->
           <div class="flex h-[400px] items-center justify-center">
             <div class="text-text-subtle text-center">
@@ -49,6 +53,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
             <!-- Foreground element -->
             <div
+              data-testid="scroll-foreground"
               [moveScroll]="fgKeyframes()"
               moveScrollContainer="#scroll-demo-container"
               class="bg-accent absolute z-20 flex h-16 w-16 items-center justify-center rounded-lg shadow-lg"

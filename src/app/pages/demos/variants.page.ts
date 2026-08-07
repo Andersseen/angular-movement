@@ -22,6 +22,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
         <div class="flex gap-2">
           @for (variant of variantNames; track variant) {
             <button
+              [attr.data-testid]="'variant-button-' + variant"
               (click)="currentVariant.set(variant)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
               [class.bg-accent]="currentVariant() === variant"
@@ -35,6 +36,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
         </div>
 
         <div
+          data-testid="variants-target"
           [moveVariants]="variantsConfig"
           [moveVariant]="currentVariant()"
           [moveDuration]="duration()"

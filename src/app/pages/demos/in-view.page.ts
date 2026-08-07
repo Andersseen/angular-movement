@@ -33,6 +33,7 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
           <div class="flex items-center justify-center py-8">
             @if (showDemo()) {
               <div
+                data-testid="in-view-target"
                 [moveInView]="preset()"
                 [moveInViewOnce]="once()"
                 [moveDuration]="duration()"

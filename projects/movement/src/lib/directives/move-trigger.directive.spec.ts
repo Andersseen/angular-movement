@@ -1,4 +1,4 @@
-import { Component, input } from '@angular/core';
+import { Component, input, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -139,6 +139,70 @@ describe('MoveTriggerDirective', () => {
       expect.objectContaining({ opacity: [1, 0] }),
       expect.anything(),
     );
+  });
+
+  describe('moveResetState', () => {
+    /**
+     * Renders a host with the given reset mode, plays forward, then releases the trigger so the
+     * reset path runs.
+     */
+    async function runReset(mode: 'clear' | 'initial' | 'final'): Promise<HTMLElement> {
+      @Component({
+        standalone: true,
+        imports: [MoveTriggerDirective],
+        template: `
+          <div
+            [moveTrigger]="active()"
+            [moveFrames]="{ opacity: [0.25, 0.75] }"
+            [moveResetState]="mode()"
+          ></div>
+        `,
+      })
+      class ResetStateHost {
+        active = signal(true);
+        mode = signal<'clear' | 'initial' | 'final'>(mode);
+      }
+
+      TestBed.configureTestingModule({ imports: [ResetStateHost] });
+      const fixture = TestBed.createComponent(ResetStateHost);
+
+      const engine = TestBed.inject(AnimationEngine);
+      vi.spyOn(engine, 'play').mockReturnValue({
+        finished: Promise.resolve(),
+        cancel: vi.fn(),
+        play: vi.fn(),
+        pause: vi.fn(),
+        currentTime: 0,
+      } as unknown as AnimationControls);
+
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      const host = fixture.debugElement.query(By.directive(MoveTriggerDirective))
+        .nativeElement as HTMLElement;
+      host.style.opacity = '0.75';
+
+      fixture.componentInstance.active.set(false);
+      fixture.detectChanges();
+      await fixture.whenStable();
+
+      return host;
+    }
+
+    it('clear removes the animated properties entirely', async () => {
+      const host = await runReset('clear');
+      expect(host.style.opacity).toBe('');
+    });
+
+    it('initial restores the first keyframe', async () => {
+      const host = await runReset('initial');
+      expect(host.style.opacity).toBe('0.25');
+    });
+
+    it('final keeps the last keyframe', async () => {
+      const host = await runReset('final');
+      expect(host.style.opacity).toBe('0.75');
+    });
   });
 });
 

@@ -21,6 +21,7 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
         <div class="flex gap-2">
           @for (tab of tabs; track tab.id) {
             <button
+              [attr.data-testid]="'presence-tab-' + tab.id"
               (click)="activeTab.set(tab.id)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
               [class.bg-accent]="activeTab() === tab.id"
@@ -35,7 +36,11 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
 
         <div class="relative h-40 w-full max-w-[256px]">
           @for (tab of tabs; track tab.id) {
-            <div *movePresence="activeTab() === tab.id" class="absolute inset-0">
+            <div
+              *movePresence="activeTab() === tab.id"
+              class="absolute inset-0"
+              [attr.data-testid]="'presence-panel-' + tab.id"
+            >
               <div
                 [moveLeave]="preset()"
                 [moveDuration]="duration()"

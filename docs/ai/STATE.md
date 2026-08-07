@@ -55,7 +55,14 @@
   - New demos: `/demos/smooth-scroll` and `/demos/values` (signal helpers), both with e2e.
   - `@stability` JSDoc on every public declaration; `moveText`/`moveLoop` classified as candidates.
   - `pnpm docs:check` guard wired into CI — it found and fixed 8 pre-existing doc errors.
-  - Gate green: tests, lint, build, e2e (33), pack:check, docs:check, no API-surface diff vs `main`.
+- **Spec 003 — Test hardening** (`docs/ai/specs/003-test-hardening.md`) — **done**, same branch.
+  Closes PLAN-0.6 WS-1.1 / WS-1.2 / WS-1.3 / WS-4.5, all previously open.
+  - **372 unit tests** (from 241), **93.49% stmts / 86.36% branch**, **39 e2e** (from 25).
+    No library file below 87.5% stmts; `base-player.ts` and `waapi-player.ts` at 100%.
+  - Three cross-cutting contract specs — `reduced-motion.spec.ts`, `teardown.spec.ts`,
+    `ssr.spec.ts` — assert at the `Element.animate()` boundary instead of on config plumbing.
+  - e2e interaction tests for drag, presence, variants, stagger, in-view, scroll.
+  - Gate green: tests, lint, build, e2e (39), pack:check, docs:check, no API-surface diff vs `main`.
 
 ## Next up (priority order)
 
@@ -63,9 +70,7 @@
 2. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. This is the
    main blocker for freezing the API at 1.0.
 3. Validate the library in ≥2 non-demo Angular apps (ROADMAP 0.7's headline item, still untouched).
-4. Remaining test hardening from [PLAN-0.6.md](PLAN-0.6.md): reduced-motion and interrupted-animation
-   coverage across the directives that still lack it (WS-1.1 / WS-1.2).
-5. Decide the Angular peer-range policy for 1.0.
+4. Decide the Angular peer-range policy for 1.0.
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
@@ -79,6 +84,13 @@
   a dev-mode warning or a scoped-instance API before `moveSmoothScroll` leaves experimental.
 - `docs:check` runs in CI: renaming any selector or input now fails the build until
   `src/app/shared/api/directive-reference.ts` is updated in the same commit. That is intentional.
+- **The engine writes atomic `translate` / `scale` / `rotate`, and only switches to a composed
+  `transform` when the element already has one.** Asserting on `getComputedStyle(el).transform`
+  alone will report `"none"` for a working animation — this cost two false e2e failures. Read every
+  channel (see `motionState()` in `e2e/demos.spec.ts`). Pinned by a unit test; do not "unify" it.
+- Several directives defer their first play by a microtask, and `moveText` / `moveInView` need an
+  `IntersectionObserver` hit. Tests that only call `detectChanges()` pass vacuously — always await
+  `whenStable()` and include a control case.
 
 ## Release process (when asked to release)
 

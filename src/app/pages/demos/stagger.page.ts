@@ -21,9 +21,14 @@ import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
       <!-- Preview -->
       <div preview class="flex h-full w-full items-center justify-center">
         @if (showDemo()) {
-          <div [moveStagger]="staggerDelay()" class="grid grid-cols-3 gap-2 sm:gap-3">
+          <div
+            data-testid="stagger-grid"
+            [moveStagger]="staggerDelay()"
+            class="grid grid-cols-3 gap-2 sm:gap-3"
+          >
             @for (i of items; track i) {
               <div
+                data-testid="stagger-item"
                 [moveEnter]="preset()"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"

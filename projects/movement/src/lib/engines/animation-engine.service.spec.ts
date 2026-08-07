@@ -351,4 +351,96 @@ describe('AnimationEngine', () => {
     expect(last['strokeDashoffset']).toBe(-60);
     expect(last['opacity']).toBe(1);
   });
+
+  describe('final styles when animations are disabled', () => {
+    // This is the reduced-motion contract: no animation runs, but the element must still end up
+    // in the animation's final visual state.
+
+    it('applies the last keyframe using the atomic transform properties', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+
+      engine.play(host, { opacity: [0, 0.5], x: [0, 40], scale: [1, 1.5] }, { disabled: true });
+
+      expect(host.style.opacity).toBe('0.5');
+      // With no pre-existing transform the engine writes `translate`/`scale`, not `transform`.
+      expect(host.style.translate).toBe('40px 0px');
+      expect(host.style.scale).toBe('1.5');
+      expect(host.style.transform).toBe('');
+    });
+
+    it('switches to a composed `transform` when the host already has one', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      host.style.transform = 'translate(100px, 0px)';
+
+      engine.play(host, { x: [0, 40] }, { disabled: true });
+
+      // 100px base + 40px final keyframe — the base must not be discarded. The engine deliberately
+      // switches channels here: mixing atomic `translate` with an existing `transform` would apply
+      // both, doubling the offset.
+      expect(host.style.transform).toContain('140px');
+      expect(host.style.translate).toBe('');
+    });
+
+    it('still reports done through onDone when disabled', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const onDone = vi.fn();
+
+      const result = engine.play(host, { opacity: [0, 1] }, { disabled: true, onDone });
+
+      expect(result).toBeNull();
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('still reports done through onDone on the server', () => {
+      TestBed.configureTestingModule({
+        providers: [provideMovement(), { provide: PLATFORM_ID, useValue: 'server' }],
+      });
+      const engine = TestBed.inject(AnimationEngine);
+      const onDone = vi.fn();
+
+      engine.play(document.createElement('div'), { opacity: [0, 1] }, { onDone });
+
+      // Callers chain view removal off onDone; skipping it on the server would strand the view.
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('SVG path length resolution', () => {
+    it('falls back to the default length for non-SVG hosts', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const animateSpy = vi.fn().mockReturnValue({ addEventListener: vi.fn(), cancel: vi.fn() });
+      (host as unknown as { animate: unknown }).animate = animateSpy;
+
+      engine.play(host, { pathLength: [0, 1] });
+
+      const keyframes = animateSpy.mock.calls[0][0] as Record<string, unknown>[];
+      // 28 is the documented fallback length.
+      expect(keyframes[0]['strokeDasharray']).toBe('0 28');
+      expect(keyframes[1]['strokeDasharray']).toBe('28 28');
+    });
+
+    it('seeds strokeDashoffset from pathLength before the animation starts', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      (path as unknown as { getTotalLength: () => number }).getTotalLength = () => 200;
+      (path as unknown as { animate: unknown }).animate = vi
+        .fn()
+        .mockReturnValue({ addEventListener: vi.fn(), cancel: vi.fn() });
+
+      engine.play(path, { pathLength: [0.25, 1] });
+
+      // Without this seed the path flashes fully drawn on the first frame.
+      expect(path.style.strokeDasharray).toBe('50 200');
+    });
+  });
 });

@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 
 const demoRoutes = [
   'animate',
@@ -23,6 +23,18 @@ const demoRoutes = [
   'values',
   'variants',
 ] as const;
+
+/**
+ * The engine writes motion into the atomic CSS properties (`translate` / `scale` / `rotate`) and
+ * only falls back to a composed `transform` when the element already has one. Asserting on
+ * `transform` alone therefore misses most animations — read every channel.
+ */
+async function motionState(locator: Locator): Promise<string> {
+  return locator.evaluate((el) => {
+    const style = getComputedStyle(el);
+    return [style.transform, style.translate, style.scale, style.rotate, style.opacity].join(' | ');
+  });
+}
 
 test.describe('demo pages', () => {
   for (const route of demoRoutes) {
@@ -148,6 +160,130 @@ test.describe('demo pages', () => {
         { timeout: 3000 },
       )
       .toBeGreaterThan(200);
+  });
+
+  test('drag demo moves the card with the pointer and keeps it in bounds', async ({ page }) => {
+    await page.goto('/demos/drag');
+
+    const card = page.getByTestId('drag-card');
+    await expect(card).toBeVisible();
+
+    const start = await card.boundingBox();
+    if (!start) throw new Error('drag demo did not lay out');
+
+    await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+    await page.mouse.down();
+    await page.mouse.move(start.x + start.width / 2 + 80, start.y + start.height / 2 + 40, {
+      steps: 12,
+    });
+
+    const dragged = await card.boundingBox();
+    expect(dragged!.x).toBeGreaterThan(start.x + 20);
+
+    await page.mouse.up();
+
+    // The release animation must settle without detaching the card or throwing it off-screen.
+    await expect(card).toBeVisible();
+    await expect
+      .poll(
+        async () => {
+          const box = await card.boundingBox();
+          const viewport = page.viewportSize()!;
+          return !!box && box.x > -box.width && box.x < viewport.width;
+        },
+        { timeout: 3000 },
+      )
+      .toBe(true);
+  });
+
+  test('presence demo waits for the exit animation before swapping panels', async ({ page }) => {
+    await page.goto('/demos/presence');
+
+    const first = page.getByTestId('presence-panel-1');
+    await expect(first).toBeVisible();
+
+    await page.getByTestId('presence-tab-2').click();
+
+    // The outgoing panel must stay in the DOM while its leave animation plays — that is the whole
+    // point of *movePresence.
+    await expect(first).toBeAttached();
+    await expect(page.getByTestId('presence-panel-2')).toBeVisible();
+    await expect(first).toBeHidden({ timeout: 2000 });
+  });
+
+  test('variants demo animates between named states', async ({ page }) => {
+    await page.goto('/demos/variants');
+
+    const target = page.getByTestId('variants-target');
+    await expect(target).toBeVisible();
+
+    const buttons = page.locator('[data-testid^="variant-button-"]');
+    const count = await buttons.count();
+    expect(count).toBeGreaterThan(1);
+
+    const before = await motionState(target);
+    await buttons.nth(1).click();
+
+    await expect.poll(async () => motionState(target), { timeout: 3000 }).not.toBe(before);
+
+    // Switching back must settle again rather than leave the element mid-transform.
+    await buttons.nth(0).click();
+    await expect(target).toBeVisible();
+  });
+
+  test('stagger demo reveals every child', async ({ page }) => {
+    await page.goto('/demos/stagger');
+
+    const items = page.getByTestId('stagger-item');
+    await expect(items.first()).toBeVisible();
+    const count = await items.count();
+    expect(count).toBeGreaterThan(2);
+
+    // Staggered children start hidden; all of them must end up visible, or the stagger delay is
+    // being applied without a matching play.
+    await expect
+      .poll(
+        async () =>
+          items.evaluateAll((els) => els.every((el) => Number(getComputedStyle(el).opacity) > 0.9)),
+        { timeout: 3000 },
+      )
+      .toBe(true);
+  });
+
+  test('in-view demo animates the target once it is scrolled into view', async ({ page }) => {
+    await page.goto('/demos/in-view');
+
+    const target = page.getByTestId('in-view-target');
+    await target.scrollIntoViewIfNeeded();
+
+    await expect(target).toBeVisible();
+    await expect
+      .poll(async () => Number(await target.evaluate((el) => getComputedStyle(el).opacity)), {
+        timeout: 3000,
+      })
+      .toBeGreaterThan(0.9);
+  });
+
+  test('scroll demo maps container scroll onto the element transform', async ({ page }) => {
+    await page.goto('/demos/scroll');
+
+    const container = page.getByTestId('scroll-container');
+    const foreground = page.getByTestId('scroll-foreground');
+
+    // The directive only creates its player once the element intersects its scroll container.
+    await foreground.scrollIntoViewIfNeeded();
+    await expect(foreground).toBeVisible();
+    await expect.poll(async () => foreground.evaluate((el) => el.getAnimations().length)).toBe(1);
+
+    const before = await motionState(foreground);
+
+    await container.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+      el.dispatchEvent(new Event('scroll'));
+    });
+
+    // moveScroll lerps toward the target, so poll rather than asserting on the next frame.
+    await expect.poll(async () => motionState(foreground), { timeout: 3000 }).not.toBe(before);
   });
 
   test('smooth scroll demo exposes the live service readout', async ({ page }) => {

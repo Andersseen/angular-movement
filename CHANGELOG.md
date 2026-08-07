@@ -16,6 +16,25 @@
 
 ### Added
 
+- Test hardening for 1.0 (spec 003). The suite went from 241 to **372** unit tests and 25 to **39**
+  e2e tests; statement coverage 86.66% → **93.49%**, branch 80.65% → **86.36%**. No library file is
+  below 87.5% statements, and `base-player.ts` / `waapi-player.ts` are at 100%.
+  - Three cross-cutting contract specs replace what would have been ~50 near-identical per-directive
+    tests, asserting at the `Element.animate()` boundary rather than on internal config:
+    `reduced-motion.spec.ts` (12 directives, each with a control case proving the assertion can
+    fail), `teardown.spec.ts` (no animation survives destroy; re-triggering cancels the previous
+    one), and `ssr.spec.ts` (18 directives render on the server without touching `Element.animate`,
+    `IntersectionObserver` or `requestAnimationFrame`).
+  - `base-player.ts` had no spec at all; it now has one covering the finish/commit/cancel sequence,
+    `once` listener registration, missing `commitStyles`, and the idle-cancel branch.
+  - `waapi-player.ts` covers the infinite-iteration path used by `moveLoop`, which must never fire
+    `onDone`.
+  - e2e interaction tests for drag, presence, variants, stagger, in-view and scroll — the coverage
+    ROADMAP 0.7 asks for.
+  - `moveStagger` gained integration coverage: its previous tests registered plain elements by hand,
+    so a broken `MOVE_STAGGER_PARENT` wiring would not have been caught.
+- `data-testid` anchors on the presence, variants, stagger, in-view and scroll demo pages so e2e has
+  stable selectors.
 - `@stability` JSDoc tag (`stable` / `candidate` / `experimental`) on every public declaration, so
   the guarantee is visible in the IDE instead of only in the README table. Experimental declarations
   also carry the standard `@experimental` tag.

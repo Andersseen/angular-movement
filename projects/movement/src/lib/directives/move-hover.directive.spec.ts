@@ -46,6 +46,63 @@ describe('MoveHoverDirective', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
+  it('should ignore a repeated mouseenter while already hovered', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('mouseenter', null);
+    debugElement.triggerEventHandler('mouseenter', null);
+
+    // Browsers can emit repeated enters over child elements; replaying would restart the animation.
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should ignore mouseleave when it was never hovered', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('mouseleave', null);
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('should treat touchstart as hover and prevent the emulated mouse event', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+    const preventDefault = vi.fn();
+
+    debugElement.triggerEventHandler('touchstart', { preventDefault });
+
+    // Without preventDefault the browser also fires mouseenter, double-triggering on mobile.
+    expect(preventDefault).toHaveBeenCalledTimes(1);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should reverse on touchend and on touchcancel', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
+    playSpy.mockClear();
+    debugElement.triggerEventHandler('touchend', null);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
+    playSpy.mockClear();
+    debugElement.triggerEventHandler('touchcancel', null);
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should ignore a repeated touchstart while already active', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
+    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
   it('should clear styles immediately when reverseDuration is 0', () => {
     TestBed.resetTestingModule();
     TestBed.configureTestingModule({
