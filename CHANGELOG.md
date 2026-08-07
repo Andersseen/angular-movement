@@ -21,6 +21,10 @@
 
 ### Changed
 
+- Dropped the unused `zone.js` runtime dependency from the demo app. The app has been zoneless
+  since it adopted `provideZonelessChangeDetection()`, nothing imported zone.js, and it was
+  never in the client bundle — Angular declares it as an _optional_ peer, so it was pure
+  install weight. Library unit tests, build, e2e and the consumer validation all pass without it.
 - GitHub Actions bumped to `checkout@v5` / `setup-node@v5`, clearing the Node 20 deprecation warning.
 - README, package README and the docs site state both supported Angular majors.
 

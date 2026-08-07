@@ -1,28 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-
-const demoRoutes = [
-  'animate',
-  'animation',
-  'drag',
-  'enter',
-  'focus',
-  'hover',
-  'icons',
-  'in-view',
-  'layout',
-  'leave',
-  'loop',
-  'parallax',
-  'presence',
-  'scroll',
-  'smooth-scroll',
-  'stagger',
-  'tap',
-  'target',
-  'text',
-  'values',
-  'variants',
-] as const;
+import { DEMO_ROUTES } from './routes';
 
 /**
  * The engine writes motion into the atomic CSS properties (`translate` / `scale` / `rotate`) and
@@ -37,7 +14,7 @@ async function motionState(locator: Locator): Promise<string> {
 }
 
 test.describe('demo pages', () => {
-  for (const route of demoRoutes) {
+  for (const route of DEMO_ROUTES) {
     test(`renders /demos/${route}`, async ({ page }) => {
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));

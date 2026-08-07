@@ -100,6 +100,13 @@
   `[moveSmoothScroll]` on any container is a silent no-op, and destroying that element tears down the
   global instance. The `/demos/smooth-scroll` page demonstrates the _service_ for this reason. Needs
   a dev-mode warning or a scoped-instance API before `moveSmoothScroll` leaves experimental.
+- **`scroll demo maps container scroll onto the element transform` is intermittently flaky** on
+  its first attempt (~1 run in 5); `retries: 1` plus the route warm-up keep the suite green. Three
+  attempts to fix the cause made it worse and were reverted, so do not retry them blindly:
+  resetting the container to `scrollTop = 0` scrolls the element out of view, which makes
+  `moveScroll` detach its scroll listener so later synthetic events do nothing; scrolling by a
+  small delta instead left the transform unchanged for a reason not yet identified. The demo does
+  use `moveScrollContainer`, so the listener is on the container, not the window.
 - **The demo site does NOT exercise the published package** — `vite.config.ts` aliases
   `movement` to the library source. Only `pnpm validate:consumer` compiles the real tarball,
   which is why a broken peer range, `exports` map or `.d.ts` stays green everywhere else. That
