@@ -15,8 +15,8 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
         <p class="text-text-muted mt-6 text-xl">
-          Angular Movement is a motion library for Angular 21 with Angular-native directives, state
-          APIs, and Web Animations API-powered runtime playback.
+          Angular Movement is a motion library for Angular 21 and 22 with Angular-native directives,
+          state APIs, and Web Animations API-powered runtime playback.
         </p>
       </div>
 

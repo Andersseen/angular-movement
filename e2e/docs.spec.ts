@@ -4,6 +4,7 @@ const docsRoutes = [
   { path: '/docs/api', heading: 'API Guide', text: 'How it works' },
   { path: '/docs/reference', heading: 'API Reference', text: 'Choose by job' },
   { path: '/docs/presets', heading: 'Presets', text: 'Where presets fit' },
+  { path: '/docs/patterns', heading: 'Angular patterns', text: '@if and leave animations' },
 ] as const;
 
 test.describe('docs pages', () => {

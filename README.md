@@ -6,7 +6,7 @@
 
 ### Animate Angular with a single attribute.
 
-Declarative motion for **Angular 21** — presets, spring physics, drag, scroll, parallax,
+Declarative motion for **Angular 21 and 22** — presets, spring physics, drag, scroll, parallax,
 presence orchestration & SVG path-drawing. SSR-safe. Zero `@angular/animations`. Standalone-ready.
 
 <br/>
@@ -15,7 +15,7 @@ presence orchestration & SVG path-drawing. SSR-safe. Zero `@angular/animations`.
 [![npm version](https://img.shields.io/npm/v/angular-movement?style=flat-square&color=6533FF&labelColor=0d0b1a&label=npm)](https://www.npmjs.com/package/angular-movement)
 [![npm downloads](https://img.shields.io/npm/dm/angular-movement?style=flat-square&color=6533FF&labelColor=0d0b1a)](https://www.npmjs.com/package/angular-movement)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/angular-movement?style=flat-square&labelColor=0d0b1a&label=min%2Bgzip)](https://bundlephobia.com/package/angular-movement)
-[![Angular](https://img.shields.io/badge/Angular-21-DD0031?style=flat-square&logo=angular&logoColor=white&labelColor=0d0b1a)](https://angular.dev)
+[![Angular](https://img.shields.io/badge/Angular-21%20%7C%2022-DD0031?style=flat-square&logo=angular&logoColor=white&labelColor=0d0b1a)](https://angular.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square&labelColor=0d0b1a)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-6533FF?style=flat-square&labelColor=0d0b1a)](CONTRIBUTING.md)
 
@@ -76,7 +76,8 @@ npm install angular-movement
 # or: pnpm add angular-movement · yarn add angular-movement
 ```
 
-> **Peer dependencies:** `@angular/core` ^21.2.0 · `@angular/common` ^21.2.0
+> **Peer dependencies:** `@angular/core` and `@angular/common` — `^21.2.0 || ^22.0.0`.
+> Every supported major is compiled against the packed package in CI (`pnpm validate:consumer`).
 
 **1. Provide global defaults**
 

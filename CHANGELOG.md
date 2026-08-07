@@ -2,6 +2,28 @@
 
 ## Unreleased
 
+### Added
+
+- **Angular 22 support.** The peer range widens from `^21.2.0` to `^21.2.0 || ^22.0.0`. Angular 22
+  has been stable and npm `latest` for a while, so `npm install angular-movement` in a new project
+  failed outright with an `ERESOLVE` peer conflict — the library was effectively uninstallable for
+  anyone starting today.
+- **Real-app validation** (`pnpm validate:consumer`, ROADMAP 0.7's headline item). Packs the library
+  and compiles the tarball inside a throwaway Angular app per supported major, with a plain
+  `npm install` so peer conflicts surface the way a user sees them. Until now nothing compiled the
+  published package: the demo site imports it through a Vite source alias, so packaging breakage was
+  structurally invisible. This is what found the Angular 22 defect above, on its first run. It runs
+  in CI and as the last gate before publish.
+- `/docs/patterns` — the Angular features people trip over: `@if` destroying a view before a leave
+  animation can play, `@for` + `moveStagger` and why `track` matters, SSR, standalone imports, and
+  reduced motion.
+- `MIGRATION.md` — upgrade notes for 0.5→0.6 and 0.7→0.8, each marked breaking or advisory.
+
+### Changed
+
+- GitHub Actions bumped to `checkout@v5` / `setup-node@v5`, clearing the Node 20 deprecation warning.
+- README, package README and the docs site state both supported Angular majors.
+
 ## [0.7.0] - 2026-08-07
 
 ### Fixed

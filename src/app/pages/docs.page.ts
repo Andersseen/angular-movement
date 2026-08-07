@@ -40,6 +40,15 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                     Get Started
                   </a>
                 </li>
+                <li>
+                  <a
+                    routerLink="patterns"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    Angular Patterns
+                  </a>
+                </li>
               </ul>
             </div>
 

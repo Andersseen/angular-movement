@@ -30,8 +30,8 @@ npm install angular-movement
 
 Peer dependencies:
 
-- @angular/core ^21.2.0
-- @angular/common ^21.2.0
+- @angular/core ^21.2.0 || ^22.0.0
+- @angular/common ^21.2.0 || ^22.0.0
 
 ## Quick Start
 
