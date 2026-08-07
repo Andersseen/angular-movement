@@ -361,6 +361,102 @@ describe('MoveScrollDirective — custom scroll container', () => {
   });
 });
 
+describe('MoveScrollDirective — custom container while smooth scroll is active', () => {
+  let fixture: ComponentFixture<ContainerHostComponent>;
+  let ioHolder: { getCallback: () => IntersectionObserverCallback };
+  let container: HTMLElement;
+  let fakePlayer: AnimationControls & { currentTime: number };
+  let rafCallbacks: FrameRequestCallback[];
+
+  beforeEach(() => {
+    fakePlayer = makeFakePlayer();
+    ioHolder = mockIntersectionObserver();
+    rafCallbacks = [];
+
+    vi.spyOn(window, 'requestAnimationFrame').mockImplementation((callback) => {
+      rafCallbacks.push(callback);
+      return rafCallbacks.length;
+    });
+    vi.spyOn(window, 'cancelAnimationFrame').mockReturnValue(undefined);
+
+    TestBed.configureTestingModule({
+      imports: [ContainerHostComponent],
+      providers: [
+        // The demo app calls SmoothScrollService.init() at the root, so this is the common case.
+        { provide: SmoothScrollService, useValue: { scrollY: signal(0), isActive: true } },
+      ],
+    });
+    fixture = TestBed.createComponent(ContainerHostComponent);
+    vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue(fakePlayer);
+    fixture.detectChanges();
+
+    container = fixture.nativeElement.querySelector('.scroll-container') as HTMLElement;
+    Object.defineProperty(container, 'clientHeight', { value: 300, configurable: true });
+    Object.defineProperty(container, 'scrollTop', {
+      value: 0,
+      writable: true,
+      configurable: true,
+    });
+    vi.spyOn(container, 'getBoundingClientRect').mockReturnValue({ top: 0 } as DOMRect);
+
+    const host = fixture.debugElement.query(By.directive(MoveScrollDirective))
+      .nativeElement as HTMLElement;
+    Object.defineProperty(host, 'offsetHeight', { value: 100, configurable: true });
+    // The element's viewport position must fall as the container scrolls, exactly as it does in a
+    // browser. A fixed rect would make the directive's `elTop` track scrollTop and cancel it out,
+    // so progress would never change and the test would prove nothing.
+    vi.spyOn(host, 'getBoundingClientRect').mockImplementation(
+      () => ({ top: 200 - container.scrollTop, height: 100 }) as DOMRect,
+    );
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+    TestBed.resetTestingModule();
+  });
+
+  it('still listens to the container, which smooth scroll does not drive', () => {
+    const containerSpy = vi.spyOn(container, 'addEventListener');
+
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+
+    // SmoothScrollService only governs the root/page scroll. Skipping the listener because it is
+    // active leaves a custom container with no scroll source at all.
+    expect(containerSpy).toHaveBeenCalledWith('scroll', expect.any(Function), { passive: true });
+  });
+
+  it('updates progress when the container scrolls', () => {
+    ioHolder.getCallback()(
+      [{ isIntersecting: true } as IntersectionObserverEntry],
+      {} as IntersectionObserver,
+    );
+    const drain = () => {
+      for (let i = 0; i < 60; i++) rafCallbacks.splice(0).forEach((callback) => callback(16));
+    };
+
+    const directive = fixture.debugElement
+      .query(By.directive(MoveScrollDirective))
+      .injector.get(MoveScrollDirective);
+
+    // The lerp must have settled before sampling, or a value still in flight would "change" on its
+    // own and the assertion below would pass without the scroll doing anything.
+    drain();
+    const settled = directive.progress();
+    drain();
+    expect(directive.progress()).toBe(settled);
+
+    (container as unknown as { scrollTop: number }).scrollTop = 250;
+    container.dispatchEvent(new Event('scroll'));
+    drain();
+
+    expect(directive.progress()).not.toBe(settled);
+  });
+});
+
 describe('MoveScrollDirective — with SmoothScrollService active', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let engine: AnimationEngine;

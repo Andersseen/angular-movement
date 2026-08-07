@@ -44,6 +44,11 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
   #isVisible = false;
   #scrollListener = () => this.#updateProgress();
   #scrollTarget: EventTarget | null = null;
+  /**
+   * `SmoothScrollService` only drives the root/page scroll. A custom container keeps scrolling
+   * natively, so it always needs the native listener and must never defer to the service.
+   */
+  #usesCustomContainer = false;
 
   #targetProgress = 0;
   #animProgress = 0;
@@ -93,7 +98,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
     // Smooth-scroll service support (fires via RAF signal instead of native scroll event).
     effect(() => {
       this.#smoothScroll?.scrollY();
-      if (this.#smoothScroll?.isActive && this.#isVisible) {
+      if (this.#smoothScroll?.isActive && this.#isVisible && !this.#usesCustomContainer) {
         this.#updateProgress();
       }
     });
@@ -113,6 +118,7 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
       ? (this.#documentRef.querySelector(containerSelector) as HTMLElement | null)
       : null;
     this.#scrollTarget = containerEl ?? view;
+    this.#usesCustomContainer = containerEl !== null;
 
     // Use the custom container as IntersectionObserver root when available so that
     // the observer fires based on container-viewport visibility, not page-viewport visibility.
@@ -122,7 +128,9 @@ export class MoveScrollDirective implements OnInit, OnDestroy {
         this.#isVisible = entry.isIntersecting;
 
         if (entry.isIntersecting) {
-          if (!this.#smoothScroll?.isActive) {
+          // Defer to the smooth-scroll service only when it is actually the scroll source, i.e.
+          // when this directive tracks the page. A custom container scrolls natively either way.
+          if (!this.#smoothScroll?.isActive || this.#usesCustomContainer) {
             this.#scrollTarget!.addEventListener('scroll', this.#scrollListener, { passive: true });
           }
           this.#updateProgress();

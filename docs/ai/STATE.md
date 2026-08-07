@@ -71,6 +71,11 @@
     Range widened to `^21.2.0 || ^22.0.0`; both majors verified.
   - Runs in CI and as the last gate in `release.yml` before publish.
   - `/docs/patterns` and `MIGRATION.md` close the remaining 0.7 docs items.
+- **Spec 005 — scroll container vs smooth scroll** (`docs/ai/specs/005-scroll-container-smooth-scroll.md`)
+  — **done**. Found while chasing a flaky e2e test that turned out to be reporting a real defect:
+  `moveScrollContainer` / `moveParallaxContainer` were inert whenever `SmoothScrollService` ran.
+  Fixed in both directives, with unit + e2e regressions verified against the unfixed code.
+  e2e is now 5 consecutive clean runs (43 passed, zero flaky).
 - **Audit pass (post-003)** — two real defects found and fixed:
   - `moveScroll` / `moveParallax` ignored `prefers-reduced-motion` (both hardcoded
     `disabled: false`). Now guarded, with unit tests plus browser-level e2e using `emulateMedia`.
@@ -100,13 +105,14 @@
   `[moveSmoothScroll]` on any container is a silent no-op, and destroying that element tears down the
   global instance. The `/demos/smooth-scroll` page demonstrates the _service_ for this reason. Needs
   a dev-mode warning or a scoped-instance API before `moveSmoothScroll` leaves experimental.
-- **`scroll demo maps container scroll onto the element transform` is intermittently flaky** on
-  its first attempt (~1 run in 5); `retries: 1` plus the route warm-up keep the suite green. Three
-  attempts to fix the cause made it worse and were reverted, so do not retry them blindly:
-  resetting the container to `scrollTop = 0` scrolls the element out of view, which makes
-  `moveScroll` detach its scroll listener so later synthetic events do nothing; scrolling by a
-  small delta instead left the transform unchanged for a reason not yet identified. The demo does
-  use `moveScrollContainer`, so the listener is on the container, not the window.
+- **`SmoothScrollService` governs the page scroll only.** Anything that also supports a custom
+  container (`moveScroll`, `moveParallax`) must defer to it _only_ when no container is set —
+  getting this wrong left `moveScrollContainer` completely inert on any site using smooth
+  scroll, this one included (spec 005). The container's own `scrollTop` always wins.
+- **Beware assertions that pass on a settling animation.** The e2e scroll test sampled its
+  baseline mid-lerp and then asserted "it changed" — so it reported green for months while the
+  feature under test was frozen. Settle first, then assert, and confirm the action you performed
+  actually did something.
 - **The demo site does NOT exercise the published package** — `vite.config.ts` aliases
   `movement` to the library source. Only `pnpm validate:consumer` compiles the real tarball,
   which is why a broken peer range, `exports` map or `.d.ts` stays green everywhere else. That

@@ -2,6 +2,18 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`moveScrollContainer` and `moveParallaxContainer` did nothing while smooth scroll was active.**
+  Both directives skipped attaching their native scroll listener whenever `SmoothScrollService` was
+  running, but that service only drives the root/page scroll — a custom container keeps scrolling
+  natively, so it was left with no scroll source at all and the animation froze. `moveParallax` also
+  preferred the service's page offset over the container's own `scrollTop`, feeding a page-relative
+  number into a container-relative calculation. Any app calling `SmoothScrollService.init()` — the
+  documentation site included — had a completely inert `moveScrollContainer`, an input added in
+  0.6.0 precisely for this case. Both now defer to the service only when they actually track the
+  page.
+
 ### Added
 
 - **Angular 22 support.** The peer range widens from `^21.2.0` to `^21.2.0 || ^22.0.0`. Angular 22
