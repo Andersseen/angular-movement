@@ -1,28 +1,5 @@
 import { expect, test, type Locator } from '@playwright/test';
-
-const demoRoutes = [
-  'animate',
-  'animation',
-  'drag',
-  'enter',
-  'focus',
-  'hover',
-  'icons',
-  'in-view',
-  'layout',
-  'leave',
-  'loop',
-  'parallax',
-  'presence',
-  'scroll',
-  'smooth-scroll',
-  'stagger',
-  'tap',
-  'target',
-  'text',
-  'values',
-  'variants',
-] as const;
+import { DEMO_ROUTES } from './routes';
 
 /**
  * The engine writes motion into the atomic CSS properties (`translate` / `scale` / `rotate`) and
@@ -36,8 +13,29 @@ async function motionState(locator: Locator): Promise<string> {
   });
 }
 
+/**
+ * Samples until the motion state stops changing, then returns it.
+ *
+ * Scroll-linked motion lerps toward its target. Sampling a baseline mid-lerp makes a later
+ * "it changed" assertion pass on its own — which is exactly how this suite once reported a green
+ * scroll test while `moveScroll` was ignoring container scrolls entirely.
+ */
+async function settledMotionState(locator: Locator, timeout = 3000): Promise<string> {
+  const deadline = Date.now() + timeout;
+  let previous = await motionState(locator);
+
+  while (Date.now() < deadline) {
+    await locator.page().waitForTimeout(120);
+    const current = await motionState(locator);
+    if (current === previous) return current;
+    previous = current;
+  }
+
+  return previous;
+}
+
 test.describe('demo pages', () => {
-  for (const route of demoRoutes) {
+  for (const route of DEMO_ROUTES) {
     test(`renders /demos/${route}`, async ({ page }) => {
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));
@@ -275,12 +273,17 @@ test.describe('demo pages', () => {
     await expect(foreground).toBeVisible();
     await expect.poll(async () => foreground.evaluate((el) => el.getAnimations().length)).toBe(1);
 
-    const before = await motionState(foreground);
+    // Let the initial sync settle first, so the change asserted below can only come from the
+    // scroll we perform.
+    const before = await settledMotionState(foreground);
 
-    await container.evaluate((el) => {
+    const moved = await container.evaluate((el) => {
+      const start = el.scrollTop;
       el.scrollTop = el.scrollHeight;
       el.dispatchEvent(new Event('scroll'));
+      return el.scrollTop !== start;
     });
+    expect(moved).toBe(true);
 
     // moveScroll lerps toward the target, so poll rather than asserting on the next frame.
     await expect.poll(async () => motionState(foreground), { timeout: 3000 }).not.toBe(before);
@@ -292,17 +295,25 @@ test.describe('demo pages', () => {
     await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
     await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
 
-    const active = await page.getByTestId('smooth-scroll-active').textContent();
+    const active = (await page.getByTestId('smooth-scroll-active').textContent())?.trim() === 'yes';
+
+    // `scrollTo` clamps to the document's scrollable range, which depends on the rendered page
+    // height — asserting a bare 400 made this test fail whenever the page was shorter than that.
+    const expected = await page.evaluate(() => {
+      const doc = document.documentElement;
+      return Math.min(400, Math.max(0, doc.scrollHeight - doc.clientHeight));
+    });
+
     await page.getByTestId('smooth-scroll-instant').click();
 
-    // scrollTo(400, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
+    // scrollTo(_, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
     // Under reduced motion the service never starts, so the readout legitimately stays at 0.
     await expect
       .poll(async () => {
         const text = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
         return Number.parseInt(text.trim(), 10);
       })
-      .toBe(active?.trim() === 'yes' ? 400 : 0);
+      .toBe(active ? expected : 0);
   });
 });
 

@@ -30,13 +30,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -66,6 +66,11 @@ jobs:
 
       - name: Validate package contents
         run: pnpm --dir dist/movement pack --dry-run
+
+      - name: Validate against every supported Angular major
+        # Last gate before an irreversible publish: installs the packed tarball into a real Angular
+        # app per supported major. 0.7.0 shipped uninstallable on Angular 22 for want of this.
+        run: pnpm run validate:consumer
 
       - name: Publish to npm
         run: |

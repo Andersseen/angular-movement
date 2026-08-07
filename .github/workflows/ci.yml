@@ -23,13 +23,13 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
@@ -60,3 +60,28 @@ jobs:
 
       - name: Run e2e
         run: pnpm run e2e
+
+  # Compiles the *packed* library inside a real Angular app, once per supported major. The demo site
+  # imports the library through a Vite source alias, so nothing else here exercises the published
+  # package — this is what catches a broken peer range, `exports` map or `.d.ts`.
+  consumer-validation:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Validate against every supported Angular major
+        run: pnpm run validate:consumer

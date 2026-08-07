@@ -53,7 +53,7 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
   constructor() {
     effect(() => {
       this.#smoothScroll?.scrollY();
-      if (this.#smoothScroll?.isActive && this.#isVisible) {
+      if (this.#smoothScroll?.isActive && this.#isVisible && !this.#containerEl) {
         this.#updateProgress();
       }
     });
@@ -84,7 +84,9 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
         this.#isVisible = entry.isIntersecting;
 
         if (entry.isIntersecting) {
-          if (!this.#smoothScroll?.isActive) {
+          // Defer to the smooth-scroll service only when it is actually the scroll source, i.e.
+          // when this directive tracks the page. A custom container scrolls natively either way.
+          if (!this.#smoothScroll?.isActive || this.#containerEl) {
             this.#scrollTarget!.addEventListener('scroll', this.#scrollListener, { passive: true });
           }
           this.#updateProgress();
@@ -113,10 +115,10 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     this.#elHeight = this.#host.nativeElement.offsetHeight;
     this.#totalDistance = this.#windowHeight + this.#elHeight;
 
-    const initialScrollY = this.#smoothScroll?.isActive
-      ? this.#smoothScroll.scrollY()
-      : this.#containerEl
-        ? this.#containerEl.scrollTop
+    const initialScrollY = this.#containerEl
+      ? this.#containerEl.scrollTop
+      : this.#smoothScroll?.isActive
+        ? this.#smoothScroll.scrollY()
         : view.scrollY || view.pageYOffset || 0;
 
     let elTop: number;
@@ -159,10 +161,12 @@ export class MoveParallaxDirective implements OnInit, OnDestroy {
     const view = this.#documentRef.defaultView;
     if (!view || this.#totalDistance === 0) return;
 
-    const scrollY = this.#smoothScroll?.isActive
-      ? this.#smoothScroll.scrollY()
-      : this.#containerEl
-        ? this.#containerEl.scrollTop
+    // A custom container's own scrollTop always wins: SmoothScrollService reports the page offset,
+    // which is meaningless in a container-relative calculation.
+    const scrollY = this.#containerEl
+      ? this.#containerEl.scrollTop
+      : this.#smoothScroll?.isActive
+        ? this.#smoothScroll.scrollY()
         : view.scrollY || view.pageYOffset || 0;
 
     // Efficiently calculate the current visual top without triggering layout thrashing

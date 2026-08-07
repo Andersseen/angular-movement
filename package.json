@@ -23,6 +23,7 @@
     "release": "node scripts/release.mjs",
     "lint": "ng lint",
     "docs:check": "node scripts/check-docs-drift.mjs",
+    "validate:consumer": "node scripts/validate-consumer.mjs",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },
@@ -43,8 +44,7 @@
     "lumen-icons": "^0.1.0",
     "rxjs": "~7.8.0",
     "tailwindcss": "4.2.1",
-    "tslib": "^2.3.0",
-    "zone.js": "^0.16.1"
+    "tslib": "^2.3.0"
   },
   "devDependencies": {
     "@angular-eslint/builder": "21.3.1",

@@ -2,6 +2,44 @@
 
 ## Unreleased
 
+### Fixed
+
+- **`moveScrollContainer` and `moveParallaxContainer` did nothing while smooth scroll was active.**
+  Both directives skipped attaching their native scroll listener whenever `SmoothScrollService` was
+  running, but that service only drives the root/page scroll — a custom container keeps scrolling
+  natively, so it was left with no scroll source at all and the animation froze. `moveParallax` also
+  preferred the service's page offset over the container's own `scrollTop`, feeding a page-relative
+  number into a container-relative calculation. Any app calling `SmoothScrollService.init()` — the
+  documentation site included — had a completely inert `moveScrollContainer`, an input added in
+  0.6.0 precisely for this case. Both now defer to the service only when they actually track the
+  page.
+
+### Added
+
+- **Angular 22 support.** The peer range widens from `^21.2.0` to `^21.2.0 || ^22.0.0`. Angular 22
+  has been stable and npm `latest` for a while, so `npm install angular-movement` in a new project
+  failed outright with an `ERESOLVE` peer conflict — the library was effectively uninstallable for
+  anyone starting today.
+- **Real-app validation** (`pnpm validate:consumer`, ROADMAP 0.7's headline item). Packs the library
+  and compiles the tarball inside a throwaway Angular app per supported major, with a plain
+  `npm install` so peer conflicts surface the way a user sees them. Until now nothing compiled the
+  published package: the demo site imports it through a Vite source alias, so packaging breakage was
+  structurally invisible. This is what found the Angular 22 defect above, on its first run. It runs
+  in CI and as the last gate before publish.
+- `/docs/patterns` — the Angular features people trip over: `@if` destroying a view before a leave
+  animation can play, `@for` + `moveStagger` and why `track` matters, SSR, standalone imports, and
+  reduced motion.
+- `MIGRATION.md` — upgrade notes for 0.5→0.6 and 0.7→0.8, each marked breaking or advisory.
+
+### Changed
+
+- Dropped the unused `zone.js` runtime dependency from the demo app. The app has been zoneless
+  since it adopted `provideZonelessChangeDetection()`, nothing imported zone.js, and it was
+  never in the client bundle — Angular declares it as an _optional_ peer, so it was pure
+  install weight. Library unit tests, build, e2e and the consumer validation all pass without it.
+- GitHub Actions bumped to `checkout@v5` / `setup-node@v5`, clearing the Node 20 deprecation warning.
+- README, package README and the docs site state both supported Angular majors.
+
 ## [0.7.0] - 2026-08-07
 
 ### Fixed

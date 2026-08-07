@@ -7,8 +7,7 @@
 **Library version:** `0.7.0` — published to npm (`latest`) on 2026-08-07 via the `v0.7.0` tag.
 **Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
 **Branch state:** `main` — specs 002 and 003 merged and released as `0.7.0`.
-**Roadmap phase:** 0.7 shipped. Its one open item — validating the library in ≥2 non-demo Angular
-apps — carries into 1.0 (see `ROADMAP.md`).
+**Roadmap phase:** 0.7 is **complete** (see `ROADMAP.md`). Next milestone is 1.0.
 
 ## What is DONE and stable
 
@@ -64,6 +63,19 @@ apps — carries into 1.0 (see `ROADMAP.md`).
     `ssr.spec.ts` — assert at the `Element.animate()` boundary instead of on config plumbing.
   - e2e interaction tests for drag, presence, variants, stagger, in-view, scroll.
   - Gate green: tests, lint, build, e2e (39), pack:check, docs:check, no API-surface diff vs `main`.
+- **Spec 004 — Complete 0.7** (`docs/ai/specs/004-complete-07.md`) — **done**:
+  - `pnpm validate:consumer` compiles the **packed** package inside a real Angular app per supported
+    major. Nothing did this before: the demo site uses a Vite source alias, so packaging breakage was
+    structurally invisible.
+  - It immediately found the library **uninstallable on Angular 22** (peers were `^21.2.0` only).
+    Range widened to `^21.2.0 || ^22.0.0`; both majors verified.
+  - Runs in CI and as the last gate in `release.yml` before publish.
+  - `/docs/patterns` and `MIGRATION.md` close the remaining 0.7 docs items.
+- **Spec 005 — scroll container vs smooth scroll** (`docs/ai/specs/005-scroll-container-smooth-scroll.md`)
+  — **done**. Found while chasing a flaky e2e test that turned out to be reporting a real defect:
+  `moveScrollContainer` / `moveParallaxContainer` were inert whenever `SmoothScrollService` ran.
+  Fixed in both directives, with unit + e2e regressions verified against the unfixed code.
+  e2e is now 5 consecutive clean runs (43 passed, zero flaky).
 - **Audit pass (post-003)** — two real defects found and fixed:
   - `moveScroll` / `moveParallax` ignored `prefers-reduced-motion` (both hardcoded
     `disabled: false`). Now guarded, with unit tests plus browser-level e2e using `emulateMedia`.
@@ -76,12 +88,12 @@ apps — carries into 1.0 (see `ROADMAP.md`).
 
 ## Next up (priority order) — the road to 1.0
 
-1. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. This is the
-   main blocker for freezing the API at 1.0.
-2. Validate the library in ≥2 non-demo Angular apps. Carried over from 0.7 and still untouched;
-   nothing has exercised the library outside this repo.
-3. Decide the Angular peer-range policy for 1.0.
-4. Upgrade notes from the latest `0.x`, and docs for `@if` / `@for` / SSR / standalone patterns.
+1. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. **The only
+   remaining blocker for freezing the API at 1.0.**
+2. Toolchain upgrade: 37 outdated packages. This repo still builds on Angular 21 / TypeScript 5.9
+   while supporting consumers on Angular 22 / TypeScript 6. Needs its own spec.
+3. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
+4. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
@@ -93,6 +105,19 @@ apps — carries into 1.0 (see `ROADMAP.md`).
   `[moveSmoothScroll]` on any container is a silent no-op, and destroying that element tears down the
   global instance. The `/demos/smooth-scroll` page demonstrates the _service_ for this reason. Needs
   a dev-mode warning or a scoped-instance API before `moveSmoothScroll` leaves experimental.
+- **`SmoothScrollService` governs the page scroll only.** Anything that also supports a custom
+  container (`moveScroll`, `moveParallax`) must defer to it _only_ when no container is set —
+  getting this wrong left `moveScrollContainer` completely inert on any site using smooth
+  scroll, this one included (spec 005). The container's own `scrollTop` always wins.
+- **Beware assertions that pass on a settling animation.** The e2e scroll test sampled its
+  baseline mid-lerp and then asserted "it changed" — so it reported green for months while the
+  feature under test was frozen. Settle first, then assert, and confirm the action you performed
+  actually did something.
+- **The demo site does NOT exercise the published package** — `vite.config.ts` aliases
+  `movement` to the library source. Only `pnpm validate:consumer` compiles the real tarball,
+  which is why a broken peer range, `exports` map or `.d.ts` stays green everywhere else. That
+  blind spot is how `0.7.0` shipped uninstallable on Angular 22. A green CI job other than that
+  one is not evidence the package installs.
 - `docs:check` runs in CI: renaming any selector or input now fails the build until
   `src/app/shared/api/directive-reference.ts` is updated in the same commit. That is intentional.
 - **The engine writes atomic `translate` / `scale` / `rotate`, and only switches to a composed

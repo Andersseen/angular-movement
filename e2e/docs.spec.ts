@@ -1,13 +1,8 @@
 import { expect, test } from '@playwright/test';
-
-const docsRoutes = [
-  { path: '/docs/api', heading: 'API Guide', text: 'How it works' },
-  { path: '/docs/reference', heading: 'API Reference', text: 'Choose by job' },
-  { path: '/docs/presets', heading: 'Presets', text: 'Where presets fit' },
-] as const;
+import { DOCS_ROUTES } from './routes';
 
 test.describe('docs pages', () => {
-  for (const route of docsRoutes) {
+  for (const route of DOCS_ROUTES) {
     test(`renders ${route.path}`, async ({ page }) => {
       const errors: string[] = [];
       page.on('pageerror', (error) => errors.push(error.message));

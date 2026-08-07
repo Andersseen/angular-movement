@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -6,6 +6,7 @@ import { MoveParallaxDirective } from './move-parallax.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
 @Component({
   template: `
@@ -227,6 +228,33 @@ describe('MoveParallaxDirective', () => {
       const args = playSpy.mock.calls[0];
       const frames = args[1] as { y: number[] };
       expect(frames.y).toEqual([125, -125]);
+    });
+
+    it('keeps listening to the container when smooth scroll is active', () => {
+      // The demo app calls SmoothScrollService.init() at the root, so this is the common case.
+      // SmoothScrollService only drives the page; skipping the container listener because it is
+      // active leaves the container with no scroll source and freezes the parallax.
+      TestBed.resetTestingModule();
+      TestBed.configureTestingModule({
+        imports: [TestContainerHostComponent],
+        providers: [
+          provideMovement(),
+          { provide: SmoothScrollService, useValue: { scrollY: signal(0), isActive: true } },
+        ],
+      });
+      vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue({
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        currentTime: 0,
+      } as unknown as AnimationControls);
+
+      const addSpy = vi.spyOn(mockContainer, 'addEventListener');
+      const activeFixture = TestBed.createComponent(TestContainerHostComponent);
+      activeFixture.detectChanges();
+      observerInstance.trigger(true);
+
+      expect(addSpy).toHaveBeenCalledWith('scroll', expect.any(Function), { passive: true });
     });
 
     it('updates progress based on container scroll', () => {
