@@ -7,6 +7,7 @@ import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/pres
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyComposedStyle,
+  ComposedKeyframe,
   composeElementKeyframes,
   composeFinalStyle,
 } from './keyframe-composer';
@@ -98,22 +99,22 @@ export class AnimationEngine {
     }
   }
 
+  /**
+   * Commits the end state without animating — the reduced-motion and `disabled` path.
+   *
+   * When the host already carries an inline transform the frames have to be composed on top of it,
+   * so the final style comes from `composeElementKeyframes` rather than `composeFinalStyle`. Both
+   * results are applied through the same helper: hand-rolling the second one with
+   * `style.setProperty()` silently dropped camelCase properties like `strokeDashoffset`, which is
+   * exactly what an SVG path-draw preset resolves to.
+   */
   #applyFinalStyles(host: Element, frames: MoveKeyframes): void {
     const inlineTransform = (host as HTMLElement).style.transform;
+
     if (inlineTransform && inlineTransform !== 'none') {
       const composed = composeElementKeyframes(host, frames);
       if (composed.length > 0) {
-        const final = composed[composed.length - 1];
-        const record = final as Record<string, unknown>;
-        for (const key in record) {
-          const val = record[key];
-          if (val === undefined) continue;
-          if (key === 'transform' || key === 'opacity' || key === 'filter') {
-            (host as HTMLElement).style.setProperty(key, String(val));
-          } else {
-            (host as HTMLElement).style.setProperty(key, String(val));
-          }
-        }
+        applyComposedStyle(host, composed[composed.length - 1] as ComposedKeyframe);
         return;
       }
     }

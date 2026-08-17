@@ -385,6 +385,20 @@ describe('AnimationEngine', () => {
       expect(host.style.translate).toBe('');
     });
 
+    it('commits camelCase properties on a host that already has a transform', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      host.style.transform = 'translate(100px, 0px)';
+
+      engine.play(host, { x: [0, 40], strokeDashoffset: [24, 0] }, { disabled: true });
+
+      // `style.setProperty('strokeDashoffset', …)` is a silent no-op — only the camelCase
+      // assignment lands. Reduced motion must still reach the SVG end state.
+      expect(host.style.strokeDashoffset).toBe('0');
+      expect(host.style.transform).toContain('140px');
+    });
+
     it('still reports done through onDone when disabled', () => {
       TestBed.configureTestingModule({ providers: [provideMovement()] });
       const engine = TestBed.inject(AnimationEngine);

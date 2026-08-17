@@ -404,3 +404,94 @@ describe('MoveAnimationDirective', () => {
     expect(host.style.opacity).toBe('');
   });
 });
+
+@Component({
+  selector: 'move-animation-reactive-host',
+  template: `
+    <div [moveAnimation]="{ initial: { opacity: 0 }, animate: { opacity: target() } }">
+      Reactive
+    </div>
+  `,
+  imports: [MoveAnimationDirective],
+})
+class ReactiveHostComponent {
+  readonly target = signal(1);
+}
+
+@Component({
+  selector: 'move-animation-literal-host',
+  template: `
+    <div [moveAnimation]="{ initial: { opacity: 0 }, animate: { opacity: 1 } }">
+      {{ tick() }}
+    </div>
+  `,
+  imports: [MoveAnimationDirective],
+})
+class LiteralHostComponent {
+  readonly tick = signal(0);
+}
+
+describe('MoveAnimationDirective reactivity', () => {
+  let playSpy: ReturnType<typeof vi.spyOn>;
+
+  function stub(): AnimationControls {
+    return {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('animates from the previous animate state when it changes', async () => {
+    TestBed.configureTestingModule({
+      imports: [ReactiveHostComponent],
+      providers: [provideMovement()],
+    });
+    playSpy = vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue(stub());
+
+    const fixture = TestBed.createComponent(ReactiveHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    expect(playSpy.mock.calls[0][1]).toEqual({ opacity: [0, 1] });
+
+    fixture.componentInstance.target.set(0.25);
+    fixture.detectChanges();
+    await fixture.whenStable();
+
+    expect(playSpy).toHaveBeenCalledTimes(2);
+    // From the state it was last animated to, not from `initial` again.
+    expect(playSpy.mock.calls[1][1]).toEqual({ opacity: [1, 0.25] });
+  });
+
+  it('does not replay when an unrelated render recreates an equal object literal', async () => {
+    TestBed.configureTestingModule({
+      imports: [LiteralHostComponent],
+      providers: [provideMovement()],
+    });
+    playSpy = vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue(stub());
+
+    const fixture = TestBed.createComponent(LiteralHostComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    // The binding is an inline literal, so this hands the input a brand new object with the same
+    // values. Comparing by reference would replay the animation on every change detection pass.
+    for (let i = 0; i < 3; i += 1) {
+      fixture.componentInstance.tick.update((value) => value + 1);
+      fixture.detectChanges();
+      await fixture.whenStable();
+    }
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+});
