@@ -86,6 +86,7 @@ export * from './directives/move-trigger.directive';
 export * from './scroll/smooth-scroll.service';
 export * from './scroll/move-smooth-scroll.directive';
 export * from './engines/animation-controls';
+export * from './engines/move-animator.service';
 export * from './presets/presets';
 export * from './presets/presets.types';
 export * from './presets/icon-helpers';
