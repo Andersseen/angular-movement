@@ -100,12 +100,23 @@ export type MoveVariantState = {
   MoveStateValue | MoveSpring | MovePropertyTransition | MoveTransitionConfig | undefined
 >;
 
+/**
+ * `'beforeChildren'` plays the parent first and offsets its children by the parent's duration.
+ * `'afterChildren'` runs the children first and delays the parent until their stagger span is done.
+ */
+export type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
+
 export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
   duration?: number;
   easing?: string;
   delay?: number;
   transition?: MoveTransitionConfig;
+  /** Delay added per nested `[moveVariants]` child, in DOM order. */
+  staggerChildren?: number;
+  /** Delay applied to every nested `[moveVariants]` child before staggering. */
+  delayChildren?: number;
+  when?: MoveVariantOrchestration;
 };
 
 export interface MovePresetDefinition {
