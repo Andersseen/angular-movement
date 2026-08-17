@@ -1,4 +1,5 @@
 import { MoveKeyframes } from '../presets/presets.types';
+import { movementWarn } from '../dev-warn';
 import { DEFAULT_PERSPECTIVE } from '../constants';
 import { formatTransform, readTransformState, TransformState } from './transform-state';
 
@@ -365,4 +366,41 @@ export function clearComposedStyle(el: Element, extraKeys?: readonly string[]): 
       (styledEl.style as unknown as Record<string, string>)[key] = '';
     }
   }
+}
+
+/**
+ * Stamps explicit offsets onto composed keyframes.
+ *
+ * Without this, WAAPI spaces keyframes evenly, so `{ x: [0, 100, 0] }` sweeps out and back at a
+ * constant rate and can never dwell. Returns `null` — and warns — when the offsets do not describe
+ * a usable timeline, so the caller can fall back to even spacing instead of throwing.
+ */
+export function applyKeyframeTimes(
+  keyframes: Keyframe[],
+  times: readonly number[],
+): Keyframe[] | null {
+  if (keyframes.length === 0) return null;
+
+  if (times.length !== keyframes.length) {
+    movementWarn(
+      `transition.times must have one entry per keyframe (got ${times.length} for ` +
+        `${keyframes.length} keyframes). Falling back to even spacing.`,
+    );
+    return null;
+  }
+
+  for (let i = 0; i < times.length; i += 1) {
+    if (times[i] < 0 || times[i] > 1) {
+      movementWarn(
+        'transition.times values must be between 0 and 1. Falling back to even spacing.',
+      );
+      return null;
+    }
+    if (i > 0 && times[i] < times[i - 1]) {
+      movementWarn('transition.times values must be ascending. Falling back to even spacing.');
+      return null;
+    }
+  }
+
+  return keyframes.map((keyframe, index) => ({ ...keyframe, offset: times[index] }));
 }

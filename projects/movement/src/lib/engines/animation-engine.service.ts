@@ -13,6 +13,7 @@ import {
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyComposedStyle,
+  applyKeyframeTimes,
   ComposedKeyframe,
   composeElementKeyframes,
   composeFinalStyle,
@@ -74,6 +75,28 @@ export class AnimationEngine {
             duration: resolved.duration,
             easing: resolved.easing,
             delay: resolved.delay,
+            disabled: false,
+            iterations,
+          },
+          options.onDone,
+          repeat,
+        );
+      }
+    }
+
+    // Explicit keyframe offsets. Applied only when per-property timings did not already rewrite
+    // the timeline above, so the two cannot fight over the same offsets.
+    const times = options.transition?.times;
+    if (times && !isSpring) {
+      const timed = applyKeyframeTimes(composeElementKeyframes(host, frames), times);
+      if (timed) {
+        return new WaapiPlayer(
+          host,
+          timed,
+          {
+            duration: config.duration,
+            easing: config.easing,
+            delay: options.delay ?? config.delay,
             disabled: false,
             iterations,
           },

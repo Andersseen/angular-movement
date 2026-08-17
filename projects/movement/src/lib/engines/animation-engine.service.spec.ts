@@ -458,3 +458,54 @@ describe('AnimationEngine', () => {
     });
   });
 });
+
+describe('AnimationEngine transition.times', () => {
+  function hostWithAnimateSpy(): { host: HTMLElement; animate: ReturnType<typeof vi.fn> } {
+    const host = document.createElement('div');
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      pause: vi.fn(),
+      play: vi.fn(),
+      commitStyles: vi.fn(),
+      addEventListener: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+    }));
+    (host as unknown as { animate: unknown }).animate = animate;
+    return { host, animate };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('passes explicit offsets through to WAAPI', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { x: [0, 100, 0] },
+      { transition: { times: [0, 0.8, 1] } },
+    );
+
+    const keyframes = animate.mock.calls[0][0] as Keyframe[];
+    expect(keyframes.map((frame) => frame.offset)).toEqual([0, 0.8, 1]);
+  });
+
+  it('falls back to even spacing when the offsets do not match the keyframes', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { x: [0, 100, 0] },
+      { transition: { times: [0, 1] } },
+    );
+
+    const keyframes = animate.mock.calls[0][0] as Keyframe[];
+    // Unusable offsets must not produce a broken timeline; WAAPI spaces them itself.
+    expect(keyframes.every((frame) => frame.offset === undefined)).toBe(true);
+  });
+});
