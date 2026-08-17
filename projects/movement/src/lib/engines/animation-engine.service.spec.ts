@@ -385,6 +385,20 @@ describe('AnimationEngine', () => {
       expect(host.style.translate).toBe('');
     });
 
+    it('commits camelCase properties on a host that already has a transform', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      host.style.transform = 'translate(100px, 0px)';
+
+      engine.play(host, { x: [0, 40], strokeDashoffset: [24, 0] }, { disabled: true });
+
+      // `style.setProperty('strokeDashoffset', …)` is a silent no-op — only the camelCase
+      // assignment lands. Reduced motion must still reach the SVG end state.
+      expect(host.style.strokeDashoffset).toBe('0');
+      expect(host.style.transform).toContain('140px');
+    });
+
     it('still reports done through onDone when disabled', () => {
       TestBed.configureTestingModule({ providers: [provideMovement()] });
       const engine = TestBed.inject(AnimationEngine);
@@ -442,5 +456,128 @@ describe('AnimationEngine', () => {
       // Without this seed the path flashes fully drawn on the first frame.
       expect(path.style.strokeDasharray).toBe('50 200');
     });
+  });
+});
+
+describe('AnimationEngine transition.times', () => {
+  function hostWithAnimateSpy(): { host: HTMLElement; animate: ReturnType<typeof vi.fn> } {
+    const host = document.createElement('div');
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      pause: vi.fn(),
+      play: vi.fn(),
+      commitStyles: vi.fn(),
+      addEventListener: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+    }));
+    (host as unknown as { animate: unknown }).animate = animate;
+    return { host, animate };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('passes explicit offsets through to WAAPI', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { x: [0, 100, 0] },
+      { transition: { times: [0, 0.8, 1] } },
+    );
+
+    const keyframes = animate.mock.calls[0][0] as Keyframe[];
+    expect(keyframes.map((frame) => frame.offset)).toEqual([0, 0.8, 1]);
+  });
+
+  it('falls back to even spacing when the offsets do not match the keyframes', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { x: [0, 100, 0] },
+      { transition: { times: [0, 1] } },
+    );
+
+    const keyframes = animate.mock.calls[0][0] as Keyframe[];
+    // Unusable offsets must not produce a broken timeline; WAAPI spaces them itself.
+    expect(keyframes.every((frame) => frame.offset === undefined)).toBe(true);
+  });
+});
+
+describe('AnimationEngine per-property easing', () => {
+  function hostWithAnimateSpy(): { host: HTMLElement; animate: ReturnType<typeof vi.fn> } {
+    const host = document.createElement('div');
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      pause: vi.fn(),
+      play: vi.fn(),
+      commitStyles: vi.fn(),
+      addEventListener: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+    }));
+    (host as unknown as { animate: unknown }).animate = animate;
+    return { host, animate };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('runs properties with different easings as separate animations', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    const controls = TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { opacity: { easing: 'linear' }, x: { easing: 'ease-out' } } },
+    );
+
+    expect(controls).toBeTruthy();
+    // One WAAPI animation cannot carry two easings, so this must be two.
+    expect(animate).toHaveBeenCalledTimes(2);
+
+    const easings = animate.mock.calls.map((call) => (call[1] as KeyframeAnimationOptions).easing);
+    expect(easings.sort()).toEqual(['ease-out', 'linear']);
+  });
+
+  it('never lets a non-transform group write transform', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+    // A pre-existing transform is what makes the composer want to emit one everywhere.
+    host.style.transform = 'translate(10px, 0px)';
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { opacity: { easing: 'linear' }, x: { easing: 'ease-out' } } },
+    );
+
+    const writesTransform = animate.mock.calls.filter((call) =>
+      (call[0] as Keyframe[]).some((frame) => 'transform' in frame),
+    );
+    // Two animations writing `transform` would clobber each other.
+    expect(writesTransform).toHaveLength(1);
+  });
+
+  it('keeps a single animation when all easings agree', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { easing: 'linear' } },
+    );
+
+    expect(animate).toHaveBeenCalledTimes(1);
   });
 });

@@ -3,15 +3,16 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-08-07
-**Library version:** `0.7.0` — published to npm (`latest`) on 2026-08-07 via the `v0.7.0` tag.
-**Angular peer range:** `^21.2.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` — specs 002 and 003 merged and released as `0.7.0`.
-**Roadmap phase:** 0.7 is **complete** (see `ROADMAP.md`). Next milestone is 1.0.
+**Last updated:** 2026-08-17
+**Library version:** `0.7.0` published; **spec 006 (0.8) implemented, unreleased**.
+**Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
+**Branch state:** `feat/08-presence-lists-and-api-freeze` — specs 006 **and 007** complete, not merged.
+PR pending (the user opens it).
+**Roadmap phase:** 0.7 is **complete** (see `ROADMAP.md`). 0.8 = specs 006 + 007. Next milestone is 1.0.
 
 ## What is DONE and stable
 
-- 20 directives exported via `MOVEMENT_DIRECTIVES` (see `docs/ai/ARCHITECTURE.md` for the full table).
+- 21 directives exported via `MOVEMENT_DIRECTIVES` (see `docs/ai/ARCHITECTURE.md` for the full table).
 - Two animation engines: `WaapiPlayer` (WAAPI wrapper) and `SpringPlayer` (pre-computed spring keyframes).
 - 29 named presets (`MovePreset` type in `presets/presets.types.ts`), including icon/SVG presets.
 - Signals-native motion helpers: `moveValue`, `moveTransform`, `moveSpringValue` (added in 0.5.0).
@@ -28,6 +29,20 @@
 - `movePresence` race condition fixed: removal token prevents a stale leave promise from clearing a
   view that was already recreated.
 - `moveText` is now reactive to input changes via `effect()`.
+- **`*movePresenceFor`** (spec 006): keyed-list presence. Renders the list itself so a removed item
+  stays mounted until its leave resolves; per-item `MOVE_PRESENCE_PARENT` scope via a per-view
+  `Injector`; `mode: 'sync' | 'wait'`.
+- **`MoveAnimator`** (spec 006): the only exported imperative entry point. `AnimationEngine` stays
+  internal, pinned by a test in `movement.spec.ts`.
+- **Shared layout** (spec 006): `moveLayoutId` works — `SharedLayoutRegistry` (internal) hands a
+  mounting element the rect of the element it replaces.
+- **`[moveAnimation]` is reactive** on its `animate` state (spec 006), compared by value.
+- **Repeat controls** (spec 007): `repeatType: 'reverse'` alternates, `repeatDelay` pauses between
+  cycles, plus cycle counts. On `moveLoop` and on `MoveTransitionConfig`.
+- **`moveWhileDrag`** (spec 007): the gesture state drag was missing.
+- **`mode: 'popLayout'`** (spec 007) on `*movePresenceFor`.
+- **Variant orchestration** (spec 007): `staggerChildren` / `delayChildren` / `when`.
+- **`transition.times`** and **real per-property easing** (spec 007) via `CompositeAnimationControls`.
 - Demo bundle optimization: every demo page and the demo container import only the specific
   directives they use, improving route-level tree-shaking.
 - Public docs aligned with real API: variants use `moveVariant`/`moveActiveVariant`, focus uses
@@ -88,19 +103,40 @@
 
 ## Next up (priority order) — the road to 1.0
 
-1. Dynamic input behavior for the 9 init-only directives — needs spec + user sign-off. **The only
-   remaining blocker for freezing the API at 1.0.**
-2. Toolchain upgrade: 37 outdated packages. This repo still builds on Angular 21 / TypeScript 5.9
+1. ~~Dynamic input behavior for the init-only directives~~ — **resolved by spec 006.** The contract
+   is now two deliberate groups (reactive vs one-shot-by-design), the docs match the code, and
+   `[moveAnimation]` became reactive. The API is ready to freeze at 1.0.
+2. **Three pre-existing e2e tests flake under parallel load** and are unrelated to spec 006:
+   `animation demo plays enter and exit through movePresence`, `drag demo moves the card…`, and
+   `smooth scroll demo exposes the live service readout`. They pass on retry, so the suite reports
+   green, which is how they went unnoticed. Each asserts a transient mid-animation state from
+   outside the page — the same class of bug spec 006's own e2e hit and fixed by observing inside a
+   single `page.evaluate`. Worth its own spec before 1.0.
+3. Toolchain upgrade: 37 outdated packages. This repo still builds on Angular 21 / TypeScript 5.9
    while supporting consumers on Angular 22 / TypeScript 6. Needs its own spec.
-3. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
-4. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
+4. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
+5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
 - `moveLeave` on its own cannot animate elements removed by `@if` — removal happens before the
   directive can run. Correct usage pairs it with `*movePresence`. Demo pages already reflect this.
-- Some directives still read certain inputs once at init; making them fully reactive is a roadmap
-  item, not a bug to hotfix.
+- Several directives are **one-shot by design** (`[move]` / `moveAnimate`, `moveEnter`, `moveLeave`,
+  `moveInView`, `moveSmoothScroll`): they describe a single entrance or exit, so they ignore later
+  input changes. This is the frozen 1.0 contract, not a gap — see the reactivity table in
+  `ARCHITECTURE.md`. `moveLoop`, `moveText` and `[moveAnimation]` **are** reactive.
+- **`[moveAnimation]` compares its `animate` state by value, deliberately.** Templates bind an object
+  literal, which is a new reference every change detection pass; a reference comparison would replay
+  the animation forever. Do not "simplify" it to an identity check.
+- **`SharedLayoutRegistry` has no release-on-destroy, deliberately.** A `moveLayoutId` handover
+  destroys the outgoing element and creates the incoming one in the same pass with no guaranteed
+  order, so dropping the entry alongside its element loses the rect in exactly the case the feature
+  exists for. Entries age out via `SHARED_LAYOUT_MAX_AGE_MS` instead.
+- **`*movePresenceFor` revives returning keys _before_ its placement loop, not inside it.** Reviving
+  inline made the loop skip the very entry it was about to place, and the resulting view-container
+  index could run past the end. Its leave resolution also has to `markForCheck()`: it runs from a
+  settled promise, outside change detection, so a zoneless app would never check the views it
+  creates or removes there.
 - **`SmoothScrollService` is a root singleton and the demo app calls `init()` in `App`.** Therefore
   `[moveSmoothScroll]` on any container is a silent no-op, and destroying that element tears down the
   global instance. The `/demos/smooth-scroll` page demonstrates the _service_ for this reason. Needs

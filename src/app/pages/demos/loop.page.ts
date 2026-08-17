@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveLoopDirective, MoveKeyframes } from 'movement';
+import { MoveLoopDirective, MoveKeyframes, MoveRepeatType } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
@@ -47,13 +47,32 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
               </div>
             }
             @case ('pulse') {
+              <div class="mb-3 flex gap-2">
+                <button
+                  data-testid="loop-repeat-type"
+                  (click)="toggleRepeatType()"
+                  class="bg-surface text-text-muted rounded-lg px-3 py-1.5 text-xs font-medium"
+                >
+                  repeatType: {{ repeatType() }}
+                </button>
+                <button
+                  data-testid="loop-repeat-delay"
+                  (click)="toggleRepeatDelay()"
+                  class="bg-surface text-text-muted rounded-lg px-3 py-1.5 text-xs font-medium"
+                >
+                  repeatDelay: {{ repeatDelay() }}ms
+                </button>
+              </div>
               <div
                 class="bg-surface border-accent/40 relative flex h-36 w-36 items-center justify-center rounded-2xl border shadow-[0_0_30px_var(--color-accent-glow)]"
               >
                 <div
+                  data-testid="loop-pulse"
                   [moveLoop]="'pulse'"
                   [moveDuration]="duration()"
                   [moveEasing]="easing()"
+                  [moveLoopType]="repeatType()"
+                  [moveLoopDelay]="repeatDelay()"
                   class="bg-accent/10 absolute inset-8 rounded-full"
                 ></div>
                 <svg
@@ -123,6 +142,8 @@ export default class DemoLoop {
   };
 
   protected loopType = signal<'spin' | 'pulse' | 'draw'>('spin');
+  protected repeatType = signal<MoveRepeatType>('loop');
+  protected repeatDelay = signal(0);
   protected duration = signal(1000);
   protected easing = signal('linear');
   protected showDemo = signal(true);
@@ -164,6 +185,14 @@ export default class DemoLoop {
     this.loopType.set((state['loopType'] as 'spin' | 'pulse' | 'draw') ?? 'spin');
     this.duration.set(state.duration);
     this.easing.set(state.easing);
+  }
+
+  protected toggleRepeatType(): void {
+    this.repeatType.update((type) => (type === 'loop' ? 'reverse' : 'loop'));
+  }
+
+  protected toggleRepeatDelay(): void {
+    this.repeatDelay.update((delay) => (delay === 0 ? 400 : 0));
   }
 
   protected replay(): void {

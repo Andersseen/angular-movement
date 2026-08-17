@@ -248,6 +248,116 @@ test.describe('demo pages', () => {
       .toBe(true);
   });
 
+  test('presence-list demo animates a removed row out before dropping it', async ({ page }) => {
+    await page.goto('/demos/presence-list');
+
+    const row = page.getByTestId('presence-list-item-1');
+    await expect(row).toBeVisible();
+
+    // Let the entrance settle, so what follows can only be the leave.
+    await settledMotionState(row);
+
+    // The leave lasts ~300ms. Sampling it across the Playwright boundary cannot reliably land
+    // inside that window, so the whole observation happens in one in-page evaluate. It samples
+    // until the row actually detaches rather than for a fixed number of frames — a fixed window
+    // is a bet on how fast the machine is, and this suite runs four workers in parallel.
+    const observed = await page.evaluate(async () => {
+      const list = document.querySelector('[data-testid="presence-list"]')!;
+      const target = list.querySelector('[data-testid="presence-list-item-1"]')!;
+      const readings: number[] = [];
+
+      (
+        list.ownerDocument.querySelector('[data-testid="presence-list-remove-1"]') as HTMLElement
+      ).click();
+
+      const deadline = Date.now() + 5000;
+      while (target.isConnected && Date.now() < deadline) {
+        readings.push(Number(getComputedStyle(target).opacity));
+        await new Promise((resolve) => setTimeout(resolve, 40));
+      }
+
+      return { readings, detached: !target.isConnected };
+    });
+
+    // It stayed in the DOM and faded, rather than vanishing the instant the array changed —
+    // which is all `@for` can do, and the reason this directive exists.
+    expect(observed.readings.length).toBeGreaterThan(1);
+    expect(observed.readings[observed.readings.length - 1]).toBeLessThan(observed.readings[0]);
+
+    // ...and it is gone once the leave resolves.
+    expect(observed.detached).toBe(true);
+    await expect(row).toHaveCount(0);
+    await expect(page.getByTestId('presence-list-item-2')).toBeVisible();
+  });
+
+  test('presence-list demo reuses row nodes when the list reorders', async ({ page }) => {
+    await page.goto('/demos/presence-list');
+
+    const row = page.getByTestId('presence-list-item-2');
+    await expect(row).toBeVisible();
+
+    // Tag the node so a recreated view is distinguishable from a moved one.
+    await row.evaluate((el) => el.setAttribute('data-e2e-tag', 'original'));
+
+    await page.getByTestId('presence-list-shuffle').click();
+    await expect(page.getByTestId('presence-list-item-3')).toBeVisible();
+
+    await expect(page.getByTestId('presence-list-item-2')).toHaveAttribute(
+      'data-e2e-tag',
+      'original',
+    );
+  });
+
+  test('presence-list demo in wait mode holds a new row until the leave finishes', async ({
+    page,
+  }) => {
+    await page.goto('/demos/presence-list');
+
+    await page.getByTestId('presence-list-mode').click();
+    await expect(page.getByTestId('presence-list-mode')).toContainText('mode: wait');
+
+    // `wait` is a statement about *ordering*, so record the order the rows actually enter and
+    // leave the DOM instead of trying to catch a transient state from outside the page. Polling
+    // for "the new row is not there yet" is a race against a 300ms leave, and it flaked.
+    const order = await page.evaluate(async () => {
+      const list = document.querySelector('[data-testid="presence-list"]')!;
+      const events: string[] = [];
+
+      const observer = new MutationObserver((records) => {
+        for (const record of records) {
+          for (const node of Array.from(record.removedNodes)) {
+            if (node.nodeType === Node.ELEMENT_NODE) events.push('removed');
+          }
+          for (const node of Array.from(record.addedNodes)) {
+            if (node.nodeType === Node.ELEMENT_NODE) events.push('added');
+          }
+        }
+      });
+      observer.observe(list, { childList: true });
+
+      const doc = list.ownerDocument;
+      (doc.querySelector('[data-testid="presence-list-remove-1"]') as HTMLElement).click();
+      (doc.querySelector('[data-testid="presence-list-add"]') as HTMLElement).click();
+
+      const deadline = Date.now() + 5000;
+      while (!(events.includes('removed') && events.includes('added')) && Date.now() < deadline) {
+        await new Promise((resolve) => setTimeout(resolve, 30));
+      }
+      observer.disconnect();
+
+      return events;
+    });
+
+    // In `sync` the added row would appear first, while the old one was still leaving. Compared by
+    // index rather than exact array equality: `ViewContainerRef.move()` also detaches and
+    // re-inserts nodes, so a reorder can legitimately add entries here.
+    expect(order).toContain('removed');
+    expect(order).toContain('added');
+    expect(order.indexOf('added')).toBeGreaterThan(order.indexOf('removed'));
+    await expect(page.getByTestId('presence-list-item-1')).toHaveCount(0);
+    await expect(page.getByTestId('presence-list-item-4')).toBeVisible();
+  });
+
   test('in-view demo animates the target once it is scrolled into view', async ({ page }) => {
     await page.goto('/demos/in-view');
 

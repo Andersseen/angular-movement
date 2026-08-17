@@ -41,6 +41,21 @@ export interface MoveSpring {
   velocity?: number;
 }
 
+/**
+ * `'loop'` restarts from the first keyframe each cycle. `'reverse'` alternates direction, so the
+ * animation plays back to its start instead of snapping there — what a breathing or yoyo effect
+ * needs.
+ */
+export type MoveRepeatType = 'loop' | 'reverse';
+
+export interface MoveRepeatOptions {
+  /** Number of cycles, or `Infinity` for an endless one. */
+  repeat?: number;
+  repeatType?: MoveRepeatType;
+  /** Pause between cycles, in milliseconds. */
+  repeatDelay?: number;
+}
+
 export interface MovePropertyTransition {
   duration?: number;
   easing?: string;
@@ -48,7 +63,13 @@ export interface MovePropertyTransition {
 }
 
 export type MoveTransitionConfig = MovePropertyTransition &
-  Record<string, MovePropertyTransition | MoveValue | undefined>;
+  MoveRepeatOptions & {
+    /**
+     * Explicit keyframe offsets in the `0..1` range, one per keyframe value. Without it, values are
+     * spaced evenly, so `{ x: [0, 100, 0] }` cannot dwell at its midpoint.
+     */
+    times?: readonly number[];
+  } & Record<string, MovePropertyTransition | MoveValue | readonly number[] | undefined>;
 
 export interface MoveKeyframeProperties {
   opacity?: MoveValuePair;
@@ -79,12 +100,23 @@ export type MoveVariantState = {
   MoveStateValue | MoveSpring | MovePropertyTransition | MoveTransitionConfig | undefined
 >;
 
+/**
+ * `'beforeChildren'` plays the parent first and offsets its children by the parent's duration.
+ * `'afterChildren'` runs the children first and delays the parent until their stagger span is done.
+ */
+export type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
+
 export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
   duration?: number;
   easing?: string;
   delay?: number;
   transition?: MoveTransitionConfig;
+  /** Delay added per nested `[moveVariants]` child, in DOM order. */
+  staggerChildren?: number;
+  /** Delay applied to every nested `[moveVariants]` child before staggering. */
+  delayChildren?: number;
+  when?: MoveVariantOrchestration;
 };
 
 export interface MovePresetDefinition {

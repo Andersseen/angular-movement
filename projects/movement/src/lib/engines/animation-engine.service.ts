@@ -3,15 +3,26 @@ import { isPlatformBrowser } from '@angular/common';
 import { AnimationControls } from './animation-controls';
 import { WaapiPlayer } from './waapi-player';
 import { SpringPlayer } from './spring-player';
-import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/presets.types';
+import {
+  MoveKeyframes,
+  MoveRepeatOptions,
+  MoveRepeatType,
+  MoveSpring,
+  MoveTransitionConfig,
+} from '../presets/presets.types';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyComposedStyle,
+  applyKeyframeTimes,
+  ComposedKeyframe,
   composeElementKeyframes,
   composeFinalStyle,
 } from './keyframe-composer';
 import { validateSpring } from '../directives/move-animation.utils';
 import { composeTransitionKeyframes } from './transition-composer';
+import { groupByEasing } from './easing-groups';
+import { CompositeAnimationControls } from './composite-controls';
+import { composeKeyframeAt } from './keyframe-composer';
 
 export interface PlayAnimationOptions {
   config?: MovementConfig;
@@ -21,6 +32,7 @@ export interface PlayAnimationOptions {
   iterations?: number;
   onDone?: () => void;
   transition?: MoveTransitionConfig;
+  repeat?: MoveRepeatOptions;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -52,7 +64,38 @@ export class AnimationEngine {
     const config = options.config ?? this.#defaults;
     const spring = validateSpring(options.spring);
     const isSpring = spring || config.easing === 'spring';
-    const iterations = options.iterations ?? config.iterations;
+    const repeat = resolveRepeat(options);
+    const iterations = repeat?.repeat ?? options.iterations ?? config.iterations;
+
+    // Properties with different easings cannot share one WAAPI animation — a keyframe's easing
+    // applies to every property in that segment — so they run as separate, jointly-controlled ones.
+    if (options.transition && !isSpring) {
+      const groups = groupByEasing(frames, options.transition, config);
+      if (groups) {
+        return new CompositeAnimationControls(
+          groups.map((group, index) => {
+            const keyframes = group.isTransform
+              ? composeElementKeyframes(host, group.frames)
+              : composeStandaloneKeyframes(group.frames);
+
+            return new WaapiPlayer(
+              host,
+              keyframes,
+              {
+                duration: group.duration,
+                easing: group.easing,
+                delay: group.delay,
+                disabled: false,
+                iterations,
+              },
+              // Only one member reports completion, or onDone would fire once per group.
+              index === 0 ? options.onDone : undefined,
+              repeat,
+            );
+          }),
+        );
+      }
+    }
 
     // Per-property transitions only supported with WaapiPlayer (not spring)
     if (options.transition && !isSpring) {
@@ -69,6 +112,29 @@ export class AnimationEngine {
             iterations,
           },
           options.onDone,
+          repeat,
+        );
+      }
+    }
+
+    // Explicit keyframe offsets. Applied only when per-property timings did not already rewrite
+    // the timeline above, so the two cannot fight over the same offsets.
+    const times = options.transition?.times;
+    if (times && !isSpring) {
+      const timed = applyKeyframeTimes(composeElementKeyframes(host, frames), times);
+      if (timed) {
+        return new WaapiPlayer(
+          host,
+          timed,
+          {
+            duration: config.duration,
+            easing: config.easing,
+            delay: options.delay ?? config.delay,
+            disabled: false,
+            iterations,
+          },
+          options.onDone,
+          repeat,
         );
       }
     }
@@ -94,26 +160,27 @@ export class AnimationEngine {
           iterations,
         },
         options.onDone,
+        repeat,
       );
     }
   }
 
+  /**
+   * Commits the end state without animating — the reduced-motion and `disabled` path.
+   *
+   * When the host already carries an inline transform the frames have to be composed on top of it,
+   * so the final style comes from `composeElementKeyframes` rather than `composeFinalStyle`. Both
+   * results are applied through the same helper: hand-rolling the second one with
+   * `style.setProperty()` silently dropped camelCase properties like `strokeDashoffset`, which is
+   * exactly what an SVG path-draw preset resolves to.
+   */
   #applyFinalStyles(host: Element, frames: MoveKeyframes): void {
     const inlineTransform = (host as HTMLElement).style.transform;
+
     if (inlineTransform && inlineTransform !== 'none') {
       const composed = composeElementKeyframes(host, frames);
       if (composed.length > 0) {
-        const final = composed[composed.length - 1];
-        const record = final as Record<string, unknown>;
-        for (const key in record) {
-          const val = record[key];
-          if (val === undefined) continue;
-          if (key === 'transform' || key === 'opacity' || key === 'filter') {
-            (host as HTMLElement).style.setProperty(key, String(val));
-          } else {
-            (host as HTMLElement).style.setProperty(key, String(val));
-          }
-        }
+        applyComposedStyle(host, composed[composed.length - 1] as ComposedKeyframe);
         return;
       }
     }
@@ -195,4 +262,47 @@ export class AnimationEngine {
 
     return typeof (host as Partial<SVGGeometryElement>).getTotalLength === 'function';
   }
+}
+
+/**
+ * Builds keyframes for a non-transform group.
+ *
+ * `composeElementKeyframes` would emit the element's base `transform` into every keyframe, and a
+ * second animation writing `transform` would fight the transform group. These properties are
+ * independent, so they are composed without any base.
+ */
+function composeStandaloneKeyframes(frames: MoveKeyframes): Keyframe[] {
+  let length = 0;
+  for (const key in frames) {
+    const values = frames[key];
+    if (Array.isArray(values)) length = Math.max(length, values.length);
+  }
+
+  const keyframes: Keyframe[] = [];
+  for (let i = 0; i < length; i += 1) {
+    keyframes.push(composeKeyframeAt(frames, i) as Keyframe);
+  }
+  return keyframes;
+}
+
+/**
+ * Repeat options can arrive either directly (a directive with dedicated inputs, like `moveLoop`) or
+ * inside a `moveTransition`, which is the Framer-shaped path every variant/target/trigger already
+ * accepts. An explicit `options.repeat` wins per field.
+ */
+function resolveRepeat(options: PlayAnimationOptions): MoveRepeatOptions | undefined {
+  const fromTransition = options.transition;
+  const merged: MoveRepeatOptions = {
+    repeat: options.repeat?.repeat ?? (fromTransition?.repeat as number | undefined),
+    repeatType:
+      options.repeat?.repeatType ?? (fromTransition?.repeatType as MoveRepeatType | undefined),
+    repeatDelay: options.repeat?.repeatDelay ?? (fromTransition?.repeatDelay as number | undefined),
+  };
+
+  const hasAny =
+    merged.repeat !== undefined ||
+    merged.repeatType !== undefined ||
+    merged.repeatDelay !== undefined;
+
+  return hasAny ? merged : undefined;
 }

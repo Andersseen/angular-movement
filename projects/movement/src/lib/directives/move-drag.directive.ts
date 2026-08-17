@@ -1,6 +1,7 @@
 import { Directive, ElementRef, inject, input, OnDestroy, output } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
-import { MoveSpring } from '../presets/presets.types';
+import { MoveKeyframes, MoveSpring } from '../presets/presets.types';
+import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 
 import {
   booleanAttribute,
@@ -26,6 +27,15 @@ export interface MoveDragSnapPoint {
   x: number;
   y: number;
 }
+
+/** The transform channels `whileDrag` may drive. Translate stays owned by the drag itself. */
+interface DragGesture {
+  scaleX: number;
+  scaleY: number;
+  rotate: number;
+}
+
+const NO_GESTURE: DragGesture = { scaleX: 1, scaleY: 1, rotate: 0 };
 
 export interface MoveDragEvent {
   x: number;
@@ -65,6 +75,11 @@ export class MoveDragDirective implements OnDestroy {
   readonly moveDragSnapToOrigin = input<boolean, unknown>(false, { transform: booleanAttribute });
   readonly moveDragSnapPoints = input<readonly MoveDragSnapPoint[] | undefined>(undefined);
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
+  /**
+   * State held while a drag is active, e.g. `{ scale: [1, 1.05] }` — the "lift the card" gesture.
+   * Only transform channels are supported; the drag owns translate.
+   */
+  readonly moveWhileDrag = input<MoveKeyframes | undefined>(undefined);
 
   readonly moveDragStart = output<MoveDragEvent>();
   readonly moveDragMove = output<MoveDragEvent>();
@@ -73,6 +88,7 @@ export class MoveDragDirective implements OnDestroy {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #defaults = inject(MOVEMENT_CONFIG);
 
   #isDragging = false;
   #pointerId: number | null = null;
@@ -90,6 +106,9 @@ export class MoveDragDirective implements OnDestroy {
 
   #dragBounds: { top?: number; right?: number; bottom?: number; left?: number } | null = null;
   #player: AnimationControls | null = null;
+
+  #gesture: DragGesture = { ...NO_GESTURE };
+  #gestureRaf: number | null = null;
 
   onPointerDown(e: PointerEvent) {
     if (this.moveDrag() === false || e.button !== 0) return;
@@ -115,6 +134,7 @@ export class MoveDragDirective implements OnDestroy {
     // Prevent text selection while dragging
     this.#host.nativeElement.style.touchAction = 'none';
     this.#host.nativeElement.style.userSelect = 'none';
+    this.#tweenGesture(this.#resolveGestureTarget());
     this.moveDragStart.emit(this.#createDragEvent(e, 0, 0));
   }
 
@@ -189,25 +209,112 @@ export class MoveDragDirective implements OnDestroy {
     return constraints;
   }
 
+  /**
+   * The single transform write while a drag is active.
+   *
+   * The `whileDrag` channels ride along in the same composed write rather than going through the
+   * engine, because the engine would become a second writer of `transform` and the two would
+   * clobber each other every pointermove.
+   */
   private applyTransform() {
     const { x, y } = this.#visiblePosition(this.#_x, this.#_y);
     applyComposedTransform(
       this.#host.nativeElement,
-      { translateX: x, translateY: y },
+      {
+        translateX: x,
+        translateY: y,
+        scaleX: this.#gesture.scaleX,
+        scaleY: this.#gesture.scaleY,
+        rotate: this.#gesture.rotate,
+      },
       this.#baseTransform ?? undefined,
     );
   }
 
+  /** Final values of the `whileDrag` keyframes; anything absent stays at identity. */
+  #resolveGestureTarget(): DragGesture {
+    const frames = this.moveWhileDrag();
+    if (!frames) return { ...NO_GESTURE };
+
+    const last = (values: readonly (number | string)[] | undefined): number | undefined =>
+      values && values.length > 0 ? Number(values[values.length - 1]) : undefined;
+
+    const uniform = last(frames.scale);
+
+    return {
+      scaleX: uniform ?? last(frames.scaleX) ?? 1,
+      scaleY: uniform ?? last(frames.scaleY) ?? 1,
+      rotate: last(frames.rotate) ?? 0,
+    };
+  }
+
+  #stopGestureTween(): void {
+    if (this.#gestureRaf !== null && typeof cancelAnimationFrame === 'function') {
+      cancelAnimationFrame(this.#gestureRaf);
+    }
+    this.#gestureRaf = null;
+  }
+
+  #tweenGesture(to: DragGesture): void {
+    this.#stopGestureTween();
+
+    const from = { ...this.#gesture };
+    const unchanged =
+      from.scaleX === to.scaleX && from.scaleY === to.scaleY && from.rotate === to.rotate;
+    if (unchanged) return;
+
+    const reduced = prefersReducedMotion(this.#documentRef);
+    if (reduced || typeof requestAnimationFrame !== 'function') {
+      this.#gesture = { ...to };
+      this.applyTransform();
+      return;
+    }
+
+    const duration = Math.max(1, this.#defaults.duration);
+    const start = performance.now();
+
+    const tick = (now: number) => {
+      const linear = Math.min(1, (now - start) / duration);
+      // ease-out cubic: the lift should settle rather than arrive at full speed
+      const p = 1 - Math.pow(1 - linear, 3);
+
+      this.#gesture = {
+        scaleX: from.scaleX + (to.scaleX - from.scaleX) * p,
+        scaleY: from.scaleY + (to.scaleY - from.scaleY) * p,
+        rotate: from.rotate + (to.rotate - from.rotate) * p,
+      };
+      this.applyTransform();
+
+      this.#gestureRaf = linear < 1 ? requestAnimationFrame(tick) : null;
+    };
+
+    this.#gestureRaf = requestAnimationFrame(tick);
+  }
+
   private finishDrag() {
+    // Hand the transform back to the engine in one piece: the RAF tween must not keep writing
+    // while the engine animates the same property.
+    this.#stopGestureTween();
+
     const projectedX = this.moveDragMomentum() ? this.#_x + this.#velocityX * 180 : this.#_x;
     const projectedY = this.moveDragMomentum() ? this.#_y + this.#velocityY * 180 : this.#_y;
 
     const target = this.#resolveTarget(projectedX, projectedY);
+    const gesture = this.#gesture;
 
-    if (target.x !== this.#_x || target.y !== this.#_y) {
-      const current = this.#visiblePosition(this.#_x, this.#_y);
-      this.#animateTo(current.x, current.y, target.x, target.y);
+    const movesBack = target.x !== this.#_x || target.y !== this.#_y;
+    const releasesGesture = gesture.scaleX !== 1 || gesture.scaleY !== 1 || gesture.rotate !== 0;
 
+    if (!movesBack && !releasesGesture) return;
+
+    const current = this.#visiblePosition(this.#_x, this.#_y);
+    const toX = movesBack ? target.x : current.x;
+    const toY = movesBack ? target.y : current.y;
+
+    this.#animateTo(current.x, current.y, toX, toY, gesture);
+    this.#gesture = { ...NO_GESTURE };
+
+    if (movesBack) {
       this.#_x = target.x;
       this.#_y = target.y;
     }
@@ -301,7 +408,13 @@ export class MoveDragDirective implements OnDestroy {
     return value;
   }
 
-  #animateTo(fromX: number, fromY: number, toX: number, toY: number): void {
+  #animateTo(
+    fromX: number,
+    fromY: number,
+    toX: number,
+    toY: number,
+    gesture: DragGesture = NO_GESTURE,
+  ): void {
     if (!this.#host.nativeElement.isConnected) return;
 
     // Reset the inline transform to the base state so the engine animates the
@@ -310,18 +423,26 @@ export class MoveDragDirective implements OnDestroy {
       resetTransformToBase(this.#host.nativeElement, this.#baseTransform);
     }
 
-    this.#player = this.#engine.play(
-      this.#host.nativeElement,
-      {
-        x: [fromX, toX],
-        y: [fromY, toY],
-      },
-      {
-        config: { duration: 300, easing: 'ease', delay: 0, disabled: false, iterations: 1 },
-        spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
-        disabled: prefersReducedMotion(this.#documentRef),
-      },
-    );
+    const frames: MoveKeyframes = {
+      x: [fromX, toX],
+      y: [fromY, toY],
+    };
+
+    // Releasing the whileDrag state travels in the same play, so scale and translate settle
+    // together instead of through two competing writers.
+    if (gesture.scaleX !== 1 || gesture.scaleY !== 1) {
+      frames.scaleX = [gesture.scaleX, 1];
+      frames.scaleY = [gesture.scaleY, 1];
+    }
+    if (gesture.rotate !== 0) {
+      frames.rotate = [gesture.rotate, 0];
+    }
+
+    this.#player = this.#engine.play(this.#host.nativeElement, frames, {
+      config: { duration: 300, easing: 'ease', delay: 0, disabled: false, iterations: 1 },
+      spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
+      disabled: prefersReducedMotion(this.#documentRef),
+    });
   }
 
   #createDragEvent(e: PointerEvent, deltaX: number, deltaY: number): MoveDragEvent {
@@ -335,6 +456,7 @@ export class MoveDragDirective implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.#stopGestureTween();
     if (this.#pointerId !== null) {
       try {
         if (typeof this.#host.nativeElement.releasePointerCapture === 'function') {

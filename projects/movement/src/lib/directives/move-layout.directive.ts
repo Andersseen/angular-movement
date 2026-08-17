@@ -20,6 +20,33 @@ import {
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { hasInlineTransform } from '../engines/transform-state';
+import { SharedLayoutRegistry } from './shared-layout.registry';
+
+interface FlipDelta {
+  dx: number;
+  dy: number;
+  dw: number;
+  dh: number;
+  targetRect: DOMRect;
+}
+
+/**
+ * The FLIP delta between two rects, or `null` when the movement is too small to be worth animating.
+ *
+ * The thresholds keep sub-pixel layout noise — and a re-measure that lands on the same box — from
+ * kicking off an animation on every render pass.
+ */
+function flipDelta(from: DOMRect, to: DOMRect): FlipDelta | null {
+  const dx = from.left - to.left;
+  const dy = from.top - to.top;
+  const dw = from.width / to.width;
+  const dh = from.height / to.height;
+
+  const moved =
+    Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5 || Math.abs(dw - 1) > 0.01 || Math.abs(dh - 1) > 0.01;
+
+  return moved ? { dx, dy, dw, dh, targetRect: to } : null;
+}
 
 /**
  * Experimental API — may change significantly between minor versions.
@@ -50,12 +77,15 @@ export class MoveLayoutDirective implements OnDestroy {
   readonly #platformId = inject(PLATFORM_ID);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #sharedLayout = inject(SharedLayoutRegistry);
 
   #snapshot: DOMRect | null = null;
   #currentPlayer: AnimationControls | null = null;
   #isBrowser = isPlatformBrowser(this.#platformId);
   #isReducedMotion = false;
   #isAnimating = false;
+  /** A shared-layout handover is an entrance: it may only be claimed on this element's first read. */
+  #hasClaimedSharedLayout = false;
 
   constructor() {
     this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
@@ -77,42 +107,57 @@ export class MoveLayoutDirective implements OnDestroy {
 
         if (this.moveLayout() === false || this.moveDisabled() || this.#isReducedMotion) {
           this.#snapshot = currentRect;
+          this.#publishSharedLayout(currentRect);
           return null;
         }
 
-        if (this.#snapshot) {
-          const dx = this.#snapshot.left - currentRect.left;
-          const dy = this.#snapshot.top - currentRect.top;
-          const dw = this.#snapshot.width / currentRect.width;
-          const dh = this.#snapshot.height / currentRect.height;
+        const shared = this.#claimSharedLayout(currentRect);
+        this.#publishSharedLayout(currentRect);
+        if (shared) {
+          this.#snapshot = currentRect;
+          return shared;
+        }
 
-          if (
-            Math.abs(dx) > 0.5 ||
-            Math.abs(dy) > 0.5 ||
-            Math.abs(dw - 1) > 0.01 ||
-            Math.abs(dh - 1) > 0.01
-          ) {
-            return {
-              dx,
-              dy,
-              dw,
-              dh,
-              targetRect: currentRect,
-            };
-          }
+        const delta = this.#snapshot ? flipDelta(this.#snapshot, currentRect) : null;
+        if (delta) {
+          return delta;
         }
 
         this.#snapshot = currentRect;
         return null;
       },
-      write: (
-        flipData: { dx: number; dy: number; dw: number; dh: number; targetRect: DOMRect } | null,
-      ) => {
-        if (flipData) {
-          this.playFlip(flipData);
+      write: (delta: FlipDelta | null) => {
+        if (delta) {
+          this.playFlip(delta);
         }
       },
     });
+  }
+
+  /**
+   * Claims the rect left behind by the *other* element that shares this `moveLayoutId`, so the
+   * host animates in from where its predecessor sat rather than from its own position.
+   *
+   * Only ever fires on the first read: after that the element owns the id, and any further
+   * movement is ordinary layout FLIP against its own snapshot.
+   */
+  #claimSharedLayout(currentRect: DOMRect): FlipDelta | null {
+    const id = this.moveLayoutId();
+    if (!id || this.#hasClaimedSharedLayout) {
+      return null;
+    }
+
+    this.#hasClaimedSharedLayout = true;
+
+    const sourceRect = this.#sharedLayout.claim(id, this.#host.nativeElement);
+    return sourceRect ? flipDelta(sourceRect, currentRect) : null;
+  }
+
+  #publishSharedLayout(rect: DOMRect): void {
+    const id = this.moveLayoutId();
+    if (id) {
+      this.#sharedLayout.publish(id, this.#host.nativeElement, rect);
+    }
   }
 
   /**
@@ -151,13 +196,7 @@ export class MoveLayoutDirective implements OnDestroy {
     return rect;
   }
 
-  private playFlip(flipData: {
-    dx: number;
-    dy: number;
-    dw: number;
-    dh: number;
-    targetRect: DOMRect;
-  }) {
+  private playFlip(flipData: FlipDelta) {
     this.#isAnimating = true;
 
     // The host is currently visually at its NEW position (unpainted).

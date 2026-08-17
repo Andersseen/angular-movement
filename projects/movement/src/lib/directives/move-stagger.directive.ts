@@ -1,6 +1,6 @@
 import { Directive, forwardRef, input } from '@angular/core';
 import { MoveSpring } from '../presets/presets.types';
-import { optionalNumberAttribute } from './move-animation.utils';
+import { compareDocumentOrder, optionalNumberAttribute } from './move-animation.utils';
 import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.tokens';
 
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
@@ -45,13 +45,7 @@ export class MoveStaggerDirective implements MoveStaggerProvider {
   getDelay(el: HTMLElement): number {
     if (!this.#children.has(el)) return 0;
 
-    const list = Array.from(this.#children).sort((a, b) => {
-      if (a === b) return 0;
-      const pos = a.compareDocumentPosition(b);
-      if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
-      if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
-      return 0;
-    });
+    const list = Array.from(this.#children).sort(compareDocumentOrder);
 
     const index = list.indexOf(el);
     if (index === -1) return 0;

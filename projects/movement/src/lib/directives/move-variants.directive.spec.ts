@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { signal } from '@angular/core';
 import { vi } from 'vitest';
 import { MoveVariantsDirective } from './move-variants.directive';
+import { MoveVariant } from '../presets/presets.types';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -314,3 +315,134 @@ class ExitVariantHostComponent {
     hidden: { opacity: 0, y: -16 },
   });
 }
+
+@Component({
+  selector: 'move-variants-orchestration-host',
+  template: `
+    <div [moveVariants]="parentVariants" [moveVariant]="state()" data-role="parent">
+      <div [moveVariants]="childVariants" data-role="child" data-id="a">a</div>
+      <div [moveVariants]="childVariants" data-role="child" data-id="b">b</div>
+      <div [moveVariants]="childVariants" data-role="child" data-id="c">c</div>
+    </div>
+  `,
+  imports: [MoveVariantsDirective],
+})
+class OrchestrationHostComponent {
+  readonly state = signal('closed');
+  readonly childVariants: Record<string, MoveVariant> = {
+    closed: { opacity: 0 },
+    open: { opacity: 1 },
+  };
+  parentVariants: Record<string, MoveVariant> = {
+    closed: { opacity: 0 },
+    open: { opacity: 1, staggerChildren: 60, delayChildren: 100, duration: 200 },
+  };
+}
+
+describe('MoveVariantsDirective orchestration', () => {
+  let fixture: ComponentFixture<OrchestrationHostComponent>;
+  let playSpy: ReturnType<typeof vi.spyOn>;
+
+  /** Delay the engine received for each host, keyed by its data-id (parent has none). */
+  function delaysById(): Record<string, number> {
+    const result: Record<string, number> = {};
+    for (const call of playSpy.mock.calls) {
+      const element = call[0] as HTMLElement;
+      const id = element.dataset['id'] ?? element.dataset['role'] ?? '?';
+      result[id] = (call[2] as { config?: { delay?: number } })?.config?.delay ?? 0;
+    }
+    return result;
+  }
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [OrchestrationHostComponent],
+      providers: [provideMovement()],
+    });
+    playSpy = vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue({
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    } as AnimationControls);
+    fixture = TestBed.createComponent(OrchestrationHostComponent);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('staggers nested children in DOM order', () => {
+    fixture.detectChanges();
+    playSpy.mockClear();
+
+    fixture.componentInstance.state.set('open');
+    fixture.detectChanges();
+
+    const delays = delaysById();
+    // delayChildren 100, then +60 per child in document order.
+    expect(delays['a']).toBe(100);
+    expect(delays['b']).toBe(160);
+    expect(delays['c']).toBe(220);
+  });
+
+  it('does not treat orchestration fields as animatable properties', () => {
+    fixture.detectChanges();
+    playSpy.mockClear();
+
+    fixture.componentInstance.state.set('open');
+    fixture.detectChanges();
+
+    const parentCall = playSpy.mock.calls.find(
+      (call: unknown[]) => (call[0] as HTMLElement).dataset['role'] === 'parent',
+    );
+    const frames = parentCall?.[1] as Record<string, unknown>;
+
+    // `pickStateValues` keeps every number it sees, so these must be destructured out earlier.
+    expect(frames).not.toHaveProperty('staggerChildren');
+    expect(frames).not.toHaveProperty('delayChildren');
+    expect(frames).not.toHaveProperty('when');
+    expect(frames).toHaveProperty('opacity');
+  });
+
+  it("offsets children by the parent duration for when: 'beforeChildren'", () => {
+    fixture.componentInstance.parentVariants = {
+      closed: { opacity: 0 },
+      open: { opacity: 1, staggerChildren: 60, duration: 200, when: 'beforeChildren' },
+    };
+    fixture.detectChanges();
+    playSpy.mockClear();
+
+    fixture.componentInstance.state.set('open');
+    fixture.detectChanges();
+
+    const delays = delaysById();
+    expect(delays['a']).toBe(200);
+    expect(delays['b']).toBe(260);
+  });
+
+  it("delays the parent past the child span for when: 'afterChildren'", () => {
+    fixture.componentInstance.parentVariants = {
+      closed: { opacity: 0 },
+      open: {
+        opacity: 1,
+        staggerChildren: 60,
+        delayChildren: 100,
+        duration: 200,
+        when: 'afterChildren',
+      },
+    };
+    fixture.detectChanges();
+    playSpy.mockClear();
+
+    fixture.componentInstance.state.set('open');
+    fixture.detectChanges();
+
+    const delays = delaysById();
+    // 100 delayChildren + 2 * 60 stagger for the last child + 200 duration.
+    expect(delays['parent']).toBe(420);
+    expect(delays['a']).toBe(100);
+  });
+});

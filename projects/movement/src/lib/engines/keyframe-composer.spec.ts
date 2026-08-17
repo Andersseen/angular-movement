@@ -7,6 +7,7 @@ import {
   composeInterpolatedKeyframe,
   composeKeyframeAt,
   composeKeyframesWithBase,
+  applyKeyframeTimes,
 } from './keyframe-composer';
 
 describe('keyframe-composer', () => {
@@ -261,5 +262,32 @@ describe('keyframe-composer', () => {
 
       expect(el.style.strokeDashoffset).toBe('');
     });
+  });
+});
+
+describe('applyKeyframeTimes', () => {
+  const frames = (): Keyframe[] => [{ opacity: 0 }, { opacity: 1 }, { opacity: 0 }];
+
+  it('stamps the given offsets onto each keyframe', () => {
+    const result = applyKeyframeTimes(frames(), [0, 0.8, 1]);
+
+    // The dwell is the point: reaching the peak at 80% and falling in the last 20%.
+    expect(result?.map((frame) => frame.offset)).toEqual([0, 0.8, 1]);
+  });
+
+  it('rejects a length mismatch instead of producing a broken timeline', () => {
+    expect(applyKeyframeTimes(frames(), [0, 1])).toBeNull();
+  });
+
+  it('rejects offsets outside 0..1', () => {
+    expect(applyKeyframeTimes(frames(), [0, 1.5, 1])).toBeNull();
+  });
+
+  it('rejects descending offsets', () => {
+    expect(applyKeyframeTimes(frames(), [0, 0.9, 0.4])).toBeNull();
+  });
+
+  it('returns null for an empty keyframe list', () => {
+    expect(applyKeyframeTimes([], [])).toBeNull();
   });
 });

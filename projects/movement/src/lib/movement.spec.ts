@@ -1,4 +1,5 @@
 import { TestBed } from '@angular/core/testing';
+import * as publicApi from './movement';
 import { MOVE_PRESETS } from './presets/presets';
 import { provideMovement } from './providers/provide-movement';
 import { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS } from './tokens/movement.tokens';
@@ -6,6 +7,14 @@ import { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS } from './tokens/movement.tokens';
 describe('movement library', () => {
   afterEach(() => {
     TestBed.resetTestingModule();
+  });
+
+  it('exposes MoveAnimator as the only imperative entry point', () => {
+    expect(publicApi).toHaveProperty('MoveAnimator');
+
+    // The engine stays internal on purpose: 1.0 freezes what is exported here, and keeping the
+    // engine out of that contract is what leaves it free to change afterwards.
+    expect(publicApi).not.toHaveProperty('AnimationEngine');
   });
 
   it('provides default movement config', () => {

@@ -18,6 +18,7 @@ import {
   MoveValue,
   MoveVariant,
 } from '../presets/presets.types';
+import { compareDocumentOrder } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -32,6 +33,11 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 
 export interface MoveVariantsProvider {
   activeVariant: () => string | undefined;
+  /** Optional so an existing implementation of this interface keeps compiling. */
+  registerChild?(element: HTMLElement): void;
+  unregisterChild?(element: HTMLElement): void;
+  /** Orchestration delay this parent assigns to the given child, in milliseconds. */
+  childDelay?(element: HTMLElement): number;
 }
 
 /**
@@ -84,6 +90,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   #config: MovementConfig = this.#defaults;
   #isReducedMotion = false;
   #previousState: Record<string, MoveStateValue | undefined> | null = null;
+  readonly #orchestratedChildren = new Set<HTMLElement>();
 
   readonly activeVariant = computed(() => {
     return this.moveVariant() ?? this.moveActiveVariant() ?? this.#parent?.activeVariant();
@@ -93,6 +100,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
     this.#isReducedMotion = prefersReducedMotion(this.#documentRef);
     this.#stagger?.register(this.#host.nativeElement);
     this.#presence?.register(this);
+    this.#parent?.registerChild?.(this.#host.nativeElement);
 
     effect(() => {
       const variantName = this.activeVariant();
@@ -106,7 +114,57 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   ngOnDestroy(): void {
     this.#stagger?.unregister(this.#host.nativeElement);
     this.#presence?.unregister(this);
+    this.#parent?.unregisterChild?.(this.#host.nativeElement);
     this.#currentPlayer?.cancel();
+  }
+
+  registerChild(element: HTMLElement): void {
+    this.#orchestratedChildren.add(element);
+  }
+
+  unregisterChild(element: HTMLElement): void {
+    this.#orchestratedChildren.delete(element);
+  }
+
+  /**
+   * Orchestration delay for one nested `[moveVariants]` child, from this element's active variant.
+   *
+   * `beforeChildren` offsets the children by the parent's own duration. Children are assumed to
+   * share that duration unless they override it — there is no way to know a child's duration from
+   * here, and guessing one number is more useful than refusing to orchestrate at all.
+   */
+  childDelay(element: HTMLElement): number {
+    const variantName = this.activeVariant();
+    if (!variantName) return 0;
+
+    const variant = this.moveVariants()?.[variantName];
+    if (!variant) return 0;
+
+    const stagger = variant.staggerChildren ?? 0;
+    const base = variant.delayChildren ?? 0;
+    if (stagger === 0 && base === 0 && variant.when !== 'beforeChildren') return 0;
+
+    const index = this.#childIndex(element);
+    const lead =
+      variant.when === 'beforeChildren' ? (variant.duration ?? this.#config.duration) : 0;
+
+    return base + lead + index * stagger;
+  }
+
+  #childIndex(element: HTMLElement): number {
+    const ordered = Array.from(this.#orchestratedChildren).sort(compareDocumentOrder);
+    const index = ordered.indexOf(element);
+    return index === -1 ? 0 : index;
+  }
+
+  /** How long the whole child stagger takes, used by `when: 'afterChildren'`. */
+  #childrenSpan(variant: MoveVariant): number {
+    const stagger = variant.staggerChildren ?? 0;
+    const base = variant.delayChildren ?? 0;
+    const count = this.#orchestratedChildren.size;
+    const lastStart = count > 1 ? (count - 1) * stagger : 0;
+
+    return base + lastStart + (variant.duration ?? this.#defaults.duration);
   }
 
   playLeave(): Promise<void> {
@@ -132,19 +190,22 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
     const state = variants[variantName];
     if (!state) return null;
 
-    const { spring, duration, easing, delay, transition, ...keyframesMap } = state;
+    const { spring, duration, easing, delay, transition, when, ...keyframesMap } = state;
     const stateValues = pickStateValues(keyframesMap);
     const keyframes = stateToKeyframes(stateValues, this.#previousState);
     this.#previousState = stateValues;
 
     const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
+    const orchestrationDelay = this.#parent?.childDelay?.(this.#host.nativeElement) ?? 0;
+    const afterChildrenDelay = when === 'afterChildren' ? this.#childrenSpan(state) : 0;
 
     this.#config = resolveMovementConfig(
       this.#defaults,
       {
         duration: duration ?? this.moveDuration(),
         easing: easing ?? this.moveEasing(),
-        delay: (delay ?? this.moveDelay() ?? 0) + staggerDelay,
+        delay:
+          (delay ?? this.moveDelay() ?? 0) + staggerDelay + orchestrationDelay + afterChildrenDelay,
         disabled: this.moveDisabled(),
       },
       this.#isReducedMotion,
@@ -182,12 +243,21 @@ function stateToKeyframes(
   return keyframes;
 }
 
+/**
+ * Variant keys that configure orchestration rather than describe a value to animate.
+ *
+ * `pickStateValues` keeps every number it finds, so without this `staggerChildren: 60` would be
+ * handed to the engine as a CSS property.
+ */
+const ORCHESTRATION_KEYS = new Set(['staggerChildren', 'delayChildren', 'when']);
+
 function pickStateValues(
   state: Record<string, unknown>,
 ): Record<string, MoveStateValue | undefined> {
   const result: Record<string, MoveStateValue | undefined> = {};
 
   for (const key of Object.keys(state)) {
+    if (ORCHESTRATION_KEYS.has(key)) continue;
     const value = state[key];
     if (
       value === undefined ||

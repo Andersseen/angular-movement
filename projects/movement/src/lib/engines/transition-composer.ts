@@ -76,7 +76,13 @@ export function composeTransitionKeyframes(
   const uniqueEasings = new Set(timings.map((t) => t.easing));
   let finalEasing = timings[0].easing;
   if (uniqueEasings.size > 1) {
-    movementWarn('Per-property easing differences are not supported yet. Using global easing.');
+    // Independent properties are split into separate animations before reaching here, so the only
+    // way to land in this branch is differing easings *within* the transform channels — which all
+    // compose into one `transform` string and therefore cannot be split.
+    movementWarn(
+      'Transform channels (x, y, scale, rotate, …) share a single easing because they compose ' +
+        'into one transform. Using the global easing for them.',
+    );
     finalEasing = globalEasing;
   }
 

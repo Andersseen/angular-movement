@@ -14,11 +14,14 @@ animation, and presence/stagger orchestration.
 - Custom keyframes for full control
 - Spring-driven transitions
 - Hover, tap, focus, in-view, and scroll interactions
-- Presence orchestration for exit animations before DOM removal
+- Presence orchestration for exit animations before DOM removal, for a single view or a keyed list
+- Repeat controls: alternating loops (`repeatType`), `repeatDelay` and cycle counts
 - Stagger support for list choreography
-- Motion-style variants and per-property transitions
+- Motion-style variants with `staggerChildren` / `delayChildren` / `when` orchestration
+- Per-property transitions, including per-property easing and explicit keyframe `times`
 - SVG path drawing with `pathLength` and `pathOffset`
-- Drag gestures with constraints, elasticity, momentum, snap-to-origin, and snap points
+- Drag gestures with constraints, elasticity, momentum, snap points, and a `moveWhileDrag` state
+- Imperative escape hatch via `MoveAnimator`
 - Works with modern standalone Angular apps
 - No `@angular/animations` setup required
 
@@ -303,21 +306,27 @@ Main entrypoint exports:
 | Status               | APIs                                                                                                                                                                                                           |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                       |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small adjustments. Experimental APIs can change significantly between minor versions.
 
 ## Input reactivity
 
-Most interaction directives react to input changes while they are active:
+Two deliberate groups, frozen for 1.0:
 
-- **Reactive after init**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`,
-  `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`.
-- **Init-only**: `moveAnimate` / `[move]`, `[moveAnimation]`, `moveEnter`, `moveLeave`,
-  `moveInView`, `moveLoop`, `moveText`, `moveSmoothScroll`. Changing their inputs after the
-  directive initializes does not re-run the animation.
+- **Reactive** — changing an input while the directive is alive updates or replays the animation:
+  `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`, `moveTarget`, `moveTrigger`,
+  `moveScroll`, `moveParallax`, `moveDrag`, `moveLoop`, `moveText`, and `[moveAnimation]`'s
+  `animate` state.
+- **One-shot by design** — these describe a single entrance or exit, so they play once and ignore
+  later input changes: `moveAnimate` / `[move]`, `moveEnter`, `moveLeave`, `moveInView`,
+  `moveSmoothScroll`. To play one again, wrap the element in `*movePresence` / `*movePresenceFor`
+  or re-create the view.
+
+`[moveAnimation]` compares its `animate` state **by value**, so binding an object literal straight
+in the template does not replay the animation on every change detection pass.
 
 ## Development
 

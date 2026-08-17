@@ -9,6 +9,7 @@ import { MoveStaggerDirective } from './directives/move-stagger.directive';
 import { MoveLayoutDirective } from './directives/move-layout.directive';
 import { MoveScrollDirective } from './directives/move-scroll.directive';
 import { MovePresenceDirective } from './directives/move-presence.directive';
+import { MovePresenceForDirective } from './directives/move-presence-for.directive';
 import { MoveDragDirective } from './directives/move-drag.directive';
 import { MoveInViewDirective } from './directives/move-in-view.directive';
 import { MoveTextDirective } from './directives/move-text.directive';
@@ -49,6 +50,7 @@ export const MOVEMENT_DIRECTIVES = [
   MoveLayoutDirective,
   MoveScrollDirective,
   MovePresenceDirective,
+  MovePresenceForDirective,
   MoveDragDirective,
   MoveInViewDirective,
   MoveTextDirective,
@@ -71,6 +73,7 @@ export * from './directives/move-stagger.directive';
 export * from './directives/move-layout.directive';
 export * from './directives/move-scroll.directive';
 export * from './directives/move-presence.directive';
+export * from './directives/move-presence-for.directive';
 export * from './directives/move-drag.directive';
 export * from './directives/move-in-view.directive';
 export * from './directives/move-text.directive';
@@ -83,6 +86,8 @@ export * from './directives/move-trigger.directive';
 export * from './scroll/smooth-scroll.service';
 export * from './scroll/move-smooth-scroll.directive';
 export * from './engines/animation-controls';
+export * from './engines/move-animator.service';
+export * from './engines/composite-controls';
 export * from './presets/presets';
 export * from './presets/presets.types';
 export * from './presets/icon-helpers';

@@ -240,3 +240,18 @@ export function statesToKeyframes(from: MoveKeyframeState, to: MoveKeyframeState
   }
   return result as MoveKeyframes;
 }
+
+/**
+ * Sort comparator putting elements in DOM order.
+ *
+ * Registration order is insertion order, which is not document order once views are moved or
+ * created out of sequence — so anything assigning per-child delays has to sort by position.
+ */
+export function compareDocumentOrder(a: HTMLElement, b: HTMLElement): number {
+  if (a === b) return 0;
+
+  const position = a.compareDocumentPosition(b);
+  if (position & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+  if (position & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+  return 0;
+}

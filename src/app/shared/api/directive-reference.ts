@@ -302,6 +302,7 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
       { name: 'moveDragMomentum', type: 'boolean', required: false, defaultValue: 'false' },
       { name: 'moveDragSnapToOrigin', type: 'boolean', required: false, defaultValue: 'false' },
       { name: 'moveDragSnapPoints', type: 'readonly MoveDragSnapPoint[]', required: false },
+      { name: 'moveWhileDrag', type: 'MoveKeyframes', required: false },
       { name: 'moveSpring', type: 'MoveSpring', required: false },
     ],
   },
@@ -338,9 +339,17 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
   {
     name: 'MoveLoopDirective',
     selector: '[moveLoop]',
-    description: 'Infinite looping animations',
+    description: 'Looping animations, optionally alternating and with a pause between cycles',
     inputs: [
       { name: 'moveLoop', type: 'MovePreset | MoveKeyframes', required: false },
+      {
+        name: 'moveLoopType',
+        type: "'loop' | 'reverse'",
+        required: false,
+        defaultValue: "'loop'",
+      },
+      { name: 'moveLoopDelay', type: 'number', required: false, defaultValue: '0' },
+      { name: 'moveLoopCount', type: 'number', required: false, defaultValue: 'Infinity' },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
       {
         name: 'moveEasing',
@@ -358,6 +367,26 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
     selector: '*movePresence',
     description: 'Wait for child leave animations before removing a view',
     inputs: [{ name: 'movePresence', type: 'boolean | "" | undefined', required: false }],
+  },
+  {
+    name: 'MovePresenceForDirective',
+    selector: '*movePresenceFor',
+    description: 'Render a keyed list and animate items out before removing them',
+    inputs: [
+      { name: 'movePresenceForOf', type: 'readonly T[] | null | undefined', required: true },
+      {
+        name: 'movePresenceForTrackBy',
+        type: 'MovePresenceForTrackBy<T>',
+        required: false,
+        defaultValue: 'identity',
+      },
+      {
+        name: 'movePresenceForMode',
+        type: "'sync' | 'wait'",
+        required: false,
+        defaultValue: "'sync'",
+      },
+    ],
   },
   {
     name: 'MoveSmoothScrollDirective',

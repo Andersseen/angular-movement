@@ -2,20 +2,47 @@
 
 ## Unreleased
 
-### Fixed
-
-- **`moveScrollContainer` and `moveParallaxContainer` did nothing while smooth scroll was active.**
-  Both directives skipped attaching their native scroll listener whenever `SmoothScrollService` was
-  running, but that service only drives the root/page scroll — a custom container keeps scrolling
-  natively, so it was left with no scroll source at all and the animation froze. `moveParallax` also
-  preferred the service's page offset over the container's own `scrollTop`, feeding a page-relative
-  number into a container-relative calculation. Any app calling `SmoothScrollService.init()` — the
-  documentation site included — had a completely inert `moveScrollContainer`, an input added in
-  0.6.0 precisely for this case. Both now defer to the service only when they actually track the
-  page.
+## [0.8.0] - 2026-08-17
 
 ### Added
 
+- **Repeat controls: `repeatType`, `repeatDelay`, repeat count.** `WaapiPlayer` never set
+  `direction`, so every loop restarted hard at frame 0 — `moveLoop` could spin but never breathe,
+  pulse or yoyo, which is most of what looping is for. `repeatType: 'reverse'` now alternates
+  direction, and `repeatDelay` pauses between cycles by baking a hold into the timeline (WAAPI has
+  no per-iteration delay). Available as `moveLoopType` / `moveLoopDelay` / `moveLoopCount`, and as
+  `repeat` / `repeatType` / `repeatDelay` on `MoveTransitionConfig` for variants, targets and
+  triggers.
+- **`[moveWhileDrag]`.** Hover, tap and focus each had a `while*` state; drag did not, so the
+  near-universal "lift the card while dragging" could not be expressed. The gesture is composed into
+  the drag's own transform write rather than handed to the engine, because the engine would become a
+  second writer of `transform` and clobber the drag translate on every pointermove. On release it
+  goes back through the engine in the same play as the snap-back, so scale and translate settle
+  together.
+- **`mode: 'popLayout'` for `*movePresenceFor`.** An exiting row held its space for the whole leave;
+  it is now lifted out of flow so the remaining rows close the gap immediately.
+- **Variant orchestration: `staggerChildren`, `delayChildren`, `when`.** Nested `[moveVariants]`
+  children are staggered in document order on a variant change, which previously required the
+  separate `moveStagger` directive that does not compose with variant switching.
+  `when: 'beforeChildren' | 'afterChildren'` orders the parent against its children.
+- **`transition.times`.** Keyframe arrays were always evenly spaced, so `{ x: [0, 100, 0] }` could
+  never dwell. Offsets that cannot describe a timeline warn and fall back to even spacing.
+- **`*movePresenceFor` — exit animations for keyed lists.** `@for` destroys an embedded view the
+  moment its item leaves the source array, so animating list removals was impossible, and
+  `*movePresence` only ever covered a single boolean-guarded template. Toast stacks, filtered grids
+  and todo rows — the most common motion pattern there is — had no workaround at all. The new
+  structural directive renders the list itself and keeps a removed item mounted until that item's
+  leave animations resolve. Each row gets its own presence scope, so removing one row never animates
+  its siblings, and every existing presence child (`[move]`, `[moveAnimation]`, `moveLeave`,
+  `moveVariants`) works inside it unchanged. `mode: 'sync'` (default) overlaps enters and leaves;
+  `mode: 'wait'` holds new rows until pending leaves finish.
+- **`MoveAnimator` — a supported imperative API.** Nothing outside a directive could animate: the
+  barrel exported `AnimationControls` but not the engine, and the package `exports` map blocks deep
+  imports. `MoveAnimator.animate(el, keyframes, options)` resolves partial options against
+  `MOVEMENT_CONFIG` and the reduced-motion preference in exactly the order the directives use, so
+  imperative calls cannot quietly get different semantics. `AnimationEngine` stays internal on
+  purpose — 1.0 freezes the barrel, and keeping the engine out of that contract is what leaves it
+  free to change afterwards.
 - **Angular 22 support.** The peer range widens from `^21.2.0` to `^21.2.0 || ^22.0.0`. Angular 22
   has been stable and npm `latest` for a while, so `npm install angular-movement` in a new project
   failed outright with an `ERESOLVE` peer conflict — the library was effectively uninstallable for
@@ -33,12 +60,56 @@
 
 ### Changed
 
+- **Per-property easing is implemented instead of warned about.** `transition-composer` used to warn
+  that it was "not supported yet" and fall back to the global easing, so specifying one easing for
+  `opacity` and another for `x` silently got neither. A WAAPI keyframe's easing applies to every
+  property in that segment, so differing easings now run as separate animations behind
+  `CompositeAnimationControls` — one handle, so `cancel()` still stops all of them. Transform
+  channels remain a single group by design, since they compose into one `transform` string and two
+  animations writing it would clobber each other; that is now the only case the warning covers.
+- **`[moveAnimation]` now reacts to `animate` state changes.** `animate` is a state, so changing it
+  should animate to it — the contract this directive copies from Framer Motion. It was init-only,
+  ignoring every later change. It now animates from the state it last settled on, falling back to
+  `initial` on the first render. The state is compared **by value**, because a template binding an
+  object literal hands the input a new reference on every change detection pass and a reference
+  comparison would replay the animation continuously.
+- **The input-reactivity contract is now correct and frozen for 1.0.** The documented table was
+  wrong: `moveLoop` and `moveText` were listed as init-only while both have had a constructor
+  `effect()` reading every input. The remaining one-shot directives (`[move]` / `moveAnimate`,
+  `moveEnter`, `moveLeave`, `moveInView`, `moveSmoothScroll`) are documented as one-shot **by
+  design** rather than as an unresolved roadmap item.
 - Dropped the unused `zone.js` runtime dependency from the demo app. The app has been zoneless
   since it adopted `provideZonelessChangeDetection()`, nothing imported zone.js, and it was
   never in the client bundle — Angular declares it as an _optional_ peer, so it was pure
   install weight. Library unit tests, build, e2e and the consumer validation all pass without it.
 - GitHub Actions bumped to `checkout@v5` / `setup-node@v5`, clearing the Node 20 deprecation warning.
 - README, package README and the docs site state both supported Angular majors.
+
+### Fixed
+
+- **`moveLayoutId` did nothing.** It was declared, listed in the docs site's directive reference and
+  exercised in the consumer validation app, yet no code ever read it — setting it was a silent
+  no-op. Shared layout transitions are now implemented: a registry tracks the last known rect per
+  id, and an element mounting with an id another element already holds animates in from that
+  element's rect, giving the magic-move between two distinct DOM nodes. Entries outlive their
+  element (a handover destroys the outgoing node and creates the incoming one in the same pass, in
+  no guaranteed order) and age out after 300ms, which bounds how long a removed position stays
+  claimable.
+- **Reduced motion never reached the end state for SVG path properties on a transformed host.** The
+  disabled/reduced-motion path had an `if`/`else` whose two branches were identical, and both
+  applied styles with `style.setProperty(camelCaseName, …)` — a silent no-op, verified: it leaves
+  the property empty where a direct assignment lands the value. An `icon-draw` preset on an element
+  that already had a transform therefore stayed at its initial dash offset. Both branches now go
+  through the same helper the non-composed path already used.
+- **`moveScrollContainer` and `moveParallaxContainer` did nothing while smooth scroll was active.**
+  Both directives skipped attaching their native scroll listener whenever `SmoothScrollService` was
+  running, but that service only drives the root/page scroll — a custom container keeps scrolling
+  natively, so it was left with no scroll source at all and the animation froze. `moveParallax` also
+  preferred the service's page offset over the container's own `scrollTop`, feeding a page-relative
+  number into a container-relative calculation. Any app calling `SmoothScrollService.init()` — the
+  documentation site included — had a completely inert `moveScrollContainer`, an input added in
+  0.6.0 precisely for this case. Both now defer to the service only when they actually track the
+  page.
 
 ## [0.7.0] - 2026-08-07
 

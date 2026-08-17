@@ -9,7 +9,7 @@ projects/movement/src/       ← THE LIBRARY (published to npm)
     movement.ts              ← MOVEMENT_DIRECTIVES array + ALL public exports
     constants.ts
     directives/              ← one file per directive + colocated .spec.ts
-    engines/                 ← animation backends (see below)
+    engines/                 ← animation backends, MoveAnimator (public imperative API), easing-groups, composite-controls
     presets/                 ← named presets, types, icon helpers
     tokens/                  ← movement.tokens.ts, presence.tokens.ts, stagger.tokens.ts
     providers/provide-movement.ts
@@ -43,35 +43,41 @@ Template directive (e.g. [moveWhileHover]="{ scale: [1, 1.1] }")
   → returns AnimationControls      { play, pause, cancel, currentTime, finished }
 ```
 
+`MoveAnimator` (`engines/move-animator.service.ts`) is the same pipeline for callers without a
+directive: it resolves partial options through `resolveMovementConfig` + reduced motion and delegates
+to `AnimationEngine.play()`. It is the **only** exported way in — `AnimationEngine` stays internal so
+1.0 can freeze the barrel without freezing the engine, and `movement.spec.ts` pins that.
+
 `engines/keyframe-composer.ts` and `engines/transition-composer.ts` build WAAPI keyframes from
 `MoveKeyframes` (handling transform composition and per-property transitions).
 `engines/transform-state.ts` reads and writes composed CSS `transform` strings so `moveDrag`,
 `moveLayout`, and keyframe animations do not fight over inline styles.
 
-## Directive reference (all 20 — selectors matter, several are NOT the obvious name)
+## Directive reference (all 21 — selectors matter, several are NOT the obvious name)
 
-| Class                       | Selector(s)                  | Purpose                                                                                                            |
-| --------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| `MoveAnimateDirective`      | `[move]`, `[moveAnimate]`    | Entrance + leave animation; integrates with presence                                                               |
-| `MoveAnimationDirective`    | `[moveAnimation]`            | Framer-style `{ initial, animate, exit }` state objects                                                            |
-| `MoveEnterDirective`        | `[moveEnter]`                | One-shot enter trigger                                                                                             |
-| `MoveLeaveDirective`        | `[moveLeave]`                | Leave trigger — **only works inside `*movePresence`**                                                              |
-| `MoveHoverDirective`        | `[moveWhileHover]` ⚠️        | Hover (mouse + touch) with auto-reverse                                                                            |
-| `MoveTapDirective`          | `[moveWhileTap]` ⚠️          | Press/tap                                                                                                          |
-| `MoveFocusDirective`        | `[moveWhileFocus]` ⚠️        | Focus                                                                                                              |
-| `MoveInViewDirective`       | `[moveInView]`               | IntersectionObserver trigger                                                                                       |
-| `MoveScrollDirective`       | `[moveScroll]`               | Scroll progress → `currentTime` (fixed 1000ms linear; progress 0–1 maps to time 0–1000). Exposes `progress` signal |
-| `MoveParallaxDirective`     | `[moveParallax]`             | Parallax translate from `speed × (windowHeight + elHeight)`. Exposes `progress` signal                             |
-| `MovePresenceDirective`     | `*movePresence` (structural) | Awaits children's `playLeave()` before view removal                                                                |
-| `MoveStaggerDirective`      | `[moveStagger]`              | Per-child delays via DI (`MOVE_STAGGER_PARENT`); direction first/last/center; `moveStaggerStep`                    |
-| `MoveVariantsDirective`     | `[moveVariants]`             | Named variant states propagated to children                                                                        |
-| `MoveLayoutDirective`       | `[moveLayout]`               | FLIP-style layout animation                                                                                        |
-| `MoveDragDirective`         | `[moveDrag]`                 | Drag with constraints, axis lock, `moveDragSnapPoints`                                                             |
-| `MoveTextDirective`         | `[moveText]`                 | Text splitting/animation                                                                                           |
-| `MoveLoopDirective`         | `[moveLoop]`                 | Looping animation                                                                                                  |
-| `MoveTargetDirective`       | `[moveTarget]`               | Named target for triggers                                                                                          |
-| `MoveTriggerDirective`      | `[moveTrigger]`              | Triggers animations on targets                                                                                     |
-| `MoveSmoothScrollDirective` | `[moveSmoothScroll]`         | Custom smooth-scroll containers (with `SmoothScrollService`)                                                       |
+| Class                       | Selector(s)                     | Purpose                                                                                                            |
+| --------------------------- | ------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `MoveAnimateDirective`      | `[move]`, `[moveAnimate]`       | Entrance + leave animation; integrates with presence                                                               |
+| `MoveAnimationDirective`    | `[moveAnimation]`               | Framer-style `{ initial, animate, exit }` state objects                                                            |
+| `MoveEnterDirective`        | `[moveEnter]`                   | One-shot enter trigger                                                                                             |
+| `MoveLeaveDirective`        | `[moveLeave]`                   | Leave trigger — **only works inside `*movePresence`**                                                              |
+| `MoveHoverDirective`        | `[moveWhileHover]` ⚠️           | Hover (mouse + touch) with auto-reverse                                                                            |
+| `MoveTapDirective`          | `[moveWhileTap]` ⚠️             | Press/tap                                                                                                          |
+| `MoveFocusDirective`        | `[moveWhileFocus]` ⚠️           | Focus                                                                                                              |
+| `MoveInViewDirective`       | `[moveInView]`                  | IntersectionObserver trigger                                                                                       |
+| `MoveScrollDirective`       | `[moveScroll]`                  | Scroll progress → `currentTime` (fixed 1000ms linear; progress 0–1 maps to time 0–1000). Exposes `progress` signal |
+| `MoveParallaxDirective`     | `[moveParallax]`                | Parallax translate from `speed × (windowHeight + elHeight)`. Exposes `progress` signal                             |
+| `MovePresenceDirective`     | `*movePresence` (structural)    | Awaits children's `playLeave()` before view removal                                                                |
+| `MovePresenceForDirective`  | `*movePresenceFor` (structural) | Keyed list that holds a removed item's view until its leave resolves; per-item presence scope                      |
+| `MoveStaggerDirective`      | `[moveStagger]`                 | Per-child delays via DI (`MOVE_STAGGER_PARENT`); direction first/last/center; `moveStaggerStep`                    |
+| `MoveVariantsDirective`     | `[moveVariants]`                | Named variant states propagated to children                                                                        |
+| `MoveLayoutDirective`       | `[moveLayout]`                  | FLIP-style layout animation; `moveLayoutId` shares a rect between two nodes (`SharedLayoutRegistry`)               |
+| `MoveDragDirective`         | `[moveDrag]`                    | Drag with constraints, axis lock, `moveDragSnapPoints`                                                             |
+| `MoveTextDirective`         | `[moveText]`                    | Text splitting/animation                                                                                           |
+| `MoveLoopDirective`         | `[moveLoop]`                    | Looping animation                                                                                                  |
+| `MoveTargetDirective`       | `[moveTarget]`                  | Named target for triggers                                                                                          |
+| `MoveTriggerDirective`      | `[moveTrigger]`                 | Triggers animations on targets                                                                                     |
+| `MoveSmoothScrollDirective` | `[moveSmoothScroll]`            | Custom smooth-scroll containers (with `SmoothScrollService`)                                                       |
 
 ## API stability
 
@@ -82,16 +88,24 @@ versions.
 | Status               | Directives / helpers                                                                                                                                                                                           |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                               |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
 | **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
 
 ## Input reactivity
 
-- **Reactive after init**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`,
-  `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`.
-- **Init-only by design**: `moveAnimate` / `[move]`, `[moveAnimation]`, `moveEnter`, `moveLeave`,
-  `moveInView`, `moveLoop`, `moveText`, `moveSmoothScroll`. Changing their inputs after init does
-  not re-run the animation; wrap the element in `*movePresence` or re-create the view to replay.
+Frozen for 1.0 — two groups, decided rather than accidental.
+
+- **Reactive**: `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`, `moveTarget`,
+  `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`, `moveLoop`, `moveText`, and
+  `[moveAnimation]`'s `animate` state.
+- **One-shot by design**: `moveAnimate` / `[move]`, `moveEnter`, `moveLeave`, `moveInView`,
+  `moveSmoothScroll`. They describe a single entrance or exit, so they play once and ignore later
+  input changes; wrap the element in `*movePresence` / `*movePresenceFor` or re-create the view to
+  replay.
+
+`[moveAnimation]` compares its `animate` state **by value**. A template binding an object literal
+hands the input a new reference every change detection pass, so a reference comparison would replay
+the animation continuously.
 
 ## DI tokens
 
