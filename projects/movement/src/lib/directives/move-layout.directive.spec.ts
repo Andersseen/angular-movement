@@ -4,6 +4,7 @@ import { By } from '@angular/platform-browser';
 import { PLATFORM_ID } from '@angular/core';
 import { vi } from 'vitest';
 import { MoveLayoutDirective } from './move-layout.directive';
+import { SHARED_LAYOUT_MAX_AGE_MS } from './shared-layout.registry';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -224,3 +225,124 @@ function rect(value: { left: number; top: number; width: number; height: number 
     toJSON: () => ({ ...value, right, bottom, x: value.left, y: value.top }),
   } as DOMRect;
 }
+
+@Component({
+  selector: 'move-shared-layout-host',
+  template: `
+    @if (expanded()) {
+      <div moveLayout [moveLayoutId]="sharedId()" class="expanded">card</div>
+    } @else {
+      <div moveLayout [moveLayoutId]="sharedId()" class="thumb">card</div>
+    }
+    <span class="sr-only">{{ renderTick() }}</span>
+  `,
+  imports: [MoveLayoutDirective],
+})
+class SharedLayoutHostComponent {
+  expanded = signal(false);
+  sharedId = signal<string | undefined>('card');
+  renderTick = signal(0);
+}
+
+describe('MoveLayoutDirective shared layout', () => {
+  let fixture: ComponentFixture<SharedLayoutHostComponent>;
+  let playSpy: ReturnType<typeof vi.spyOn>;
+  let now: number;
+
+  const THUMB = rect({ left: 0, top: 0, width: 100, height: 100 });
+  const EXPANDED = rect({ left: 200, top: 150, width: 400, height: 300 });
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [SharedLayoutHostComponent],
+      providers: [provideMovement()],
+    });
+
+    const engine = TestBed.inject(AnimationEngine);
+    playSpy = vi.spyOn(engine, 'play').mockReturnValue({
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    });
+
+    now = 1_000;
+    vi.spyOn(Date, 'now').mockImplementation(() => now);
+
+    // Each node reports the box its class stands for, so a handover has a real delta to animate.
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      if (this.classList.contains('thumb')) return THUMB;
+      if (this.classList.contains('expanded')) return EXPANDED;
+      return rect({ left: 0, top: 0, width: 0, height: 0 });
+    });
+
+    fixture = TestBed.createComponent(SharedLayoutHostComponent);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('animates the incoming element in from the outgoing element rect', async () => {
+    await render();
+    expect(playSpy).not.toHaveBeenCalled();
+
+    fixture.componentInstance.expanded.set(true);
+    await render();
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    const [element, frames] = playSpy.mock.calls[0];
+
+    expect((element as HTMLElement).classList.contains('expanded')).toBe(true);
+    expect(frames).toEqual(
+      expect.objectContaining({
+        x: [THUMB.left - EXPANDED.left, 0],
+        y: [THUMB.top - EXPANDED.top, 0],
+        scaleX: [THUMB.width / EXPANDED.width, 1],
+        scaleY: [THUMB.height / EXPANDED.height, 1],
+      }),
+    );
+  });
+
+  it('ignores a rect that has aged past the max age', async () => {
+    await render();
+
+    now += SHARED_LAYOUT_MAX_AGE_MS + 1;
+    fixture.componentInstance.expanded.set(true);
+    await render();
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('does not claim anything without a moveLayoutId', async () => {
+    fixture.componentInstance.sharedId.set(undefined);
+    await render();
+
+    fixture.componentInstance.expanded.set(true);
+    await render();
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('claims at most once, so later renders fall back to ordinary layout FLIP', async () => {
+    await render();
+
+    fixture.componentInstance.expanded.set(true);
+    await render();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    // Same element, same box: nothing further to animate.
+    await render();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  async function render(): Promise<void> {
+    fixture.componentInstance.renderTick.update((value) => value + 1);
+    fixture.detectChanges();
+    await fixture.whenStable();
+  }
+});
