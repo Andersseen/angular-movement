@@ -197,20 +197,23 @@ describe('composeTransitionKeyframes', () => {
     expect(last['clipPath']).toBe('inset(0% 0% 0% 0%)');
   });
 
-  it('warns in dev mode when easings differ', () => {
+  it('warns in dev mode that transform channels cannot have separate easings', () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {
       /* suppress */
     });
 
+    // Independent properties are split into their own animations by `groupByEasing` before this
+    // composer runs, so reaching this branch means the clash is inside the transform channels —
+    // which compose into one `transform` string and genuinely cannot be split.
     composeTransitionKeyframes(
-      { opacity: [0, 1], x: [0, 100] },
-      { duration: 300, opacity: { easing: 'linear' } },
+      { x: [0, 100], scale: [1, 2] },
+      { duration: 300, x: { easing: 'linear' } },
       baseConfig,
     );
 
     if (typeof ngDevMode !== 'undefined' && ngDevMode) {
       expect(warnSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Per-property easing differences are not supported yet'),
+        expect.stringContaining('share a single easing because they compose'),
       );
     }
 

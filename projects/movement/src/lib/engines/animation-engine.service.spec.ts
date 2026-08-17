@@ -509,3 +509,75 @@ describe('AnimationEngine transition.times', () => {
     expect(keyframes.every((frame) => frame.offset === undefined)).toBe(true);
   });
 });
+
+describe('AnimationEngine per-property easing', () => {
+  function hostWithAnimateSpy(): { host: HTMLElement; animate: ReturnType<typeof vi.fn> } {
+    const host = document.createElement('div');
+    const animate = vi.fn(() => ({
+      cancel: vi.fn(),
+      pause: vi.fn(),
+      play: vi.fn(),
+      commitStyles: vi.fn(),
+      addEventListener: vi.fn(),
+      currentTime: 0,
+      playState: 'running',
+    }));
+    (host as unknown as { animate: unknown }).animate = animate;
+    return { host, animate };
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('runs properties with different easings as separate animations', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    const controls = TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { opacity: { easing: 'linear' }, x: { easing: 'ease-out' } } },
+    );
+
+    expect(controls).toBeTruthy();
+    // One WAAPI animation cannot carry two easings, so this must be two.
+    expect(animate).toHaveBeenCalledTimes(2);
+
+    const easings = animate.mock.calls.map((call) => (call[1] as KeyframeAnimationOptions).easing);
+    expect(easings.sort()).toEqual(['ease-out', 'linear']);
+  });
+
+  it('never lets a non-transform group write transform', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+    // A pre-existing transform is what makes the composer want to emit one everywhere.
+    host.style.transform = 'translate(10px, 0px)';
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { opacity: { easing: 'linear' }, x: { easing: 'ease-out' } } },
+    );
+
+    const writesTransform = animate.mock.calls.filter((call) =>
+      (call[0] as Keyframe[]).some((frame) => 'transform' in frame),
+    );
+    // Two animations writing `transform` would clobber each other.
+    expect(writesTransform).toHaveLength(1);
+  });
+
+  it('keeps a single animation when all easings agree', () => {
+    TestBed.configureTestingModule({ providers: [provideMovement()] });
+    const { host, animate } = hostWithAnimateSpy();
+
+    TestBed.inject(AnimationEngine).play(
+      host,
+      { opacity: [0, 1], x: [0, 40] },
+      { transition: { easing: 'linear' } },
+    );
+
+    expect(animate).toHaveBeenCalledTimes(1);
+  });
+});

@@ -20,6 +20,9 @@ import {
 } from './keyframe-composer';
 import { validateSpring } from '../directives/move-animation.utils';
 import { composeTransitionKeyframes } from './transition-composer';
+import { groupByEasing } from './easing-groups';
+import { CompositeAnimationControls } from './composite-controls';
+import { composeKeyframeAt } from './keyframe-composer';
 
 export interface PlayAnimationOptions {
   config?: MovementConfig;
@@ -63,6 +66,36 @@ export class AnimationEngine {
     const isSpring = spring || config.easing === 'spring';
     const repeat = resolveRepeat(options);
     const iterations = repeat?.repeat ?? options.iterations ?? config.iterations;
+
+    // Properties with different easings cannot share one WAAPI animation — a keyframe's easing
+    // applies to every property in that segment — so they run as separate, jointly-controlled ones.
+    if (options.transition && !isSpring) {
+      const groups = groupByEasing(frames, options.transition, config);
+      if (groups) {
+        return new CompositeAnimationControls(
+          groups.map((group, index) => {
+            const keyframes = group.isTransform
+              ? composeElementKeyframes(host, group.frames)
+              : composeStandaloneKeyframes(group.frames);
+
+            return new WaapiPlayer(
+              host,
+              keyframes,
+              {
+                duration: group.duration,
+                easing: group.easing,
+                delay: group.delay,
+                disabled: false,
+                iterations,
+              },
+              // Only one member reports completion, or onDone would fire once per group.
+              index === 0 ? options.onDone : undefined,
+              repeat,
+            );
+          }),
+        );
+      }
+    }
 
     // Per-property transitions only supported with WaapiPlayer (not spring)
     if (options.transition && !isSpring) {
@@ -229,6 +262,27 @@ export class AnimationEngine {
 
     return typeof (host as Partial<SVGGeometryElement>).getTotalLength === 'function';
   }
+}
+
+/**
+ * Builds keyframes for a non-transform group.
+ *
+ * `composeElementKeyframes` would emit the element's base `transform` into every keyframe, and a
+ * second animation writing `transform` would fight the transform group. These properties are
+ * independent, so they are composed without any base.
+ */
+function composeStandaloneKeyframes(frames: MoveKeyframes): Keyframe[] {
+  let length = 0;
+  for (const key in frames) {
+    const values = frames[key];
+    if (Array.isArray(values)) length = Math.max(length, values.length);
+  }
+
+  const keyframes: Keyframe[] = [];
+  for (let i = 0; i < length; i += 1) {
+    keyframes.push(composeKeyframeAt(frames, i) as Keyframe);
+  }
+  return keyframes;
 }
 
 /**
