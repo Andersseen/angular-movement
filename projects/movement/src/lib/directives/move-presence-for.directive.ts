@@ -4,12 +4,14 @@ import {
   EmbeddedViewRef,
   Injector,
   OnDestroy,
+  PLATFORM_ID,
   TemplateRef,
   ViewContainerRef,
   effect,
   inject,
   input,
 } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import {
   MOVE_PRESENCE_PARENT,
   MovePresenceChild,
@@ -19,8 +21,11 @@ import {
 /**
  * `'sync'` — entering and leaving items animate at the same time.
  * `'wait'` — no new view is created until every pending leave has resolved.
+ * `'popLayout'` — a leaving row is taken out of flow so the remaining rows close the gap
+ * immediately, instead of waiting for the exit animation to finish. The list container must be
+ * positioned (`position: relative`) for the row to stay where it was.
  */
-export type MovePresenceForMode = 'sync' | 'wait';
+export type MovePresenceForMode = 'sync' | 'wait' | 'popLayout';
 
 export type MovePresenceForTrackBy<T> = (index: number, item: T) => unknown;
 
@@ -89,6 +94,7 @@ export class MovePresenceForDirective<T> implements OnDestroy {
   readonly #template = inject(TemplateRef<MovePresenceForContext<T>>);
   readonly #injector = inject(Injector);
   readonly #changeDetector = inject(ChangeDetectorRef);
+  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   /** Mirrors the view container's order exactly, leaving entries included. */
   readonly #entries: PresenceEntry<T>[] = [];
@@ -214,6 +220,10 @@ export class MovePresenceForDirective<T> implements OnDestroy {
     entry.token += 1;
     const token = entry.token;
 
+    if (this.movePresenceForMode() === 'popLayout') {
+      this.#popFromFlow(entry);
+    }
+
     const pending = [...entry.scope.children].map((child) => child.playLeave());
 
     Promise.all(pending)
@@ -237,8 +247,57 @@ export class MovePresenceForDirective<T> implements OnDestroy {
   #reviveEntry(entry: PresenceEntry<T>): void {
     entry.leaving = false;
     entry.token += 1;
+    this.#restoreFlow(entry);
     for (const child of entry.scope.children) {
       child.cancelLeave?.();
+    }
+  }
+
+  /** The element root nodes of an entry's view; text and comment nodes are skipped. */
+  #elementsOf(entry: PresenceEntry<T>): HTMLElement[] {
+    return entry.view.rootNodes.filter(
+      (node: Node) => node?.nodeType === Node.ELEMENT_NODE,
+    ) as HTMLElement[];
+  }
+
+  /**
+   * Freezes a leaving row at the position it already occupies and lifts it out of flow, so the rows
+   * after it move up straight away rather than after the exit animation.
+   *
+   * `offsetTop`/`offsetLeft` are read *before* anything is written, since setting `position`
+   * changes them. `border-box` is forced because `offsetWidth`/`offsetHeight` include padding and
+   * border, which is exactly what a border-box width means.
+   */
+  #popFromFlow(entry: PresenceEntry<T>): void {
+    if (!this.#isBrowser) return;
+
+    for (const element of this.#elementsOf(entry)) {
+      if (typeof element.getBoundingClientRect !== 'function') continue;
+
+      const { offsetTop, offsetLeft, offsetWidth, offsetHeight } = element;
+
+      element.style.boxSizing = 'border-box';
+      element.style.position = 'absolute';
+      element.style.top = `${offsetTop}px`;
+      element.style.left = `${offsetLeft}px`;
+      element.style.width = `${offsetWidth}px`;
+      element.style.height = `${offsetHeight}px`;
+      // It is on its way out; it should not swallow clicks meant for the rows behind it.
+      element.style.pointerEvents = 'none';
+    }
+  }
+
+  #restoreFlow(entry: PresenceEntry<T>): void {
+    if (!this.#isBrowser) return;
+
+    for (const element of this.#elementsOf(entry)) {
+      element.style.boxSizing = '';
+      element.style.position = '';
+      element.style.top = '';
+      element.style.left = '';
+      element.style.width = '';
+      element.style.height = '';
+      element.style.pointerEvents = '';
     }
   }
 

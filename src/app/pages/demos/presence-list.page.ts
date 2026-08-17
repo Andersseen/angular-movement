@@ -52,7 +52,8 @@ interface ListItem {
           </button>
         </div>
 
-        <div data-testid="presence-list" class="flex w-full max-w-[280px] flex-col gap-2">
+        <!-- popLayout absolutely positions the exiting row, so the list must be a containing block -->
+        <div data-testid="presence-list" class="relative flex w-full max-w-[280px] flex-col gap-2">
           <div
             *movePresenceFor="let item of items(); trackBy: trackById; mode: mode()"
             [move]="preset()"
@@ -116,7 +117,8 @@ export default class DemoPresenceList {
   }
 
   protected toggleMode(): void {
-    this.mode.update((mode) => (mode === 'sync' ? 'wait' : 'sync'));
+    const order: MovePresenceForMode[] = ['sync', 'wait', 'popLayout'];
+    this.mode.update((mode) => order[(order.indexOf(mode) + 1) % order.length]);
   }
 
   protected onStateChange(state: DemoState): void {

@@ -307,3 +307,107 @@ describe('MovePresenceForDirective', () => {
     expect(plain.nativeElement.querySelectorAll('[data-id]').length).toBe(0);
   });
 });
+
+@Component({
+  selector: 'move-presence-for-pop-host',
+  template: `
+    <div
+      *movePresenceFor="let row of rows(); trackBy: byId; mode: mode()"
+      [moveLeave]="'fade-up'"
+      [attr.data-id]="row.id"
+    >
+      {{ row.label }}
+    </div>
+  `,
+  imports: [MovePresenceForDirective, MoveLeaveDirective],
+})
+class PopLayoutHostComponent {
+  readonly rows = signal<Row[]>([
+    { id: 1, label: 'one' },
+    { id: 2, label: 'two' },
+  ]);
+  readonly mode = signal<MovePresenceForMode>('popLayout');
+  readonly byId = (_index: number, row: Row) => row.id;
+}
+
+describe('MovePresenceForDirective popLayout', () => {
+  let fixture: ComponentFixture<PopLayoutHostComponent>;
+  const offsets = { offsetTop: 40, offsetLeft: 8, offsetWidth: 200, offsetHeight: 32 };
+  const descriptors: Record<string, PropertyDescriptor | undefined> = {};
+
+  beforeEach(() => {
+    // jsdom reports every offset as 0, so the popped values would be indistinguishable from unset.
+    for (const [key, value] of Object.entries(offsets)) {
+      descriptors[key] = Object.getOwnPropertyDescriptor(HTMLElement.prototype, key);
+      Object.defineProperty(HTMLElement.prototype, key, {
+        configurable: true,
+        get: () => value,
+      });
+    }
+
+    TestBed.configureTestingModule({
+      imports: [PopLayoutHostComponent],
+      providers: [provideMovement()],
+    });
+    vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue(deferredControls().player);
+    fixture = TestBed.createComponent(PopLayoutHostComponent);
+  });
+
+  afterEach(() => {
+    for (const [key, descriptor] of Object.entries(descriptors)) {
+      if (descriptor) Object.defineProperty(HTMLElement.prototype, key, descriptor);
+      else delete (HTMLElement.prototype as unknown as Record<string, unknown>)[key];
+    }
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('lifts a leaving row out of flow at the position it already occupied', () => {
+    fixture.detectChanges();
+
+    fixture.componentInstance.rows.set([{ id: 2, label: 'two' }]);
+    fixture.detectChanges();
+
+    const leaving = fixture.nativeElement.querySelector('[data-id="1"]') as HTMLElement;
+    expect(leaving.style.position).toBe('absolute');
+    expect(leaving.style.top).toBe('40px');
+    expect(leaving.style.left).toBe('8px');
+    expect(leaving.style.width).toBe('200px');
+    expect(leaving.style.height).toBe('32px');
+    // offsetWidth/Height include padding and border, which is what border-box means.
+    expect(leaving.style.boxSizing).toBe('border-box');
+    expect(leaving.style.pointerEvents).toBe('none');
+  });
+
+  it('leaves rows in flow in sync mode', () => {
+    fixture.componentInstance.mode.set('sync');
+    fixture.detectChanges();
+
+    fixture.componentInstance.rows.set([{ id: 2, label: 'two' }]);
+    fixture.detectChanges();
+
+    const leaving = fixture.nativeElement.querySelector('[data-id="1"]') as HTMLElement;
+    expect(leaving.style.position).toBe('');
+  });
+
+  it('puts a revived row back into flow', () => {
+    fixture.detectChanges();
+
+    fixture.componentInstance.rows.set([{ id: 2, label: 'two' }]);
+    fixture.detectChanges();
+    expect(
+      (fixture.nativeElement.querySelector('[data-id="1"]') as HTMLElement).style.position,
+    ).toBe('absolute');
+
+    fixture.componentInstance.rows.set([
+      { id: 1, label: 'one' },
+      { id: 2, label: 'two' },
+    ]);
+    fixture.detectChanges();
+
+    const revived = fixture.nativeElement.querySelector('[data-id="1"]') as HTMLElement;
+    expect(revived.style.position).toBe('');
+    expect(revived.style.top).toBe('');
+    expect(revived.style.pointerEvents).toBe('');
+  });
+});
