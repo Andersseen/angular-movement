@@ -57,14 +57,14 @@ so motion stays consistent, composable, and SSR-safe. Playback runs on the brows
 |                                 |                                                                                          |
 | ------------------------------- | ---------------------------------------------------------------------------------------- |
 | 🎬 **30+ presets**              | fade, slide, zoom, flip, blur, bounce, pulse, spin, icon-draw/pulse/bounce               |
-| 🧬 **Custom keyframes**         | full control when a preset isn't enough                                                  |
+| 🧬 **Custom keyframes**         | full control when a preset isn't enough; `repeat` / `repeatType` / `repeatDelay`         |
 | 🍃 **Spring physics**           | pre-computed spring keyframes via a dedicated engine                                     |
 | 🖱️ **Interactions**             | hover, tap, focus, in-view, scroll, parallax, drag                                       |
-| 🎯 **Advanced drag**            | axis-lock, constraints, elasticity, momentum, snap-to-origin & snap points               |
-| 👻 **Presence**                 | let leave animations finish before the DOM node is removed                               |
-| 🪜 **Stagger**                  | coordinated, ordered list motion                                                         |
+| 🎯 **Advanced drag**            | axis-lock, constraints, elasticity, momentum, snap points & `moveWhileDrag`              |
+| 👻 **Presence**                 | leave animations finish before removal — for a single view **or a keyed list**           |
+| 🪜 **Stagger**                  | ordered list motion, plus `staggerChildren` orchestration inside variants                |
 | ✍️ **SVG path drawing**         | animate `pathLength` / `pathOffset`, WAAPI-powered                                       |
-| ⏱️ **Per-property transitions** | different duration / delay per animated property                                         |
+| ⏱️ **Per-property transitions** | different duration, delay **and easing** per property; explicit keyframe `times`         |
 | 🔀 **Motion values**            | derive motion from Angular **signals** (`moveValue`, `moveTransform`, `moveSpringValue`) |
 | 🖥️ **SSR-safe**                 | every browser API guarded; no-ops on the server                                          |
 | 🧱 **Standalone-ready**         | tree-shakeable directives, no NgModule required                                          |
@@ -305,8 +305,8 @@ Scroll directives expose progress as a signal, so you can derive values without 
 | Status               | APIs                                                                                                                                                                                                           |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                   |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                       |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small naming or behavior adjustments. Experimental APIs can change significantly between

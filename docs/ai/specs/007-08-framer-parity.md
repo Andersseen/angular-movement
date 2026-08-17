@@ -1,6 +1,6 @@
 # Spec 007 — 0.8, part two: closing the Framer Motion parity gaps
 
-- **Status:** in-progress
+- **Status:** done
 - **Created:** 2026-08-17
 - **Last updated:** 2026-08-17
 - **Breaks public API:** no — additive. New inputs, new transition fields, one widened provider
@@ -109,38 +109,58 @@ rows close the gap immediately while the exit animation plays.
 
 ## Acceptance criteria
 
-- [ ] `repeatType: 'reverse'` alternates direction; `'loop'` keeps restarting; default is unchanged.
-- [ ] `repeatDelay` holds the final value between cycles, verified on the composed keyframes.
-- [ ] `moveLoop` exposes the repeat controls and its existing behaviour is unchanged when they are absent.
-- [ ] `[moveWhileDrag]` scales/rotates during a drag and releases afterwards, **without** losing or
+- [x] `repeatType: 'reverse'` alternates direction; `'loop'` keeps restarting; default is unchanged.
+- [x] `repeatDelay` holds the final value between cycles, verified on the composed keyframes.
+- [x] `moveLoop` exposes the repeat controls and its existing behaviour is unchanged when they are absent.
+- [x] `[moveWhileDrag]` scales/rotates during a drag and releases afterwards, **without** losing or
       double-counting the drag translate (asserted on the composed transform).
-- [ ] `times` produces the given offsets; a mismatched length is rejected with a dev warning.
-- [ ] Per-property easing no longer warns; independent properties get their own easing, and the
+- [x] `times` produces the given offsets; a mismatched length is rejected with a dev warning.
+- [x] Per-property easing no longer warns; independent properties get their own easing, and the
       transform group keeps one.
-- [ ] `staggerChildren` / `delayChildren` produce increasing per-child delays in DOM order;
+- [x] `staggerChildren` / `delayChildren` produce increasing per-child delays in DOM order;
       `when: 'afterChildren'` delays the parent's own animation.
-- [ ] `mode: 'popLayout'` takes the exiting row out of flow so siblings reflow immediately.
-- [ ] Reduced motion still disables every one of the above.
-- [ ] Unit tests per feature; `pnpm test:coverage`, `ng lint`, `pnpm build`, `pnpm e2e`,
+- [x] `mode: 'popLayout'` takes the exiting row out of flow so siblings reflow immediately.
+- [x] Reduced motion still disables every one of the above.
+- [x] Unit tests per feature; `pnpm test:coverage`, `ng lint`, `pnpm build`, `pnpm e2e`,
       `pnpm pack:check`, `pnpm validate:consumer` all pass.
-- [ ] Docs (both READMEs, `ARCHITECTURE.md`, directive reference), CHANGELOG, STATE.md updated.
+- [x] Docs (both READMEs, `ARCHITECTURE.md`, directive reference), CHANGELOG, STATE.md updated.
 
 ## Implementation plan
 
 Ordered by value against risk. Each step is its own commit.
 
-- [ ] 1. Repeat controls — `presets.types.ts`, `engines/waapi-player.ts`,
+- [x] 1. Repeat controls — `presets.types.ts`, `engines/waapi-player.ts`,
      `engines/animation-engine.service.ts`, `directives/move-loop.directive.ts` + specs.
-- [ ] 2. `moveWhileDrag` — `directives/move-drag.directive.ts`, `engines/transform-state.ts` + specs.
-- [ ] 3. `mode: 'popLayout'` — `directives/move-presence-for.directive.ts` + spec.
-- [ ] 4. Variant orchestration — `directives/move-variants.directive.ts`, `tokens/` + specs.
-- [ ] 5. `times` + per-property easing — `engines/keyframe-composer.ts`,
+- [x] 2. `moveWhileDrag` — `directives/move-drag.directive.ts`, `engines/transform-state.ts` + specs.
+- [x] 3. `mode: 'popLayout'` — `directives/move-presence-for.directive.ts` + spec.
+- [x] 4. Variant orchestration — `directives/move-variants.directive.ts`, `tokens/` + specs.
+- [x] 5. `times` + per-property easing — `engines/keyframe-composer.ts`,
      `engines/transition-composer.ts`, `engines/animation-engine.service.ts` + specs.
-- [ ] 6. Demos for each, directive reference entries, docs, CHANGELOG, STATE.md.
+- [x] 6. Demos for each, directive reference entries, docs, CHANGELOG, STATE.md.
 
 ## Verification notes
 
-<Filled in per step as it lands.>
+All five landed as separate commits, each with unit tests, and three were also driven in a real
+browser because animation defects are invisible to jsdom.
+
+- **Repeat**: the live animation moves from `direction: 'normal'` to `'alternate'` when the control
+  is toggled, `repeatDelay` takes the cycle from 1000ms to 1400ms, and sampled `scale` descends
+  through intermediate values (1.048 → 1.037 → 1.024 → 1.012 → 1.000) rather than jumping — which is
+  what "it yoyos" actually means.
+- **`moveWhileDrag`**: mid-drag the host reads
+  `translate(60px, 20px) rotate(1.99deg) scale(1.06)` — the translate is exactly the pointer delta
+  and appears once, so the gesture is neither losing nor doubling it — and returns to `none` after
+  release.
+- **`popLayout`**: 60ms after removing the first row it is still mounted at `position: absolute`
+  while the rows below have already moved up (501→474px, 555→528px), and they stay there when it is
+  finally removed, so there is no end-of-animation jump.
+
+One existing test needed updating rather than deleting: `transition-composer` used to warn that
+per-property easing was unsupported, and the assertion pinned that string. The branch is now only
+reachable for transform channels, so the test was rewritten around that narrower, still-true claim.
+
+Full gate: 461 unit tests green, `ng lint` clean, `pnpm build` (incl. SSR prerender), `pnpm e2e`,
+`pnpm pack:check` and `pnpm validate:consumer` on Angular 21 and 22.
 
 ## Follow-ups (out of scope, noted for later)
 

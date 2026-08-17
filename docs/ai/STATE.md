@@ -6,9 +6,9 @@
 **Last updated:** 2026-08-17
 **Library version:** `0.7.0` published; **spec 006 (0.8) implemented, unreleased**.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `feat/08-presence-lists-and-api-freeze` — spec 006 complete, not merged. PR pending
-(the user opens it).
-**Roadmap phase:** 0.7 is **complete** (see `ROADMAP.md`). 0.8 = spec 006. Next milestone is 1.0.
+**Branch state:** `feat/08-presence-lists-and-api-freeze` — specs 006 **and 007** complete, not merged.
+PR pending (the user opens it).
+**Roadmap phase:** 0.7 is **complete** (see `ROADMAP.md`). 0.8 = specs 006 + 007. Next milestone is 1.0.
 
 ## What is DONE and stable
 
@@ -37,6 +37,12 @@
 - **Shared layout** (spec 006): `moveLayoutId` works — `SharedLayoutRegistry` (internal) hands a
   mounting element the rect of the element it replaces.
 - **`[moveAnimation]` is reactive** on its `animate` state (spec 006), compared by value.
+- **Repeat controls** (spec 007): `repeatType: 'reverse'` alternates, `repeatDelay` pauses between
+  cycles, plus cycle counts. On `moveLoop` and on `MoveTransitionConfig`.
+- **`moveWhileDrag`** (spec 007): the gesture state drag was missing.
+- **`mode: 'popLayout'`** (spec 007) on `*movePresenceFor`.
+- **Variant orchestration** (spec 007): `staggerChildren` / `delayChildren` / `when`.
+- **`transition.times`** and **real per-property easing** (spec 007) via `CompositeAnimationControls`.
 - Demo bundle optimization: every demo page and the demo container import only the specific
   directives they use, improving route-level tree-shaking.
 - Public docs aligned with real API: variants use `moveVariant`/`moveActiveVariant`, focus uses

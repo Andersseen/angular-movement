@@ -9,7 +9,7 @@ projects/movement/src/       ← THE LIBRARY (published to npm)
     movement.ts              ← MOVEMENT_DIRECTIVES array + ALL public exports
     constants.ts
     directives/              ← one file per directive + colocated .spec.ts
-    engines/                 ← animation backends + MoveAnimator (public imperative API)
+    engines/                 ← animation backends, MoveAnimator (public imperative API), easing-groups, composite-controls
     presets/                 ← named presets, types, icon helpers
     tokens/                  ← movement.tokens.ts, presence.tokens.ts, stagger.tokens.ts
     providers/provide-movement.ts
@@ -88,7 +88,7 @@ versions.
 | Status               | Directives / helpers                                                                                                                                                                                           |
 | -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                   |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
 | **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
 
 ## Input reactivity
