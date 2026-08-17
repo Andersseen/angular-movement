@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.8.0] - 2026-08-17
+
 ### Added
 
 - **Repeat controls: `repeatType`, `repeatDelay`, repeat count.** `WaapiPlayer` never set
