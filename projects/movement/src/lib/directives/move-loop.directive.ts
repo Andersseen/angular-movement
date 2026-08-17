@@ -1,8 +1,9 @@
 import { DOCUMENT } from '@angular/common';
 import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
-import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import { MoveKeyframes, MovePreset, MoveRepeatType, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  numberAttribute,
   optionalBooleanAttribute,
   optionalNumberAttribute,
   prefersReducedMotion,
@@ -34,6 +35,21 @@ export class MoveLoopDirective implements OnDestroy {
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
 
+  /**
+   * `'loop'` (default) restarts each cycle from the first keyframe. `'reverse'` alternates, so the
+   * animation plays back down to its start — what breathing, pulsing and yoyo effects need.
+   */
+  readonly moveLoopType = input<MoveRepeatType>('loop');
+  /** Pause between cycles, in milliseconds. */
+  readonly moveLoopDelay = input<number, unknown>(0, { transform: numberAttribute });
+  /** Cycle count. Defaults to endless, which is what makes it a loop. */
+  readonly moveLoopCount = input<number, unknown>(Infinity, {
+    transform: (value) => {
+      const parsed = numberAttribute(value);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : Infinity;
+    },
+  });
+
   readonly #defaults = inject(MOVEMENT_CONFIG);
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
@@ -53,6 +69,10 @@ export class MoveLoopDirective implements OnDestroy {
         return;
       }
 
+      this.moveLoopType();
+      this.moveLoopDelay();
+      this.moveLoopCount();
+
       const isReduced = prefersReducedMotion(this.#documentRef);
       const config = resolveMovementConfig(
         this.#defaults,
@@ -69,7 +89,11 @@ export class MoveLoopDirective implements OnDestroy {
         config,
         spring: this.moveSpring(),
         disabled: config.disabled,
-        iterations: Infinity,
+        repeat: {
+          repeat: this.moveLoopCount(),
+          repeatType: this.moveLoopType(),
+          repeatDelay: this.moveLoopDelay(),
+        },
       });
     });
   }

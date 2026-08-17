@@ -142,3 +142,100 @@ describe('WaapiPlayer', () => {
     expect(animate).toHaveBeenCalledWith(keyframes, expect.anything());
   });
 });
+
+describe('WaapiPlayer repeat controls', () => {
+  function spyOnAnimate(host: HTMLElement) {
+    const animate = vi.fn(() => createAnimationMock());
+    (host as unknown as { animate: unknown }).animate = animate;
+    return animate;
+  }
+
+  it('plays a single normal-direction cycle by default', () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    new WaapiPlayer(host, { opacity: [0, 1] }, baseConfig);
+
+    const [, options] = animate.mock.calls[0] as unknown as [Keyframe[], KeyframeAnimationOptions];
+    expect(options.direction).toBe('normal');
+    expect(options.iterations).toBe(1);
+  });
+
+  it("alternates direction for repeatType 'reverse'", () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    new WaapiPlayer(host, { scale: [1, 1.2] }, baseConfig, undefined, {
+      repeat: Infinity,
+      repeatType: 'reverse',
+    });
+
+    const [, options] = animate.mock.calls[0] as unknown as [Keyframe[], KeyframeAnimationOptions];
+    // Without `direction` every cycle snapped back to frame 0, so a loop could never yoyo.
+    expect(options.direction).toBe('alternate');
+    expect(options.iterations).toBe(Infinity);
+  });
+
+  it("keeps restarting for repeatType 'loop'", () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    new WaapiPlayer(host, { scale: [1, 1.2] }, baseConfig, undefined, {
+      repeat: 3,
+      repeatType: 'loop',
+    });
+
+    const [, options] = animate.mock.calls[0] as unknown as [Keyframe[], KeyframeAnimationOptions];
+    expect(options.direction).toBe('normal');
+    expect(options.iterations).toBe(3);
+  });
+
+  it('bakes repeatDelay into the timeline as a hold on the final value', () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    // 100ms of motion + 100ms of hold ⇒ the motion occupies the first half of each 200ms cycle.
+    new WaapiPlayer(host, { opacity: [0, 1] }, baseConfig, undefined, {
+      repeat: Infinity,
+      repeatDelay: 100,
+    });
+
+    const [keyframes, options] = animate.mock.calls[0] as unknown as [
+      Keyframe[],
+      KeyframeAnimationOptions,
+    ];
+
+    expect(options.duration).toBe(200);
+    expect(keyframes.map((frame) => frame.offset)).toEqual([0, 0.5, 1]);
+    // The appended frame repeats the last value so nothing moves during the hold.
+    expect(keyframes[2]['opacity']).toBe(keyframes[1]['opacity']);
+  });
+
+  it('ignores repeatDelay on a single-cycle animation', () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    new WaapiPlayer(host, { opacity: [0, 1] }, baseConfig, undefined, { repeatDelay: 100 });
+
+    const [keyframes, options] = animate.mock.calls[0] as unknown as [
+      Keyframe[],
+      KeyframeAnimationOptions,
+    ];
+    // A trailing hold on a one-shot animation would just make it finish late.
+    expect(options.duration).toBe(100);
+    expect(keyframes).toHaveLength(2);
+  });
+
+  it('treats a negative repeatDelay as none', () => {
+    const host = document.createElement('div');
+    const animate = spyOnAnimate(host);
+
+    new WaapiPlayer(host, { opacity: [0, 1] }, baseConfig, undefined, {
+      repeat: Infinity,
+      repeatDelay: -50,
+    });
+
+    const [, options] = animate.mock.calls[0] as unknown as [Keyframe[], KeyframeAnimationOptions];
+    expect(options.duration).toBe(100);
+  });
+});

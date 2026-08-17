@@ -338,9 +338,17 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
   {
     name: 'MoveLoopDirective',
     selector: '[moveLoop]',
-    description: 'Infinite looping animations',
+    description: 'Looping animations, optionally alternating and with a pause between cycles',
     inputs: [
       { name: 'moveLoop', type: 'MovePreset | MoveKeyframes', required: false },
+      {
+        name: 'moveLoopType',
+        type: "'loop' | 'reverse'",
+        required: false,
+        defaultValue: "'loop'",
+      },
+      { name: 'moveLoopDelay', type: 'number', required: false, defaultValue: '0' },
+      { name: 'moveLoopCount', type: 'number', required: false, defaultValue: 'Infinity' },
       { name: 'moveDuration', type: 'number', required: false, defaultValue: '300' },
       {
         name: 'moveEasing',

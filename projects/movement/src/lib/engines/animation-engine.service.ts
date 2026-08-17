@@ -3,7 +3,13 @@ import { isPlatformBrowser } from '@angular/common';
 import { AnimationControls } from './animation-controls';
 import { WaapiPlayer } from './waapi-player';
 import { SpringPlayer } from './spring-player';
-import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/presets.types';
+import {
+  MoveKeyframes,
+  MoveRepeatOptions,
+  MoveRepeatType,
+  MoveSpring,
+  MoveTransitionConfig,
+} from '../presets/presets.types';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyComposedStyle,
@@ -22,6 +28,7 @@ export interface PlayAnimationOptions {
   iterations?: number;
   onDone?: () => void;
   transition?: MoveTransitionConfig;
+  repeat?: MoveRepeatOptions;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -53,7 +60,8 @@ export class AnimationEngine {
     const config = options.config ?? this.#defaults;
     const spring = validateSpring(options.spring);
     const isSpring = spring || config.easing === 'spring';
-    const iterations = options.iterations ?? config.iterations;
+    const repeat = resolveRepeat(options);
+    const iterations = repeat?.repeat ?? options.iterations ?? config.iterations;
 
     // Per-property transitions only supported with WaapiPlayer (not spring)
     if (options.transition && !isSpring) {
@@ -70,6 +78,7 @@ export class AnimationEngine {
             iterations,
           },
           options.onDone,
+          repeat,
         );
       }
     }
@@ -95,6 +104,7 @@ export class AnimationEngine {
           iterations,
         },
         options.onDone,
+        repeat,
       );
     }
   }
@@ -196,4 +206,26 @@ export class AnimationEngine {
 
     return typeof (host as Partial<SVGGeometryElement>).getTotalLength === 'function';
   }
+}
+
+/**
+ * Repeat options can arrive either directly (a directive with dedicated inputs, like `moveLoop`) or
+ * inside a `moveTransition`, which is the Framer-shaped path every variant/target/trigger already
+ * accepts. An explicit `options.repeat` wins per field.
+ */
+function resolveRepeat(options: PlayAnimationOptions): MoveRepeatOptions | undefined {
+  const fromTransition = options.transition;
+  const merged: MoveRepeatOptions = {
+    repeat: options.repeat?.repeat ?? (fromTransition?.repeat as number | undefined),
+    repeatType:
+      options.repeat?.repeatType ?? (fromTransition?.repeatType as MoveRepeatType | undefined),
+    repeatDelay: options.repeat?.repeatDelay ?? (fromTransition?.repeatDelay as number | undefined),
+  };
+
+  const hasAny =
+    merged.repeat !== undefined ||
+    merged.repeatType !== undefined ||
+    merged.repeatDelay !== undefined;
+
+  return hasAny ? merged : undefined;
 }

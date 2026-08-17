@@ -55,11 +55,15 @@ describe('MoveLoopDirective', () => {
     expect(debugElement).toBeTruthy();
   });
 
-  it('plays the loop animation on init with iterations Infinity', () => {
+  it('plays an endless, restarting loop by default', () => {
     expect(playSpy).toHaveBeenCalledTimes(1);
 
     const options = playSpy.mock.calls[0]?.[2];
-    expect(options?.iterations).toBe(Infinity);
+    expect(options?.repeat).toEqual({
+      repeat: Infinity,
+      repeatType: 'loop',
+      repeatDelay: 0,
+    });
   });
 
   it('passes loop frames for the spin preset', () => {
@@ -95,5 +99,66 @@ describe('MoveLoopDirective', () => {
     f.detectChanges();
 
     expect(spy).not.toHaveBeenCalled();
+  });
+});
+
+@Component({
+  selector: 'move-loop-repeat-host',
+  template: `
+    <div
+      [moveLoop]="'pulse'"
+      moveLoopType="reverse"
+      [moveLoopDelay]="150"
+      [moveLoopCount]="4"
+    ></div>
+  `,
+  imports: [MoveLoopDirective],
+})
+class RepeatHostComponent {}
+
+@Component({
+  selector: 'move-loop-bad-count-host',
+  template: `<div [moveLoop]="'pulse'" [moveLoopCount]="0"></div>`,
+  imports: [MoveLoopDirective],
+})
+class BadCountHostComponent {}
+
+describe('MoveLoopDirective repeat controls', () => {
+  function playSpyFor(host: unknown) {
+    TestBed.configureTestingModule({
+      imports: [host as never],
+      providers: [provideMovement()],
+    });
+    const spy = vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue({
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    } as AnimationControls);
+    TestBed.createComponent(host as never).detectChanges();
+    return spy;
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('forwards type, delay and count to the engine', () => {
+    const spy = playSpyFor(RepeatHostComponent);
+
+    expect(spy.mock.calls[0]?.[2]?.repeat).toEqual({
+      repeat: 4,
+      repeatType: 'reverse',
+      repeatDelay: 150,
+    });
+  });
+
+  it('falls back to an endless loop for a non-positive count', () => {
+    const spy = playSpyFor(BadCountHostComponent);
+
+    // A loop of zero cycles is meaningless; treat it as the default rather than animating nothing.
+    expect(spy.mock.calls[0]?.[2]?.repeat?.repeat).toBe(Infinity);
   });
 });
