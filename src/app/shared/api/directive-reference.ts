@@ -302,6 +302,7 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
       { name: 'moveDragMomentum', type: 'boolean', required: false, defaultValue: 'false' },
       { name: 'moveDragSnapToOrigin', type: 'boolean', required: false, defaultValue: 'false' },
       { name: 'moveDragSnapPoints', type: 'readonly MoveDragSnapPoint[]', required: false },
+      { name: 'moveWhileDrag', type: 'MoveKeyframes', required: false },
       { name: 'moveSpring', type: 'MoveSpring', required: false },
     ],
   },

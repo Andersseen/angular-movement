@@ -420,3 +420,152 @@ function pointerEvent(type: string, init: PointerEventInit & { timeStamp?: numbe
 
   return event;
 }
+
+@Component({
+  selector: 'move-drag-while-host',
+  template: `<div moveDrag [moveWhileDrag]="{ scale: [1, 1.2], rotate: [0, 4] }">Lift</div>`,
+  imports: [MoveDragDirective],
+})
+class WhileDragHostComponent {}
+
+@Component({
+  selector: 'move-drag-plain-host',
+  template: `<div moveDrag>Plain</div>`,
+  imports: [MoveDragDirective],
+})
+class PlainDragHostComponent {}
+
+describe('MoveDragDirective whileDrag', () => {
+  let el: HTMLElement;
+  let playSpy: ReturnType<typeof vi.spyOn>;
+
+  function mount(host: unknown): HTMLElement {
+    TestBed.configureTestingModule({
+      imports: [host as never],
+      providers: [provideMovement()],
+    });
+    playSpy = vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockReturnValue({
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    } as AnimationControls);
+    const fixture = TestBed.createComponent(host as never) as ComponentFixture<unknown>;
+    fixture.detectChanges();
+    return fixture.debugElement.query(By.directive(MoveDragDirective)).nativeElement;
+  }
+
+  function stubReducedMotion(reduce: boolean): void {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockImplementation((query: string) => ({
+        matches: reduce && query.includes('prefers-reduced-motion'),
+        media: query,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      })),
+    );
+  }
+
+  function drag(target: HTMLElement, dx: number, dy: number): void {
+    target.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+    target.dispatchEvent(
+      new PointerEvent('pointermove', { pointerId: 1, clientX: 100 + dx, clientY: 100 + dy }),
+    );
+  }
+
+  beforeEach(() => {
+    // Run the gesture tween synchronously to its final frame.
+    vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) => {
+      cb(performance.now() + 10_000);
+      return 1;
+    });
+    vi.stubGlobal('cancelAnimationFrame', vi.fn());
+  });
+
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('composes the gesture with the drag translate in a single transform', () => {
+    el = mount(WhileDragHostComponent);
+    drag(el, 40, 25);
+
+    const transform = el.style.transform;
+    // Both channels must be present exactly once: the drag owns translate, whileDrag owns the rest.
+    expect(transform).toContain('translate(40px, 25px)');
+    expect(transform).toContain('scale(1.2)');
+    expect(transform).toContain('rotate(4deg)');
+    expect(transform.match(/translate\(/g)).toHaveLength(1);
+  });
+
+  it('leaves the transform untouched by a gesture when whileDrag is absent', () => {
+    el = mount(PlainDragHostComponent);
+    drag(el, 40, 25);
+
+    expect(el.style.transform).toContain('translate(40px, 25px)');
+    expect(el.style.transform).not.toContain('scale(');
+    expect(el.style.transform).not.toContain('rotate(');
+  });
+
+  it('releases the gesture through the same engine play as the snap-back', () => {
+    el = mount(WhileDragHostComponent);
+    drag(el, 40, 25);
+    playSpy.mockClear();
+
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 140, clientY: 125 }));
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+    const frames = playSpy.mock.calls[0][1] as Record<string, number[]>;
+    // One play, so translate and scale settle together rather than through two writers.
+    expect(frames['scaleX']).toEqual([1.2, 1]);
+    expect(frames['scaleY']).toEqual([1.2, 1]);
+    expect(frames['rotate']).toEqual([4, 0]);
+    expect(frames['x']).toBeDefined();
+  });
+
+  it('does not start a release animation when there is nothing to release', () => {
+    el = mount(PlainDragHostComponent);
+    drag(el, 40, 25);
+    playSpy.mockClear();
+
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: 140, clientY: 125 }));
+
+    // No constraints, no snap, no gesture — an unconstrained drag should just stay put.
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('applies the gesture instantly under reduced motion', () => {
+    stubReducedMotion(true);
+    // A rAF stub that never runs its callback: anything that reaches the tween cannot land.
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn(() => 1),
+    );
+
+    el = mount(WhileDragHostComponent);
+    drag(el, 10, 0);
+
+    expect(el.style.transform).toContain('scale(1.2)');
+  });
+
+  it('tweens rather than jumping when motion is allowed', () => {
+    stubReducedMotion(false);
+    vi.stubGlobal(
+      'requestAnimationFrame',
+      vi.fn(() => 1),
+    );
+
+    el = mount(WhileDragHostComponent);
+    drag(el, 10, 0);
+
+    // The control for the test above: with frames never running, the gesture must still be at
+    // identity, proving the reduced-motion case really took the instant path.
+    expect(el.style.transform).not.toContain('scale(');
+  });
+});

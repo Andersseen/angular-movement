@@ -51,6 +51,7 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
           [moveDragSnapPoints]="snapPointsEnabled() ? snapPoints : undefined"
           class="bg-surface border-accent/40 relative z-10 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
           data-testid="drag-card"
+          [moveWhileDrag]="{ scale: [1, 1.06], rotate: [0, 2] }"
         >
           <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
             <svg class="text-accent h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
