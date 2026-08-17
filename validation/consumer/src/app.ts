@@ -12,6 +12,7 @@ import {
   MoveLoopDirective,
   MoveParallaxDirective,
   MovePresenceDirective,
+  MovePresenceForDirective,
   MoveScrollDirective,
   MoveStaggerDirective,
   MoveTapDirective,
@@ -19,6 +20,7 @@ import {
   MoveTextDirective,
   MoveTriggerDirective,
   MoveVariantsDirective,
+  MoveAnimator,
   moveSpringValue,
   moveTransform,
   moveValue,
@@ -51,6 +53,7 @@ import {
     MoveLoopDirective,
     MoveParallaxDirective,
     MovePresenceDirective,
+    MovePresenceForDirective,
     MoveScrollDirective,
     MoveStaggerDirective,
     MoveTapDirective,
@@ -99,6 +102,16 @@ import {
       <div [moveLeave]="{ opacity: [1, 0] }">leaves through presence</div>
     </ng-container>
 
+    <!-- Keyed-list presence: microsyntax + context must type-check against the shipped .d.ts -->
+    <ul>
+      <li
+        *movePresenceFor="let row of rows(); trackBy: trackRow; mode: 'wait'; let i = index"
+        [moveAnimation]="{ initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }"
+      >
+        {{ i }}: {{ row.label }}
+      </li>
+    </ul>
+
     <!-- Layout, drag, text, loop -->
     <div moveLayout [moveLayoutId]="'card'">layout</div>
     <div
@@ -130,6 +143,11 @@ export class App {
     active: { opacity: [0, 1], scale: [0.9, 1] },
   };
 
+  protected readonly rows = signal([{ id: 1, label: 'first' }]);
+  protected readonly trackRow = (_index: number, row: { id: number }) => row.id;
+
+  readonly #animator = inject(MoveAnimator);
+
   protected readonly progress = moveValue(0);
   protected readonly x = moveTransform(this.progress, [0, 1], [0, 200]);
   protected readonly springX = moveSpringValue(this.x, {
@@ -140,5 +158,10 @@ export class App {
 
   protected onDragEnd(): void {
     this.on.update((value) => !value);
+  }
+
+  /** The imperative entry point has to be callable from a plain consumer, not just internally. */
+  protected async animateImperatively(element: HTMLElement): Promise<void> {
+    await this.#animator.animate(element, this.frames, { duration: 200 })?.finished;
   }
 }

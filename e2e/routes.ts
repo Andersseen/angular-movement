@@ -19,6 +19,7 @@ export const DEMO_ROUTES = [
   'loop',
   'parallax',
   'presence',
+  'presence-list',
   'scroll',
   'smooth-scroll',
   'stagger',

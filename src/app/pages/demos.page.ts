@@ -67,6 +67,11 @@ const DEMO_GROUPS: DemoGroup[] = [
     title: 'Special',
     items: [
       { path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' },
+      {
+        path: 'presence-list',
+        label: 'movePresenceFor',
+        description: 'Exit animations for keyed lists',
+      },
       { path: 'values', label: 'Signal values', description: 'moveValue / moveTransform / spring' },
     ],
   },

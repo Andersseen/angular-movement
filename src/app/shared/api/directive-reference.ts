@@ -360,6 +360,26 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
     inputs: [{ name: 'movePresence', type: 'boolean | "" | undefined', required: false }],
   },
   {
+    name: 'MovePresenceForDirective',
+    selector: '*movePresenceFor',
+    description: 'Render a keyed list and animate items out before removing them',
+    inputs: [
+      { name: 'movePresenceForOf', type: 'readonly T[] | null | undefined', required: true },
+      {
+        name: 'movePresenceForTrackBy',
+        type: 'MovePresenceForTrackBy<T>',
+        required: false,
+        defaultValue: 'identity',
+      },
+      {
+        name: 'movePresenceForMode',
+        type: "'sync' | 'wait'",
+        required: false,
+        defaultValue: "'sync'",
+      },
+    ],
+  },
+  {
     name: 'MoveSmoothScrollDirective',
     selector: '[moveSmoothScroll]',
     description: 'Enable momentum-based smooth scrolling on a container',

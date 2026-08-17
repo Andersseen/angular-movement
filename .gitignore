@@ -36,6 +36,9 @@ yarn-error.log
 /coverage
 /playwright-report
 /test-results
+
+# Snapshots and console logs written by the playwright MCP server (see .mcp.json)
+/.playwright-mcp
 /libpeerconnection.log
 testem.log
 /typings
