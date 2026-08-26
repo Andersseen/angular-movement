@@ -17,6 +17,16 @@ describe('movement library', () => {
     expect(publicApi).not.toHaveProperty('AnimationEngine');
   });
 
+  it('keeps internal DI handshakes and engine-internal classes out of the public barrel', () => {
+    // MOVE_STAGGER_PARENT / MOVE_PRESENCE_PARENT already live outside the barrel; the variants
+    // equivalent is the same kind of parent/child DI token, not a documented extension point.
+    expect(publicApi).not.toHaveProperty('MOVE_VARIANTS_PARENT');
+
+    // Every public return path already types itself as `AnimationControls` (which stays exported);
+    // the concrete class is an engine-internal detail parallel to `AnimationEngine` itself.
+    expect(publicApi).not.toHaveProperty('CompositeAnimationControls');
+  });
+
   it('provides default movement config', () => {
     TestBed.configureTestingModule({
       providers: [provideMovement()],

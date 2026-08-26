@@ -107,15 +107,18 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
   #playAnimation(): void {
     if (!this.#frames) return;
 
+    // Re-checked here (not just at ngOnInit) so a preference toggled between mount and the
+    // element actually intersecting is still honored.
+    const isReduced = prefersReducedMotion(this.#documentRef);
     const config = resolveMovementConfig(
       this.#defaults,
       {
         duration: this.moveDuration(),
         easing: this.moveEasing(),
         delay: this.moveDelay() ?? 0,
-        disabled: false,
+        disabled: this.moveDisabled(),
       },
-      false,
+      isReduced,
     );
 
     // Clear inline styles before animating so WAAPI can take over cleanly
@@ -124,7 +127,9 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
     this.#player = this.#engine.play(this.#host.nativeElement, this.#frames, {
       config,
       spring: this.moveSpring(),
-      disabled: false,
+      // The engine keys off this flag, not `config.disabled` — a hardcoded `false` here would
+      // silently ignore `MOVEMENT_CONFIG.disabled` (the app-wide kill switch).
+      disabled: config.disabled,
     });
 
     this.#isAnimated = true;

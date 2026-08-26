@@ -78,6 +78,56 @@ describe('MoveTextDirective', () => {
 
     expect(playSpy).toHaveBeenCalledTimes(5); // 5 characters
   });
+
+  it('does not create an IntersectionObserver after being destroyed mid-effect', async () => {
+    let observeCalls = 0;
+
+    class TrackingMockIO {
+      observe = vi.fn(() => {
+        observeCalls += 1;
+      });
+      disconnect = vi.fn();
+    }
+    vi.stubGlobal('IntersectionObserver', TrackingMockIO);
+
+    // Build and destroy synchronously, in the same tick: the constructor effect's deferred
+    // Promise.resolve().then() continuation is still queued, not yet run, when destroy() fires.
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+      providers: [provideMovement()],
+    });
+    const raceFixture = TestBed.createComponent(TestHostComponent);
+    raceFixture.detectChanges();
+    raceFixture.destroy();
+
+    // Flush the microtask queue: the continuation runs now, after ngOnDestroy already fired.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(observeCalls).toBe(0);
+  });
+
+  it('does not animate spans when MOVEMENT_CONFIG.disabled is true', async () => {
+    TestBed.resetTestingModule();
+    mockIntersectionObserver(true);
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+      providers: [provideMovement({ disabled: true })],
+    });
+    const disabledFixture = TestBed.createComponent(TestHostComponent);
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play');
+
+    disabledFixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 50));
+    disabledFixture.detectChanges();
+
+    expect(playSpy).toHaveBeenCalled();
+    for (const call of playSpy.mock.calls) {
+      expect(call[2]?.disabled).toBe(true);
+    }
+  });
 });
 
 describe('MoveTextDirective word split', () => {

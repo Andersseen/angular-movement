@@ -85,11 +85,25 @@ Use this classification when documenting or consuming the public API. Stable API
 semantic-versioning expectations; experimental APIs can change significantly between minor
 versions.
 
-| Status               | Directives / helpers                                                                                                                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                                        |
+| Status               | Directives / helpers                                                                                                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, the preset library (`MOVE_PRESETS`) |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                                                     |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                   |
+
+Every exported type mirrors the stability of the API it supports (`@stability` JSDoc tag on the
+declaration is authoritative). `AnimationControls` and the `MovementConfig` family are stable on
+their own — their shape hasn't changed since 0.5. `CompositeAnimationControls` and
+`MOVE_VARIANTS_PARENT`/`MoveVariantsProvider` are internal, not part of the public barrel (see spec
+008): every `AnimationControls`-typed return path already covers the former, and the latter mirrors
+`MOVE_STAGGER_PARENT`/`MOVE_PRESENCE_PARENT`, which were never public either.
+
+`moveTarget`/`moveTrigger` vs `moveVariants`: variants propagate a named state through DI to
+nested `[moveVariants]` children sharing an ancestor; target/trigger instead connect two elements
+that do _not_ share a parent via a plain boolean signal, with no DI propagation — prefer variants
+whenever the elements involved share an ancestor. `moveStagger` vs a variant's `staggerChildren`:
+the former delays direct animated children in DOM order (flat lists); the latter staggers nested
+`[moveVariants]` subtrees on a variant change (stateful children, not just one-shot entrances).
 
 ## Input reactivity
 
@@ -109,11 +123,12 @@ the animation continuously.
 
 ## DI tokens
 
-| Token                  | File                        | Provided by                                    | Consumed by                                                                   |
-| ---------------------- | --------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
-| `MOVEMENT_CONFIG`      | `tokens/movement.tokens.ts` | `provideMovement(config)` (or factory default) | every directive                                                               |
-| `MOVE_STAGGER_PARENT`  | `tokens/stagger.tokens.ts`  | `MoveStaggerDirective`                         | child animation directives                                                    |
-| `MOVE_PRESENCE_PARENT` | `tokens/presence.tokens.ts` | `MovePresenceDirective`                        | `MoveAnimateDirective`, `MoveLeaveDirective`, `MoveAnimationDirective` (exit) |
+| Token                                                  | File                        | Provided by                                    | Consumed by                                                                   |
+| ------------------------------------------------------ | --------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
+| `MOVEMENT_CONFIG`                                      | `tokens/movement.tokens.ts` | `provideMovement(config)` (or factory default) | every directive                                                               |
+| `MOVE_STAGGER_PARENT`                                  | `tokens/stagger.tokens.ts`  | `MoveStaggerDirective`                         | child animation directives                                                    |
+| `MOVE_PRESENCE_PARENT`                                 | `tokens/presence.tokens.ts` | `MovePresenceDirective`                        | `MoveAnimateDirective`, `MoveLeaveDirective`, `MoveAnimationDirective` (exit) |
+| `MOVE_VARIANTS_PARENT` (internal, not barrel-exported) | `tokens/variants.tokens.ts` | `MoveVariantsDirective`                        | `MoveVariantsDirective` (nested), `MoveAnimateDirective`                      |
 
 Defaults (`MOVEMENT_DEFAULTS`): `duration: 300`, `easing: 'cubic-bezier(0.16, 1, 0.3, 1)'`,
 `delay: 0`, `disabled: false`, `iterations: 1`.

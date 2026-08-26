@@ -16,7 +16,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
-import { MOVE_VARIANTS_PARENT } from './move-variants.directive';
+import { MOVE_VARIANTS_PARENT } from '../tokens/variants.tokens';
 
 /**
  * Stable API — covered by semantic-versioning guarantees.

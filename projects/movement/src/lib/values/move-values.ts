@@ -1,27 +1,52 @@
 import {
+  assertInInjectionContext,
   computed,
   effect,
+  inject,
   Injector,
   Signal,
   signal,
   untracked,
   WritableSignal,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
+import { prefersReducedMotion } from '../directives/move-animation.utils';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export type MoveTransformValue = number | string;
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveTransformOptions {
   clamp?: boolean;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveSpringValueConfig extends MoveSpring {
   initial?: number;
   precision?: number;
   restSpeed?: number;
   disabled?: boolean;
-  /** Required because `moveSpringValue` creates an `effect` that needs an injection context. */
-  injector: Injector;
+  /**
+   * Injector to run the underlying `effect` in. Optional when `moveSpringValue` is called from a
+   * valid injection context — a field initializer, a constructor, or inside
+   * `runInInjectionContext` — the same convention `toSignal`/`toObservable` use: it is inferred
+   * automatically via `inject(Injector)`. Pass this explicitly only when calling from outside one
+   * (e.g. a plain function invoked later, or a different injector than the surrounding context).
+   */
+  injector?: Injector;
 }
 
 /**
@@ -91,14 +116,14 @@ export function moveTransform(
  */
 export function moveSpringValue(
   source: Signal<number>,
-  config: MoveSpringValueConfig = { injector: undefined! },
+  config: MoveSpringValueConfig = {},
 ): Signal<number> {
   if (!config.injector) {
-    throw new Error(
-      '[Movement] moveSpringValue requires an `injector` in its config. ' +
-        'Pass `inject(Injector)` from your component/service or provide an explicit injector.',
-    );
+    assertInInjectionContext(moveSpringValue);
   }
+
+  const injector = config.injector ?? inject(Injector);
+  const documentRef = injector.get(DOCUMENT, null, { optional: true });
 
   const value = signal(config.initial ?? source());
   let velocity = config.velocity ?? 0;
@@ -124,8 +149,11 @@ export function moveSpringValue(
 
       cancelRaf();
 
+      const isReduced = documentRef ? prefersReducedMotion(documentRef) : false;
+
       if (
         config.disabled ||
+        isReduced ||
         typeof requestAnimationFrame !== 'function' ||
         typeof cancelAnimationFrame !== 'function'
       ) {
@@ -171,7 +199,7 @@ export function moveSpringValue(
       rafId = requestAnimationFrame(tick);
       onCleanup(cancelRaf);
     },
-    config.injector ? { injector: config.injector } : undefined,
+    { injector },
   );
 
   return value.asReadonly();

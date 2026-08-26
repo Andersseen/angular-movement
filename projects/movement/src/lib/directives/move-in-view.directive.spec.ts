@@ -116,4 +116,35 @@ describe('MoveInViewDirective', () => {
     fixture.destroy();
     expect(mockDisconnect).toHaveBeenCalled();
   });
+
+  it('passes disabled through to the engine when MOVEMENT_CONFIG.disabled is true', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+      providers: [provideMovement({ disabled: true })],
+    });
+    const disabledFixture = TestBed.createComponent(TestHostComponent);
+    disabledFixture.detectChanges();
+
+    const disabledEngine = TestBed.inject(AnimationEngine);
+    const disabledPlaySpy = vi
+      .spyOn(disabledEngine, 'play')
+      .mockReturnValue(null as unknown as AnimationControls);
+
+    capturedCallback(
+      [
+        {
+          isIntersecting: true,
+          target: disabledFixture.debugElement.nativeElement,
+        } as IntersectionObserverEntry,
+      ],
+      {} as IntersectionObserver,
+    );
+
+    expect(disabledPlaySpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ disabled: true }),
+    );
+  });
 });

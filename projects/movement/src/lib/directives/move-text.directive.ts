@@ -61,6 +61,7 @@ export class MoveTextDirective implements OnDestroy {
   #observer: IntersectionObserver | null = null;
   #frames: MoveKeyframes | null = null;
   #originalText = '';
+  #destroyed = false;
 
   constructor() {
     effect(() => {
@@ -77,6 +78,11 @@ export class MoveTextDirective implements OnDestroy {
       // Reading the inputs above is enough to re-run the effect when they change.
       // We defer the actual DOM work so Angular finishes rendering interpolated text.
       Promise.resolve().then(() => {
+        // A destroy that lands in the same tick the effect fired must not let this continuation
+        // create a new IntersectionObserver after ngOnDestroy already ran — nothing would ever
+        // disconnect it.
+        if (this.#destroyed) return;
+
         this.#reset();
 
         if (!isPlatformBrowser(this.#platformId) || disabled) return;
@@ -140,7 +146,9 @@ export class MoveTextDirective implements OnDestroy {
       const player = this.#engine.play(span, this.#frames!, {
         config,
         spring: options.spring,
-        disabled: false,
+        // The engine keys off this flag, not `config.disabled` — a hardcoded `false` here would
+        // silently ignore `MOVEMENT_CONFIG.disabled` (the app-wide kill switch).
+        disabled: config.disabled,
       });
 
       if (player) {
@@ -216,6 +224,7 @@ export class MoveTextDirective implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.#destroyed = true;
     this.#observer?.disconnect();
     this.#players.forEach((p) => p.cancel());
     this.#players = [];

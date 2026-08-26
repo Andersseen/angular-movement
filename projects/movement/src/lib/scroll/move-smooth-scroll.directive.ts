@@ -59,6 +59,11 @@ export class MoveSmoothScrollDirective implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.#scroll.destroy();
+    // Only tear down the shared singleton if this directive's element is the one it is actually
+    // driving — a second, unsupported [moveSmoothScroll] instance must not kill scrolling for the
+    // element that legitimately owns it. See `SmoothScrollService.init()` for the matching warning.
+    if (this.#scroll.activeElement === this.#host.nativeElement) {
+      this.#scroll.destroy();
+    }
   }
 }

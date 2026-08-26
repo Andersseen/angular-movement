@@ -27,6 +27,26 @@ class DisabledSpringHostComponent {
   spring = moveSpringValue(this.source, { disabled: true, injector: inject(Injector) });
 }
 
+@Component({
+  selector: 'move-inferred-injector-spring-host',
+  template: '',
+})
+class InferredInjectorSpringHostComponent {
+  source = signal(0);
+  // No `injector` in config: field initializers run inside the directive/component's own
+  // injection context, so `moveSpringValue` infers it via `inject(Injector)` internally.
+  spring = moveSpringValue(this.source, { stiffness: 120, damping: 18 });
+}
+
+@Component({
+  selector: 'move-reduced-motion-spring-host',
+  template: '',
+})
+class ReducedMotionSpringHostComponent {
+  source = signal(0);
+  spring = moveSpringValue(this.source, { injector: inject(Injector) });
+}
+
 describe('move values', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
@@ -93,12 +113,31 @@ describe('move values', () => {
     );
   });
 
-  it('throws when moveSpringValue is created without an injector', () => {
+  it('throws when moveSpringValue is created outside an injection context and without an injector', () => {
     const source = signal(0);
 
-    expect(() =>
-      moveSpringValue(source, { stiffness: 100, damping: 10 } as unknown as { injector: Injector }),
-    ).toThrow('moveSpringValue requires an `injector`');
+    // Called from a plain test function body — not a field initializer, constructor, or
+    // `runInInjectionContext` — so there is no injector to infer.
+    expect(() => moveSpringValue(source, { stiffness: 100, damping: 10 })).toThrow(
+      /injection context/i,
+    );
+  });
+
+  it('infers the injector from a field initializer when config omits it', () => {
+    const raf = createRafMock();
+    TestBed.configureTestingModule({ imports: [InferredInjectorSpringHostComponent] });
+    const fixture = TestBed.createComponent(InferredInjectorSpringHostComponent);
+    fixture.detectChanges();
+
+    expect(fixture.componentInstance.spring()).toBe(0);
+
+    fixture.componentInstance.source.set(100);
+    fixture.detectChanges();
+    TestBed.tick();
+    raf.flushFrames(10);
+
+    expect(fixture.componentInstance.spring()).toBeGreaterThan(0);
+    expect(fixture.componentInstance.spring()).toBeLessThan(100);
   });
 
   it('animates toward source changes with spring physics', () => {
@@ -131,6 +170,27 @@ describe('move values', () => {
     TestBed.tick();
 
     expect(fixture.componentInstance.spring()).toBe(40);
+  });
+
+  it('jumps straight to the target under prefers-reduced-motion instead of animating', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+      }),
+    );
+
+    TestBed.configureTestingModule({ imports: [ReducedMotionSpringHostComponent] });
+    const fixture = TestBed.createComponent(ReducedMotionSpringHostComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.source.set(75);
+    fixture.detectChanges();
+    TestBed.tick();
+
+    expect(fixture.componentInstance.spring()).toBe(75);
   });
 });
 

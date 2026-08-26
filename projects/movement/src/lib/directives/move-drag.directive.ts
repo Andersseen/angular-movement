@@ -18,11 +18,30 @@ import {
   TransformState,
 } from '../engines/transform-state';
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 export type MoveDragConstraints =
   | { top?: number; right?: number; bottom?: number; left?: number }
   | HTMLElement;
+
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 export type MoveDragAxis = boolean | '' | 'x' | 'y';
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 export interface MoveDragSnapPoint {
   x: number;
   y: number;
@@ -37,6 +56,12 @@ interface DragGesture {
 
 const NO_GESTURE: DragGesture = { scaleX: 1, scaleY: 1, rotate: 0 };
 
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
 export interface MoveDragEvent {
   x: number;
   y: number;

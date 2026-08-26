@@ -56,14 +56,17 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
+Import only the directives a component actually uses — that's what keeps route-level
+tree-shaking effective:
+
 ```ts
 import { Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'angular-movement';
+import { MoveAnimateDirective, MoveHoverDirective } from 'angular-movement';
 
 @Component({
   selector: 'app-demo',
   standalone: true,
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [MoveAnimateDirective, MoveHoverDirective],
   template: `
     <h2 [move]="'fade-up'">Hello movement</h2>
     <button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
@@ -71,6 +74,9 @@ import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 })
 export class DemoComponent {}
 ```
+
+`MOVEMENT_DIRECTIVES` (spread into `imports`) remains available as a convenience for prototyping
+or a component that genuinely uses most of the library.
 
 ## Common Usage
 
@@ -102,6 +108,18 @@ Start with the smallest primitive that matches the job:
 | Scroll and layout | `moveScroll`, `moveParallax`, `moveLayout`, `moveSmoothScroll`               |
 | Advanced          | `pathLength`, `pathOffset`, `transition`, `spring`, `moveDrag`               |
 
+A few of these look interchangeable but solve different problems:
+
+- `[move]`/`moveAnimate` (preset name or keyframe pairs) vs `[moveAnimation]` (Framer-style
+  `{ initial, animate, exit }` single-value states, reactive to `animate` changes) — both describe
+  one element's own enter/leave; pick whichever shape you're already thinking in.
+- `moveVariants` (DI-propagated named state for a subtree that shares an ancestor, with
+  `staggerChildren`/`delayChildren`/`when`) vs `moveTarget`/`moveTrigger` (experimental — connects
+  two elements that do **not** share a parent). Prefer `moveVariants` whenever the elements
+  involved share an ancestor.
+- `moveStagger` (delays direct animated children in DOM order) vs a variant's `staggerChildren`
+  (staggers nested `[moveVariants]` subtrees on a variant change).
+
 ### Preset animation
 
 ```html
@@ -131,17 +149,25 @@ The object-based `[moveAnimation]` API is still available when you prefer a sing
 
 ### Motion values with signals
 
+Called from a field initializer or constructor of a class Angular constructs (a component,
+directive, or service), `moveSpringValue` infers its injector automatically:
+
 ```ts
-import { computed, inject, Injector } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
 
-const progress = moveValue(0);
-const x = moveTransform(progress, [0, 1], [0, 120]);
-const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
-  injector: inject(Injector),
-});
-const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
+@Component({ selector: 'app-card', template: `...` })
+class CardComponent {
+  progress = moveValue(0);
+  x = moveTransform(this.progress, [0, 1], [0, 120]);
+  scale = moveSpringValue(moveTransform(this.progress, [0, 1], [0.9, 1]));
+  transform = computed(() => `translateX(${this.x()}px) scale(${this.scale()})`);
+}
 ```
+
+Pass `{ injector }` explicitly only when calling from outside an injection context. It also
+respects `prefers-reduced-motion` automatically, jumping straight to the target value instead of
+animating.
 
 `moveScroll` and `moveParallax` export a `progress` signal for derived values:
 
@@ -303,14 +329,16 @@ Main entrypoint exports:
 
 ## API stability
 
-| Status               | APIs                                                                                                                                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                       |
+| Status               | APIs                                                                                                                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, the preset library (`MOVE_PRESETS`) |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                                                     |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                   |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small adjustments. Experimental APIs can change significantly between minor versions.
+Every exported type mirrors the stability of the API it supports — see the `@stability` JSDoc tag
+on the specific declaration for the authoritative answer.
 
 ## Input reactivity
 
