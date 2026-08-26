@@ -1,3 +1,8 @@
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MovePreset =
   | 'fade-up'
   | 'fade-down'
@@ -29,11 +34,32 @@ export type MovePreset =
   | 'icon-bounce'
   | 'none';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MoveValue = number | string;
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MoveValuePair = readonly MoveValue[];
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MoveStateValue = MoveValue | MoveValuePair;
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export interface MoveSpring {
   stiffness?: number;
   damping?: number;
@@ -45,9 +71,18 @@ export interface MoveSpring {
  * `'loop'` restarts from the first keyframe each cycle. `'reverse'` alternates direction, so the
  * animation plays back to its start instead of snapping there — what a breathing or yoyo effect
  * needs.
+ *
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
  */
 export type MoveRepeatType = 'loop' | 'reverse';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveRepeatOptions {
   /** Number of cycles, or `Infinity` for an endless one. */
   repeat?: number;
@@ -56,12 +91,22 @@ export interface MoveRepeatOptions {
   repeatDelay?: number;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MovePropertyTransition {
   duration?: number;
   easing?: string;
   delay?: number;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export type MoveTransitionConfig = MovePropertyTransition &
   MoveRepeatOptions & {
     /**
@@ -71,6 +116,11 @@ export type MoveTransitionConfig = MovePropertyTransition &
     times?: readonly number[];
   } & Record<string, MovePropertyTransition | MoveValue | readonly number[] | undefined>;
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export interface MoveKeyframeProperties {
   opacity?: MoveValuePair;
   x?: MoveValuePair;
@@ -91,8 +141,18 @@ export interface MoveKeyframeProperties {
   strokeOpacity?: MoveValuePair;
 }
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MoveKeyframes = MoveKeyframeProperties & Record<string, MoveValuePair | undefined>;
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export type MoveVariantState = {
   [K in keyof MoveKeyframeProperties]?: MoveStateValue;
 } & Record<
@@ -103,9 +163,18 @@ export type MoveVariantState = {
 /**
  * `'beforeChildren'` plays the parent first and offsets its children by the parent's duration.
  * `'afterChildren'` runs the children first and delays the parent until their stagger span is done.
+ *
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
  */
 export type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
   duration?: number;
@@ -119,12 +188,22 @@ export type MoveVariant = MoveVariantState & {
   when?: MoveVariantOrchestration;
 };
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export interface MovePresetDefinition {
   enter: MoveKeyframes;
   leave: MoveKeyframes;
   loop?: MoveKeyframes;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveKeyframeState {
   opacity?: number;
   x?: number;
@@ -146,6 +225,11 @@ export interface MoveKeyframeState {
   [key: string]: number | string | undefined;
 }
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveAnimationConfig {
   initial?: MoveKeyframeState;
   animate?: MoveKeyframeState;

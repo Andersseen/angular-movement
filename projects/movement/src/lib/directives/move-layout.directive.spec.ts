@@ -22,6 +22,18 @@ class TestHostComponent {
   renderTick = signal(0);
 }
 
+@Component({
+  selector: 'move-layout-no-disabled-input-host',
+  template: `
+    <div moveLayout>Layout item</div>
+    <span class="sr-only">{{ renderTick() }}</span>
+  `,
+  imports: [MoveLayoutDirective],
+})
+class NoDisabledInputHostComponent {
+  renderTick = signal(0);
+}
+
 describe('MoveLayoutDirective', () => {
   let fixture: ComponentFixture<TestHostComponent>;
   let host: HTMLElement;
@@ -161,6 +173,42 @@ describe('MoveLayoutDirective', () => {
 
     expect(before).toBe('translate(40px, 0px)');
     expect(host.style.transform).toBe(before);
+  });
+
+  it('passes disabled through to the engine when MOVEMENT_CONFIG.disabled is true', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [NoDisabledInputHostComponent],
+      providers: [provideMovement({ disabled: true })],
+    });
+
+    const disabledEngine = TestBed.inject(AnimationEngine);
+    const disabledPlaySpy = vi.spyOn(disabledEngine, 'play').mockReturnValue(mockPlayer);
+
+    const disabledFixture = TestBed.createComponent(NoDisabledInputHostComponent);
+    disabledFixture.detectChanges();
+
+    const disabledHost = disabledFixture.debugElement.query(
+      By.directive(MoveLayoutDirective),
+    ).nativeElement;
+    let disabledRect = rect({ left: 10, top: 20, width: 100, height: 50 });
+    vi.spyOn(disabledHost, 'getBoundingClientRect').mockImplementation(() => disabledRect);
+
+    const renderDisabled = async () => {
+      disabledFixture.componentInstance.renderTick.update((value) => value + 1);
+      disabledFixture.detectChanges();
+      await disabledFixture.whenStable();
+    };
+
+    await renderDisabled();
+    disabledRect = rect({ left: 30, top: 10, width: 200, height: 25 });
+    await renderDisabled();
+
+    expect(disabledPlaySpy).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.objectContaining({ disabled: true }),
+    );
   });
 
   it('should not register render work on the server platform', () => {

@@ -96,6 +96,41 @@ describe('SmoothScrollService', () => {
     expect(wheelCalls).toHaveLength(1);
   });
 
+  it('re-initializing the same element does not warn', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+    const el = makeScrollEl();
+
+    service.init({ element: el });
+    service.init({ element: el });
+
+    expect(warnSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns and stays on the original element when a second element tries to init', () => {
+    const warnSpy = vi.spyOn(console, 'warn').mockReturnValue(undefined);
+    const first = makeScrollEl();
+    const second = makeScrollEl();
+    const secondAddSpy = vi.spyOn(second, 'addEventListener');
+
+    service.init({ element: first });
+    service.init({ element: second });
+
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining('singleton'));
+    expect(secondAddSpy).not.toHaveBeenCalled();
+    expect(service.activeElement).toBe(first);
+  });
+
+  it('exposes the currently driven element via activeElement', () => {
+    expect(service.activeElement).toBeNull();
+
+    const el = makeScrollEl();
+    service.init({ element: el });
+    expect(service.activeElement).toBe(el);
+
+    service.destroy();
+    expect(service.activeElement).toBeNull();
+  });
+
   it('cancels RAF on destroy', () => {
     const el = makeScrollEl();
     service.init({ element: el });

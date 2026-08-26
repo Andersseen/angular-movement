@@ -3,6 +3,11 @@ import { MoveSpring } from '../presets/presets.types';
 import { compareDocumentOrder, optionalNumberAttribute } from './move-animation.utils';
 import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.tokens';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
 
 /**

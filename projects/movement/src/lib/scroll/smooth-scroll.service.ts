@@ -1,6 +1,7 @@
 import { DOCUMENT, isPlatformBrowser } from '@angular/common';
 import { inject, Injectable, OnDestroy, PLATFORM_ID, signal } from '@angular/core';
 import { prefersReducedMotion } from '../directives/move-animation.utils';
+import { movementWarn } from '../dev-warn';
 
 /**
  * SmoothScrollService — Lenis-inspired smooth scroll for Angular.
@@ -102,9 +103,28 @@ export class SmoothScrollService implements OnDestroy {
     return this.#isRunning;
   }
 
+  /** The element the service is currently driving, or `null` when inactive. */
+  get activeElement(): HTMLElement | null {
+    return this.#scrollElement;
+  }
+
   init(options: { lerp?: number; element?: HTMLElement } = {}): void {
     if (!isPlatformBrowser(this.#platformId)) return;
-    if (this.#isRunning) return;
+
+    if (this.#isRunning) {
+      // `SmoothScrollService` is a root singleton: only one element can drive it at a time.
+      // Re-initializing the same element (e.g. a re-run `ngOnInit`) is a harmless no-op; a
+      // *different* element means two `[moveSmoothScroll]` instances (or a directive plus a
+      // manual `init()` call) are competing for the same service.
+      if (options.element && options.element !== this.#scrollElement) {
+        movementWarn(
+          'SmoothScrollService is already driving a different element. It is a root singleton — ' +
+            'use [moveSmoothScroll]/init() on only one element at a time, or inject the service ' +
+            'directly where you need to coordinate multiple containers.',
+        );
+      }
+      return;
+    }
 
     // Respect user motion preferences: smooth scroll overrides native scroll,
     // which can be disorienting for users who prefer reduced motion.

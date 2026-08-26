@@ -24,11 +24,25 @@ import {
  * `'popLayout'` — a leaving row is taken out of flow so the remaining rows close the gap
  * immediately, instead of waiting for the exit animation to finish. The list container must be
  * positioned (`position: relative`) for the row to stay where it was.
+ *
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
  */
 export type MovePresenceForMode = 'sync' | 'wait' | 'popLayout';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export type MovePresenceForTrackBy<T> = (index: number, item: T) => unknown;
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MovePresenceForContext<T> {
   $implicit: T;
   index: number;

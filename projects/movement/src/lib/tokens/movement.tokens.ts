@@ -1,5 +1,10 @@
 import { InjectionToken } from '@angular/core';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export interface MovementConfig {
   duration: number;
   easing: string;
@@ -8,6 +13,11 @@ export interface MovementConfig {
   iterations?: number;
 }
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export const MOVEMENT_DEFAULTS: MovementConfig = {
   duration: 300,
   easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -16,6 +26,11 @@ export const MOVEMENT_DEFAULTS: MovementConfig = {
   iterations: 1,
 };
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 export const MOVEMENT_CONFIG = new InjectionToken<MovementConfig>('MOVEMENT_CONFIG', {
   factory: () => ({ ...MOVEMENT_DEFAULTS }),
 });

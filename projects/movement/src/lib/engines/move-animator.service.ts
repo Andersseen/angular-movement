@@ -6,6 +6,11 @@ import { MoveKeyframes, MoveSpring, MoveTransitionConfig } from '../presets/pres
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from '../directives/move-animation.utils';
 
+/**
+ * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ *
+ * @stability candidate
+ */
 export interface MoveAnimateOptions {
   duration?: number;
   easing?: string;

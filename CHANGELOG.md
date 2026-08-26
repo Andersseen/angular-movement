@@ -2,6 +2,63 @@
 
 ## Unreleased
 
+0.9 is an API-convergence / pre-1.0 hardening pass (spec 008) — auditing and fixing what 0.8
+shipped rather than adding new features. See `docs/ai/specs/008-09-api-convergence-hardening.md`.
+
+### Changed
+
+- **`moveSpringValue`'s `injector` is now optional.** Called from a field initializer, constructor,
+  or `runInInjectionContext`, it infers the injector automatically via `inject(Injector)` — the
+  same convention `toSignal`/`toObservable` use. Passing `{ injector }` explicitly still works
+  identically for calls outside an injection context.
+- **`moveSpringValue` now respects `prefers-reduced-motion`** — previously the only motion
+  primitive in the library that didn't check it automatically; a consumer had to resolve and pass
+  `disabled` manually. It now jumps straight to the target value under reduced motion, same as
+  `config.disabled`.
+- `moveScroll` and `moveParallax` promoted from stable candidate to stable — both have zero open
+  gotchas and strong test coverage since their 0.7.0 reduced-motion fix.
+- Root README, package README, and `docs/ai/ARCHITECTURE.md` quick-start examples now recommend
+  importing individual directives instead of spreading `MOVEMENT_DIRECTIVES`, which stays
+  documented as a convenience option.
+- Documented the intended hierarchy between primitives that look interchangeable but solve
+  different problems: `[move]`/`moveAnimate` vs `[moveAnimation]`, `moveVariants` vs
+  `moveTarget`/`moveTrigger`, and `moveStagger` vs a variant's `staggerChildren`.
+- Every previously-unclassified public export (mostly `presets.types.ts`, icon helpers, motion
+  value config types, drag/presence-for/stagger types) now carries a `@stability` JSDoc tag.
+
+### Fixed
+
+- **`MoveLayoutDirective`, `MoveTextDirective`, `MoveInViewDirective` now honour
+  `MOVEMENT_CONFIG.disabled`.** All three resolved a `disabled` config correctly but then
+  hardcoded `disabled: false` at the `AnimationEngine.play()` call, silently ignoring the app-wide
+  kill switch from `provideMovement({ disabled: true })` — the same bug class that broke
+  `moveScroll`/`moveParallax` reduced-motion handling in 0.7.0. `MoveInViewDirective` also now
+  re-checks `prefers-reduced-motion` at play time (not just at `ngOnInit`), so a preference toggled
+  between mount and the element intersecting is still honored.
+- **`MoveTextDirective` could orphan an `IntersectionObserver` on destroy.** Its effect defers work
+  via a microtask; destroying the directive in the same tick the effect fired let that microtask
+  run after `ngOnDestroy` and create an observer nothing would ever disconnect. Guarded with a
+  destroyed flag.
+- **`SmoothScrollService` (root singleton) now warns in dev mode** when a second
+  `[moveSmoothScroll]` element (or a manual `.init()` call) tries to activate while it is already
+  driving a different element, instead of silently doing nothing. A directive's `ngOnDestroy` no
+  longer tears down the service if it isn't the element the service is actually driving, so a
+  misused second instance can't kill scrolling for the one that legitimately owns it. New
+  `activeElement` getter exposes ownership.
+
+### Removed
+
+- **`MOVE_VARIANTS_PARENT` and `MoveVariantsProvider` are no longer exported.** They lived directly
+  in the barrel-exported `move-variants.directive.ts`, unlike the identical
+  `MOVE_STAGGER_PARENT`/`MOVE_PRESENCE_PARENT` pattern, which deliberately lives in un-exported
+  `tokens/*.ts` files and was never documented as public. Moved to internal
+  `tokens/variants.tokens.ts`. **Breaking, but nothing outside the library referenced either
+  symbol** (verified across the demo site and both READMEs) — see MIGRATION.md.
+- **`CompositeAnimationControls` (the concrete class) is no longer exported.** Every return path
+  already types itself as the still-public `AnimationControls` interface; the class was an
+  engine-internal detail parallel to `AnimationEngine`, which already stayed internal so 1.0 can
+  freeze the barrel without freezing the engine. **Breaking, narrow** — see MIGRATION.md.
+
 ## [0.8.0] - 2026-08-17
 
 ### Added

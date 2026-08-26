@@ -1,7 +1,6 @@
 import {
   Directive,
   ElementRef,
-  InjectionToken,
   computed,
   effect,
   forwardRef,
@@ -30,24 +29,7 @@ import {
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
-
-export interface MoveVariantsProvider {
-  activeVariant: () => string | undefined;
-  /** Optional so an existing implementation of this interface keeps compiling. */
-  registerChild?(element: HTMLElement): void;
-  unregisterChild?(element: HTMLElement): void;
-  /** Orchestration delay this parent assigns to the given child, in milliseconds. */
-  childDelay?(element: HTMLElement): number;
-}
-
-/**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
- *
- * @stability candidate
- */
-export const MOVE_VARIANTS_PARENT = new InjectionToken<MoveVariantsProvider>(
-  'MOVE_VARIANTS_PARENT',
-);
+import { MOVE_VARIANTS_PARENT, MoveVariantsProvider } from '../tokens/variants.tokens';
 
 @Directive({
   selector: '[moveVariants]',

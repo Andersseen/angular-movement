@@ -227,7 +227,9 @@ export class MoveLayoutDirective implements OnDestroy {
       {
         config,
         spring: this.moveSpring(),
-        disabled: false,
+        // The engine keys off this flag, not `config.disabled` — a hardcoded `false` here would
+        // silently ignore `MOVEMENT_CONFIG.disabled` (the app-wide kill switch).
+        disabled: config.disabled,
         onDone: () => {
           this.#finishLayoutAnimation(transformOrigin);
         },

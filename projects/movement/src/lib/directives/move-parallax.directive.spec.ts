@@ -38,15 +38,9 @@ class MockIntersectionObserver {
   constructor(callback: IntersectionObserverCallback) {
     this.callback = callback;
   }
-  observe() {
-    // no-op
-  }
-  unobserve() {
-    // no-op
-  }
-  disconnect() {
-    // no-op
-  }
+  observe = vi.fn();
+  unobserve = vi.fn();
+  disconnect = vi.fn();
 
   // Helper to trigger
   trigger(isIntersecting: boolean) {
@@ -149,6 +143,33 @@ describe('MoveParallaxDirective', () => {
       // p = 500 / totalDistance (600) = 0.8333
       expect(mockPlayer.currentTime).toBeCloseTo(833.3, 0);
       expect(debugElement.injector.get(MoveParallaxDirective).progress()).toBeCloseTo(0.8333, 3);
+    });
+
+    it('cancels the player and removes all listeners on destroy', () => {
+      const mockPlayer = playSpy.mock.results[0].value;
+      observerInstance.trigger(true);
+
+      const removeEventListenerSpy = vi.spyOn(w, 'removeEventListener');
+
+      fixture.destroy();
+
+      expect(mockPlayer.cancel).toHaveBeenCalled();
+      expect(observerInstance.disconnect).toHaveBeenCalled();
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+      expect(removeEventListenerSpy).toHaveBeenCalledWith('resize', expect.any(Function));
+    });
+
+    it('does not keep scheduling scroll updates after destroy', () => {
+      observerInstance.trigger(true);
+      fixture.destroy();
+
+      const mockPlayer = playSpy.mock.results[0].value;
+      mockPlayer.currentTime = -1; // sentinel: nothing below should touch this again
+
+      Object.defineProperty(w, 'scrollY', { writable: true, value: 500 });
+      w.dispatchEvent(new Event('scroll'));
+
+      expect(mockPlayer.currentTime).toBe(-1);
     });
   });
 

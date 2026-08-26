@@ -17,9 +17,9 @@ import { MoveKeyframes } from '../presets/presets.types';
 import { numberAttribute, prefersReducedMotion } from './move-animation.utils';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 @Directive({
   selector: '[moveParallax]',

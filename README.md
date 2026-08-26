@@ -97,16 +97,19 @@ export const appConfig: ApplicationConfig = {
 };
 ```
 
-**2. Import the directives and use them in templates**
+**2. Import only the directives you use**
+
+Standalone components tree-shake per route, but only if you import what you actually use — a
+directive that's never imported anywhere never ships.
 
 ```ts
 import { Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'angular-movement';
+import { MoveAnimateDirective, MoveHoverDirective } from 'angular-movement';
 
 @Component({
   selector: 'app-demo-card',
   standalone: true,
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [MoveAnimateDirective, MoveHoverDirective],
   template: `
     <h2 [move]="'fade-up'">Hello movement</h2>
     <button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
@@ -114,6 +117,10 @@ import { MOVEMENT_DIRECTIVES } from 'angular-movement';
 })
 export class DemoCardComponent {}
 ```
+
+> `MOVEMENT_DIRECTIVES` (all 21, spread into `imports`) is still exported as a convenience for
+> prototyping or a component that genuinely uses most of the library — just know it pulls in
+> everything, including directives that component doesn't use.
 
 ## 🧩 Pick the right primitive
 
@@ -130,6 +137,25 @@ Start with the smallest primitive that matches the job:
 
 > `moveLeave` plays only while a parent `movePresence` keeps the view alive during removal.
 > A plain `@if` removes the element immediately, so there is no node left to animate.
+
+Several of these look interchangeable at first glance. They're not — each covers a distinct job:
+
+- **`[move]` / `moveAnimate` vs `[moveAnimation]`.** Both describe a single element's own
+  enter/leave. `[move]`/`moveAnimate` take a preset name or `MoveKeyframes` pairs
+  (`{ opacity: [0, 1] }`); `[moveAnimation]` takes Framer-style single-value state objects
+  (`{ initial, animate, exit }`) and is reactive to `animate` changing. Reach for
+  `[moveAnimation]` when you're already thinking in `initial`/`animate`/`exit` state, otherwise
+  `[move]` is the simpler default.
+- **`moveVariants` vs `moveTarget`/`moveTrigger`.** `moveVariants` propagates a named state down
+  through DI to nested `[moveVariants]` children — the tool for a **shared** state (`idle`,
+  `open`, `active`) driving a subtree, with `staggerChildren`/`delayChildren`/`when`
+  orchestration. `moveTarget`/`moveTrigger` (experimental) instead connect two elements that do
+  **not** share a parent — a boolean signal flips an animation on a target elsewhere in the DOM,
+  with no DI propagation. Prefer `moveVariants` whenever the elements involved share an ancestor.
+- **`moveStagger` vs `staggerChildren`.** `[moveStagger]` delays its **direct** animated children
+  in DOM order — the tool for a flat list. `staggerChildren` (a `moveVariants` state property)
+  staggers **nested `[moveVariants]` subtrees** on a variant change — the tool when the staggered
+  items are themselves stateful, not just entering once.
 
 ## 🎛️ Explore the interactive playground
 
@@ -274,17 +300,37 @@ Override timing per property, and point `moveExitVariant` at the variant that pl
 
 <br/>
 
+Called from a field initializer or constructor of a class Angular itself constructs — a
+component, directive, or service — `moveSpringValue` infers its injector automatically, the same
+convention `toSignal`/`toObservable` use:
+
 ```ts
-import { computed, inject, Injector } from '@angular/core';
+import { Component, computed } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'angular-movement';
 
-const progress = moveValue(0);
-const x = moveTransform(progress, [0, 1], [0, 120]);
-const scale = moveSpringValue(moveTransform(progress, [0, 1], [0.9, 1]), {
-  injector: inject(Injector),
-});
-const transform = computed(() => `translateX(${x()}px) scale(${scale()})`);
+@Component({ selector: 'app-card', template: `...` })
+class CardComponent {
+  progress = moveValue(0);
+  x = moveTransform(this.progress, [0, 1], [0, 120]);
+  scale = moveSpringValue(moveTransform(this.progress, [0, 1], [0.9, 1]));
+  transform = computed(() => `translateX(${this.x()}px) scale(${this.scale()})`);
+}
 ```
+
+Calling it from outside an injection context (a plain function invoked later, a different
+injector than the surrounding one) still needs an explicit `injector`:
+
+```ts
+import { inject, Injector } from '@angular/core';
+import { moveSpringValue } from 'angular-movement';
+
+function buildScale(source: Signal<number>, injector: Injector) {
+  return moveSpringValue(source, { injector });
+}
+```
+
+`moveSpringValue` also respects `prefers-reduced-motion` automatically, same as every directive —
+under reduced motion it jumps straight to the target value instead of animating.
 
 Scroll directives expose progress as a signal, so you can derive values without a manual scroll loop:
 
@@ -302,18 +348,25 @@ Scroll directives expose progress as a signal, so you can derive values without 
 
 ## 🧪 API stability
 
-| Status               | APIs                                                                                                                                                                                                           |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, basic presets |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveScroll`, `moveParallax`, `moveText`, `moveLoop`, `MoveAnimator`, `CompositeAnimationControls`, `moveValue`, `moveTransform`, `moveSpringValue`     |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll`, `moveTarget`, `moveTrigger`                                                                       |
+| Status               | APIs                                                                                                                                                                                                                                                               |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, the preset library (`MOVE_PRESETS`) |
+| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                                                     |
+| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                   |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small naming or behavior adjustments. Experimental APIs can change significantly between
 minor versions.
 
+Every exported type mirrors the stability of the API it supports — `MoveKeyframes` is stable
+because the directives that take it are stable, `MoveDragEvent` is experimental because
+`moveDrag` is. `AnimationControls` (the return type shared by `MoveAnimator` and every directive
+internally) and the `MovementConfig` family (behind `provideMovement`) are stable on their own:
+their shape hasn't changed since 0.5 and both are load-bearing for everything else.
+
 Each level is also declared in the source as a `@stability` JSDoc tag (`stable` / `candidate` /
-`experimental`), so your editor shows the guarantee at the point of use. Experimental declarations
+`experimental`), so your editor shows the guarantee at the point of use — check the tag on the
+specific declaration you're using for the authoritative answer. Experimental declarations
 additionally carry the standard `@experimental` tag.
 
 ## 🔄 Input reactivity
