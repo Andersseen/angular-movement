@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [0.9.0] - 2026-08-26
+
 0.9 is an API-convergence / pre-1.0 hardening pass (spec 008) — auditing and fixing what 0.8
 shipped rather than adding new features. See `docs/ai/specs/008-09-api-convergence-hardening.md`.
 
