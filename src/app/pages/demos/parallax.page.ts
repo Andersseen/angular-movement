@@ -31,6 +31,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
           <div class="relative my-8 flex h-[280px] w-full items-center justify-center">
             <!-- Sky/Background layer (slowest - barely moves) -->
             <div
+              data-testid="parallax-bg-layer"
               [moveParallax]="bgSpeed()"
               moveParallaxContainer="#parallax-demo-container"
               class="absolute inset-x-0 top-0 flex h-full items-center justify-center"
@@ -57,6 +58,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
             <!-- Foreground/Content (fastest - moves most) -->
             <div
+              data-testid="parallax-fg-layer"
               [moveParallax]="fgSpeed()"
               moveParallaxContainer="#parallax-demo-container"
               class="bg-surface border-accent/50 relative z-10 flex flex-col items-center gap-3 rounded-2xl border-2 p-6 shadow-2xl"
@@ -143,11 +145,11 @@ export default class DemoParallax {
 
   protected readonly parallaxCode = computed(() => {
     const speed = this.fgSpeed();
-    return `&lt;<span class="code-keyword">div</span>
-  <span class="code-attr">[moveParallax]</span>=<span class="code-string">"${speed}"</span>
-  <span class="code-attr">moveParallaxContainer</span>=<span class="code-string">"'#parallax-demo-container'"</span>&gt;
+    return `<div
+  [moveParallax]="${speed}"
+  moveParallaxContainer="'#parallax-demo-container'">
   Parallax Element
-&lt;/<span class="code-keyword">div</span>&gt;`;
+</div>`;
   });
 
   // Computed speeds based on intensity

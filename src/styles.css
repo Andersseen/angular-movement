@@ -73,6 +73,38 @@
   --font-mono: 'Geist Mono', 'Fira Code', monospace; /* code */
 }
 
+/*
+ * Light theme. Dark stays the default (bare :root above) so SSR output and no-JS clients keep
+ * today's look — the blocking script in index.html sets `data-theme="light"` before first paint
+ * when that's the resolved preference, so this never has to fight a flash of the wrong theme.
+ * Same hue angles as dark (268 for brand/surface, 155/268/55 for code) — only lightness/chroma
+ * shift, so accent, code colors, and brand identity read as the same system in both themes.
+ */
+:root[data-theme='light'] {
+  /* Brand */
+  --color-accent: oklch(0.5 0.22 268);
+  --color-accent-light: oklch(0.42 0.2 268);
+  --color-accent-glow: oklch(0.5 0.22 268 / 0.12);
+
+  /* Surface */
+  --color-bg: oklch(0.99 0.003 268);
+  --color-surface: oklch(0.965 0.006 268);
+  --color-surface-raised: oklch(0.93 0.008 268);
+  --color-border: oklch(0.85 0.012 268);
+
+  /* Text */
+  --color-text: oklch(0.17 0.015 268);
+  --color-text-muted: oklch(0.4 0.015 268);
+  --color-text-subtle: oklch(0.55 0.012 268);
+
+  /* Code */
+  --color-code-bg: oklch(0.96 0.006 268);
+  --color-code-string: oklch(0.48 0.15 155);
+  --color-code-keyword: oklch(0.5 0.2 268);
+  --color-code-attr: oklch(0.52 0.16 55);
+  --color-code-comment: oklch(0.58 0.012 268);
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);

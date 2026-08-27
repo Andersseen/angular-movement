@@ -425,6 +425,147 @@ test.describe('demo pages', () => {
       })
       .toBe(active ? expected : 0);
   });
+
+  test('animate demo reflects slider changes in the preview and generated code', async ({
+    page,
+  }) => {
+    await page.goto('/demos/animate');
+
+    await page.locator('#scale').fill('1.5');
+
+    const editor = page.locator('vertex-editor-lite');
+    await expect
+      .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
+        timeout: 3000,
+      })
+      .toContain('scale: 1.5');
+  });
+
+  test('enter demo replays with the newly selected preset', async ({ page }) => {
+    await page.goto('/demos/enter');
+
+    const label = page.locator('.font-display', { hasText: /^Fade Up$/i });
+    await expect(label).toBeVisible();
+
+    await page.selectOption('#preset-select', 'zoom-in');
+
+    await expect(page.locator('.font-display', { hasText: /^Zoom In$/i })).toBeVisible();
+  });
+
+  test('hover demo plays a WAAPI animation on mouse enter', async ({ page }) => {
+    await page.goto('/demos/hover');
+
+    const card = page.locator('.cursor-pointer', { hasText: 'Hover over this card' });
+    await expect(card).toBeVisible();
+
+    await card.hover();
+
+    await expect
+      .poll(async () => card.evaluate((el) => el.getAnimations().length))
+      .toBeGreaterThan(0);
+  });
+
+  test('tap demo plays a WAAPI animation on press', async ({ page }) => {
+    await page.goto('/demos/tap');
+
+    const button = page.locator('button', { hasText: /Press Down|Shrink|Ripple|Bounce/ });
+    await expect(button).toBeVisible();
+
+    const box = await button.boundingBox();
+    if (!box) throw new Error('tap demo did not lay out');
+
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.down();
+
+    await expect
+      .poll(async () => button.evaluate((el) => el.getAnimations().length))
+      .toBeGreaterThan(0);
+
+    await page.mouse.up();
+  });
+
+  test('target demo toggles the SVG draw state on click', async ({ page }) => {
+    await page.goto('/demos/target');
+
+    const toggle = page.getByRole('button', { name: /Draw icon|Reset icon/ });
+    const path = page.locator('path[stroke-width="7"]');
+    await expect(toggle).toHaveText('Reset icon');
+
+    const before = await settledMotionState(path);
+
+    await toggle.click();
+    await expect(toggle).toHaveText('Draw icon');
+    await expect.poll(async () => motionState(path), { timeout: 3000 }).not.toBe(before);
+
+    await toggle.click();
+    await expect(toggle).toHaveText('Reset icon');
+  });
+
+  test('loop demo keeps a WAAPI animation running and repeat controls update it', async ({
+    page,
+  }) => {
+    await page.goto('/demos/loop');
+
+    const spinner = page.locator('[preview] svg').first();
+    await expect(spinner).toBeVisible();
+    await expect
+      .poll(async () => spinner.evaluate((el) => el.getAnimations().length))
+      .toBeGreaterThan(0);
+
+    await page.selectOption('#loopType', 'pulse');
+
+    const pulse = page.getByTestId('loop-pulse');
+    await expect(pulse).toBeVisible();
+    await expect
+      .poll(async () => pulse.evaluate((el) => el.getAnimations().length))
+      .toBeGreaterThan(0);
+
+    await expect(page.getByTestId('loop-repeat-type')).toContainText('repeatType: loop');
+    await page.getByTestId('loop-repeat-type').click();
+    await expect(page.getByTestId('loop-repeat-type')).toContainText('repeatType: reverse');
+  });
+
+  test('text demo splits text into animated character spans', async ({ page }) => {
+    await page.goto('/demos/text');
+
+    const heading = page.locator('h2', { hasText: 'Animate Text' });
+    await expect(heading).toBeVisible();
+
+    // moveText splits into spans on a microtask after render — count is 0 for one tick.
+    await expect
+      .poll(async () => heading.locator('span').count(), { timeout: 3000 })
+      .toBeGreaterThan(5);
+  });
+
+  test('icons demo animates SVG path drawing when toggled', async ({ page }) => {
+    await page.goto('/demos/icons');
+
+    const path = page.getByTestId('icons-paperclip');
+    await expect(path).toBeVisible();
+
+    const before = await settledMotionState(path);
+
+    await page.getByRole('button', { name: /Animate|Reset/ }).click();
+
+    await expect.poll(async () => motionState(path), { timeout: 3000 }).not.toBe(before);
+  });
+
+  test('parallax demo moves layers by different amounts on scroll', async ({ page }) => {
+    await page.goto('/demos/parallax');
+
+    const fg = page.getByTestId('parallax-fg-layer');
+    await expect(fg).toBeVisible();
+
+    const fgBefore = await settledMotionState(fg);
+
+    // Matches the mechanism the reduced-motion variant of this test already relies on — a real
+    // wheel gesture over the container, not a synthetic `scroll` event dispatch.
+    const box = await page.locator('#parallax-demo-container').boundingBox();
+    if (box) await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+    await page.mouse.wheel(0, 600);
+
+    await expect.poll(async () => motionState(fg), { timeout: 3000 }).not.toBe(fgBefore);
+  });
 });
 
 /**

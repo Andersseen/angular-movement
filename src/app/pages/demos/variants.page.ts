@@ -70,7 +70,7 @@ export default class DemoVariants {
   protected currentVariant = signal('idle');
 
   protected readonly variantsCode = computed(() => {
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveVariants]</span>=<span class="code-string">"variantsConfig"</span> <span class="code-attr">[moveVariant]</span>=<span class="code-string">"'${this.currentVariant()}'"</span>&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `<div [moveVariants]="variantsConfig" [moveVariant]="'${this.currentVariant()}'">\n  Target Element\n</div>`;
   });
 
   protected readonly variantsConfig: Record<string, MoveVariant> = {

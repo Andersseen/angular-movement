@@ -114,7 +114,7 @@ export default class DemoScroll {
     const intensity = this.intensity();
     const y = effect === 'translate' || effect === 'mixed' ? intensity : 0;
     const rotate = effect === 'rotate' || effect === 'mixed' ? intensity : 0;
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">[moveScroll]</span>=<span class="code-string">"{ y: [0, ${y}], rotate: [0, ${rotate}] }"</span> <span class="code-attr">moveScrollContainer</span>=<span class="code-string">"'.container'"</span>&gt;\n  Scroll Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `<div [moveScroll]="{ y: [0, ${y}], rotate: [0, ${rotate}] }" moveScrollContainer="'.container'">\n  Scroll Element\n</div>`;
   });
 
   // Computed keyframes

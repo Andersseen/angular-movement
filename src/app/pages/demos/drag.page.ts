@@ -19,7 +19,7 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
       [availablePresets]="[]"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
-      [showReplay]="false"
+      (replay)="replay()"
       [customCode]="dragCode()"
     >
       <!-- Preview -->
@@ -41,33 +41,40 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
           }
         }
 
-        <div
-          [moveDrag]="dragAxis()"
-          [moveDragConstraints]="
-            constrained() ? { left: -100, right: 100, top: -80, bottom: 80 } : undefined
-          "
-          [moveDragMomentum]="momentum()"
-          [moveDragSnapToOrigin]="snapToOrigin()"
-          [moveDragSnapPoints]="snapPointsEnabled() ? snapPoints : undefined"
-          class="bg-surface border-accent/40 relative z-10 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
-          data-testid="drag-card"
-          [moveWhileDrag]="{ scale: [1, 1.06], rotate: [0, 2] }"
-        >
-          <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
-            <svg class="text-accent h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
-              />
-            </svg>
+        @if (showDemo()) {
+          <div
+            [moveDrag]="dragAxis()"
+            [moveDragConstraints]="
+              constrained() ? { left: -100, right: 100, top: -80, bottom: 80 } : undefined
+            "
+            [moveDragMomentum]="momentum()"
+            [moveDragSnapToOrigin]="snapToOrigin()"
+            [moveDragSnapPoints]="snapPointsEnabled() ? snapPoints : undefined"
+            class="bg-surface border-accent/40 relative z-10 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
+            data-testid="drag-card"
+            [moveWhileDrag]="{ scale: [1, 1.06], rotate: [0, 2] }"
+          >
+            <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
+              <svg
+                class="text-accent h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"
+                />
+              </svg>
+            </div>
+            <div class="font-display text-text font-semibold">Drag Me</div>
+            <div class="text-text-muted text-xs">
+              {{ statusLabel() }}
+            </div>
           </div>
-          <div class="font-display text-text font-semibold">Drag Me</div>
-          <div class="text-text-muted text-xs">
-            {{ statusLabel() }}
-          </div>
-        </div>
+        }
       </div>
     </app-demo-container>
   `,
@@ -124,6 +131,7 @@ export default class DemoDrag {
   protected momentum = signal(false);
   protected snapToOrigin = signal(false);
   protected snapPointsEnabled = signal(false);
+  protected showDemo = signal(true);
 
   protected readonly dragAxis = computed<MoveDragAxis>(() => {
     const axis = this.axis();
@@ -143,7 +151,7 @@ export default class DemoDrag {
   });
 
   protected readonly dragCode = computed(() => {
-    const axis = this.axis() === 'free' ? '' : `=<span class="code-string">"${this.axis()}"</span>`;
+    const axis = this.axis() === 'free' ? '' : `="${this.axis()}"`;
     const c = this.constrained();
     const constraints = c
       ? ' [moveDragConstraints]="{ left: -100, right: 100, top: -80, bottom: 80 }"'
@@ -153,7 +161,7 @@ export default class DemoDrag {
     const snapPoints = this.snapPointsEnabled()
       ? ' [moveDragSnapPoints]="[{ x: -80, y: -56 }, { x: 0, y: 0 }, { x: 80, y: 56 }]"'
       : '';
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${axis}${constraints}${momentum}${snap}${snapPoints}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `<div moveDrag${axis}${constraints}${momentum}${snap}${snapPoints}>\n  Drag Me\n</div>`;
   });
 
   protected onStateChange(state: DemoState): void {
@@ -162,5 +170,11 @@ export default class DemoDrag {
     this.momentum.set((state['momentum'] as boolean) ?? false);
     this.snapToOrigin.set((state['snapToOrigin'] as boolean) ?? false);
     this.snapPointsEnabled.set((state['snapPoints'] as boolean) ?? false);
+    this.replay();
+  }
+
+  protected replay(): void {
+    this.showDemo.set(false);
+    setTimeout(() => this.showDemo.set(true), 50);
   }
 }

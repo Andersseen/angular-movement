@@ -97,16 +97,16 @@ export default class DemoLeave {
   protected readonly presetLabel = () => getPresetLabel(this.preset());
   protected readonly presetDescription = () => getPresetDescription(this.preset(), 'leave');
   protected readonly leaveCode = () => {
-    return `&lt;<span class="code-keyword">ng-container</span> *<span class="code-attr">movePresence</span>=<span class="code-string">"showCard()"</span>&gt;
-  &lt;<span class="code-keyword">article</span>
-    <span class="code-attr">moveLeave</span>=<span class="code-string">"${this.preset()}"</span>
-    <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-    <span class="code-attr">moveDelay</span>=<span class="code-string">"${this.delay()}"</span>
-    <span class="code-attr">moveEasing</span>=<span class="code-string">"${this.easing()}"</span>
-  &gt;
+    return `<ng-container *movePresence="showCard()">
+  <article
+    moveLeave="${this.preset()}"
+    moveDuration="${this.duration()}"
+    moveDelay="${this.delay()}"
+    moveEasing="${this.easing()}"
+  >
     Leaving card
-  &lt;/<span class="code-keyword">article</span>&gt;
-&lt;/<span class="code-keyword">ng-container</span>&gt;`;
+  </article>
+</ng-container>`;
   };
 
   protected onStateChange(state: DemoState): void {

@@ -1,24 +1,18 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
+import { ApiStabilityTable } from '../../shared/components/api-stability-table/api-stability-table';
 
 @Component({
   selector: 'app-docs-api',
-  imports: [RouterLink, CodeBlock],
+  imports: [CodeBlock, PageHeader, DocsFooterNav, ApiStabilityTable],
   template: `
     <article class="max-w-4xl">
-      <div class="border-border mb-10 border-b pb-10">
-        <h1
-          class="font-display text-text relative mb-4 inline-block text-4xl font-bold tracking-tight md:text-5xl"
-        >
-          API Guide
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
-        </h1>
-        <p class="text-text-muted mt-6 text-xl">
-          Start with the motion-style state API, then reach for focused directives when the
-          interaction needs presence, scroll, SVG, drag, or orchestration.
-        </p>
-      </div>
+      <app-page-header
+        title="API Guide"
+        description="Start with the motion-style state API, then reach for focused directives when the interaction needs presence, scroll, SVG, drag, or orchestration."
+      />
 
       <div
         class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
@@ -127,49 +121,7 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
           production UI or still subject to breaking changes.
         </p>
 
-        <div class="not-prose my-6 overflow-hidden rounded-lg border">
-          <table class="w-full text-left text-sm">
-            <thead class="bg-surface-raised text-text font-display">
-              <tr>
-                <th class="px-4 py-3 font-semibold">Status</th>
-                <th class="px-4 py-3 font-semibold">Directives & helpers</th>
-              </tr>
-            </thead>
-            <tbody class="divide-border text-text-muted divide-y">
-              <tr>
-                <td class="px-4 py-3 font-medium text-emerald-400">Stable</td>
-                <td class="px-4 py-3">
-                  <code>provideMovement</code>, <code>MOVEMENT_DIRECTIVES</code>,
-                  <code>[move]</code>, <code>[moveAnimate]</code>, <code>moveEnter</code>,
-                  <code>moveLeave</code>, <code>*movePresence</code>, <code>moveStagger</code>,
-                  <code>moveWhileHover</code>, <code>moveWhileTap</code>,
-                  <code>moveWhileFocus</code>, <code>moveInView</code>, <code>moveScroll</code>,
-                  <code>moveParallax</code>, <code>[moveAnimation]</code>,
-                  <code>*movePresenceFor</code>, <code>moveVariants</code>, <code>moveText</code>,
-                  <code>moveLoop</code>, <code>MoveAnimator</code>, <code>moveValue</code>,
-                  <code>moveTransform</code>, <code>moveSpringValue</code>, presets and icon helpers
-                </td>
-              </tr>
-              <tr>
-                <td class="px-4 py-3 font-medium text-amber-400">Stable candidate</td>
-                <td class="px-4 py-3">
-                  <em
-                    >None currently — the 1.0 freeze pass promoted every candidate. New APIs may
-                    land here first.</em
-                  >
-                </td>
-              </tr>
-              <tr>
-                <td class="px-4 py-3 font-medium text-rose-400">Experimental</td>
-                <td class="px-4 py-3">
-                  <code>moveLayout</code>, <code>moveDrag</code> (the whole directive),
-                  <code>moveSmoothScroll</code>, <code>moveTarget</code>,
-                  <code>moveTrigger</code>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <app-api-stability-table />
 
         <h2>Input reactivity</h2>
         <p>
@@ -215,27 +167,12 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
         </div>
       </div>
 
-      <div class="border-border mt-16 flex items-center justify-between border-t pt-8">
-        <a
-          routerLink="/docs/get-started"
-          class="group hover:text-accent flex flex-col items-start gap-1 transition-colors"
-        >
-          <span class="text-text-subtle text-sm font-medium">Previous</span>
-          <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            <span class="transition-transform group-hover:-translate-x-1">&larr;</span> Get Started
-          </span>
-        </a>
-
-        <a
-          routerLink="/docs/reference"
-          class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
-        >
-          <span class="text-text-subtle text-sm font-medium">Next</span>
-          <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            API Reference <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
-          </span>
-        </a>
-      </div>
+      <app-docs-footer-nav
+        prevHref="/docs/get-started"
+        prevLabel="Get Started"
+        nextHref="/docs/reference"
+        nextLabel="API Reference"
+      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

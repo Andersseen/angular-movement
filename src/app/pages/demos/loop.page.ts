@@ -151,29 +151,29 @@ export default class DemoLoop {
   protected readonly loopCode = computed(() => {
     const type = this.loopType();
     if (type === 'spin') {
-      return `&lt;<span class="code-keyword">svg</span>
-  <span class="code-attr">moveLoop</span>=<span class="code-string">"spin"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-  <span class="code-attr">moveEasing</span>=<span class="code-string">"${this.easing()}"</span>
-&gt;
-  &lt;<span class="code-keyword">path</span> <span class="code-attr">d</span>=<span class="code-string">"..."</span> /&gt;
-&lt;/<span class="code-keyword">svg</span>&gt;`;
+      return `<svg
+  moveLoop="spin"
+  moveDuration="${this.duration()}"
+  moveEasing="${this.easing()}"
+>
+  <path d="..." />
+</svg>`;
     }
     if (type === 'pulse') {
-      return `&lt;<span class="code-keyword">div</span>
-  <span class="code-attr">moveLoop</span>=<span class="code-string">"pulse"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-  <span class="code-attr">moveEasing</span>=<span class="code-string">"${this.easing()}"</span>
-&gt;
+      return `<div
+  moveLoop="pulse"
+  moveDuration="${this.duration()}"
+  moveEasing="${this.easing()}"
+>
   Active state
-&lt;/<span class="code-keyword">div</span>&gt;`;
+</div>`;
     }
-    return `&lt;<span class="code-keyword">path</span>
-  <span class="code-attr">[moveLoop]</span>=<span class="code-string">"${keyframesToString(this.drawKeyframes())}"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-  <span class="code-attr">moveEasing</span>=<span class="code-string">"${this.easing()}"</span>
-  <span class="code-attr">d</span>=<span class="code-string">"M14 25.5 21 32l14-17"</span>
-/&gt;`;
+    return `<path
+  [moveLoop]="${keyframesToString(this.drawKeyframes())}"
+  moveDuration="${this.duration()}"
+  moveEasing="${this.easing()}"
+  d="M14 25.5 21 32l14-17"
+/>`;
   });
 
   protected readonly drawKeyframes = (): MoveKeyframes => ({

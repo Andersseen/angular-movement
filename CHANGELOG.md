@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.0.0] - 2026-08-27
+
 The 1.0 API freeze decision pass — see `docs/ai/specs/009-10-api-freeze-decision.md`. Decisions
 only, no feature work: every 0.9 "stable candidate" reviewed and promoted, the experimental
 compatibility policy for `1.x` made explicit, and a CI guard added against accidental public-API

@@ -1,6 +1,6 @@
 {
   "name": "angular-movement",
-  "version": "0.9.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Angular animation directives — presets, custom keyframes, spring physics, scroll & parallax.",
   "keywords": [

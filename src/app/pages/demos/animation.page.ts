@@ -1,11 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MoveAnimationDirective, MoveAnimationConfig, MovePresenceDirective } from 'movement';
+import { ThemeService } from '../../shared/theme.service';
 
 @Component({
   selector: 'app-demo-animation',
   imports: [FormsModule, MoveAnimationDirective, MovePresenceDirective],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="space-y-8">
       <div>
@@ -192,10 +201,14 @@ import { MoveAnimationDirective, MoveAnimationConfig, MovePresenceDirective } fr
                 {{ copied() ? 'Copied!' : 'Copy' }}
               </button>
             </div>
-            <div class="relative overflow-x-auto p-6 pt-14">
-              <pre
-                class="font-mono text-sm leading-relaxed"
-              ><code class="text-text" [innerHTML]="highlightedCode()"></code></pre>
+            <div class="pt-10">
+              <vertex-editor-lite
+                [value]="highlightedCode()"
+                language="html"
+                [theme]="theme()"
+                height="220px"
+                aria-label="Generated code for this demo"
+              ></vertex-editor-lite>
             </div>
           </div>
         </div>
@@ -204,6 +217,9 @@ import { MoveAnimationDirective, MoveAnimationConfig, MovePresenceDirective } fr
   `,
 })
 export default class DemoAnimation {
+  readonly #themeService = inject(ThemeService);
+  protected readonly theme = this.#themeService.theme;
+
   protected readonly duration = signal(400);
   protected readonly delay = signal(0);
   protected readonly easing = signal('ease');
@@ -223,31 +239,26 @@ export default class DemoAnimation {
   );
 
   protected readonly highlightedCode = computed(() => {
-    const attr = (s: string) => `<span class="code-attr">${s}</span>`;
-    const str = (s: string | number) => `<span class="code-string">${s}</span>`;
-    const kw = (s: string) => `<span class="code-keyword">${s}</span>`;
-    const num = (n: number) => str(String(n));
-
-    let code = `&lt;${kw('ng-container')} *${attr('movePresence')}=${str('"isOpen()"')}&gt;\n`;
-    code += `  &lt;${kw('div')}\n`;
-    code += `    [${attr('moveAnimation')}]=${str('"{')}\n`;
-    code += `      ${attr('initial')}: { ${attr('opacity')}: ${num(0)}, ${attr('y')}: ${num(24)}, ${attr('scale')}: ${num(0.95)} },\n`;
-    code += `      ${attr('animate')}: { ${attr('opacity')}: ${num(1)}, ${attr('y')}: ${num(0)}, ${attr('scale')}: ${num(1)} },\n`;
-    code += `      ${attr('exit')}: { ${attr('opacity')}: ${num(0)}, ${attr('y')}: ${num(-16)}, ${attr('scale')}: ${num(0.95)} }\n`;
-    code += `    ${str('}"')}\n`;
+    let code = `<ng-container *movePresence="isOpen()">\n`;
+    code += `  <div\n`;
+    code += `    [moveAnimation]="{\n`;
+    code += `      initial: { opacity: 0, y: 24, scale: 0.95 },\n`;
+    code += `      animate: { opacity: 1, y: 0, scale: 1 },\n`;
+    code += `      exit: { opacity: 0, y: -16, scale: 0.95 }\n`;
+    code += `    }"\n`;
 
     if (this.duration() !== 400) {
-      code += `    ${attr('moveDuration')}=${str(`"${this.duration()}"`)}\n`;
+      code += `    moveDuration="${this.duration()}"\n`;
     }
     if (this.delay()) {
-      code += `    ${attr('moveDelay')}=${str(`"${this.delay()}"`)}\n`;
+      code += `    moveDelay="${this.delay()}"\n`;
     }
     if (this.easing() !== 'ease') {
-      code += `    ${attr('moveEasing')}=${str(`"${this.easing()}"`)}\n`;
+      code += `    moveEasing="${this.easing()}"\n`;
     }
 
-    code += `  &gt;\n    Card\n  &lt;/${kw('div')}&gt;\n`;
-    code += `&lt;/${kw('ng-container')}&gt;`;
+    code += `  >\n    Card\n  </div>\n`;
+    code += `</ng-container>`;
 
     return code;
   });
@@ -257,11 +268,7 @@ export default class DemoAnimation {
   }
 
   protected copyCode(): void {
-    const clean = this.highlightedCode()
-      .replace(/<[^>]+>/g, '')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
-    navigator.clipboard.writeText(clean);
+    navigator.clipboard.writeText(this.highlightedCode());
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }

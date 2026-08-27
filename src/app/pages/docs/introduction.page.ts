@@ -1,24 +1,17 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
 
 @Component({
   selector: 'app-docs-introduction',
-  imports: [RouterLink, CodeBlock],
+  imports: [CodeBlock, PageHeader, DocsFooterNav],
   template: `
     <article class="max-w-3xl">
-      <div class="border-border mb-10 border-b pb-10">
-        <h1
-          class="font-display text-text relative mb-4 inline-block text-4xl font-bold tracking-tight md:text-5xl"
-        >
-          Introduction
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
-        </h1>
-        <p class="text-text-muted mt-6 text-xl">
-          Angular Movement is a motion library for Angular 21 and 22 with Angular-native directives,
-          state APIs, and Web Animations API-powered runtime playback.
-        </p>
-      </div>
+      <app-page-header
+        title="Introduction"
+        description="Angular Movement is a motion library for Angular 21 and 22 with Angular-native directives, state APIs, and Web Animations API-powered runtime playback."
+      />
 
       <div
         class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
@@ -131,17 +124,7 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
         </ul>
       </div>
 
-      <div class="border-border mt-16 flex justify-end border-t pt-8">
-        <a
-          routerLink="/docs/get-started"
-          class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
-        >
-          <span class="text-text-subtle text-sm font-medium">Next</span>
-          <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            Get Started <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
-          </span>
-        </a>
-      </div>
+      <app-docs-footer-nav nextHref="/docs/get-started" nextLabel="Get Started" />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
