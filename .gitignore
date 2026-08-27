@@ -11,6 +11,12 @@
 npm-debug.log
 yarn-error.log
 
+# movement-mcp is a standalone pnpm package (own install, own build output; its pnpm-lock.yaml
+# IS committed for reproducible builds)
+/projects/movement-mcp/node_modules
+/projects/movement-mcp/dist
+/projects/movement-mcp/*.tgz
+
 # IDEs and editors
 .idea/
 .project

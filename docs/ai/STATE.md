@@ -204,6 +204,18 @@ Site-only, same session as spec 010 — see `docs/ai/specs/011-theme-and-code-ed
   spec 010's new `animate` and `enter` demo tests — both are rock-solid single-worker
   (`--workers=1 --repeat-each=3`, 6/6) and only flake under the default parallel worker count, same
   as the 4 pre-existing ones. Not a new problem, just a bigger instance of the tracked one.
+- **`projects/movement-mcp/` (spec 012) is a fully standalone pnpm package, deliberately not part
+  of any workspace.** Its own `node_modules`/`pnpm-lock.yaml`, own `pnpm install`
+  (`pnpm run mcp:install` from root). This is why `angular-movement`'s own `package.json` still has
+  zero new dependencies — the MCP SDK lives only in that package. `ng lint` / `ng build` don't see
+  it (not registered in `angular.json`); use `pnpm run mcp:build` / `mcp:test` / `mcp:pack:check`.
+  Regenerate its embedded API data with `pnpm run mcp:snapshot` after any directive API change —
+  it is not wired into `docs:check` yet (see Next up).
+- **`.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic**
+  (`signal<T>(...)`) and misses every current `signal(...)` call (e.g. `MoveScrollDirective.progress`)
+  — so `signals` is `[]` everywhere in both that script's output and `movement-mcp`'s snapshot.
+  Discovered while building spec 012, not fixed (out of scope there). A real gap, not a false
+  positive — worth a small regex fix.
 
 ## Next up (priority order) — the road to 1.0
 
@@ -222,6 +234,10 @@ demo reflects slider changes…`, and `enter demo replays with the newly selecte
 5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
    no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
+7. **Publish `angular-movement-mcp` 0.1.0** (spec 012, implemented but not yet published — real
+   `npm publish` needs an explicit go-ahead, see the spec's Out of Scope). Follow-ups noted there:
+   wire `mcp:snapshot` into the release checklist, fix `api-surface.mjs`'s signal regex, consider
+   a Claude Code plugin/marketplace listing once a marketplace account exists.
 
 ## Release process (when asked to release)
 

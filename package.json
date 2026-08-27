@@ -28,6 +28,12 @@
     "validate:consumer": "node scripts/validate-consumer.mjs",
     "api:snapshot": "ng build movement && node scripts/update-api-snapshot.mjs",
     "api:check": "ng build movement && node scripts/check-api-snapshot.mjs",
+    "mcp:install": "pnpm --dir projects/movement-mcp install",
+    "mcp:snapshot": "node projects/movement-mcp/scripts/generate-snapshot.mjs",
+    "mcp:build": "pnpm --dir projects/movement-mcp run build",
+    "mcp:test": "pnpm --dir projects/movement-mcp run test",
+    "mcp:pack:check": "pnpm --dir projects/movement-mcp run build && pnpm --dir projects/movement-mcp pack --dry-run",
+    "mcp:publish": "pnpm --dir projects/movement-mcp run build && pnpm --dir projects/movement-mcp publish --no-git-checks",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },

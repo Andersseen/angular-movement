@@ -2,6 +2,16 @@
 
 ## Unreleased
 
+### Added
+
+- New, independently-published package **`angular-movement-mcp`** (`projects/movement-mcp/`): a
+  real MCP server (`list_directives`, `get_directive`, `list_presets`, `get_example`) plus an
+  installable Claude Code skill (`movement-usage`), so an agent working in a consumer app can look
+  up the library's real directive/preset API instead of guessing it. Installed via
+  `npx angular-movement-mcp init`. Fully standalone — its own `package.json`, dependencies
+  (`@modelcontextprotocol/sdk`, `zod`) and lockfile; `angular-movement` itself has zero new
+  dependencies and zero code changes. See `docs/ai/specs/012-mcp-server-and-skill.md`.
+
 ## [1.0.0] - 2026-08-27
 
 The 1.0 API freeze decision pass — see `docs/ai/specs/009-10-api-freeze-decision.md`. Decisions
