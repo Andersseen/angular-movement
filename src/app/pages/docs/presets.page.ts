@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
+import { PageHeader } from '../../shared/components/page-header/page-header';
+import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
 
 interface PresetGroup {
   title: string;
@@ -18,21 +19,13 @@ interface PresetExample {
 
 @Component({
   selector: 'app-docs-presets',
-  imports: [RouterLink, CodeBlock, ...MOVEMENT_DIRECTIVES],
+  imports: [CodeBlock, PageHeader, DocsFooterNav, ...MOVEMENT_DIRECTIVES],
   template: `
     <article class="max-w-5xl">
-      <div class="border-border mb-10 border-b pb-10">
-        <h1
-          class="font-display text-text relative mb-4 inline-block text-4xl font-bold tracking-tight md:text-5xl"
-        >
-          Presets
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
-        </h1>
-        <p class="text-text-muted mt-6 text-xl">
-          Named animations for common product UI moments. Use them when the desired motion is
-          already known and you do not need custom state logic.
-        </p>
-      </div>
+      <app-page-header
+        title="Presets"
+        description="Named animations for common product UI moments. Use them when the desired motion is already known and you do not need custom state logic."
+      />
 
       <div
         class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
@@ -129,28 +122,12 @@ interface PresetExample {
         </p>
       </div>
 
-      <div class="border-border mt-16 flex items-center justify-between border-t pt-8">
-        <a
-          routerLink="/docs/reference"
-          class="group hover:text-accent flex flex-col items-start gap-1 transition-colors"
-        >
-          <span class="text-text-subtle text-sm font-medium">Previous</span>
-          <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            <span class="transition-transform group-hover:-translate-x-1">&larr;</span> API
-            Reference
-          </span>
-        </a>
-
-        <a
-          routerLink="/demos"
-          class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
-        >
-          <span class="text-text-subtle text-sm font-medium">Next</span>
-          <span class="font-display flex items-center gap-2 text-lg font-semibold">
-            Try Demos <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
-          </span>
-        </a>
-      </div>
+      <app-docs-footer-nav
+        prevHref="/docs/reference"
+        prevLabel="API Reference"
+        nextHref="/demos"
+        nextLabel="Try Demos"
+      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MovePreset } from 'movement';
+import { RangeSlider } from '../range-slider/range-slider';
 
 export interface DemoControlConfig {
   showPreset?: boolean;
@@ -42,7 +43,7 @@ export interface DemoState {
 
 @Component({
   selector: 'app-demo-container',
-  imports: [FormsModule],
+  imports: [FormsModule, RangeSlider],
   template: `
     <div class="space-y-8">
       <!-- Header -->
@@ -126,54 +127,30 @@ export interface DemoState {
 
             <!-- Duration Slider -->
             @if (controls().showDuration !== false) {
-              <div>
-                <div class="mb-2 flex items-end justify-between">
-                  <label for="duration-range" class="text-text-muted block text-sm font-medium"
-                    >Duration</label
-                  >
-                  <span class="text-text-subtle font-mono text-xs">{{ duration() }}ms</span>
-                </div>
-                <input
-                  id="duration-range"
-                  type="range"
-                  min="100"
-                  max="2000"
-                  step="50"
-                  [ngModel]="duration()"
-                  (ngModelChange)="updateDuration($event)"
-                  class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                />
-                <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                  <span>100ms</span>
-                  <span>2000ms</span>
-                </div>
-              </div>
+              <app-range-slider
+                controlId="duration-range"
+                label="Duration"
+                unit="ms"
+                [value]="duration()"
+                [min]="100"
+                [max]="2000"
+                [step]="50"
+                (valueChange)="updateDuration($event)"
+              />
             }
 
             <!-- Delay Slider -->
             @if (controls().showDelay !== false) {
-              <div>
-                <div class="mb-2 flex items-end justify-between">
-                  <label for="delay-range" class="text-text-muted block text-sm font-medium"
-                    >Delay</label
-                  >
-                  <span class="text-text-subtle font-mono text-xs">{{ delay() }}ms</span>
-                </div>
-                <input
-                  id="delay-range"
-                  type="range"
-                  min="0"
-                  max="1000"
-                  step="50"
-                  [ngModel]="delay()"
-                  (ngModelChange)="updateDelay($event)"
-                  class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                />
-                <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                  <span>0ms</span>
-                  <span>1000ms</span>
-                </div>
-              </div>
+              <app-range-slider
+                controlId="delay-range"
+                label="Delay"
+                unit="ms"
+                [value]="delay()"
+                [min]="0"
+                [max]="1000"
+                [step]="50"
+                (valueChange)="updateDelay($event)"
+              />
             }
 
             <!-- Easing Selector -->

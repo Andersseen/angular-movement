@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { MoveAnimateDirective, MoveKeyframeState } from 'movement';
+import { RangeSlider } from '../../shared/components/range-slider/range-slider';
 
 const NATURAL: Record<string, number> = {
   opacity: 1,
@@ -13,7 +13,7 @@ const NATURAL: Record<string, number> = {
 
 @Component({
   selector: 'app-demo-animate',
-  imports: [FormsModule, MoveAnimateDirective],
+  imports: [MoveAnimateDirective, RangeSlider],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="space-y-8">
@@ -62,129 +62,64 @@ const NATURAL: Record<string, number> = {
                 Initial State — starts as
               </h4>
               <div class="space-y-6">
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="opacity" class="text-text-muted text-sm font-medium">Opacity</label>
-                    <span class="text-text-subtle font-mono text-xs">{{ opacity() }}</span>
-                  </div>
-                  <input
-                    id="opacity"
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    [ngModel]="opacity()"
-                    (ngModelChange)="opacity.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>0</span><span>1</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="y-offset" class="text-text-muted text-sm font-medium"
-                      >Y offset</label
-                    >
-                    <span class="text-text-subtle font-mono text-xs">{{ y() }}px</span>
-                  </div>
-                  <input
-                    id="y-offset"
-                    type="range"
-                    min="-100"
-                    max="100"
-                    step="5"
-                    [ngModel]="y()"
-                    (ngModelChange)="y.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>-100px</span><span>100px</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="x-offset" class="text-text-muted text-sm font-medium"
-                      >X offset</label
-                    >
-                    <span class="text-text-subtle font-mono text-xs">{{ x() }}px</span>
-                  </div>
-                  <input
-                    id="x-offset"
-                    type="range"
-                    min="-100"
-                    max="100"
-                    step="5"
-                    [ngModel]="x()"
-                    (ngModelChange)="x.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>-100px</span><span>100px</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="scale" class="text-text-muted text-sm font-medium">Scale</label>
-                    <span class="text-text-subtle font-mono text-xs">{{ scale() }}</span>
-                  </div>
-                  <input
-                    id="scale"
-                    type="range"
-                    min="0"
-                    max="2"
-                    step="0.05"
-                    [ngModel]="scale()"
-                    (ngModelChange)="scale.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>0</span><span>2</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="rotate" class="text-text-muted text-sm font-medium">Rotate</label>
-                    <span class="text-text-subtle font-mono text-xs">{{ rotate() }}°</span>
-                  </div>
-                  <input
-                    id="rotate"
-                    type="range"
-                    min="-180"
-                    max="180"
-                    step="15"
-                    [ngModel]="rotate()"
-                    (ngModelChange)="rotate.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>-180°</span><span>180°</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="blur" class="text-text-muted text-sm font-medium">Blur</label>
-                    <span class="text-text-subtle font-mono text-xs">{{ blur() }}px</span>
-                  </div>
-                  <input
-                    id="blur"
-                    type="range"
-                    min="0"
-                    max="20"
-                    step="1"
-                    [ngModel]="blur()"
-                    (ngModelChange)="blur.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>0px</span><span>20px</span>
-                  </div>
-                </div>
+                <app-range-slider
+                  controlId="opacity"
+                  label="Opacity"
+                  [value]="opacity()"
+                  [min]="0"
+                  [max]="1"
+                  [step]="0.05"
+                  (valueChange)="opacity.set($event)"
+                />
+                <app-range-slider
+                  controlId="y-offset"
+                  label="Y offset"
+                  unit="px"
+                  [value]="y()"
+                  [min]="-100"
+                  [max]="100"
+                  [step]="5"
+                  (valueChange)="y.set($event)"
+                />
+                <app-range-slider
+                  controlId="x-offset"
+                  label="X offset"
+                  unit="px"
+                  [value]="x()"
+                  [min]="-100"
+                  [max]="100"
+                  [step]="5"
+                  (valueChange)="x.set($event)"
+                />
+                <app-range-slider
+                  controlId="scale"
+                  label="Scale"
+                  [value]="scale()"
+                  [min]="0"
+                  [max]="2"
+                  [step]="0.05"
+                  (valueChange)="scale.set($event)"
+                />
+                <app-range-slider
+                  controlId="rotate"
+                  label="Rotate"
+                  unit="°"
+                  [value]="rotate()"
+                  [min]="-180"
+                  [max]="180"
+                  [step]="15"
+                  (valueChange)="rotate.set($event)"
+                />
+                <app-range-slider
+                  controlId="blur"
+                  label="Blur"
+                  unit="px"
+                  [value]="blur()"
+                  [min]="0"
+                  [max]="20"
+                  [step]="1"
+                  (valueChange)="blur.set($event)"
+                />
               </div>
             </div>
 
@@ -194,47 +129,26 @@ const NATURAL: Record<string, number> = {
                 Timing
               </h4>
               <div class="space-y-6">
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="duration" class="text-text-muted text-sm font-medium"
-                      >Duration</label
-                    >
-                    <span class="text-text-subtle font-mono text-xs">{{ duration() }}ms</span>
-                  </div>
-                  <input
-                    id="duration"
-                    type="range"
-                    min="100"
-                    max="2000"
-                    step="50"
-                    [ngModel]="duration()"
-                    (ngModelChange)="duration.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>100ms</span><span>2000ms</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label for="delay" class="text-text-muted text-sm font-medium">Delay</label>
-                    <span class="text-text-subtle font-mono text-xs">{{ delay() }}ms</span>
-                  </div>
-                  <input
-                    id="delay"
-                    type="range"
-                    min="0"
-                    max="1000"
-                    step="50"
-                    [ngModel]="delay()"
-                    (ngModelChange)="delay.set(+$event)"
-                    class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                  />
-                  <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                    <span>0ms</span><span>1000ms</span>
-                  </div>
-                </div>
+                <app-range-slider
+                  controlId="duration"
+                  label="Duration"
+                  unit="ms"
+                  [value]="duration()"
+                  [min]="100"
+                  [max]="2000"
+                  [step]="50"
+                  (valueChange)="duration.set($event)"
+                />
+                <app-range-slider
+                  controlId="delay"
+                  label="Delay"
+                  unit="ms"
+                  [value]="delay()"
+                  [min]="0"
+                  [max]="1000"
+                  [step]="50"
+                  (valueChange)="delay.set($event)"
+                />
 
                 <div>
                   <div class="mb-3 flex items-end justify-between">

@@ -67,6 +67,38 @@ only — no feature work, no redesign:
   `api:check` (manually confirmed it fails on a deliberate drift, then passes clean),
   `validate:consumer` (Angular 21 + 22), e2e 47/47.
 
+## Done — Spec 010 (demo site decomposition, UI lib bump, drag fix, test coverage)
+
+Site-only maintenance pass, not on the library's road-to-1.0 track — see
+`docs/ai/specs/010-site-decomposition-and-hardening.md`.
+
+- Docs sidebar (`docs.page.ts`) no longer links straight to `/demos/*` — it only contains genuine
+  doc pages; those 6 topics stay reachable from `/demos`.
+- `@voltui/components` → `1.0.1`, `lumen-icons` → `0.2.0` (only consumer: `templates.page.ts`).
+  `templates.page.ts` (410 lines) decomposed into `templates/sections/{hero,feature-grid,steps,cta}`
+  - a nested `TemplateLivePreview`, mirroring the existing `home/sections/` pattern.
+- Fixed a real bug: `/demos/drag`'s free-axis card could be dragged almost fully out of its preview
+  pane with no way back (`[showReplay]="false"` hid the reset button). Now uses the same
+  `showDemo` `@if`-toggle replay pattern as every other demo, and also resets on any control change.
+- New shared components (`src/app/shared/components/`): `PageHeader`, `DocsFooterNav`,
+  `ApiStabilityTable`, `RangeSlider` — each with a `.spec.ts`. Fixed a real content-drift bug while
+  extracting `ApiStabilityTable`: `docs/reference.page.ts` still listed several 1.0-promoted APIs
+  (`[moveAnimation]`, `moveVariants`, `moveScroll`, `moveParallax`, `moveValue`, `moveTransform`,
+  `moveSpringValue`) as "Stable candidate" — stale since spec 009. Both docs pages now render the
+  identical, current table.
+- `InfoCard`, `CodeBlock` copy-button, and reworking `demos/animate.page.ts` onto `DemoContainer`'s
+  `customControls` were scoped in but deferred (lower value / higher risk relative to what shipped)
+  — noted as Follow-ups in the spec.
+- **Demo site testing infra now exists** (previously zero unit tests under `src/app/`):
+  `angular.json` gained a `test` target for the `angular-movement` project (`pnpm test:site`),
+  using the `tsconfig.spec.json` that existed unused since scaffolding. `@testing-library/angular` +
+  `@testing-library/dom` added as devDependencies, **scoped to `src/app/**`only** — the library
+keeps its mandatory`TestBed`+`vi` pattern (BEST-PRACTICES.md) untouched.
+- e2e: added real interaction assertions for the 8 routes that only had a smoke test (`animate`,
+  `enter`, `hover`, `icons`, `loop`, `tap`, `target`, `text`) plus a positive (non-reduced-motion)
+  assertion for `parallax`. Full suite green (46 passed + the pre-existing flaky-under-parallel-load
+  category, unchanged in kind — see gotchas below).
+
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
 - **Watch for the `disabled: false` hardcode pattern.** A directive that resolves
@@ -124,14 +156,39 @@ only — no feature work, no redesign:
   matches its first sample (before anything is created) and silently tests nothing. Wait a settle
   window, then assert once. Playwright's `reducedMotion` fixture does not reach `matchMedia` here;
   use `page.emulateMedia({ reducedMotion: 'reduce' })`.
+- **A component `@Input`/`input()` literally named `id` (or another global HTML attribute name)
+  still lands on the host element as a real DOM attribute**, even though Angular also reads it as
+  the input's initial value — a static-text attribute binding on a component tag is still a real
+  attribute in the rendered DOM. `RangeSlider` originally took `id`, which collided with its own
+  inner `<input [id]>` and produced two elements sharing one id. Renamed to `controlId`. Same class
+  of bug VoltUI's own changelog independently flagged and fixed. Avoid naming a component input
+  after any standard HTML attribute (`id`, `class`, `style`, `title`, ...).
+- **`MoveParallaxDirective`'s custom-container scroll only reliably engages from a real wheel
+  gesture in tests** (`page.mouse.wheel(...)` over the container) — a synthetic
+  `container.dispatchEvent(new Event('scroll'))` after setting `scrollTop` directly did not move
+  the layers in the e2e run, even though it does in a manually-driven browser session. If a
+  parallax/scroll e2e assertion mysteriously sees no movement, try a real wheel gesture before
+  assuming the directive is broken.
+- **A newly discovered, pre-existing `lumen-icons` bug (not caused by anything in this repo):**
+  any `<lmn-*>` icon nested as projected content inside a `@voltui/components` component (confirmed
+  on `<lmn-sparkles>` inside `volt-badge` and `<lmn-arrow-right slot="trailing">` inside
+  `volt-button`, both in `templates/sections/hero/hero.ts`) throws `NG0500` during hydration.
+  Reproduced identically at `lumen-icons@0.1.0` and `0.2.0`. `ngSkipHydration` on the icon's own
+  host tag did not suppress it. Console-only today (the icon still renders correctly after
+  hydration's recovery) — needs a real fix in the `lumen-icons` package itself, not here.
+- The e2e tests known to flake under parallel load (STATE.md's "Next up" #2) grew from 4 to 6 with
+  spec 010's new `animate` and `enter` demo tests — both are rock-solid single-worker
+  (`--workers=1 --repeat-each=3`, 6/6) and only flake under the default parallel worker count, same
+  as the 4 pre-existing ones. Not a new problem, just a bigger instance of the tracked one.
 
 ## Next up (priority order) — the road to 1.0
 
 1. **Cut the spec 009 changes as a release** (or fold into the `1.0.0` cut directly — no more API
    decisions are pending) — follow `RELEASE_CHECKLIST.md`.
-2. At least four e2e tests are now known to flake under parallel load (`animation demo plays enter
+2. At least six e2e tests are now known to flake under parallel load (`animation demo plays enter
 and exit through movePresence`, `drag demo moves the card…`, `smooth scroll demo exposes the
-live service readout`, and `scroll demo maps container scroll onto the element transform`) — each
+live service readout`, `scroll demo maps container scroll onto the element transform`, `animate
+demo reflects slider changes…`, and `enter demo replays with the newly selected preset`) — each
    asserts a transient mid-animation/mid-scroll state from outside the page and passes reliably
    single-worker. Worth its own spec before 1.0 (increase timeouts, assert from inside
    `page.evaluate`, or reduce worker count for this file).

@@ -56,6 +56,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
               stroke-width="2"
             >
               <path
+                data-testid="icons-paperclip"
                 [moveTrigger]="animated()"
                 [moveFrames]="{ pathLength: [0, 1], pathOffset: [0, 0], opacity: [0, 1] }"
                 [moveDuration]="duration()"
