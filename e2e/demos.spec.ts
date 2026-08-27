@@ -431,9 +431,19 @@ test.describe('demo pages', () => {
   }) => {
     await page.goto('/demos/animate');
 
+    // vertex-editor-lite initializes its editor view asynchronously (dynamic import of the
+    // language mode); a [value] change that lands before it's ready is silently dropped. Wait
+    // for the default code to actually render before driving the slider, so the assertion isn't
+    // racing that init.
+    const editor = page.locator('vertex-editor-lite');
+    await expect
+      .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
+        timeout: 3000,
+      })
+      .toContain('scale: 0.85');
+
     await page.locator('#scale').fill('1.5');
 
-    const editor = page.locator('vertex-editor-lite');
     await expect
       .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
         timeout: 3000,
