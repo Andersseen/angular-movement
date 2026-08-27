@@ -1,0 +1,1098 @@
+import * as _angular_core from '@angular/core';
+import { OnDestroy, OnInit, Injector, Signal, WritableSignal, InjectionToken, EnvironmentProviders } from '@angular/core';
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MovePreset = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'zoom-in' | 'zoom-out' | 'flip-x' | 'flip-y' | 'bounce-in' | 'blur-in' | 'spin' | 'pulse' | 'shake' | 'swing' | 'wobble' | 'rubber-band' | 'heart-beat' | 'tada' | 'jello' | 'light-speed' | 'roll-in' | 'icon-draw' | 'icon-pulse' | 'icon-bounce' | 'none';
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveValue = number | string;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveValuePair = readonly MoveValue[];
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveStateValue = MoveValue | MoveValuePair;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveSpring {
+    stiffness?: number;
+    damping?: number;
+    mass?: number;
+    velocity?: number;
+}
+/**
+ * `'loop'` restarts from the first keyframe each cycle. `'reverse'` alternates direction, so the
+ * animation plays back to its start instead of snapping there — what a breathing or yoyo effect
+ * needs.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveRepeatType = 'loop' | 'reverse';
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveRepeatOptions {
+    /** Number of cycles, or `Infinity` for an endless one. */
+    repeat?: number;
+    repeatType?: MoveRepeatType;
+    /** Pause between cycles, in milliseconds. */
+    repeatDelay?: number;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MovePropertyTransition {
+    duration?: number;
+    easing?: string;
+    delay?: number;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveTransitionConfig = MovePropertyTransition & MoveRepeatOptions & {
+    /**
+     * Explicit keyframe offsets in the `0..1` range, one per keyframe value. Without it, values are
+     * spaced evenly, so `{ x: [0, 100, 0] }` cannot dwell at its midpoint.
+     */
+    times?: readonly number[];
+} & Record<string, MovePropertyTransition | MoveValue | readonly number[] | undefined>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveKeyframeProperties {
+    opacity?: MoveValuePair;
+    x?: MoveValuePair;
+    y?: MoveValuePair;
+    scale?: MoveValuePair;
+    scaleX?: MoveValuePair;
+    scaleY?: MoveValuePair;
+    rotate?: MoveValuePair;
+    rotateX?: MoveValuePair;
+    rotateY?: MoveValuePair;
+    blur?: MoveValuePair;
+    pathLength?: MoveValuePair;
+    pathOffset?: MoveValuePair;
+    pathSpacing?: MoveValuePair;
+    strokeDashoffset?: MoveValuePair;
+    strokeDasharray?: MoveValuePair;
+    fillOpacity?: MoveValuePair;
+    strokeOpacity?: MoveValuePair;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveKeyframes = MoveKeyframeProperties & Record<string, MoveValuePair | undefined>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveVariantState = {
+    [K in keyof MoveKeyframeProperties]?: MoveStateValue;
+} & Record<string, MoveStateValue | MoveSpring | MovePropertyTransition | MoveTransitionConfig | undefined>;
+/**
+ * `'beforeChildren'` plays the parent first and offsets its children by the parent's duration.
+ * `'afterChildren'` runs the children first and delays the parent until their stagger span is done.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveVariant = MoveVariantState & {
+    spring?: MoveSpring;
+    duration?: number;
+    easing?: string;
+    delay?: number;
+    transition?: MoveTransitionConfig;
+    /** Delay added per nested `[moveVariants]` child, in DOM order. */
+    staggerChildren?: number;
+    /** Delay applied to every nested `[moveVariants]` child before staggering. */
+    delayChildren?: number;
+    when?: MoveVariantOrchestration;
+};
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MovePresetDefinition {
+    enter: MoveKeyframes;
+    leave: MoveKeyframes;
+    loop?: MoveKeyframes;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveKeyframeState {
+    opacity?: number;
+    x?: number;
+    y?: number;
+    scale?: number;
+    scaleX?: number;
+    scaleY?: number;
+    rotate?: number;
+    rotateX?: number;
+    rotateY?: number;
+    blur?: number;
+    pathLength?: number;
+    pathOffset?: number;
+    pathSpacing?: number;
+    strokeDashoffset?: number;
+    strokeDasharray?: string;
+    fillOpacity?: number;
+    strokeOpacity?: number;
+    [key: string]: number | string | undefined;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveAnimationConfig {
+    initial?: MoveKeyframeState;
+    animate?: MoveKeyframeState;
+    exit?: MoveKeyframeState;
+    duration?: number;
+    easing?: string;
+    delay?: number;
+    spring?: MoveSpring;
+}
+
+interface MovePresenceChild {
+    playLeave(): Promise<void> | void;
+    cancelLeave?(): void;
+}
+interface MovePresenceProvider {
+    register(child: MovePresenceChild): void;
+    unregister(child: MovePresenceChild): void;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChild {
+    #private;
+    readonly move: _angular_core.InputSignal<MovePreset | MoveKeyframes | undefined>;
+    readonly moveAnimate: _angular_core.InputSignal<string | MoveKeyframes | MoveKeyframeState | undefined>;
+    readonly moveInitial: _angular_core.InputSignal<MoveKeyframeState | undefined>;
+    readonly moveExit: _angular_core.InputSignal<MoveKeyframeState | undefined>;
+    readonly moveAnimateLeave: _angular_core.InputSignal<MovePreset | MoveKeyframes | undefined>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    playLeave(): Promise<void>;
+    cancelLeave(): void;
+    private resolveEnterFrames;
+    private resolveLeaveFrames;
+    private resolveEnterInput;
+    private resolveLeaveInput;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveAnimateDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveAnimateDirective, "[move],[moveAnimate]", never, { "move": { "alias": "move"; "required": false; "isSignal": true; }; "moveAnimate": { "alias": "moveAnimate"; "required": false; "isSignal": true; }; "moveInitial": { "alias": "moveInitial"; "required": false; "isSignal": true; }; "moveExit": { "alias": "moveExit"; "required": false; "isSignal": true; }; "moveAnimateLeave": { "alias": "moveAnimateLeave"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceChild {
+    #private;
+    readonly moveAnimation: _angular_core.InputSignal<MoveAnimationConfig>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    constructor();
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    playLeave(): Promise<void>;
+    cancelLeave(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveAnimationDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveAnimationDirective, "[moveAnimation]", never, { "moveAnimation": { "alias": "moveAnimation"; "required": true; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveEnterDirective implements OnDestroy, OnInit {
+    #private;
+    readonly moveEnter: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveEnterDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveEnterDirective, "[moveEnter]", never, { "moveEnter": { "alias": "moveEnter"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild {
+    #private;
+    readonly moveLeave: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    playLeave(): Promise<void>;
+    cancelLeave(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveLeaveDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveLeaveDirective, "[moveLeave]", never, { "moveLeave": { "alias": "moveLeave"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveHoverDirective implements OnDestroy {
+    #private;
+    readonly moveWhileHover: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
+    constructor();
+    onMouseEnter(): void;
+    onMouseLeave(): void;
+    onTouchStart(event: TouchEvent): void;
+    onTouchEnd(): void;
+    private play;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveHoverDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveHoverDirective, "[moveWhileHover]", never, { "moveWhileHover": { "alias": "moveWhileHover"; "required": true; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveTapDirective implements OnDestroy {
+    #private;
+    readonly moveWhileTap: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
+    constructor();
+    onPointerDown(): void;
+    onPointerUp(): void;
+    private play;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveTapDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTapDirective, "[moveWhileTap]", never, { "moveWhileTap": { "alias": "moveWhileTap"; "required": true; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+interface MoveVariantsProvider {
+    activeVariant: () => string | undefined;
+    /** Optional so an existing implementation of this interface keeps compiling. */
+    registerChild?(element: HTMLElement): void;
+    unregisterChild?(element: HTMLElement): void;
+    /** Orchestration delay this parent assigns to the given child, in milliseconds. */
+    childDelay?(element: HTMLElement): number;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveVariantsDirective implements MoveVariantsProvider, MovePresenceChild, OnDestroy {
+    #private;
+    readonly moveVariants: _angular_core.InputSignal<Record<string, MoveVariant>>;
+    /** Active variant name. Prefer this over `moveActiveVariant`. */
+    readonly moveVariant: _angular_core.InputSignal<string | undefined>;
+    /**
+     * @deprecated Use `moveVariant` instead; kept as a permanent, fully-supported alias for the
+     * same input — it will not be removed without a major version.
+     */
+    readonly moveActiveVariant: _angular_core.InputSignal<string | undefined>;
+    readonly moveExitVariant: _angular_core.InputSignal<string | undefined>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveTransition: _angular_core.InputSignal<MoveTransitionConfig | undefined>;
+    readonly activeVariant: _angular_core.Signal<string | undefined>;
+    constructor();
+    ngOnDestroy(): void;
+    registerChild(element: HTMLElement): void;
+    unregisterChild(element: HTMLElement): void;
+    /**
+     * Orchestration delay for one nested `[moveVariants]` child, from this element's active variant.
+     *
+     * `beforeChildren` offsets the children by the parent's own duration. Children are assumed to
+     * share that duration unless they override it — there is no way to know a child's duration from
+     * here, and guessing one number is more useful than refusing to orchestrate at all.
+     */
+    childDelay(element: HTMLElement): number;
+    playLeave(): Promise<void>;
+    cancelLeave(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveVariantsDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveVariantsDirective, "[moveVariants]", never, { "moveVariants": { "alias": "moveVariants"; "required": true; "isSignal": true; }; "moveVariant": { "alias": "moveVariant"; "required": false; "isSignal": true; }; "moveActiveVariant": { "alias": "moveActiveVariant"; "required": false; "isSignal": true; }; "moveExitVariant": { "alias": "moveExitVariant"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveTransition": { "alias": "moveTransition"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+interface MoveStaggerProvider {
+    register(el: HTMLElement): void;
+    unregister(el: HTMLElement): void;
+    getDelay(el: HTMLElement): number;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveStaggerDirection = 'first' | 'last' | 'center';
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveStaggerDirective implements MoveStaggerProvider {
+    #private;
+    readonly moveStagger: _angular_core.InputSignalWithTransform<number | "" | MoveSpring, unknown>;
+    readonly moveStaggerStep: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveStaggerDirection: _angular_core.InputSignal<MoveStaggerDirection>;
+    register(el: HTMLElement): void;
+    unregister(el: HTMLElement): void;
+    getDelay(el: HTMLElement): number;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveStaggerDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveStaggerDirective, "[moveStagger]", never, { "moveStagger": { "alias": "moveStagger"; "required": false; "isSignal": true; }; "moveStaggerStep": { "alias": "moveStaggerStep"; "required": false; "isSignal": true; }; "moveStaggerDirection": { "alias": "moveStaggerDirection"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class MoveLayoutDirective implements OnDestroy {
+    #private;
+    readonly moveLayout: _angular_core.InputSignalWithTransform<boolean | "", unknown>;
+    readonly moveLayoutId: _angular_core.InputSignal<string | undefined>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    constructor();
+    private playFlip;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveLayoutDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveLayoutDirective, "[moveLayout]", never, { "moveLayout": { "alias": "moveLayout"; "required": false; "isSignal": true; }; "moveLayoutId": { "alias": "moveLayoutId"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveScrollDirective implements OnInit, OnDestroy {
+    #private;
+    readonly moveScroll: _angular_core.InputSignal<MoveKeyframes | undefined>;
+    readonly moveScrollOffset: _angular_core.InputSignal<[string, string]>;
+    /** Optional CSS selector for a custom scrollable container. Defaults to window scroll. */
+    readonly moveScrollContainer: _angular_core.InputSignal<string | null>;
+    readonly progress: _angular_core.WritableSignal<number>;
+    constructor();
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveScrollDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveScrollDirective, "[moveScroll]", ["moveScroll"], { "moveScroll": { "alias": "moveScroll"; "required": false; "isSignal": true; }; "moveScrollOffset": { "alias": "moveScrollOffset"; "required": false; "isSignal": true; }; "moveScrollContainer": { "alias": "moveScrollContainer"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MovePresenceDirective implements MovePresenceProvider {
+    #private;
+    readonly movePresence: _angular_core.InputSignalWithTransform<boolean | "", unknown>;
+    constructor();
+    register(child: MovePresenceChild): void;
+    unregister(child: MovePresenceChild): void;
+    private removeView;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MovePresenceDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MovePresenceDirective, "[movePresence]", never, { "movePresence": { "alias": "movePresence"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * `'sync'` — entering and leaving items animate at the same time.
+ * `'wait'` — no new view is created until every pending leave has resolved.
+ * `'popLayout'` — a leaving row is taken out of flow so the remaining rows close the gap
+ * immediately, instead of waiting for the exit animation to finish. The list container must be
+ * positioned (`position: relative`) for the row to stay where it was.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MovePresenceForMode = 'sync' | 'wait' | 'popLayout';
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MovePresenceForTrackBy<T> = (index: number, item: T) => unknown;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MovePresenceForContext<T> {
+    $implicit: T;
+    index: number;
+    count: number;
+    first: boolean;
+    last: boolean;
+    even: boolean;
+    odd: boolean;
+}
+/**
+ * Keyed-list counterpart to `*movePresence`.
+ *
+ * `@for` destroys an embedded view the moment its item leaves the source array, which is why exit
+ * animations are impossible inside it. This directive renders the list itself, so it can keep a
+ * removed item's view in the DOM until that item's own leave animations resolve.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MovePresenceForDirective<T> implements OnDestroy {
+    #private;
+    readonly movePresenceForOf: _angular_core.InputSignal<readonly T[] | null | undefined>;
+    readonly movePresenceForTrackBy: _angular_core.InputSignal<MovePresenceForTrackBy<T>>;
+    readonly movePresenceForMode: _angular_core.InputSignal<MovePresenceForMode>;
+    constructor();
+    ngOnDestroy(): void;
+    /** Lets a template use `$implicit` and friends under `strictTemplates`. */
+    static ngTemplateContextGuard<T>(_directive: MovePresenceForDirective<T>, context: unknown): context is MovePresenceForContext<T>;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MovePresenceForDirective<any>, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MovePresenceForDirective<any>, "[movePresenceFor]", never, { "movePresenceForOf": { "alias": "movePresenceForOf"; "required": true; "isSignal": true; }; "movePresenceForTrackBy": { "alias": "movePresenceForTrackBy"; "required": false; "isSignal": true; }; "movePresenceForMode": { "alias": "movePresenceForMode"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+type MoveDragConstraints = {
+    top?: number;
+    right?: number;
+    bottom?: number;
+    left?: number;
+} | HTMLElement;
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+type MoveDragAxis = boolean | '' | 'x' | 'y';
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+interface MoveDragSnapPoint {
+    x: number;
+    y: number;
+}
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+interface MoveDragEvent {
+    x: number;
+    y: number;
+    deltaX: number;
+    deltaY: number;
+    pointerEvent: PointerEvent;
+}
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class MoveDragDirective implements OnDestroy {
+    #private;
+    readonly moveDrag: _angular_core.InputSignalWithTransform<MoveDragAxis, unknown>;
+    readonly moveDragConstraints: _angular_core.InputSignal<MoveDragConstraints | undefined>;
+    readonly moveDragElastic: _angular_core.InputSignalWithTransform<number, unknown>;
+    readonly moveDragMomentum: _angular_core.InputSignalWithTransform<boolean, unknown>;
+    readonly moveDragSnapToOrigin: _angular_core.InputSignalWithTransform<boolean, unknown>;
+    readonly moveDragSnapPoints: _angular_core.InputSignal<readonly MoveDragSnapPoint[] | undefined>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    /**
+     * State held while a drag is active, e.g. `{ scale: [1, 1.05] }` — the "lift the card" gesture.
+     * Only transform channels are supported; the drag owns translate.
+     */
+    readonly moveWhileDrag: _angular_core.InputSignal<MoveKeyframes | undefined>;
+    readonly moveDragStart: _angular_core.OutputEmitterRef<MoveDragEvent>;
+    readonly moveDragMove: _angular_core.OutputEmitterRef<MoveDragEvent>;
+    readonly moveDragEnd: _angular_core.OutputEmitterRef<MoveDragEvent>;
+    onPointerDown(e: PointerEvent): void;
+    onPointerMove(e: PointerEvent): void;
+    onPointerUp(e: PointerEvent): void;
+    private resolveBounds;
+    /**
+     * The single transform write while a drag is active.
+     *
+     * The `whileDrag` channels ride along in the same composed write rather than going through the
+     * engine, because the engine would become a second writer of `transform` and the two would
+     * clobber each other every pointermove.
+     */
+    private applyTransform;
+    private finishDrag;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveDragDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveDragDirective, "[moveDrag]", never, { "moveDrag": { "alias": "moveDrag"; "required": false; "isSignal": true; }; "moveDragConstraints": { "alias": "moveDragConstraints"; "required": false; "isSignal": true; }; "moveDragElastic": { "alias": "moveDragElastic"; "required": false; "isSignal": true; }; "moveDragMomentum": { "alias": "moveDragMomentum"; "required": false; "isSignal": true; }; "moveDragSnapToOrigin": { "alias": "moveDragSnapToOrigin"; "required": false; "isSignal": true; }; "moveDragSnapPoints": { "alias": "moveDragSnapPoints"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveWhileDrag": { "alias": "moveWhileDrag"; "required": false; "isSignal": true; }; }, { "moveDragStart": "moveDragStart"; "moveDragMove": "moveDragMove"; "moveDragEnd": "moveDragEnd"; }, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveInViewDirective implements OnDestroy, OnInit {
+    #private;
+    readonly moveInView: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveInViewMargin: _angular_core.InputSignal<string>;
+    readonly moveInViewOnce: _angular_core.InputSignalWithTransform<boolean, unknown>;
+    /** CSS selector for the IntersectionObserver root (for inner scrollable containers). */
+    readonly moveInViewRoot: _angular_core.InputSignal<string | null>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveInViewDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveInViewDirective, "[moveInView]", never, { "moveInView": { "alias": "moveInView"; "required": false; "isSignal": true; }; "moveInViewMargin": { "alias": "moveInViewMargin"; "required": false; "isSignal": true; }; "moveInViewOnce": { "alias": "moveInViewOnce"; "required": false; "isSignal": true; }; "moveInViewRoot": { "alias": "moveInViewRoot"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Splits the host's text content into animated spans/words. The directive owns and replaces the
+ * host's children, so its text content must be static — do not also bind interpolated content
+ * inside the same element, since re-splitting on an input change and Angular's own text
+ * reconciliation would fight over the same nodes.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveTextDirective implements OnDestroy {
+    #private;
+    readonly moveText: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveTextSplit: _angular_core.InputSignal<"chars" | "words">;
+    readonly moveTextStagger: _angular_core.InputSignalWithTransform<number, unknown>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    constructor();
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveTextDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTextDirective, "[moveText]", never, { "moveText": { "alias": "moveText"; "required": false; "isSignal": true; }; "moveTextSplit": { "alias": "moveTextSplit"; "required": false; "isSignal": true; }; "moveTextStagger": { "alias": "moveTextStagger"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Directive that enables smooth scrolling on a specific scrollable container.
+ *
+ * Supports both mouse wheel (desktop) and touch scroll (mobile) with
+ * momentum-based inertia after finger lift, similar to Lenis.
+ *
+ * ⚠️  SmoothScrollService is a root singleton. Do NOT use this directive
+ * on multiple elements simultaneously — use it once on the page root or
+ * inject the service directly where needed.
+ *
+ * Usage:
+ *   <div moveSmoothScroll [moveSmoothScrollLerp]="0.08" style="overflow-y: auto; height: 100vh">
+ *     ...content...
+ *   </div>
+ *
+ * Or use the service directly (e.g. on documentElement):
+ *   constructor() {
+ *     inject(SmoothScrollService).init({ lerp: 0.1 });
+ *   }
+ *
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class MoveSmoothScrollDirective implements OnInit, OnDestroy {
+    #private;
+    /** Lerp factor passed to SmoothScrollService. Lower = smoother. Range: 0–1. */
+    readonly moveSmoothScrollLerp: _angular_core.InputSignalWithTransform<number, unknown>;
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveSmoothScrollDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveSmoothScrollDirective, "[moveSmoothScroll]", never, { "moveSmoothScrollLerp": { "alias": "moveSmoothScrollLerp"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveFocusDirective implements OnDestroy {
+    #private;
+    readonly moveWhileFocus: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
+    constructor();
+    onFocus(): void;
+    onBlur(): void;
+    private play;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveFocusDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveFocusDirective, "[moveWhileFocus]", never, { "moveWhileFocus": { "alias": "moveWhileFocus"; "required": true; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveParallaxDirective implements OnInit, OnDestroy {
+    #private;
+    readonly moveParallax: _angular_core.InputSignalWithTransform<number, unknown>;
+    readonly moveParallaxAxis: _angular_core.InputSignal<"x" | "y">;
+    /** Optional CSS selector for a custom scrollable container. Defaults to window scroll. */
+    readonly moveParallaxContainer: _angular_core.InputSignal<string | null>;
+    readonly progress: _angular_core.WritableSignal<number>;
+    constructor();
+    ngOnInit(): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveParallaxDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveParallaxDirective, "[moveParallax]", ["moveParallax"], { "moveParallax": { "alias": "moveParallax"; "required": false; "isSignal": true; }; "moveParallaxAxis": { "alias": "moveParallaxAxis"; "required": false; "isSignal": true; }; "moveParallaxContainer": { "alias": "moveParallaxContainer"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveLoopDirective implements OnDestroy {
+    #private;
+    readonly moveLoop: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    /**
+     * `'loop'` (default) restarts each cycle from the first keyframe. `'reverse'` alternates, so the
+     * animation plays back down to its start — what breathing, pulsing and yoyo effects need.
+     */
+    readonly moveLoopType: _angular_core.InputSignal<MoveRepeatType>;
+    /** Pause between cycles, in milliseconds. */
+    readonly moveLoopDelay: _angular_core.InputSignalWithTransform<number, unknown>;
+    /** Cycle count. Defaults to endless, which is what makes it a loop. */
+    readonly moveLoopCount: _angular_core.InputSignalWithTransform<number, unknown>;
+    constructor();
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveLoopDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveLoopDirective, "[moveLoop]", never, { "moveLoop": { "alias": "moveLoop"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveLoopType": { "alias": "moveLoopType"; "required": false; "isSignal": true; }; "moveLoopDelay": { "alias": "moveLoopDelay"; "required": false; "isSignal": true; }; "moveLoopCount": { "alias": "moveLoopCount"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class MoveTargetDirective implements OnDestroy {
+    #private;
+    readonly moveTarget: _angular_core.InputSignalWithTransform<boolean, unknown>;
+    readonly moveFrames: _angular_core.InputSignal<MoveKeyframes | undefined>;
+    readonly movePreset: _angular_core.InputSignal<MovePreset | undefined>;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveTransition: _angular_core.InputSignal<MoveTransitionConfig | undefined>;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveTargetDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTargetDirective, "[moveTarget]", never, { "moveTarget": { "alias": "moveTarget"; "required": true; "isSignal": true; }; "moveFrames": { "alias": "moveFrames"; "required": false; "isSignal": true; }; "movePreset": { "alias": "movePreset"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; "moveTransition": { "alias": "moveTransition"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class MoveTriggerDirective implements OnDestroy {
+    #private;
+    readonly moveTrigger: _angular_core.InputSignalWithTransform<boolean, unknown>;
+    readonly moveFrames: _angular_core.InputSignal<MoveKeyframes>;
+    readonly moveResetFrames: _angular_core.InputSignal<MoveKeyframes | undefined>;
+    readonly moveResetState: _angular_core.InputSignal<"initial" | "final" | "clear">;
+    readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveEasing: _angular_core.InputSignal<string | undefined>;
+    readonly moveDelay: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveSpring: _angular_core.InputSignal<MoveSpring | undefined>;
+    readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
+    readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
+    play(frames?: MoveKeyframes): Promise<void>;
+    reset(): void;
+    set(state: MoveKeyframeState): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveTriggerDirective, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTriggerDirective, "[moveTrigger]", ["moveTrigger"], { "moveTrigger": { "alias": "moveTrigger"; "required": true; "isSignal": true; }; "moveFrames": { "alias": "moveFrames"; "required": true; "isSignal": true; }; "moveResetFrames": { "alias": "moveResetFrames"; "required": false; "isSignal": true; }; "moveResetState": { "alias": "moveResetState"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+}
+
+/**
+ * SmoothScrollService — Lenis-inspired smooth scroll for Angular.
+ *
+ * Desktop: intercepts wheel events → lerp interpolation → synthetic scrollTop.
+ * Mobile:  listens to native touch scroll → lerp interpolation → synthetic scrollTop.
+ *          Native scroll is prevented during touch to avoid the vibration conflict.
+ *
+ * The `scrollY` signal is updated on every RAF tick and can be consumed by
+ * `MoveScrollDirective` (or any other consumer) to react to smooth scroll position
+ * without relying on the native `scroll` event (which is NOT fired during smooth scroll).
+ *
+ * Usage (in app root or a layout service):
+ *
+ *   constructor() {
+ *     inject(SmoothScrollService).init();
+ *   }
+ *
+ * Experimental API — may change significantly between minor versions.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare class SmoothScrollService implements OnDestroy {
+    #private;
+    /**
+     * Reactive scroll position (in pixels) updated on every RAF tick.
+     * Use this signal instead of listening to `window.scroll` when smooth scroll is active,
+     * since native scroll events are NOT fired during lerp-based scrolling.
+     */
+    readonly scrollY: _angular_core.WritableSignal<number>;
+    /** Whether the service is currently active (i.e. `init()` has been called). */
+    get isActive(): boolean;
+    /** The element the service is currently driving, or `null` when inactive. */
+    get activeElement(): HTMLElement | null;
+    init(options?: {
+        lerp?: number;
+        element?: HTMLElement;
+    }): void;
+    destroy(): void;
+    /** Scroll programmatically to a Y position */
+    scrollTo(y: number, instant?: boolean): void;
+    ngOnDestroy(): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<SmoothScrollService, never>;
+    static ɵprov: _angular_core.ɵɵInjectableDeclaration<SmoothScrollService>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * The universal handle every animation returns, whether it comes from a directive internally or
+ * from `MoveAnimator.animate()`.
+ *
+ * @stability stable
+ */
+interface AnimationControls {
+    play(): void;
+    pause(): void;
+    cancel(): void;
+    currentTime: number;
+    readonly finished: Promise<void>;
+}
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveAnimateOptions {
+    duration?: number;
+    easing?: string;
+    delay?: number;
+    disabled?: boolean;
+    spring?: MoveSpring;
+    iterations?: number;
+    transition?: MoveTransitionConfig;
+    onDone?: () => void;
+}
+/**
+ * The supported way to animate an element without a directive — sequencing several elements,
+ * reacting to a server response, driving a node the template does not own.
+ *
+ * Resolution order matches the directives exactly: `MOVEMENT_CONFIG` defaults, then the options
+ * passed here, then the reduced-motion override. Returns `null` when nothing was scheduled — on
+ * the server, or when motion is disabled — in which case the final styles have still been applied.
+ *
+ * ```ts
+ * readonly #animator = inject(MoveAnimator);
+ *
+ * async reveal(el: HTMLElement) {
+ *   await this.#animator.animate(el, { opacity: [0, 1], y: [20, 0] }, { duration: 400 })?.finished;
+ * }
+ * ```
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveAnimator {
+    #private;
+    animate(target: Element, keyframes: MoveKeyframes, options?: MoveAnimateOptions): AnimationControls | null;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveAnimator, never>;
+    static ɵprov: _angular_core.ɵɵInjectableDeclaration<MoveAnimator>;
+}
+
+declare const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition>;
+
+/**
+ * Returns keyframes for a path-drawing animation.
+ * Ideal for SVG `<path>`, `<circle>`, `<line>`, etc.
+ *
+ * @example
+ * ```html
+ * <path [moveTarget]="animate()" [moveFrames]="movePathDraw({ opacity: [0, 1] })" moveDuration="700" />
+ * ```
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+/**
+ * Returns keyframes for a subtle pulse animation on an icon.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveIconPulse(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+/**
+ * Returns keyframes for a subtle bounce animation on an icon.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveIconBounce(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+/**
+ * Returns keyframes for a subtle shake animation on an icon.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveIconShake(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+/**
+ * Returns keyframes for a subtle rotate animation on an icon.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveIconRotate(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveTransformValue = number | string;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveTransformOptions {
+    clamp?: boolean;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveSpringValueConfig extends MoveSpring {
+    initial?: number;
+    precision?: number;
+    restSpeed?: number;
+    disabled?: boolean;
+    /**
+     * Injector to run the underlying `effect` in. Optional when `moveSpringValue` is called from a
+     * valid injection context — a field initializer, a constructor, or inside
+     * `runInInjectionContext` — the same convention `toSignal`/`toObservable` use: it is inferred
+     * automatically via `inject(Injector)`. Pass this explicitly only when calling from outside one
+     * (e.g. a plain function invoked later, or a different injector than the surrounding context).
+     */
+    injector?: Injector;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveValue<T>(initial: T): WritableSignal<T>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveTransform(source: Signal<number>, inputRange: readonly number[], outputRange: readonly number[], options?: MoveTransformOptions): Signal<number>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveTransform(source: Signal<number>, inputRange: readonly number[], outputRange: readonly string[], options?: MoveTransformOptions): Signal<string>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveSpringValue(source: Signal<number>, config?: MoveSpringValueConfig): Signal<number>;
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MovementConfig {
+    duration: number;
+    easing: string;
+    delay: number;
+    disabled: boolean;
+    iterations?: number;
+}
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare const MOVEMENT_DEFAULTS: MovementConfig;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare const MOVEMENT_CONFIG: InjectionToken<MovementConfig>;
+
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MovementConfigInput = Partial<MovementConfig>;
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function provideMovement(config?: MovementConfigInput): EnvironmentProviders;
+
+/**
+ * Every public declaration carries a `@stability` JSDoc tag so the guarantee is visible in the IDE,
+ * not just in the README table:
+ *
+ * - `@stability stable` — semantic-versioning guarantees apply.
+ * - `@stability candidate` — feature-complete; small naming/behaviour adjustments possible before 1.0.
+ * - `@stability experimental` — may change significantly between minor versions (also `@experimental`).
+ *
+ * The authoritative summary lives in the "API stability" table in `README.md`.
+ */
+/**
+ * All directives the library ships, ready to spread into a standalone component's `imports`.
+ *
+ * Prefer importing only the directives a component actually uses — it keeps route-level
+ * tree-shaking effective.
+ *
+ * @stability stable
+ */
+declare const MOVEMENT_DIRECTIVES: readonly [typeof MoveEnterDirective, typeof MoveLeaveDirective, typeof MoveAnimateDirective, typeof MoveHoverDirective, typeof MoveTapDirective, typeof MoveVariantsDirective, typeof MoveStaggerDirective, typeof MoveLayoutDirective, typeof MoveScrollDirective, typeof MovePresenceDirective, typeof MovePresenceForDirective, typeof MoveDragDirective, typeof MoveInViewDirective, typeof MoveTextDirective, typeof MoveSmoothScrollDirective, typeof MoveFocusDirective, typeof MoveParallaxDirective, typeof MoveAnimationDirective, typeof MoveLoopDirective, typeof MoveTargetDirective, typeof MoveTriggerDirective];
+
+export { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MOVEMENT_DIRECTIVES, MOVE_PRESETS, MoveAnimateDirective, MoveAnimationDirective, MoveAnimator, MoveDragDirective, MoveEnterDirective, MoveFocusDirective, MoveHoverDirective, MoveInViewDirective, MoveLayoutDirective, MoveLeaveDirective, MoveLoopDirective, MoveParallaxDirective, MovePresenceDirective, MovePresenceForDirective, MoveScrollDirective, MoveSmoothScrollDirective, MoveStaggerDirective, MoveTapDirective, MoveTargetDirective, MoveTextDirective, MoveTriggerDirective, MoveVariantsDirective, SmoothScrollService, moveIconBounce, moveIconPulse, moveIconRotate, moveIconShake, movePathDraw, moveSpringValue, moveTransform, moveValue, provideMovement };
+export type { AnimationControls, MoveAnimateOptions, MoveAnimationConfig, MoveDragAxis, MoveDragConstraints, MoveDragEvent, MoveDragSnapPoint, MoveKeyframeProperties, MoveKeyframeState, MoveKeyframes, MovePresenceForContext, MovePresenceForMode, MovePresenceForTrackBy, MovePreset, MovePresetDefinition, MovePropertyTransition, MoveRepeatOptions, MoveRepeatType, MoveSpring, MoveSpringValueConfig, MoveStaggerDirection, MoveStateValue, MoveTransformOptions, MoveTransformValue, MoveTransitionConfig, MoveValue, MoveValuePair, MoveVariant, MoveVariantOrchestration, MoveVariantState, MovementConfig, MovementConfigInput };

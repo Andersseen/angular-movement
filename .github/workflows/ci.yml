@@ -52,6 +52,9 @@ jobs:
       - name: Build library
         run: pnpm exec ng build movement
 
+      - name: Check public API surface
+        run: node scripts/check-api-snapshot.mjs
+
       - name: Check npm package
         run: pnpm run pack:check
 

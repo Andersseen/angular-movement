@@ -3,13 +3,16 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-08-26
-**Library version:** `0.8.0` published (tagged, merged via PR #36). **Spec 008 (0.9 API
-convergence / pre-1.0 hardening) implemented on `main`, not yet released as `0.9.0`.**
+**Last updated:** 2026-08-27
+**Library version:** `0.9.0` published. **Spec 009 (1.0 API freeze decision) implemented on
+`main`, not yet released as a version bump.**
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
 **Branch state:** `main`.
-**Roadmap phase:** 0.8 is **complete** (see `ROADMAP.md`). 0.9 = spec 008 (hardening, not new
-features) — implemented, pending version bump/release. Next milestone after 0.9 is 1.0.
+**Roadmap phase:** 0.9 is **complete and released**. Spec 009 made the 1.0 API-freeze decisions
+(see `docs/ai/specs/009-10-api-freeze-decision.md`) — every stable candidate reviewed and
+promoted, no candidates left; experimental-vs-1.x SemVer policy decided (Option A, no secondary
+entry point); CI guard added against accidental public-API drift. `1.0.0` itself is not cut by
+that spec — same pattern as 0.9: implemented on `main`, released as its own separate step.
 
 ## What is DONE and stable
 
@@ -29,30 +32,40 @@ features) — implemented, pending version bump/release. Next milestone after 0.
   routes. `pnpm docs:check` (CI) fails the build if a selector/input renames without updating
   `src/app/shared/api/directive-reference.ts`.
 
-## Done — Spec 008 (0.9 hardening, implemented, not yet released)
+## Done — Spec 008 (0.9 API convergence / hardening) — released as 0.9.0
 
-See `docs/ai/specs/008-09-api-convergence-hardening.md` for the full audit, plan and acceptance
-criteria (all checked). Not yet released as `0.9.0` — version bump/tag/publish is a separate step
-(`RELEASE_CHECKLIST.md`). Summary of what it changed:
+Public API audit (2 accidental exports removed), `moveSpringValue` DX + reduced-motion fix, 3
+`disabled: false` hardcode bugs fixed, `MoveTextDirective` teardown race fixed, `SmoothScrollService`
+dev warning, docs resync. Full detail in `docs/ai/specs/008-09-api-convergence-hardening.md` and
+`CHANGELOG.md`.
 
-- Removed two accidental public exports (`MOVE_VARIANTS_PARENT`/`MoveVariantsProvider`,
-  `CompositeAnimationControls`) — both engine/DI internals that leaked inconsistently with their
-  siblings (`MOVE_STAGGER_PARENT`, `AnimationEngine`), which already stayed internal.
-- `moveSpringValue`'s `injector` is now optional (auto-inferred from the calling injection
-  context, `toSignal`-style) and it now respects `prefers-reduced-motion` on its own.
-- Fixed `moveLayout`/`moveText`/`moveInView` hardcoding `disabled: false` at the engine call site
-  after correctly resolving `config.disabled` — silently defeating `MOVEMENT_CONFIG.disabled`.
-- Fixed a real `MoveTextDirective` teardown gap (destroy-during-effect race could orphan an
-  `IntersectionObserver`) and added missing `MoveParallaxDirective` teardown test coverage.
-- `SmoothScrollService` warns in dev mode on second-instance misuse instead of silently going
-  inert; a losing directive's `ngOnDestroy` no longer tears down an instance it doesn't own.
-- `@stability` JSDoc added to every previously-unclassified export; `moveScroll`/`moveParallax`
-  promoted candidate → stable.
-- Docs (README ×2, ARCHITECTURE.md, ROADMAP.md, MIGRATION.md, STATE.md) brought back in sync with
-  what actually shipped in 0.8.0.
-- Full verification gate green: 479 unit tests (94.46% stmts/87.62% branch), lint, build, format,
-  docs:check, pack:check, validate:consumer (Angular 21 + 22), e2e (46/47, one confirmed
-  pre-existing parallel-load flake — see "Known gotchas").
+## Done — Spec 009 (1.0 API freeze decision, implemented, not yet released)
+
+See `docs/ai/specs/009-10-api-freeze-decision.md` for the full audit and decision table. Decisions
+only — no feature work, no redesign:
+
+- Every 0.9 stable-candidate promoted to stable (`[moveAnimation]`, `*movePresenceFor`,
+  `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`,
+  `moveSpringValue`), plus 5 icon-helper presets found via the same source audit. "Stable
+  candidate" is now empty in the taxonomy (kept for future new APIs).
+- `MoveVariantsDirective` gained the `@stability` tag it was missing; `moveActiveVariant` is now
+  `@deprecated` (permanent alias, not removed).
+- Experimental-vs-`1.x`-SemVer policy decided explicitly (Option A: no secondary
+  `angular-movement/experimental` entry point; experimental exports may break in any `1.x` minor,
+  documented in both READMEs and ARCHITECTURE.md).
+- New CI guard: `pnpm run api:check` diffs the ng-packagr type rollup against a committed snapshot
+  (`projects/movement/api-report.txt`) — catches accidental barrel changes in review. Wired into
+  **both** `ci.yml` and `release.yml` (a tag can point at a commit that never went through PR CI).
+- `validation/consumer` extended to type-check every newly-stable API against the shipped `.d.ts`:
+  `moveTransform`'s string/unit overload, the icon helpers, `MOVE_PRESETS`, `MoveTransitionConfig`,
+  the repeat inputs, `moveSpringValue`'s auto-inferred injector, and the option/config types as
+  nameable types. It previously covered none of these.
+- 5 new adversarial-state-transition tests added (destroyed `moveSpringValue` owner, nested
+  variant inheritance, rapid variant A→B→C, nested `*movePresenceFor` teardown, repeated
+  `moveLoop` cancellation, `MoveAnimationDirective.cancelLeave()`) — none surfaced a real bug.
+- Full verification gate green: 491 unit tests, lint, build, format, `docs:check`, `pack:check`,
+  `api:check` (manually confirmed it fails on a deliberate drift, then passes clean),
+  `validate:consumer` (Angular 21 + 22), e2e 47/47.
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
@@ -101,6 +114,12 @@ criteria (all checked). Not yet released as `0.9.0` — version bump/tag/publish
 - Several directives defer their first play by a microtask, and `moveText` / `moveInView` need an
   `IntersectionObserver` hit. Tests that only call `detectChanges()` pass vacuously — always await
   `whenStable()` and include a control case.
+- **`pnpm e2e` piped through `tail` reports the wrong exit code.** `playwright test | tail -40`
+  yields `tail`'s status, so a total webServer failure looks like a pass. Redirect to a file and
+  echo `$?` instead. Related: `reuseExistingServer: true` means a **stale `vite` left running on
+  the e2e port** gets reused — one that outlived a library change serves a cached module graph and
+  answers HTTP 500, and the suite dies on a 120s readiness timeout that looks nothing like the real
+  cause. Check `lsof -ti:5174` and `curl` the port before believing an e2e failure.
 - **Never assert an absence with `expect.poll`.** `expect.poll(...).toBe(0)` on an animation count
   matches its first sample (before anything is created) and silently tests nothing. Wait a settle
   window, then assert once. Playwright's `reducedMotion` fixture does not reach `matchMedia` here;
@@ -108,22 +127,20 @@ criteria (all checked). Not yet released as `0.9.0` — version bump/tag/publish
 
 ## Next up (priority order) — the road to 1.0
 
-1. **Cut the `0.9.0` release** for spec 008 (already implemented on `main`) — follow
-   `RELEASE_CHECKLIST.md`.
+1. **Cut the spec 009 changes as a release** (or fold into the `1.0.0` cut directly — no more API
+   decisions are pending) — follow `RELEASE_CHECKLIST.md`.
 2. At least four e2e tests are now known to flake under parallel load (`animation demo plays enter
 and exit through movePresence`, `drag demo moves the card…`, `smooth scroll demo exposes the
-live service readout`, and — newly observed while verifying spec 008 —
-   `scroll demo maps container scroll onto the element transform`) — each asserts a transient
-   mid-animation/mid-scroll state from outside the page and passes reliably single-worker. Worth
-   its own spec before 1.0 (increase timeouts, assert from inside `page.evaluate`, or reduce
-   worker count for this file).
+live service readout`, and `scroll demo maps container scroll onto the element transform`) — each
+   asserts a transient mid-animation/mid-scroll state from outside the page and passes reliably
+   single-worker. Worth its own spec before 1.0 (increase timeouts, assert from inside
+   `page.evaluate`, or reduce worker count for this file).
 3. Toolchain upgrade: this repo builds on Angular 21 / TypeScript 5.9 while supporting consumers on
    Angular 22 / TypeScript 6. Needs its own spec.
 4. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
 5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
-6. Revisit a secondary `angular-movement/experimental` entry point once the experimental surface
-   (`moveLayout`, advanced `moveDrag`, `moveSmoothScroll`, `moveTarget`/`moveTrigger`) has more
-   real-world mileage — documented as a 1.0-time decision in `ROADMAP.md`, not started now.
+6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
+   no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
 
 ## Release process (when asked to release)
 

@@ -208,7 +208,8 @@ For the compact form, bind the step directly: `<ul [moveStagger]="80">`.
 ### Motion-style variants
 
 Variants can be written as simple target states. Use `moveVariant` to set the active state
-(`moveActiveVariant` is a legacy alias for the same input). When the active variant changes,
+(`moveActiveVariant` is a permanent, fully-supported alias for the same input — `@deprecated` only
+to signal which name to prefer, not scheduled for removal). When the active variant changes,
 angular-movement builds keyframes from the previous state to the next state.
 
 ```html
@@ -329,16 +330,23 @@ Main entrypoint exports:
 
 ## API stability
 
-| Status               | APIs                                                                                                                                                                                                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, the preset library (`MOVE_PRESETS`) |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                                                     |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                   |
+| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
+| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                         |
+| **Experimental**     | `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                           |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small adjustments. Experimental APIs can change significantly between minor versions.
 Every exported type mirrors the stability of the API it supports — see the `@stability` JSDoc tag
 on the specific declaration for the authoritative answer.
+
+**Experimental compatibility policy, going into `1.x`:** no secondary `angular-movement/experimental`
+entry point — every experimental export stays in this package and may change or be removed in any
+`1.x` minor, including breaking changes (the one deliberate SemVer exception, mirroring Angular
+CDK's own experimental convention). Every such break gets its own `### Changed (experimental)`
+CHANGELOG heading. Where practical, removal is preceded by at least one minor version carrying a
+deprecation warning.
 
 ## Input reactivity
 

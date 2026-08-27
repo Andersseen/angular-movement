@@ -365,6 +365,65 @@ describe('MoveAnimationDirective', () => {
     expect(fixture.nativeElement.textContent).not.toContain('Child');
   });
 
+  it('cancelLeave stops an in-flight leave, and a later animate change still plays a fresh enter', async () => {
+    TestBed.configureTestingModule({
+      imports: [PresenceHostComponent],
+      providers: [provideMovement()],
+    });
+    const fixture = TestBed.createComponent(PresenceHostComponent);
+    const engine = TestBed.inject(AnimationEngine);
+
+    const players: AnimationControls[] = [];
+    vi.spyOn(engine, 'play').mockImplementation(() => {
+      const player: AnimationControls = {
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        currentTime: 0,
+        // Never settles on its own — the leave must be interrupted by cancelLeave(), not by
+        // finishing naturally, for this to actually exercise "close before leave completes".
+        finished: new Promise(() => undefined),
+      };
+      players.push(player);
+      return player;
+    });
+
+    fixture.detectChanges();
+    await Promise.resolve();
+    const enterPlayer = players[0];
+
+    // Close: *movePresence starts the leave (playLeave), which itself cancels the enter player.
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(players).toHaveLength(2);
+    expect(enterPlayer.cancel).toHaveBeenCalledTimes(1);
+    const leavePlayer = players[1];
+
+    // Reopen before the leave settles: *movePresence calls cancelLeave() on every registered
+    // child instead of tearing the view down.
+    fixture.componentInstance.show.set(true);
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(leavePlayer.cancel).toHaveBeenCalledTimes(1);
+    expect(fixture.nativeElement.textContent).toContain('Child');
+
+    // A later animate change still plays a fresh enter — cancelLeave left the directive usable,
+    // not stuck.
+    fixture.componentInstance.animation.set({
+      initial: { opacity: 0 },
+      animate: { opacity: 1, x: 40 },
+      exit: { opacity: 0 },
+    });
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(players).toHaveLength(3);
+    expect(players[2]).not.toBe(leavePlayer);
+    expect(players[2].finished).toBeDefined();
+  });
+
   it('cancels players on ngOnDestroy', async () => {
     TestBed.configureTestingModule({
       imports: [StringStateHostComponent],

@@ -411,3 +411,83 @@ describe('MovePresenceForDirective popLayout', () => {
     expect(revived.style.pointerEvents).toBe('');
   });
 });
+
+interface Group {
+  id: number;
+  rows: Row[];
+}
+
+@Component({
+  template: `
+    <div
+      *movePresenceFor="let group of groups(); trackBy: byGroupId"
+      [moveLeave]="'fade-up'"
+      [attr.data-group]="group.id"
+    >
+      <div
+        *movePresenceFor="let row of group.rows; trackBy: byRowId"
+        [moveLeave]="'fade-up'"
+        [attr.data-row]="row.id"
+      >
+        {{ row.label }}
+      </div>
+    </div>
+  `,
+  imports: [MovePresenceForDirective, MoveLeaveDirective],
+})
+class NestedListHostComponent {
+  readonly groups = signal<Group[]>([
+    {
+      id: 1,
+      rows: [
+        { id: 1, label: 'one' },
+        { id: 2, label: 'two' },
+      ],
+    },
+  ]);
+  readonly byGroupId = (_index: number, group: Group) => group.id;
+  readonly byRowId = (_index: number, row: Row) => row.id;
+}
+
+describe('MovePresenceForDirective nested lists', () => {
+  let fixture: ComponentFixture<NestedListHostComponent>;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [NestedListHostComponent],
+      providers: [provideMovement()],
+    });
+    fixture = TestBed.createComponent(NestedListHostComponent);
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('tears down a nested *movePresenceFor cleanly when the outer group leaves', async () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const { player, resolve } = deferredControls();
+    vi.spyOn(engine, 'play').mockReturnValue(player);
+
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelectorAll('[data-row]')).toHaveLength(2);
+
+    // Remove the whole group. Its own [moveLeave] starts playing; the nested list's two rows
+    // (a separate, per-item MOVE_PRESENCE_PARENT scope each) are still mounted underneath it.
+    fixture.componentInstance.groups.set([]);
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-group]')).toBeTruthy();
+    expect(fixture.nativeElement.querySelectorAll('[data-row]')).toHaveLength(2);
+
+    // Resolving the outer leave destroys the embedded view, which recursively destroys the
+    // nested MovePresenceForDirective instance and its own per-row entries. Must not throw.
+    resolve();
+    await expect(new Promise((r) => setTimeout(r, 0))).resolves.toBeUndefined();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.querySelector('[data-group]')).toBeFalsy();
+    expect(fixture.nativeElement.querySelectorAll('[data-row]')).toHaveLength(0);
+  });
+});

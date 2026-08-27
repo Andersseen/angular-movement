@@ -9,9 +9,9 @@ import { MoveKeyframes } from './presets.types';
  * <path [moveTarget]="animate()" [moveFrames]="movePathDraw({ opacity: [0, 1] })" moveDuration="700" />
  * ```
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes {
   return {
@@ -24,9 +24,9 @@ export function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes 
 /**
  * Returns keyframes for a subtle pulse animation on an icon.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveIconPulse(overrides?: Partial<MoveKeyframes>): MoveKeyframes {
   return {
@@ -39,9 +39,9 @@ export function moveIconPulse(overrides?: Partial<MoveKeyframes>): MoveKeyframes
 /**
  * Returns keyframes for a subtle bounce animation on an icon.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveIconBounce(overrides?: Partial<MoveKeyframes>): MoveKeyframes {
   return {
@@ -53,9 +53,9 @@ export function moveIconBounce(overrides?: Partial<MoveKeyframes>): MoveKeyframe
 /**
  * Returns keyframes for a subtle shake animation on an icon.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveIconShake(overrides?: Partial<MoveKeyframes>): MoveKeyframes {
   return {
@@ -67,9 +67,9 @@ export function moveIconShake(overrides?: Partial<MoveKeyframes>): MoveKeyframes
 /**
  * Returns keyframes for a subtle rotate animation on an icon.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveIconRotate(overrides?: Partial<MoveKeyframes>): MoveKeyframes {
   return {

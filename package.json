@@ -24,6 +24,8 @@
     "lint": "ng lint",
     "docs:check": "node scripts/check-docs-drift.mjs",
     "validate:consumer": "node scripts/validate-consumer.mjs",
+    "api:snapshot": "ng build movement && node scripts/update-api-snapshot.mjs",
+    "api:check": "ng build movement && node scripts/check-api-snapshot.mjs",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },

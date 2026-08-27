@@ -72,16 +72,16 @@ export interface MoveSpring {
  * animation plays back to its start instead of snapping there — what a breathing or yoyo effect
  * needs.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveRepeatType = 'loop' | 'reverse';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveRepeatOptions {
   /** Number of cycles, or `Infinity` for an endless one. */
@@ -92,9 +92,9 @@ export interface MoveRepeatOptions {
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MovePropertyTransition {
   duration?: number;
@@ -103,9 +103,9 @@ export interface MovePropertyTransition {
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveTransitionConfig = MovePropertyTransition &
   MoveRepeatOptions & {
@@ -149,9 +149,9 @@ export interface MoveKeyframeProperties {
 export type MoveKeyframes = MoveKeyframeProperties & Record<string, MoveValuePair | undefined>;
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveVariantState = {
   [K in keyof MoveKeyframeProperties]?: MoveStateValue;
@@ -164,16 +164,16 @@ export type MoveVariantState = {
  * `'beforeChildren'` plays the parent first and offsets its children by the parent's duration.
  * `'afterChildren'` runs the children first and delays the parent until their stagger span is done.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
@@ -200,9 +200,9 @@ export interface MovePresetDefinition {
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveKeyframeState {
   opacity?: number;
@@ -226,9 +226,9 @@ export interface MoveKeyframeState {
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveAnimationConfig {
   initial?: MoveKeyframeState;

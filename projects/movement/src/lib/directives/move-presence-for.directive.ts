@@ -25,23 +25,23 @@ import {
  * immediately, instead of waiting for the exit animation to finish. The list container must be
  * positioned (`position: relative`) for the row to stay where it was.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MovePresenceForMode = 'sync' | 'wait' | 'popLayout';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MovePresenceForTrackBy<T> = (index: number, item: T) => unknown;
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MovePresenceForContext<T> {
   $implicit: T;
@@ -92,9 +92,9 @@ function defaultTrackBy<T>(_index: number, item: T): unknown {
  * animations are impossible inside it. This directive renders the list itself, so it can keep a
  * removed item's view in the DOM until that item's own leave animations resolve.
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 @Directive({
   selector: '[movePresenceFor]',

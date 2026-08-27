@@ -143,21 +143,26 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
                   <code>[move]</code>, <code>[moveAnimate]</code>, <code>moveEnter</code>,
                   <code>moveLeave</code>, <code>*movePresence</code>, <code>moveStagger</code>,
                   <code>moveWhileHover</code>, <code>moveWhileTap</code>,
-                  <code>moveWhileFocus</code>, <code>moveInView</code>, basic presets
+                  <code>moveWhileFocus</code>, <code>moveInView</code>, <code>moveScroll</code>,
+                  <code>moveParallax</code>, <code>[moveAnimation]</code>,
+                  <code>*movePresenceFor</code>, <code>moveVariants</code>, <code>moveText</code>,
+                  <code>moveLoop</code>, <code>MoveAnimator</code>, <code>moveValue</code>,
+                  <code>moveTransform</code>, <code>moveSpringValue</code>, presets and icon helpers
                 </td>
               </tr>
               <tr>
                 <td class="px-4 py-3 font-medium text-amber-400">Stable candidate</td>
                 <td class="px-4 py-3">
-                  <code>[moveAnimation]</code>, <code>moveVariants</code>, <code>moveScroll</code>,
-                  <code>moveParallax</code>, <code>moveValue</code>, <code>moveTransform</code>,
-                  <code>moveSpringValue</code>
+                  <em
+                    >None currently — the 1.0 freeze pass promoted every candidate. New APIs may
+                    land here first.</em
+                  >
                 </td>
               </tr>
               <tr>
                 <td class="px-4 py-3 font-medium text-rose-400">Experimental</td>
                 <td class="px-4 py-3">
-                  <code>moveLayout</code>, advanced <code>moveDrag</code>,
+                  <code>moveLayout</code>, <code>moveDrag</code> (the whole directive),
                   <code>moveSmoothScroll</code>, <code>moveTarget</code>,
                   <code>moveTrigger</code>
                 </td>
@@ -177,12 +182,12 @@ import { CodeBlock } from '../../shared/components/code-block/code-block';
             <strong>Reactive after init</strong>: <code>moveWhileHover</code>,
             <code>moveWhileTap</code>, <code>moveWhileFocus</code>, <code>moveVariants</code>,
             <code>moveTarget</code>, <code>moveTrigger</code>, <code>moveScroll</code>,
-            <code>moveParallax</code>, <code>moveDrag</code>.
+            <code>moveParallax</code>, <code>moveDrag</code>, <code>moveLoop</code>,
+            <code>moveText</code>, and <code>[moveAnimation]</code>'s <code>animate</code> state.
           </li>
           <li>
             <strong>Init-only</strong>: <code>moveAnimate</code> / <code>[move]</code>,
-            <code>[moveAnimation]</code>, <code>moveEnter</code>, <code>moveLeave</code>,
-            <code>moveInView</code>, <code>moveLoop</code>, <code>moveText</code>,
+            <code>moveEnter</code>, <code>moveLeave</code>, <code>moveInView</code>,
             <code>moveSmoothScroll</code>. Wrap the element in <code>*movePresence</code> or
             re-create the view to replay.
           </li>

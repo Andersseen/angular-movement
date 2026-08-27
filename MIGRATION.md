@@ -8,6 +8,32 @@ Every entry states whether it is **breaking** (your build or behaviour changes w
 
 ---
 
+## 0.9.0 → Unreleased (1.0 API freeze)
+
+Spec 009 decided the final 1.0 API contract — see
+`docs/ai/specs/009-10-api-freeze-decision.md`. No renames, removals, or behavior changes; nothing
+here requires a code change.
+
+### `MoveVariantsDirective.moveActiveVariant` is now `@deprecated` — advisory
+
+It stays a permanent, fully-supported alias for `moveVariant` (same input, same value) — the tag
+only signals which name to prefer in new code, it is not scheduled for removal:
+
+```ts
+// still works, unchanged behavior
+<div [moveVariants]="variants" [moveActiveVariant]="state()">
+
+// preferred going forward
+<div [moveVariants]="variants" [moveVariant]="state()">
+```
+
+### Every 0.9 "stable candidate" is now stable
+
+`[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`,
+`moveValue`, `moveTransform`, `moveSpringValue`, and the icon-helper presets
+(`movePathDraw`/`moveIconPulse`/`moveIconBounce`/`moveIconShake`/`moveIconRotate`) now carry
+`@stability stable` — a classification change only, no API shape changed.
+
 ## 0.8.x → 0.9.0
 
 0.9 is an API-convergence / hardening release — see
