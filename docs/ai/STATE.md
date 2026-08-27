@@ -4,15 +4,16 @@
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
 **Last updated:** 2026-08-27
-**Library version:** `0.9.0` published. **Spec 009 (1.0 API freeze decision) implemented on
-`main`, not yet released as a version bump.**
+**Library version:** `1.0.0` published to npm and tagged (`chore(release): v1.0.0`, 2026-08-27).
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main`.
-**Roadmap phase:** 0.9 is **complete and released**. Spec 009 made the 1.0 API-freeze decisions
-(see `docs/ai/specs/009-10-api-freeze-decision.md`) — every stable candidate reviewed and
-promoted, no candidates left; experimental-vs-1.x SemVer policy decided (Option A, no secondary
-entry point); CI guard added against accidental public-API drift. `1.0.0` itself is not cut by
-that spec — same pattern as 0.9: implemented on `main`, released as its own separate step.
+**Branch state:** `main` includes the v1.0.0 release commit. Site work (spec 010) is on
+`chore/010-site-decomposition-and-hardening`, rebased on top of it.
+**Roadmap phase:** **1.0.0 is out.** Spec 009 made the API-freeze decisions (see
+`docs/ai/specs/009-10-api-freeze-decision.md`); the release commit itself was made directly (not
+through a spec) and briefly existed only as a tag, disconnected from `main` — fast-forwarded `main`
+to include it. If future sessions see the nav badge or `projects/movement/package.json` disagree
+with the latest git tag, check for the same kind of orphaned release commit before assuming the
+version is just stale.
 
 ## What is DONE and stable
 
