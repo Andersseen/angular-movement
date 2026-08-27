@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -6,6 +6,7 @@ import { MoveLoopDirective } from './move-loop.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { MovePreset } from '../presets/presets.types';
 
 @Component({
   selector: 'move-loop-host',
@@ -160,5 +161,55 @@ describe('MoveLoopDirective repeat controls', () => {
 
     // A loop of zero cycles is meaningless; treat it as the default rather than animating nothing.
     expect(spy.mock.calls[0]?.[2]?.repeat?.repeat).toBe(Infinity);
+  });
+});
+
+@Component({
+  selector: 'move-loop-switch-host',
+  template: `<div [moveLoop]="preset()">Loop Me</div>`,
+  imports: [MoveLoopDirective],
+})
+class SwitchHostComponent {
+  readonly preset = signal<MovePreset>('spin');
+}
+
+describe('MoveLoopDirective repeated cancellation', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('cancels every prior player when the preset switches repeatedly, never the current one', () => {
+    const players: AnimationControls[] = [];
+    TestBed.configureTestingModule({
+      imports: [SwitchHostComponent],
+      providers: [provideMovement()],
+    });
+    vi.spyOn(TestBed.inject(AnimationEngine), 'play').mockImplementation(() => {
+      const player: AnimationControls = {
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        currentTime: 0,
+        finished: Promise.resolve(),
+      };
+      players.push(player);
+      return player;
+    });
+
+    const fixture = TestBed.createComponent(SwitchHostComponent);
+    fixture.detectChanges();
+
+    for (const preset of ['pulse', 'spin', 'pulse'] as const) {
+      fixture.componentInstance.preset.set(preset);
+      fixture.detectChanges();
+    }
+
+    // Initial mount (spin) + 3 switches = 4 players total.
+    expect(players).toHaveLength(4);
+    for (const player of players.slice(0, -1)) {
+      expect(player.cancel).toHaveBeenCalledTimes(1);
+    }
+    expect(players.at(-1)!.cancel).not.toHaveBeenCalled();
   });
 });

@@ -192,27 +192,64 @@ describe('move values', () => {
 
     expect(fixture.componentInstance.spring()).toBe(75);
   });
+
+  it('stops the RAF loop when the owning component is destroyed mid-animation', () => {
+    const raf = createRafMock();
+    TestBed.configureTestingModule({ imports: [SpringHostComponent] });
+    const fixture = TestBed.createComponent(SpringHostComponent);
+    fixture.detectChanges();
+
+    fixture.componentInstance.source.set(100);
+    fixture.detectChanges();
+    TestBed.tick();
+    raf.flushFrames(3);
+
+    const pendingFrameId = raf.requestAnimationFrame.mock.results.at(-1)?.value;
+    expect(pendingFrameId).toBeGreaterThan(0);
+
+    fixture.destroy();
+
+    // Proves the effect's own cleanup ran (cancelling the actual pending frame), not just that
+    // cancelAnimationFrame was called at some earlier, unrelated point in the effect's lifetime.
+    expect(raf.cancelAnimationFrame).toHaveBeenCalledWith(pendingFrameId);
+
+    // No new frame gets scheduled once the effect's injector is gone, and flushing any frame that
+    // was already in flight must not throw or resurrect the loop.
+    const requestCountAfterDestroy = raf.requestAnimationFrame.mock.calls.length;
+    expect(() => raf.flushFrames(10)).not.toThrow();
+    expect(raf.requestAnimationFrame.mock.calls.length).toBe(requestCountAfterDestroy);
+  });
 });
 
 function createRafMock() {
   let frame = 0;
-  const callbacks: FrameRequestCallback[] = [];
+  let nextId = 1;
+  // A real cancelAnimationFrame prevents a pending callback from ever firing — tracked here as a
+  // Map (not an array) so `cancelAnimationFrame(id)` can remove exactly that pending frame.
+  const pending = new Map<number, FrameRequestCallback>();
 
   const requestAnimationFrame = vi.fn((callback: FrameRequestCallback) => {
-    callbacks.push(callback);
-    return callbacks.length;
+    const id = nextId++;
+    pending.set(id, callback);
+    return id;
   });
 
-  const cancelAnimationFrame = vi.fn();
+  const cancelAnimationFrame = vi.fn((id: number) => {
+    pending.delete(id);
+  });
 
   vi.stubGlobal('requestAnimationFrame', requestAnimationFrame);
   vi.stubGlobal('cancelAnimationFrame', cancelAnimationFrame);
 
   return {
+    requestAnimationFrame,
+    cancelAnimationFrame,
     flushFrames(count: number) {
       for (let i = 0; i < count; i += 1) {
-        const callback = callbacks.shift();
-        if (!callback) return;
+        const next = pending.entries().next().value;
+        if (!next) return;
+        const [id, callback] = next;
+        pending.delete(id);
         frame += 16;
         callback(frame);
       }

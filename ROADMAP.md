@@ -73,17 +73,29 @@ and docs that had drifted from what actually shipped. See
 ## 1.0 - Stable release
 
 `0.9 → stabilization / real-world bug fixing → 1.0` is the intended path — no large feature
-milestone sits between them.
+milestone sits between them. Spec 009 made the API-freeze decisions below; see
+`docs/ai/specs/009-10-api-freeze-decision.md` for the full audit.
 
-- Freeze the public API surface.
+- [x] Freeze the public API surface. Every 0.9 "stable candidate" (`[moveAnimation]`,
+      `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`,
+      `moveTransform`, `moveSpringValue`, plus the icon-helper presets found in the same audit)
+      promoted to stable — reviewed against naming, lifecycle, reduced motion, SSR, and test
+      confidence, with no redesign needed. `moveLayout`, `moveDrag`, `moveSmoothScroll`,
+      `moveTarget`, `moveTrigger` stay experimental (real API-shape or maturity constraints, not
+      missing polish).
+- [x] CI-enforced guard against accidental public-API drift: `pnpm run api:check` diffs the
+      library's built type rollup against a committed snapshot (`projects/movement/api-report.txt`),
+      wired into `ci.yml`.
 - Publish stable docs for each directive.
 - Confirm Angular peer dependency policy. **Decided:** support the current and previous majors
   (`^21.2.0 || ^22.0.0` today), each verified by `validate:consumer` in CI.
 - Keep package output minimal and verified with `pack:check`.
 - Provide clear upgrade notes from the latest `0.x` release.
-- Revisit whether a secondary `angular-movement/experimental` entry point is worth the ng-packagr
-  multi-entry-point complexity once `moveLayout`, advanced `moveDrag`, `moveSmoothScroll`, and
-  `moveTarget`/`moveTrigger` have enough real-world mileage to either graduate or consolidate.
+- [x] Secondary `angular-movement/experimental` entry point: **decided against for 1.0** (Option A —
+      keep experimental exports in the main entry point, with an explicit `1.x`-minor-may-break
+      versioning policy documented in both READMEs and `ARCHITECTURE.md`). Moving today's
+      experimental surface would be migration churn with no architectural win; revisit only if a
+      concrete reason appears in a future minor.
 
 ## Later ideas
 

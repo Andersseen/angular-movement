@@ -25,9 +25,14 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Splits the host's text content into animated spans/words. The directive owns and replaces the
+ * host's children, so its text content must be static — do not also bind interpolated content
+ * inside the same element, since re-splitting on an input change and Angular's own text
+ * reconciliation would fight over the same nodes.
  *
- * @stability candidate
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
  */
 @Directive({
   selector: '[moveText]',

@@ -20,7 +20,7 @@ import { AnimationControls } from '../engines/animation-controls';
 })
 class TestHostComponent {
   activeVariant = signal<string>('idle');
-  variants = signal({
+  variants = signal<Record<string, MoveVariant>>({
     idle: { opacity: [0.5, 1] },
     active: { scale: [1, 1.2] },
   });
@@ -76,6 +76,46 @@ describe('MoveVariantsDirective', () => {
     fixture.detectChanges();
 
     expect(mockPlayer.cancel).toHaveBeenCalledTimes(1);
+  });
+
+  it('only lets the last of a rapid A -> B -> C switch reach the engine, cancelling the rest', () => {
+    fixture.componentInstance.variants.set({
+      idle: { opacity: [0.5, 1] },
+      active: { scale: [1, 1.2] },
+      done: { scale: [1.2, 1], opacity: [1, 1] },
+    });
+
+    const players: AnimationControls[] = [];
+    const engine = TestBed.inject(AnimationEngine);
+    vi.spyOn(engine, 'play').mockImplementation(() => {
+      const player: AnimationControls = {
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        currentTime: 0,
+        finished: new Promise(() => undefined), // never settles — B must never be allowed to finish
+      };
+      players.push(player);
+      return player;
+    });
+
+    // idle -> active -> done, all before any of them settle.
+    fixture.componentInstance.activeVariant.set('active');
+    fixture.detectChanges();
+    fixture.componentInstance.activeVariant.set('done');
+    fixture.detectChanges();
+
+    // The spy is installed after the initial "idle" mount already played, so one player per
+    // switch from here: active, then done.
+    expect(players).toHaveLength(2);
+    const [activePlayer, donePlayer] = players;
+
+    expect(activePlayer.cancel).toHaveBeenCalledTimes(1);
+    expect(donePlayer.cancel).not.toHaveBeenCalled();
+
+    const lastCall = vi.mocked(engine.play).mock.calls.at(-1)!;
+    const frames = lastCall[1] as Record<string, unknown>;
+    expect(frames['scale']).toEqual([1.2, 1]);
   });
 
   it('should not animate if variant name does not exist', () => {

@@ -14,9 +14,9 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 @Directive({
   selector: '[moveLoop]',

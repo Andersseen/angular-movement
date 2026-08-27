@@ -85,11 +85,11 @@ Use this classification when documenting or consuming the public API. Stable API
 semantic-versioning expectations; experimental APIs can change significantly between minor
 versions.
 
-| Status               | Directives / helpers                                                                                                                                                                                                                                               |
-| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, the preset library (`MOVE_PRESETS`) |
-| **Stable candidate** | `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`                                                                                                                     |
-| **Experimental**     | `moveLayout`, advanced `moveDrag` (constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                   |
+| Status               | Directives / helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS`, `movePathDraw`, `moveIconPulse`, `moveIconBounce`, `moveIconShake`, `moveIconRotate`) |
+| **Stable candidate** | _(none currently — spec 009 promoted every 0.9 candidate to stable after review; this tier stays in the taxonomy for future new APIs)_                                                                                                                                                                                                                                                                                                                                                                   |
+| **Experimental**     | `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                                                            |
 
 Every exported type mirrors the stability of the API it supports (`@stability` JSDoc tag on the
 declaration is authoritative). `AnimationControls` and the `MovementConfig` family are stable on
@@ -97,6 +97,29 @@ their own — their shape hasn't changed since 0.5. `CompositeAnimationControls`
 `MOVE_VARIANTS_PARENT`/`MoveVariantsProvider` are internal, not part of the public barrel (see spec
 008): every `AnimationControls`-typed return path already covers the former, and the latter mirrors
 `MOVE_STAGGER_PARENT`/`MOVE_PRESENCE_PARENT`, which were never public either.
+`MoveVariantsDirective.moveActiveVariant` carries `@deprecated` (spec 009) — it stays a permanent,
+fully-supported alias for `moveVariant`, never silently removed; the tag only signals which name to
+prefer in new code.
+
+### Experimental compatibility policy (decided in spec 009, for 1.0)
+
+No secondary `angular-movement/experimental` entry point at 1.0 — every experimental export stays
+in the main entry point (Option A). This is the one deliberate exception to normal SemVer for this
+package:
+
+- Experimental exports may change or be removed in any `1.x` **minor**, including breaking
+  changes to inputs, outputs, or behavior — mirroring Angular CDK's own experimental convention.
+  Every declaration already carries `@stability experimental` in source and the table above.
+- Every experimental-only breaking change gets its own `### Changed (experimental)` CHANGELOG
+  heading, separate from the normal `### Changed`, so a stable-only consumer scanning changelogs
+  for breaks never has to read experimental sections to get an accurate answer.
+- Where practical, an experimental API gets one minor version carrying a dev-mode warning or
+  `@deprecated` tag before removal (a soft landing, not a SemVer requirement) — the same pattern
+  `SmoothScrollService` already uses for its second-instance warning.
+
+A secondary entry point remains an option for a future minor if a concrete reason appears (e.g. an
+experimental API needing a dependency stable consumers shouldn't pay for) — not adopted now because
+moving today's experimental exports would be pure migration churn with no architectural win.
 
 `moveTarget`/`moveTrigger` vs `moveVariants`: variants propagate a named state through DI to
 nested `[moveVariants]` children sharing an ancestor; target/trigger instead connect two elements

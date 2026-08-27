@@ -31,6 +31,11 @@ import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 import { MOVE_VARIANTS_PARENT, MoveVariantsProvider } from '../tokens/variants.tokens';
 
+/**
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
 @Directive({
   selector: '[moveVariants]',
   providers: [
@@ -42,8 +47,12 @@ import { MOVE_VARIANTS_PARENT, MoveVariantsProvider } from '../tokens/variants.t
 })
 export class MoveVariantsDirective implements MoveVariantsProvider, MovePresenceChild, OnDestroy {
   readonly moveVariants = input.required<Record<string, MoveVariant>>();
-  /** Active variant name. Prefer `moveVariant`; `moveActiveVariant` is an alias. */
+  /** Active variant name. Prefer this over `moveActiveVariant`. */
   readonly moveVariant = input<string | undefined>(undefined);
+  /**
+   * @deprecated Use `moveVariant` instead; kept as a permanent, fully-supported alias for the
+   * same input — it will not be removed without a major version.
+   */
   readonly moveActiveVariant = input<string | undefined>(undefined);
   readonly moveExitVariant = input<string | undefined>(undefined);
 

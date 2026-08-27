@@ -7,9 +7,9 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import { prefersReducedMotion, resolveMovementConfig } from '../directives/move-animation.utils';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveAnimateOptions {
   duration?: number;
@@ -38,9 +38,9 @@ export interface MoveAnimateOptions {
  * }
  * ```
  *
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 @Injectable({ providedIn: 'root' })
 export class MoveAnimator {

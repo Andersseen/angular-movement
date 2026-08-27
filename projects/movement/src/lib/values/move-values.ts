@@ -14,25 +14,25 @@ import { MoveSpring } from '../presets/presets.types';
 import { prefersReducedMotion } from '../directives/move-animation.utils';
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export type MoveTransformValue = number | string;
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveTransformOptions {
   clamp?: boolean;
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export interface MoveSpringValueConfig extends MoveSpring {
   initial?: number;
@@ -50,18 +50,18 @@ export interface MoveSpringValueConfig extends MoveSpring {
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveValue<T>(initial: T): WritableSignal<T> {
   return signal(initial);
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveTransform(
   source: Signal<number>,
@@ -70,9 +70,9 @@ export function moveTransform(
   options?: MoveTransformOptions,
 ): Signal<number>;
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveTransform(
   source: Signal<number>,
@@ -81,9 +81,9 @@ export function moveTransform(
   options?: MoveTransformOptions,
 ): Signal<string>;
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveTransform(
   source: Signal<number>,
@@ -110,9 +110,9 @@ export function moveTransform(
 }
 
 /**
- * Stable candidate — feature-complete, but naming or behaviour may still receive small adjustments before 1.0.
+ * Stable API — covered by semantic-versioning guarantees.
  *
- * @stability candidate
+ * @stability stable
  */
 export function moveSpringValue(
   source: Signal<number>,
