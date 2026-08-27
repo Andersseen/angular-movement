@@ -210,7 +210,14 @@ Site-only, same session as spec 010 — see `docs/ai/specs/011-theme-and-code-ed
   zero new dependencies — the MCP SDK lives only in that package. `ng lint` / `ng build` don't see
   it (not registered in `angular.json`); use `pnpm run mcp:build` / `mcp:test` / `mcp:pack:check`.
   Regenerate its embedded API data with `pnpm run mcp:snapshot` after any directive API change —
-  it is not wired into `docs:check` yet (see Next up).
+  it is not wired into `docs:check` yet (see Next up). Published independently via
+  `.github/workflows/release-mcp.yml` on a `mcp-v*.*.*` tag (not `v*.*.*` — that's
+  `angular-movement`'s own), reusing the same `NPM_TOKEN` secret; see `RELEASE_CHECKLIST.md`.
+- **`pnpm --dir <path> publish` is broken in this repo's pnpm version (10.30.1)** — it mis-delegates
+  to a raw `npm publish` and fails with `EUSAGE`, even though `pnpm --dir <path> pack` works fine.
+  `mcp:publish` and `release-mcp.yml` both `cd` into `projects/movement-mcp` instead of using
+  `--dir` for the `publish` step specifically. If a future script needs `pnpm publish` on a
+  non-cwd package, use `cd`, not `--dir`.
 - **`.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic**
   (`signal<T>(...)`) and misses every current `signal(...)` call (e.g. `MoveScrollDirective.progress`)
   — so `signals` is `[]` everywhere in both that script's output and `movement-mcp`'s snapshot.
@@ -234,10 +241,11 @@ demo reflects slider changes…`, and `enter demo replays with the newly selecte
 5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
    no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
-7. **Publish `angular-movement-mcp` 0.1.0** (spec 012, implemented but not yet published — real
-   `npm publish` needs an explicit go-ahead, see the spec's Out of Scope). Follow-ups noted there:
-   wire `mcp:snapshot` into the release checklist, fix `api-surface.mjs`'s signal regex, consider
-   a Claude Code plugin/marketplace listing once a marketplace account exists.
+7. **Publish `angular-movement-mcp` 0.1.0** — implemented and CI-wired (spec 012 +
+   `.github/workflows/release-mcp.yml`), but no `mcp-v0.1.0` tag has been pushed yet, so nothing
+   has actually reached the npm registry. Push the tag when ready (see `RELEASE_CHECKLIST.md`).
+   Other follow-ups noted in the spec: fix `api-surface.mjs`'s signal regex, consider a Claude Code
+   plugin/marketplace listing once a marketplace account exists.
 
 ## Release process (when asked to release)
 

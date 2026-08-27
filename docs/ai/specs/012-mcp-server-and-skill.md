@@ -197,8 +197,9 @@ Commands actually run, in order, from repo root unless noted:
 
 - Claude Code plugin / marketplace listing bundling this MCP server + skill (needs a marketplace
   account — explicitly deferred by the user).
-- Regenerating `api-snapshot.json` automatically as a release-checklist step (today: manual re-run
-  before publish; wire into `RELEASE_CHECKLIST.md` once this ships once and the process is proven).
+- ~~Regenerating `api-snapshot.json` automatically as a release-checklist step~~ — still manual
+  (`pnpm run mcp:snapshot`), now documented as a checklist step in `RELEASE_CHECKLIST.md`'s new
+  "Publish angular-movement-mcp" section rather than automated in CI.
 - Consider a `search_directives` fuzzy-match tool if `list_directives` proves too coarse in
   practice.
 - `.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic
@@ -206,3 +207,24 @@ Commands actually run, in order, from repo root unless noted:
   `MoveScrollDirective.progress`), so `signals` is `[]` for every directive in today's snapshot.
   Not fixed here (out of scope: that script isn't touched by this spec) — worth its own small fix
   since it silently under-reports a real part of the public API surface.
+
+## Addendum — CI publish wiring (added after initial implementation)
+
+The user asked to wire up publishing via the existing `NPM_TOKEN` GitHub secret rather than local
+`npm login` (which hit an `EOTP` wall). Added:
+
+- `.github/workflows/release-mcp.yml` — independent workflow, triggers on `mcp-v*.*.*` tags (not
+  `v*.*.*`, which is reserved for `angular-movement`'s own `release.yml`), reuses the same
+  `NPM_TOKEN` secret. Runs entirely with `working-directory: projects/movement-mcp` since the
+  package has its own lockfile and isn't part of any pnpm workspace. Verified with `actionlint`
+  (clean — the only findings in the whole `.github/workflows/` tree are pre-existing, in
+  `deploy-cloudflare.yml`, unrelated to this file).
+- `RELEASE_CHECKLIST.md` — new "Publish `angular-movement-mcp`" section (manual version bump, no
+  bump-script exists for this package yet, `mcp-v` tag prefix).
+- **Bug found and fixed while wiring this**: the root `mcp:publish` script originally used
+  `pnpm --dir projects/movement-mcp publish --no-git-checks`, which fails (`pnpm` mis-delegates to
+  a raw `npm publish` invocation and errors `EUSAGE`) — reproduced by the user running it directly.
+  `pnpm --dir <path> pack` works fine; it's specifically `publish` combined with the `--dir` global
+  flag that breaks in this pnpm version (10.30.1). Fixed by `cd`-ing into the package directory
+  inside the script instead of using `--dir`; verified with `pnpm publish --dry-run` before and
+  after the fix.

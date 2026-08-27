@@ -33,7 +33,7 @@
     "mcp:build": "pnpm --dir projects/movement-mcp run build",
     "mcp:test": "pnpm --dir projects/movement-mcp run test",
     "mcp:pack:check": "pnpm --dir projects/movement-mcp run build && pnpm --dir projects/movement-mcp pack --dry-run",
-    "mcp:publish": "pnpm --dir projects/movement-mcp run build && pnpm --dir projects/movement-mcp publish --no-git-checks",
+    "mcp:publish": "pnpm --dir projects/movement-mcp run build && cd projects/movement-mcp && pnpm publish --no-git-checks",
     "prepare": "husky",
     "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
   },

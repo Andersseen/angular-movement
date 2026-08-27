@@ -10,7 +10,9 @@
   up the library's real directive/preset API instead of guessing it. Installed via
   `npx angular-movement-mcp init`. Fully standalone — its own `package.json`, dependencies
   (`@modelcontextprotocol/sdk`, `zod`) and lockfile; `angular-movement` itself has zero new
-  dependencies and zero code changes. See `docs/ai/specs/012-mcp-server-and-skill.md`.
+  dependencies and zero code changes. Published independently via
+  `.github/workflows/release-mcp.yml` (triggers on `mcp-v*.*.*` tags, reusing the existing
+  `NPM_TOKEN` secret). See `docs/ai/specs/012-mcp-server-and-skill.md`.
 
 ## [1.0.0] - 2026-08-27
 
