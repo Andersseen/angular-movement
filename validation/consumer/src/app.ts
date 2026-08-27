@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject, Injector, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  Injector,
+  signal,
+  type Signal,
+} from '@angular/core';
 import {
   MoveAnimateDirective,
   MoveAnimationDirective,
@@ -21,11 +28,21 @@ import {
   MoveTriggerDirective,
   MoveVariantsDirective,
   MoveAnimator,
+  MOVE_PRESETS,
+  moveIconBounce,
+  moveIconPulse,
+  moveIconRotate,
+  moveIconShake,
+  movePathDraw,
   moveSpringValue,
   moveTransform,
   moveValue,
+  type MoveAnimateOptions,
   type MoveKeyframes,
   type MovePreset,
+  type MovePresenceForMode,
+  type MoveSpringValueConfig,
+  type MoveTransitionConfig,
   type MoveVariant,
 } from 'angular-movement';
 
@@ -105,7 +122,7 @@ import {
     <!-- Keyed-list presence: microsyntax + context must type-check against the shipped .d.ts -->
     <ul>
       <li
-        *movePresenceFor="let row of rows(); trackBy: trackRow; mode: 'wait'; let i = index"
+        *movePresenceFor="let row of rows(); trackBy: trackRow; mode: listMode; let i = index"
         [moveAnimation]="{ initial: { opacity: 0 }, animate: { opacity: 1 }, exit: { opacity: 0 } }"
       >
         {{ i }}: {{ row.label }}
@@ -125,8 +142,29 @@ import {
     <p [moveText]="'fade-up'" moveTextSplit="chars" [moveTextStagger]="30">split text</p>
     <div [moveLoop]="frames" [moveDuration]="1000">loop</div>
 
+    <!-- Repeat controls: the loop inputs frozen for 1.0 -->
+    <div [moveLoop]="'pulse'" moveLoopType="reverse" [moveLoopDelay]="150" [moveLoopCount]="4">
+      repeat controls
+    </div>
+
+    <!-- Per-property transition config -->
+    <div [moveVariants]="variants" [moveVariant]="variant()" [moveTransition]="transition">
+      transition config
+    </div>
+
+    <!-- Icon helpers returning MoveKeyframes, on SVG geometry -->
+    <svg viewBox="0 0 24 24">
+      <path [moveTarget]="on()" [moveFrames]="pathDraw" d="M2 12 L22 12" />
+      <circle [moveEnter]="iconPulse" cx="12" cy="12" r="6" />
+    </svg>
+    <div [moveEnter]="iconBounce">bounce</div>
+    <div [moveEnter]="iconShake">shake</div>
+    <div [moveEnter]="iconRotate">rotate</div>
+
     <!-- Signal helpers -->
     <div [style.transform]="'translateX(' + x() + 'px)'">{{ springX() }}</div>
+    <!-- moveTransform's string/unit overload must infer Signal<string>, not Signal<number> -->
+    <div [style.width]="width()">{{ inferredSpring() }}</div>
   `,
 })
 export class App {
@@ -145,8 +183,28 @@ export class App {
 
   protected readonly rows = signal([{ id: 1, label: 'first' }]);
   protected readonly trackRow = (_index: number, row: { id: number }) => row.id;
+  /** The mode union has to be nameable and assignable from a consumer, not just inline. */
+  protected readonly listMode: MovePresenceForMode = 'wait';
 
   readonly #animator = inject(MoveAnimator);
+
+  /** Per-property transition config, shared by the variants host above. */
+  protected readonly transition: MoveTransitionConfig = {
+    duration: 300,
+    easing: 'ease-out',
+    opacity: { duration: 150, delay: 50 },
+    times: [0, 1],
+  };
+
+  // Icon helpers: each returns MoveKeyframes, so they must bind straight into a directive input.
+  protected readonly pathDraw: MoveKeyframes = movePathDraw({ opacity: [0, 1] });
+  protected readonly iconPulse: MoveKeyframes = moveIconPulse();
+  protected readonly iconBounce: MoveKeyframes = moveIconBounce();
+  protected readonly iconShake: MoveKeyframes = moveIconShake();
+  protected readonly iconRotate: MoveKeyframes = moveIconRotate();
+
+  /** The preset table has to stay indexable by MovePreset from a consumer. */
+  protected readonly zoomIn = MOVE_PRESETS['zoom-in'];
 
   protected readonly progress = moveValue(0);
   protected readonly x = moveTransform(this.progress, [0, 1], [0, 200]);
@@ -156,12 +214,38 @@ export class App {
     injector: this.#injector,
   });
 
+  /**
+   * The string overload must resolve to `Signal<string>` — assigning it to `Signal<number>` (or
+   * binding it where a number is required) has to fail, which is what pins the overload order.
+   */
+  protected readonly width: Signal<string> = moveTransform(this.progress, [0, 1], ['0px', '200px']);
+
+  /**
+   * No `injector` in config: a field initializer runs inside the component's own injection
+   * context, so `moveSpringValue` infers it. This is the 0.9 DX contract being frozen for 1.x.
+   */
+  protected readonly inferredSpring = moveSpringValue(this.x, this.springConfig());
+
+  private springConfig(): MoveSpringValueConfig {
+    return { stiffness: 120, damping: 18, precision: 0.01 };
+  }
+
   protected onDragEnd(): void {
     this.on.update((value) => !value);
   }
 
   /** The imperative entry point has to be callable from a plain consumer, not just internally. */
   protected async animateImperatively(element: HTMLElement): Promise<void> {
-    await this.#animator.animate(element, this.frames, { duration: 200 })?.finished;
+    // Built as a named MoveAnimateOptions so the options type stays nameable, not just inferrable
+    // from an inline literal.
+    const options: MoveAnimateOptions = {
+      duration: 200,
+      easing: 'ease-out',
+      spring: { stiffness: 170, damping: 20 },
+      transition: this.transition,
+      onDone: () => undefined,
+    };
+
+    await this.#animator.animate(element, this.frames, options)?.finished;
   }
 }

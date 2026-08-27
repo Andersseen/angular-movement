@@ -64,6 +64,11 @@ jobs:
       - name: Build library
         run: pnpm exec ng build movement
 
+      - name: Check public API surface
+        # A tag can point at a commit that never went through PR CI, so the freeze guard runs here
+        # too — reusing the build above rather than rebuilding.
+        run: node scripts/check-api-snapshot.mjs
+
       - name: Validate package contents
         run: pnpm --dir dist/movement pack --dry-run
 

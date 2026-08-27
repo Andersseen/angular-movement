@@ -54,12 +54,18 @@ only — no feature work, no redesign:
   `angular-movement/experimental` entry point; experimental exports may break in any `1.x` minor,
   documented in both READMEs and ARCHITECTURE.md).
 - New CI guard: `pnpm run api:check` diffs the ng-packagr type rollup against a committed snapshot
-  (`projects/movement/api-report.txt`) — catches accidental barrel changes in review.
+  (`projects/movement/api-report.txt`) — catches accidental barrel changes in review. Wired into
+  **both** `ci.yml` and `release.yml` (a tag can point at a commit that never went through PR CI).
+- `validation/consumer` extended to type-check every newly-stable API against the shipped `.d.ts`:
+  `moveTransform`'s string/unit overload, the icon helpers, `MOVE_PRESETS`, `MoveTransitionConfig`,
+  the repeat inputs, `moveSpringValue`'s auto-inferred injector, and the option/config types as
+  nameable types. It previously covered none of these.
 - 5 new adversarial-state-transition tests added (destroyed `moveSpringValue` owner, nested
   variant inheritance, rapid variant A→B→C, nested `*movePresenceFor` teardown, repeated
   `moveLoop` cancellation, `MoveAnimationDirective.cancelLeave()`) — none surfaced a real bug.
 - Full verification gate green: 491 unit tests, lint, build, format, `docs:check`, `pack:check`,
-  `api:check` (manually confirmed it fails on a deliberate drift, then passes clean).
+  `api:check` (manually confirmed it fails on a deliberate drift, then passes clean),
+  `validate:consumer` (Angular 21 + 22), e2e 47/47.
 
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
@@ -108,6 +114,12 @@ only — no feature work, no redesign:
 - Several directives defer their first play by a microtask, and `moveText` / `moveInView` need an
   `IntersectionObserver` hit. Tests that only call `detectChanges()` pass vacuously — always await
   `whenStable()` and include a control case.
+- **`pnpm e2e` piped through `tail` reports the wrong exit code.** `playwright test | tail -40`
+  yields `tail`'s status, so a total webServer failure looks like a pass. Redirect to a file and
+  echo `$?` instead. Related: `reuseExistingServer: true` means a **stale `vite` left running on
+  the e2e port** gets reused — one that outlived a library change serves a cached module graph and
+  answers HTTP 500, and the suite dies on a 120s readiness timeout that looks nothing like the real
+  cause. Check `lsof -ti:5174` and `curl` the port before believing an e2e failure.
 - **Never assert an absence with `expect.poll`.** `expect.poll(...).toBe(0)` on an animation count
   matches its first sample (before anything is created) and silently tests nothing. Wait a settle
   window, then assert once. Playwright's `reducedMotion` fixture does not reach `matchMedia` here;

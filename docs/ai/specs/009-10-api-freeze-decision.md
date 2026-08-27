@@ -95,8 +95,10 @@ file with zero new extraction logic:
    PR for review).
 3. `pnpm run api:check` — rebuilds and diffs against the committed snapshot; fails with a unified
    diff and a pointer to `api:snapshot` on mismatch.
-4. Wired into `.github/workflows/ci.yml` right after the existing "Build library" step (reuses
-   that build).
+4. Wired into `.github/workflows/ci.yml` **and** `.github/workflows/release.yml`, each right after
+   that workflow's existing "Build library" step (reuses the build, no second `ng build`). Release
+   needs its own copy because a `v*.*.*` tag can point at a commit that never went through PR CI —
+   without it the freeze guard is skippable exactly at the irreversible step.
 
 `.claude/scripts/api-surface.mjs` and the `public-api-guard` agent are unchanged — they remain the
 right tool for an agent doing a human-readable, classified (BREAKING/ADDITIVE/INTERNAL) review
@@ -118,6 +120,24 @@ Added only where an actual gap exists (see "Decision table" for what's already c
 - `move-animation.directive.spec.ts` — `cancelLeave()` (the hook `*movePresenceFor` calls on
   revive) cancels an in-flight leave player, and a subsequent `animate` change still plays a fresh
   enter afterward.
+
+### Consumer-level TypeScript ergonomics (brief §8)
+
+`validation/consumer/src/app.ts` is the only thing that type-checks the **shipped** `.d.ts` under
+AOT + `strictTemplates`, and an audit found it did not exercise several APIs this spec freezes. It
+is extended to cover each of them, so the frozen ergonomics are verified per supported Angular
+major rather than assumed:
+
+- `moveTransform`'s **string/unit** overload, annotated `Signal<string>` — a real assertion, since
+  the numeric overload resolving instead would fail the assignment. Pins the overload order.
+- The five icon helpers, bound straight into directive inputs (incl. on SVG geometry).
+- `MOVE_PRESETS` indexing by preset name.
+- `MoveTransitionConfig` with per-property timing and `times`.
+- `moveLoopType` / `moveLoopDelay` / `moveLoopCount` repeat inputs.
+- `moveSpringValue`'s **auto-inferred** injector path (the fixture previously only used the
+  explicit `{ injector }` form — i.e. the 0.9 DX contract being frozen was never consumer-tested).
+- `MoveAnimateOptions`, `MovePresenceForMode`, `MoveSpringValueConfig` as **nameable** types, not
+  just inferred from inline literals.
 
 ## Out of scope
 
@@ -223,9 +243,23 @@ Added only where an actual gap exists (see "Decision table" for what's already c
   confirmed `api:check` fails with a clear unified diff naming exactly that export; reverted, and
   confirmed it passes clean again. Regenerated the snapshot once more after the `moveText` JSDoc
   caveat was added (a legitimate JSDoc-only public-surface change caught by the same guard).
-- No demo/route changes in this spec, so `pnpm e2e` was not run — nothing in this spec's diff
-  touches the demo site's runtime behavior, only library JSDoc, one docs page's static content,
-  tests, and tooling.
+- `pnpm validate:consumer`: **passes on Angular 21 and 22** — packed tarball installs with no peer
+  conflict and builds AOT with `strictTemplates` on both, including every newly-covered API listed
+  above. Run again after extending the fixture; no cast or workaround was needed anywhere, which is
+  the actual evidence for the "stable TypeScript ergonomics" criterion.
+- `pnpm e2e`: **47/47 passed**, no flakes, including the four tests STATE.md flags as
+  parallel-load-flaky. Worth recording how it failed first: a **stale `vite` dev server left
+  running for ~17h** on the e2e port was serving a module graph from before 0.9.0 added
+  `SmoothScrollService.activeElement`, so it answered HTTP 500 and Playwright's
+  `reuseExistingServer: true` reused it and timed out waiting for readiness. Not a code defect —
+  killing the stale process made the suite pass. Note the first run reported "exit code 0" because
+  the command was piped through `tail`, which masked Playwright's real exit status; re-run
+  unpiped to get a trustworthy code.
+- Public API surface audited programmatically against the built rollup: **68 exports, 68
+  classified** — 58 `stable`, 0 `candidate`, 10 `experimental`, and the experimental set matches
+  the documented list exactly. No `TODO`/`FIXME` or stray `console.log` in library source.
+- Confirmed `projects/movement/api-report.txt` is **not** included in the packed tarball (only
+  `fesm2022/`, `LICENSE`, `package.json`, `README.md`, `types/`).
 
 ## Follow-ups (out of scope, noted for later)
 
