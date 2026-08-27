@@ -92,20 +92,20 @@ export default class DemoTarget {
   protected readonly reverseDuration = signal(200);
 
   protected readonly targetCode = computed(() => {
-    return `&lt;<span class="code-keyword">svg</span> <span class="code-attr">viewBox</span>=<span class="code-string">"0 0 96 96"</span>&gt;
-  &lt;<span class="code-keyword">circle</span>
-    <span class="code-attr">[moveTarget]</span>=<span class="code-string">"animated()"</span>
-    <span class="code-attr">[moveFrames]</span>=<span class="code-string">"{ pathLength: [0, 1], opacity: [0.18, 0.42] }"</span>
-    <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-    <span class="code-attr">moveReverseDuration</span>=<span class="code-string">"${this.reverseDuration()}"</span> /&gt;
+    return `<svg viewBox="0 0 96 96">
+  <circle
+    [moveTarget]="animated()"
+    [moveFrames]="{ pathLength: [0, 1], opacity: [0.18, 0.42] }"
+    moveDuration="${this.duration()}"
+    moveReverseDuration="${this.reverseDuration()}" />
 
-  &lt;<span class="code-keyword">path</span>
-    <span class="code-attr">[moveTarget]</span>=<span class="code-string">"animated()"</span>
-    <span class="code-attr">[moveFrames]</span>=<span class="code-string">"{ pathLength: [0, 1], opacity: [0, 1] }"</span>
-    <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-    <span class="code-attr">moveDelay</span>=<span class="code-string">"90"</span>
-    <span class="code-attr">d</span>=<span class="code-string">"M28 51l13 13 28-32"</span> /&gt;
-&lt;/<span class="code-keyword">svg</span>&gt;`;
+  <path
+    [moveTarget]="animated()"
+    [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
+    moveDuration="${this.duration()}"
+    moveDelay="90"
+    d="M28 51l13 13 28-32" />
+</svg>`;
   });
 
   protected onStateChange(state: DemoState): void {

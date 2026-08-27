@@ -1,6 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  CUSTOM_ELEMENTS_SCHEMA,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { MoveAnimateDirective, MoveKeyframeState } from 'movement';
 import { RangeSlider } from '../../shared/components/range-slider/range-slider';
+import { ThemeService } from '../../shared/theme.service';
 
 const NATURAL: Record<string, number> = {
   opacity: 1,
@@ -15,6 +23,7 @@ const NATURAL: Record<string, number> = {
   selector: 'app-demo-animate',
   imports: [MoveAnimateDirective, RangeSlider],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="space-y-8">
       <div>
@@ -248,10 +257,14 @@ const NATURAL: Record<string, number> = {
                 {{ copied() ? 'Copied!' : 'Copy' }}
               </button>
             </div>
-            <div class="relative overflow-x-auto p-6 pt-14">
-              <pre
-                class="font-mono text-sm leading-relaxed"
-              ><code class="text-text" [innerHTML]="highlightedCode()"></code></pre>
+            <div class="pt-10">
+              <vertex-editor-lite
+                [value]="highlightedCode()"
+                language="html"
+                [theme]="theme()"
+                height="220px"
+                aria-label="Generated code for this demo"
+              ></vertex-editor-lite>
             </div>
           </div>
         </div>
@@ -260,6 +273,9 @@ const NATURAL: Record<string, number> = {
   `,
 })
 export default class DemoAnimate {
+  readonly #themeService = inject(ThemeService);
+  protected readonly theme = this.#themeService.theme;
+
   protected readonly opacity = signal(0);
   protected readonly y = signal(30);
   protected readonly x = signal(0);
@@ -307,33 +323,30 @@ export default class DemoAnimate {
     const keys = Object.keys(init);
 
     if (keys.length === 0) {
-      return `<span class="code-comment">// move sliders away from their natural value to compose an animation</span>`;
+      return `// move sliders away from their natural value to compose an animation`;
     }
 
     const anim = this.animateState() as Record<string, number>;
-    const attr = (s: string) => `<span class="code-attr">${s}</span>`;
-    const str = (s: string | number) => `<span class="code-string">${s}</span>`;
-    const kw = (s: string) => `<span class="code-keyword">${s}</span>`;
     const fmtState = (obj: Record<string, number>) =>
       Object.entries(obj)
-        .map(([k, v]) => `${attr(k)}: ${str(v)}`)
+        .map(([k, v]) => `${k}: ${v}`)
         .join(', ');
 
-    let code = `&lt;${kw('div')}\n`;
-    code += `  [${attr('moveInitial')}]="{ ${fmtState(init)} }"\n`;
-    code += `  [${attr('moveAnimate')}]="{ ${fmtState(anim)} }"`;
+    let code = `<div\n`;
+    code += `  [moveInitial]="{ ${fmtState(init)} }"\n`;
+    code += `  [moveAnimate]="{ ${fmtState(anim)} }"`;
 
     if (this.duration() !== 300) {
-      code += `\n  ${attr('moveDuration')}=${str(`"${this.duration()}"`)}`;
+      code += `\n  moveDuration="${this.duration()}"`;
     }
     if (this.delay()) {
-      code += `\n  ${attr('moveDelay')}=${str(`"${this.delay()}"`)}`;
+      code += `\n  moveDelay="${this.delay()}"`;
     }
     if (this.easing() !== 'ease') {
-      code += `\n  ${attr('moveEasing')}=${str(`"${this.easing()}"`)}`;
+      code += `\n  moveEasing="${this.easing()}"`;
     }
 
-    code += `&gt;\n  Target Element\n&lt;/${kw('div')}&gt;`;
+    code += `>\n  Target Element\n</div>`;
     return code;
   });
 
@@ -343,11 +356,7 @@ export default class DemoAnimate {
   }
 
   protected copyCode(): void {
-    const clean = this.highlightedCode()
-      .replace(/<[^>]+>/g, '')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>');
-    navigator.clipboard.writeText(clean);
+    navigator.clipboard.writeText(this.highlightedCode());
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }

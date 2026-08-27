@@ -1,11 +1,14 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { MOVEMENT_DIRECTIVES } from 'movement';
+import { LmnSunIcon } from 'lumen-icons/sun';
+import { LmnMoonIcon } from 'lumen-icons/moon';
 import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
+import { ThemeService } from '../../shared/theme.service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, ...MOVEMENT_DIRECTIVES],
+  imports: [RouterLink, RouterLinkActive, LmnSunIcon, LmnMoonIcon, ...MOVEMENT_DIRECTIVES],
   template: `
     <nav
       class="fixed top-0 right-0 left-0 z-50 border-b border-transparent transition-all duration-300"
@@ -69,6 +72,20 @@ import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
                 class="text-text-subtle bg-surface-raised border-border rounded-md border px-2 py-1 font-mono text-xs"
                 >{{ version }}</span
               >
+              <button
+                type="button"
+                (click)="toggleTheme()"
+                class="text-text-muted hover:text-text transition-colors"
+                [attr.aria-label]="
+                  theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+                "
+              >
+                @if (theme() === 'dark') {
+                  <lmn-sun [size]="20" />
+                } @else {
+                  <lmn-moon [size]="20" />
+                }
+              </button>
               <a
                 href="https://github.com/Andersseen/angular-movement"
                 target="_blank"
@@ -88,7 +105,21 @@ import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
           </div>
 
           <!-- Mobile menu button -->
-          <div class="flex items-center md:hidden">
+          <div class="flex items-center gap-1 md:hidden">
+            <button
+              type="button"
+              (click)="toggleTheme()"
+              class="text-text-muted hover:text-text p-2"
+              [attr.aria-label]="
+                theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+              "
+            >
+              @if (theme() === 'dark') {
+                <lmn-sun [size]="20" />
+              } @else {
+                <lmn-moon [size]="20" />
+              }
+            </button>
             <button
               (click)="toggleMobileMenu()"
               [attr.aria-expanded]="mobileMenuOpen()"
@@ -194,9 +225,12 @@ import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class Navbar {
+  readonly #themeService = inject(ThemeService);
+
   protected readonly version = MOVEMENT_VERSION_LABEL;
   protected readonly scrolled = signal(false);
   protected readonly mobileMenuOpen = signal(false);
+  protected readonly theme = this.#themeService.theme;
 
   protected onWindowScroll() {
     this.scrolled.set(window.scrollY > 20);
@@ -208,5 +242,9 @@ export class Navbar {
 
   protected closeMobileMenu() {
     this.mobileMenuOpen.set(false);
+  }
+
+  protected toggleTheme() {
+    this.#themeService.toggle();
   }
 }

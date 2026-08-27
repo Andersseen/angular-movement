@@ -433,8 +433,11 @@ test.describe('demo pages', () => {
 
     await page.locator('#scale').fill('1.5');
 
+    const editor = page.locator('vertex-editor-lite');
     await expect
-      .poll(async () => page.locator('code').textContent(), { timeout: 3000 })
+      .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
+        timeout: 3000,
+      })
       .toContain('scale: 1.5');
   });
 
@@ -528,8 +531,10 @@ test.describe('demo pages', () => {
     const heading = page.locator('h2', { hasText: 'Animate Text' });
     await expect(heading).toBeVisible();
 
-    const spanCount = await heading.locator('span').count();
-    expect(spanCount).toBeGreaterThan(5);
+    // moveText splits into spans on a microtask after render — count is 0 for one tick.
+    await expect
+      .poll(async () => heading.locator('span').count(), { timeout: 3000 })
+      .toBeGreaterThan(5);
   });
 
   test('icons demo animates SVG path drawing when toggled', async ({ page }) => {

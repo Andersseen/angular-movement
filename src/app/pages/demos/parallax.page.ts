@@ -145,11 +145,11 @@ export default class DemoParallax {
 
   protected readonly parallaxCode = computed(() => {
     const speed = this.fgSpeed();
-    return `&lt;<span class="code-keyword">div</span>
-  <span class="code-attr">[moveParallax]</span>=<span class="code-string">"${speed}"</span>
-  <span class="code-attr">moveParallaxContainer</span>=<span class="code-string">"'#parallax-demo-container'"</span>&gt;
+    return `<div
+  [moveParallax]="${speed}"
+  moveParallaxContainer="'#parallax-demo-container'">
   Parallax Element
-&lt;/<span class="code-keyword">div</span>&gt;`;
+</div>`;
   });
 
   // Computed speeds based on intensity

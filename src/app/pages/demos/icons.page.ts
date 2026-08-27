@@ -206,30 +206,30 @@ export default class DemoIcons {
   }));
 
   protected readonly iconsCode = computed(() => {
-    return `&lt;!-- Trigger (no reverse) --&gt;
-&lt;<span class="code-keyword">path</span>
-  <span class="code-attr">[moveTrigger]</span>=<span class="code-string">"animated()"</span>
-  <span class="code-attr">[moveFrames]</span>=<span class="code-string">"{ pathLength: [0, 1], opacity: [0, 1] }"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span>
-  <span class="code-attr">moveResetState</span>=<span class="code-string">"clear"</span> /&gt;
+    return `<!-- Trigger (no reverse) -->
+<path
+  [moveTrigger]="animated()"
+  [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
+  moveDuration="${this.duration()}"
+  moveResetState="clear" />
 
-&lt;!-- Variants with per-property transition --&gt;
-&lt;<span class="code-keyword">path</span>
-  <span class="code-attr">[moveVariants]</span>=<span class="code-string">"{
+<!-- Variants with per-property transition -->
+<path
+  [moveVariants]="{
     normal: { pathLength: 1, opacity: 1 },
     draw: {
       pathLength: [0, 1],
       opacity: [0, 1],
       transition: { duration: ${this.duration()}, opacity: { duration: 200, delay: 100 } }
     }
-  }"</span>
-  <span class="code-attr">[moveAnimate]</span>=<span class="code-string">"animated() ? 'draw' : 'normal'"</span> /&gt;
+  }"
+  [moveAnimate]="animated() ? 'draw' : 'normal'" />
 
-&lt;!-- Helper function --&gt;
-&lt;<span class="code-keyword">path</span>
-  <span class="code-attr">[moveTarget]</span>=<span class="code-string">"animated()"</span>
-  <span class="code-attr">[moveFrames]</span>=<span class="code-string">"movePathDraw({ opacity: [0, 0.72, 1] })"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"${this.duration()}"</span> /&gt;`;
+<!-- Helper function -->
+<path
+  [moveTarget]="animated()"
+  [moveFrames]="movePathDraw({ opacity: [0, 0.72, 1] })"
+  moveDuration="${this.duration()}" />`;
   });
 
   protected onStateChange(state: DemoState): void {

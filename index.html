@@ -16,6 +16,26 @@
     <meta property="og:image" content="/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="/src/styles.css" />
+    <script>
+      // Resolve the theme before first paint so there is never a flash of the wrong one. Runs
+      // synchronously, before Angular hydrates — data-theme lives on <html>, outside anything
+      // Angular's hydration reconciles, so this cannot cause a hydration mismatch.
+      (function () {
+        try {
+          var stored = localStorage.getItem('movement-theme');
+          var theme =
+            stored === 'light' || stored === 'dark'
+              ? stored
+              : matchMedia('(prefers-color-scheme: light)').matches
+                ? 'light'
+                : 'dark';
+          if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        } catch (e) {
+          // localStorage/matchMedia can throw in locked-down environments — default stays dark.
+        }
+      })();
+    </script>
+    <script src="/web-editor-lite.min.js" defer></script>
   </head>
   <body class="bg-bg text-text selection:bg-accent/30 pb-32 selection:text-white">
     <app-root></app-root>

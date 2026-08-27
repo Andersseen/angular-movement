@@ -1,8 +1,10 @@
 import {
+  CUSTOM_ELEMENTS_SCHEMA,
   ChangeDetectionStrategy,
   Component,
   OnInit,
   computed,
+  inject,
   input,
   output,
   signal,
@@ -10,6 +12,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { MovePreset } from 'movement';
 import { RangeSlider } from '../range-slider/range-slider';
+import { ThemeService } from '../../theme.service';
 
 export interface DemoControlConfig {
   showPreset?: boolean;
@@ -297,10 +300,14 @@ export interface DemoState {
               </button>
             </div>
 
-            <div class="relative overflow-x-auto p-6 pt-14">
-              <pre
-                class="font-mono text-sm leading-relaxed"
-              ><code class="text-text" [innerHTML]="highlightedCode()"></code></pre>
+            <div class="pt-10">
+              <vertex-editor-lite
+                [value]="highlightedCode()"
+                language="html"
+                [theme]="theme()"
+                height="220px"
+                aria-label="Generated code for this demo"
+              ></vertex-editor-lite>
             </div>
           </div>
         </div>
@@ -311,8 +318,12 @@ export interface DemoState {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DemoContainer implements OnInit {
+  readonly #themeService = inject(ThemeService);
+  protected readonly theme = this.#themeService.theme;
+
   // Inputs
   readonly title = input.required<string>();
   readonly description = input.required<string>();
@@ -414,31 +425,31 @@ export class DemoContainer implements OnInit {
     const delay = this.delay();
     const easing = this.easing();
 
-    let code = `&lt;<span class="code-keyword">div</span>`;
+    let code = `<div`;
 
     if (preset && this.controls().showPreset !== false) {
-      code += `\n  <span class="code-attr">${directive}</span>=<span class="code-string">"${preset}"</span>`;
+      code += `\n  ${directive}="${preset}"`;
     } else if (directive) {
       const binding = this.directiveBinding();
       if (binding !== undefined) {
         if (binding === '') {
-          code += `\n  <span class="code-attr">${directive}</span>`;
+          code += `\n  ${directive}`;
         } else {
-          code += `\n  <span class="code-attr">[${directive}]</span>=<span class="code-string">"${binding}"</span>`;
+          code += `\n  [${directive}]="${binding}"`;
         }
       } else {
-        code += `\n  <span class="code-attr">${directive}</span>`;
+        code += `\n  ${directive}`;
       }
     }
 
     if (duration !== 300 && this.controls().showDuration !== false) {
-      code += `\n  <span class="code-attr">moveDuration</span>=<span class="code-string">"${duration}"</span>`;
+      code += `\n  moveDuration="${duration}"`;
     }
     if (delay !== 0 && this.controls().showDelay !== false) {
-      code += `\n  <span class="code-attr">moveDelay</span>=<span class="code-string">"${delay}"</span>`;
+      code += `\n  moveDelay="${delay}"`;
     }
     if (easing !== 'ease' && this.controls().showEasing !== false) {
-      code += `\n  <span class="code-attr">moveEasing</span>=<span class="code-string">"${easing}"</span>`;
+      code += `\n  moveEasing="${easing}"`;
     }
 
     if (this.controls().includeCustomControlsInCode) {
@@ -446,12 +457,12 @@ export class DemoContainer implements OnInit {
       Object.entries(customValues).forEach(([key, value]) => {
         if (value !== undefined && value !== '' && value !== false) {
           const attrName = `move${key.charAt(0).toUpperCase() + key.slice(1)}`;
-          code += `\n  <span class="code-attr">${attrName}</span>=<span class="code-string">"${value}"</span>`;
+          code += `\n  ${attrName}="${value}"`;
         }
       });
     }
 
-    code += `&gt;\n  Target Element\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    code += `>\n  Target Element\n</div>`;
 
     return code;
   });
@@ -509,11 +520,7 @@ export class DemoContainer implements OnInit {
   }
 
   protected copyCode(): void {
-    const cleanCode = this.highlightedCode()
-      .replace(/<span class="[^"]+">/g, '')
-      .replace(/<\/span>/g, '');
-
-    navigator.clipboard.writeText(cleanCode);
+    navigator.clipboard.writeText(this.highlightedCode());
     this.copied.set(true);
     setTimeout(() => this.copied.set(false), 2000);
   }

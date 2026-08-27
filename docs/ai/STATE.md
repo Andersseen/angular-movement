@@ -100,6 +100,25 @@ keeps its mandatory`TestBed`+`vi` pattern (BEST-PRACTICES.md) untouched.
   assertion for `parallax`. Full suite green (46 passed + the pre-existing flaky-under-parallel-load
   category, unchanged in kind — see gotchas below).
 
+## Done — Spec 011 (light/dark theme, vertex-editor-lite, release sync)
+
+Site-only, same session as spec 010 — see `docs/ai/specs/011-theme-and-code-editor.md`.
+
+- **`main` was behind its own `v1.0.0` tag** (release commit existed only as a pushed tag, never
+  merged) — fast-forwarded. Nav badge now correctly reads `v1.0.0`; npm already had it published.
+- **Light + dark themes**: `ThemeService` (`src/app/shared/theme.service.ts`), `data-theme` on
+  `<html>`, blocking inline script in `index.html` resolves it before first paint (no FOUC, no
+  hydration mismatch — it never touches anything Angular hydrates). Dark is still the bare `:root`
+  default; light is a new `:root[data-theme='light']` block, same hue angles as dark. Toggle in
+  the navbar (lumen-icons sun/moon).
+- **`vertex-editor-lite`** (https://github.com/Andersseen/vertex, downloaded straight from the
+  GitHub Release into `public/`, loaded via a plain `<script defer>`) replaced every demo's
+  hand-highlighted "HTML Output" panel — `DemoContainer` (18 routes) plus the two demos with their
+  own separate panel (`animate`, `animation`). Docs prose code blocks (`CodeBlock`) were left alone
+  — owner's explicit scope choice; noted as a Follow-up.
+- Full verification green: 491 + 11 unit tests, lint, build, format, e2e 47/47 (only the two
+  pre-existing parallel-load-flaky tests flagged, confirmed still solid single-worker).
+
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
 - **Watch for the `disabled: false` hardcode pattern.** A directive that resolves
@@ -177,6 +196,10 @@ keeps its mandatory`TestBed`+`vi` pattern (BEST-PRACTICES.md) untouched.
   Reproduced identically at `lumen-icons@0.1.0` and `0.2.0`. `ngSkipHydration` on the icon's own
   host tag did not suppress it. Console-only today (the icon still renders correctly after
   hydration's recovery) — needs a real fix in the `lumen-icons` package itself, not here.
+- **`public/web-editor-lite.min.js` is a manually-downloaded static asset, not an npm dependency** —
+  fetched directly from the `vertex` repo's GitHub Release (its own installer script runs arbitrary
+  piped code, which this environment correctly refuses to execute; `curl` to the named asset is the
+  same result without that). No update mechanism exists yet — see spec 011 Follow-ups.
 - The e2e tests known to flake under parallel load (STATE.md's "Next up" #2) grew from 4 to 6 with
   spec 010's new `animate` and `enter` demo tests — both are rock-solid single-worker
   (`--workers=1 --repeat-each=3`, 6/6) and only flake under the default parallel worker count, same

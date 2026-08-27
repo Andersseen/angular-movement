@@ -151,7 +151,7 @@ export default class DemoDrag {
   });
 
   protected readonly dragCode = computed(() => {
-    const axis = this.axis() === 'free' ? '' : `=<span class="code-string">"${this.axis()}"</span>`;
+    const axis = this.axis() === 'free' ? '' : `="${this.axis()}"`;
     const c = this.constrained();
     const constraints = c
       ? ' [moveDragConstraints]="{ left: -100, right: 100, top: -80, bottom: 80 }"'
@@ -161,7 +161,7 @@ export default class DemoDrag {
     const snapPoints = this.snapPointsEnabled()
       ? ' [moveDragSnapPoints]="[{ x: -80, y: -56 }, { x: 0, y: 0 }, { x: 80, y: 56 }]"'
       : '';
-    return `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveDrag</span>${axis}${constraints}${momentum}${snap}${snapPoints}&gt;\n  Drag Me\n&lt;/<span class="code-keyword">div</span>&gt;`;
+    return `<div moveDrag${axis}${constraints}${momentum}${snap}${snapPoints}>\n  Drag Me\n</div>`;
   });
 
   protected onStateChange(state: DemoState): void {
