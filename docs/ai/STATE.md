@@ -4,17 +4,17 @@
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
 **Last updated:** 2026-08-28
-**Library version:** `1.0.0` published to npm and tagged (`chore(release): v1.0.0`, 2026-08-27).
-Spec 013 (post-1.0 hardening) is implemented on this branch, not yet released.
+**Library version:** `1.1.0` published to npm (`v1.1.0` tag, 2026-08-28) — includes spec 013
+(post-1.0 hardening). `angular-movement-mcp` `0.1.0` also published (`mcp-v0.1.0` tag, same day).
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` includes the v1.0.0 release commit. Site work (spec 010) is on
-`chore/010-site-decomposition-and-hardening`, rebased on top of it.
-**Roadmap phase:** **1.0.0 is out.** Spec 009 made the API-freeze decisions (see
-`docs/ai/specs/009-10-api-freeze-decision.md`); the release commit itself was made directly (not
-through a spec) and briefly existed only as a tag, disconnected from `main` — fast-forwarded `main`
-to include it. If future sessions see the nav badge or `projects/movement/package.json` disagree
-with the latest git tag, check for the same kind of orphaned release commit before assuming the
-version is just stale.
+**Branch state:** `main` includes everything through PR #45 (`docs/mcp-setup-and-ci-stability`).
+**Roadmap phase:** **1.0.0 is out**, and 1.1.0 has since shipped on top of it (spec 013). Spec 009
+made the API-freeze decisions (see `docs/ai/specs/009-10-api-freeze-decision.md`). **Recurring
+gotcha, now resolved twice:** both the `v1.0.0` and `v1.1.0`/`mcp-v0.1.0` release tags were created
+locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they were actually pushed
+— `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
+session sees that mismatch again, check for an unpushed local tag before assuming the version is
+just stale or the release failed.
 
 ## What is DONE and stable
 
@@ -304,20 +304,19 @@ replays with the newly selected preset` still flakes once per repeat even single
 5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
    no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
-7. **Publish `angular-movement-mcp` 0.1.0** — implemented and CI-wired (spec 012 +
-   `.github/workflows/release-mcp.yml`), but no `mcp-v0.1.0` tag has been pushed yet, so nothing
-   has actually reached the npm registry. Push the tag when ready (see `RELEASE_CHECKLIST.md`).
-   Other follow-ups noted in the spec: fix `api-surface.mjs`'s signal regex, consider a Claude Code
-   plugin/marketplace listing once a marketplace account exists.
-   **The demo site's new `/docs/mcp` page (see below) already advertises `npx angular-movement-mcp
-init` as a live command — it will 404-from-npm until this tag is pushed.**
+7. ~~Publish `angular-movement-mcp` 0.1.0~~ — **done 2026-08-28**: `mcp-v0.1.0` tag pushed,
+   `.github/workflows/release-mcp.yml` published it to npm with provenance. Verified end-to-end
+   with `npx angular-movement-mcp@latest init` in a scratch dir — writes `.mcp.json` and copies the
+   skill correctly. Remaining follow-ups from spec 012: fix `api-surface.mjs`'s signal regex,
+   consider a Claude Code plugin/marketplace listing once a marketplace account exists.
 
 **Demo site now documents the MCP server + skill.** New `src/app/pages/docs/mcp.page.ts`
 (`/docs/mcp`, sidebar group "AI Tooling", wired into the `presets → mcp → /demos` footer-nav
 chain) explains `angular-movement-mcp`/the `movement-usage` skill and gives the
-`npx angular-movement-mcp init` command. Demo-site-only change, not a library change — no
-`CHANGELOG.md` entry (that file tracks the published npm packages, not the site). Treated as a doc
-tweak (`SDD-WORKFLOW.md`'s non-trivial-task threshold), so no spec was written for it.
+`npx angular-movement-mcp init` command — now a real, working command (see #7 above). Demo-site-only
+change, not a library change — no `CHANGELOG.md` entry (that file tracks the published npm
+packages, not the site). Treated as a doc tweak (`SDD-WORKFLOW.md`'s non-trivial-task threshold),
+so no spec was written for it.
 
 ## Release process (when asked to release)
 
