@@ -29,6 +29,23 @@ vite.config.ts               ← alias: movement → projects/movement/src/publi
 **Critical fact:** the demo site consumes the library **source** via Vite alias — no build step
 between them. Library type errors break the site build immediately.
 
+## Browser support and testing strategy (spec 013)
+
+E2E coverage is split by cost/value, not run identically everywhere:
+
+- **Chromium** (`e2e/demos.spec.ts`, `docs.spec.ts`, `home.spec.ts`, `composition.spec.ts`) — the
+  full comprehensive suite, including the adversarial composition scenarios (drag+hover+tap+
+  variants, presence+layout+variants, presence+destroy-mid-transition, scroll+transform+spring
+  chains, SVG+variants+presence). These need real WAAPI timing and are too expensive to triple.
+- **Chromium + Firefox + WebKit** (`e2e/cross-browser.spec.ts`) — a small, high-value smoke suite:
+  one assertion each for `[move]`, enter/leave, presence, variants, hover/focus/tap, drag pointer
+  interaction, layout animation, scroll progress, SVG animation, spring completion, and
+  reduced-motion. Exists to catch browser-specific WAAPI/pointer-event/IntersectionObserver
+  differences that unit tests (mocked engine) and a Chromium-only e2e suite cannot see.
+
+CI installs and runs all three browsers; only the smoke file runs on Firefox/WebKit, keeping the
+added CI time bounded to that file's own runtime rather than tripling the whole suite.
+
 ## The animation pipeline (how everything flows)
 
 ```
@@ -85,11 +102,11 @@ Use this classification when documenting or consuming the public API. Stable API
 semantic-versioning expectations; experimental APIs can change significantly between minor
 versions.
 
-| Status               | Directives / helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS`, `movePathDraw`, `moveIconPulse`, `moveIconBounce`, `moveIconShake`, `moveIconRotate`) |
-| **Stable candidate** | _(none currently — spec 009 promoted every 0.9 candidate to stable after review; this tier stays in the taxonomy for future new APIs)_                                                                                                                                                                                                                                                                                                                                                                   |
-| **Experimental**     | `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                                                            |
+| Status               | Directives / helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS`, `movePathDraw`, `moveIconPulse`, `moveIconBounce`, `moveIconShake`, `moveIconRotate`) |
+| **Stable candidate** | _(none currently — spec 009 promoted every 0.9 candidate to stable after review; this tier stays in the taxonomy for future new APIs)_                                                                                                                                                                                                                                                                                                                                                                                                 |
+| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                                                      |
 
 Every exported type mirrors the stability of the API it supports (`@stability` JSDoc tag on the
 declaration is authoritative). `AnimationControls` and the `MovementConfig` family are stable on
@@ -101,11 +118,29 @@ their own — their shape hasn't changed since 0.5. `CompositeAnimationControls`
 fully-supported alias for `moveVariant`, never silently removed; the tag only signals which name to
 prefer in new code.
 
-### Experimental compatibility policy (decided in spec 009, for 1.0)
+### `MOVEMENT_DIRECTIVES` aggregate policy (spec 013)
 
-No secondary `angular-movement/experimental` entry point at 1.0 — every experimental export stays
-in the main entry point (Option A). This is the one deliberate exception to normal SemVer for this
-package:
+`MOVEMENT_DIRECTIVES` (all 21) is itself stable, and its contents are unchanged from before spec
+013 — but it was never stability-pure: 5 of its 21 members (`MoveLayoutDirective`,
+`MoveDragDirective`, `MoveSmoothScrollDirective`, `MoveTargetDirective`, `MoveTriggerDirective`) are
+individually experimental, and nothing said so before spec 013. Rather than abruptly redefining an
+already-stable exported constant's contents (a real behavior change for any consumer spreading it),
+spec 013 added the split additively: `MOVEMENT_STABLE_DIRECTIVES` (the 16 stable directives) and
+`MOVEMENT_EXPERIMENTAL_DIRECTIVES` (the 5 experimental ones), with `MOVEMENT_DIRECTIVES` now defined
+as their concatenation and its JSDoc corrected to say so explicitly. `movement.spec.ts` locks down
+that composition (no overlap, no omissions) as a regression contract. A future major may redefine
+`MOVEMENT_DIRECTIVES` to equal `MOVEMENT_STABLE_DIRECTIVES` — the same kind of soft landing
+`moveActiveVariant`'s deprecation uses — noted here as intent, not executed now.
+
+### Experimental compatibility policy (decided in spec 009, reaffirmed in spec 013, for 1.x)
+
+No secondary `angular-movement/experimental` entry point — every experimental export stays in the
+main entry point (Option A). This is the one deliberate exception to normal SemVer for this
+package. Spec 013 re-audited this for the post-1.0 hardening pass (current `ng-package.json` —
+still a single `entryFile`, no secondary entry points configured — and the current experimental
+surface) and found nothing has changed: still zero dependencies that would justify isolating
+consumers from, so the original decision stands unchanged. See the "Remaining risks" note at the
+bottom of spec 013 for when this would be worth revisiting.
 
 - Experimental exports may change or be removed in any `1.x` **minor**, including breaking
   changes to inputs, outputs, or behavior — mirroring Angular CDK's own experimental convention.
@@ -146,12 +181,12 @@ the animation continuously.
 
 ## DI tokens
 
-| Token                                                  | File                        | Provided by                                    | Consumed by                                                                   |
-| ------------------------------------------------------ | --------------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------- |
-| `MOVEMENT_CONFIG`                                      | `tokens/movement.tokens.ts` | `provideMovement(config)` (or factory default) | every directive                                                               |
-| `MOVE_STAGGER_PARENT`                                  | `tokens/stagger.tokens.ts`  | `MoveStaggerDirective`                         | child animation directives                                                    |
-| `MOVE_PRESENCE_PARENT`                                 | `tokens/presence.tokens.ts` | `MovePresenceDirective`                        | `MoveAnimateDirective`, `MoveLeaveDirective`, `MoveAnimationDirective` (exit) |
-| `MOVE_VARIANTS_PARENT` (internal, not barrel-exported) | `tokens/variants.tokens.ts` | `MoveVariantsDirective`                        | `MoveVariantsDirective` (nested), `MoveAnimateDirective`                      |
+| Token                                                  | File                        | Provided by                                    | Consumed by                                                                                                                                                                                          |
+| ------------------------------------------------------ | --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `MOVEMENT_CONFIG`                                      | `tokens/movement.tokens.ts` | `provideMovement(config)` (or factory default) | every directive                                                                                                                                                                                      |
+| `MOVE_STAGGER_PARENT`                                  | `tokens/stagger.tokens.ts`  | `MoveStaggerDirective`                         | child animation directives                                                                                                                                                                           |
+| `MOVE_PRESENCE_PARENT`                                 | `tokens/presence.tokens.ts` | `MovePresenceDirective`                        | `MoveAnimateDirective`, `MoveLeaveDirective`, `MoveAnimationDirective` (exit), `MoveHoverDirective`, `MoveTapDirective`, `MoveFocusDirective` (spec 013 — see "Transform ownership and composition") |
+| `MOVE_VARIANTS_PARENT` (internal, not barrel-exported) | `tokens/variants.tokens.ts` | `MoveVariantsDirective`                        | `MoveVariantsDirective` (nested), `MoveAnimateDirective`                                                                                                                                             |
 
 Defaults (`MOVEMENT_DEFAULTS`): `duration: 300`, `easing: 'cubic-bezier(0.16, 1, 0.3, 1)'`,
 `delay: 0`, `disabled: false`, `iterations: 1`.
@@ -165,6 +200,104 @@ Defaults (`MOVEMENT_DEFAULTS`): `duration: 300`, `easing: 'cubic-bezier(0.16, 1,
 - Shorthand transform properties: `x`, `y`, `scale`, `rotate`, `blur`, plus SVG ones
   (`pathLength`, `strokeDashoffset`, …) — see `MoveKeyframeProperties` in `presets/presets.types.ts`.
 - Springs: `{ stiffness?, damping?, mass?, velocity? }` (`MoveSpring`).
+
+## Transform ownership and composition (spec 013)
+
+Two independent writers touch an element's `transform`, and post-1.0 hardening formalized how they
+interact — see `engines/active-player-registry.ts` (internal, not barrel-exported):
+
+- **Engine-driven** (`AnimationEngine.play()`): every keyframe/spring-based directive —
+  `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`, `moveLayout`'s FLIP tween,
+  `[move]`/`moveAnimate`, `[moveAnimation]`, `moveLoop`, `moveTarget`/`moveTrigger`. These animate
+  through a real WAAPI `Animation`; `keyframe-composer.ts` decides whether to write atomic
+  `translate`/`scale`/`rotate` or one composed `transform` string (see the gotcha above), and
+  `BaseAnimationPlayer` commits the final style and cancels the animation on natural finish.
+- **Direct** (`transform-state.ts`): `MoveDragDirective` alone. It writes one composed `transform`
+  string on every `pointermove`, bypassing WAAPI entirely — this is what makes drag feel
+  immediate, but it also means drag never participates in the browser's own animation compositing.
+
+**The answers to the ownership questions this raises:**
+
+- _Who owns `translateX` during drag?_ Drag does, exclusively, from `pointerdown` forward.
+  `AnimationEngine.play()` registers every player it creates in the active-player registry, keyed
+  by host element; `MoveDragDirective.onPointerDown()` looks up and cancels whatever is registered
+  for its host before reading the base transform. Without this, a `moveWhileHover`/`moveVariants`/
+  `moveLayout` animation still mid-flight at the instant a drag starts would later `commitStyles()`
+  its own final transform over whatever the drag wrote in between, discarding drag movement — a
+  real bug found and fixed in spec 013.
+- _Can hover scale compose with drag translate?_ Only when hover's animation has already settled
+  before the drag starts (the common case — hover finishes, then the user drags). If hover is still
+  mid-flight, drag's preemption above cancels it outright rather than trying to merge channels; the
+  library does not attempt live channel-level merging between the two writers.
+- _What happens when a variant simultaneously defines `x`, or `moveLayout` and `moveDrag` overlap?_
+  Same mechanism, same answer: drag preempts on `pointerdown`. Two engine-driven directives
+  targeting the same element (e.g. hover and a variant) are not preempted by each other — that is
+  normal WAAPI layering, not a conflict this registry resolves.
+- _What happens when a presence exit starts during an active hover/tap/focus?_
+  `MoveHoverDirective`/`MoveTapDirective`/`MoveFocusDirective` each optionally register with
+  `MOVE_PRESENCE_PARENT` (spec 013) purely to cancel their own current player once `*movePresence`
+  begins removing the view — they have no leave animation of their own, they just get out of the
+  way so the real leave animation (from `MoveAnimateDirective`/`MoveVariantsDirective`) doesn't
+  race them. Before spec 013 this was undefined — a hover animation could keep running (and
+  racing) after the exit had already started.
+- _What happens when Angular destroys the element while several players are active?_ Each
+  directive cancels only its own player in `ngOnDestroy()`; there is no shared teardown. This
+  already worked correctly (verified by tracing `BaseAnimationPlayer.cancel()`, which is idempotent
+  and always resolves `finished`) and needed no change.
+
+Deliberately **not** generalized into "any new engine-driven animation cancels the previous one on
+the same element" — two WAAPI animations composing concurrently on different properties (a hover
+fade and a variant slide, say) is normal, desired layering; cancelling one because another started
+would be a new regression, not a fix. The bug this registry solves is specific to drag's bypass of
+WAAPI, so only drag preempts.
+
+## Motion Values runtime model (spec 013)
+
+`moveValue()` is a bare `signal()`. `moveTransform()` is a pure `computed()` — no RAF, ever,
+regardless of how many are derived from the same source. `moveSpringValue()` runs one independent
+`requestAnimationFrame` loop per call (Euler-integration spring physics), torn down via the
+underlying `effect()`'s own cleanup — confirmed correct by the existing destroy test and extended
+in spec 013 with deterministic benchmarks at 1/10/50/100 concurrent springs
+(`values/move-values.spec.ts`).
+
+**Finding: the one-RAF-loop-per-spring architecture is acceptable, unchanged.** Real browsers batch
+every callback registered for the same frame into one native tick — N independent
+`requestAnimationFrame` registrations cost N closure invocations per frame, not N separate timers.
+The benchmarks found linear (not quadratic) growth in registrations as spring count increases, no
+leaked frames at any scale on teardown, and no duplicate work when multiple `moveTransform()`
+values are derived from one shared spring. No shared/batched scheduler was introduced — measurement
+did not justify the added complexity.
+
+## `moveTransform()` interpolation contract (spec 013)
+
+`moveTransform()` only interpolates numbers and numeric strings that share the same trailing unit
+(`"0px"`→`"100px"`, `"0%"`→`"100%"`, `"0deg"`→`"180deg"`, `"0rem"`→`"2rem"`, …) — the unit is
+captured verbatim, not enumerated, so any matching-unit pair works. Internally this is an ordered
+list of small interpolator functions (`VALUE_INTERPOLATORS` in `values/move-values.ts`), each
+returning `undefined` to fall through to the next when it doesn't apply — the intended extension
+point for a future strategy (e.g. color) rather than a growing conditional.
+
+Mismatched units (`"10px"`→`"2rem"`), non-numeric strings (`"red"`→`"blue"`), and values with
+embedded functions (`"translateX(0px)"`→`"translateX(100px)"`) are all things `moveTransform()`
+deliberately does not interpolate — arbitrary CSS-string interpolation was never the contract. They
+fall to a discrete switch at the midpoint of the range (`progress < 0.5 ? from : to`), same as
+before spec 013, but now with a dev-mode warning (`movementWarn()`, once per distinct pair, not per
+frame) instead of silently snapping — the gap spec 013 found and closed: a caller expecting smooth
+output previously got an unannounced hard jump with no way to discover why.
+
+## Smooth-scroll architectural status (spec 013)
+
+`SmoothScrollService`/`moveSmoothScroll` stays in the main entry point, still experimental — no
+package split. It is the library's only root-singleton, page-level-scroll-owning service (252 lines
+before spec 013, vs. ~150 for a typical directive's source+spec combined), a genuinely different
+shape from every other directive, but with no dependency or size concern that would justify
+isolating it. Spec 013 found and fixed a real, previously-undocumented accessibility gap: the
+service had no keyboard or native-scroll listener at all, so its RAF lerp loop would fight native
+keyboard scrolling (arrows, Page Up/Down, Home/End, Tab-triggered focus-into-view) by snapping
+`scrollTop` back toward a stale target on the very next frame. Fixed with a `scroll` listener that
+detects a `scrollTop` change the service did not itself write and resyncs to it instead of fighting
+it — internal only, no public API change, still respects `prefers-reduced-motion` (unchanged, the
+service no-ops entirely when reduced motion is active).
 
 ## Adding a new directive — the complete checklist
 

@@ -19,8 +19,23 @@ export default defineConfig({
   },
   projects: [
     {
+      // The full comprehensive suite (demos, docs, home, composition) runs only here — tripling
+      // it across every browser would be slow for little marginal value.
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+    {
+      // A small, high-value smoke suite also runs on Firefox and WebKit to catch browser-specific
+      // WAAPI/pointer-event/IntersectionObserver differences — see e2e/cross-browser.spec.ts and
+      // "Browser support and testing strategy" in docs/ai/ARCHITECTURE.md.
+      name: 'firefox',
+      testMatch: /cross-browser\.spec\.ts/,
+      use: { ...devices['Desktop Firefox'] },
+    },
+    {
+      name: 'webkit',
+      testMatch: /cross-browser\.spec\.ts/,
+      use: { ...devices['Desktop Safari'] },
     },
   ],
   webServer: {

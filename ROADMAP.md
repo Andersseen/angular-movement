@@ -95,7 +95,28 @@ milestone sits between them. Spec 009 made the API-freeze decisions below; see
       keep experimental exports in the main entry point, with an explicit `1.x`-minor-may-break
       versioning policy documented in both READMEs and `ARCHITECTURE.md`). Moving today's
       experimental surface would be migration churn with no architectural win; revisit only if a
-      concrete reason appears in a future minor.
+      concrete reason appears in a future minor. **Reaffirmed in spec 013** after a fresh audit —
+      still no such reason.
+
+## 1.x - Post-1.0 hardening (spec 013)
+
+Not a feature milestone — a hardening pass over ten architectural/product-quality risk areas
+identified after the freeze. See `docs/ai/specs/013-post-1.0-hardening.md` for the full
+investigation, decisions, and verification.
+
+- [x] Cross-browser e2e: a small smoke suite (`e2e/cross-browser.spec.ts`) now runs on Chromium,
+      Firefox, and WebKit; the comprehensive suite stays Chromium-only.
+- [x] `MOVEMENT_DIRECTIVES` stability split: additive `MOVEMENT_STABLE_DIRECTIVES` /
+      `MOVEMENT_EXPERIMENTAL_DIRECTIVES` aggregates, contents unchanged.
+- [x] Motion Values (`moveSpringValue`) profiled at 1/10/50/100 concurrent springs — architecture
+      found acceptable, no shared scheduler added.
+- [x] `moveTransform()` interpolation made explicit and extensible; mismatched units/colors/
+      transform-functions now warn instead of silently snapping.
+- [x] Real bug fixed: `MoveDragDirective` now preempts an in-flight engine-driven animation on
+      `pointerdown` instead of racing it (a genuine transform-ownership race, not previously known).
+- [x] Real bug fixed: `SmoothScrollService` no longer fights native keyboard scrolling.
+- [x] Composition/adversarial e2e coverage added (`e2e/composition.spec.ts`).
+- [x] Package description/keywords repositioned to reflect the library's actual current scope.
 
 ## Later ideas
 

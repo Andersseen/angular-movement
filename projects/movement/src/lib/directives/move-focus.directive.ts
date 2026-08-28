@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { Directive, effect, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -13,6 +13,7 @@ import {
 } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -26,7 +27,7 @@ import { AnimationControls } from '../engines/animation-controls';
     '(focusout)': 'onBlur()',
   },
 })
-export class MoveFocusDirective implements OnDestroy {
+export class MoveFocusDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly moveWhileFocus = input.required<MovePreset | MoveKeyframes>();
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalNumberAttribute,
@@ -48,6 +49,7 @@ export class MoveFocusDirective implements OnDestroy {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
 
   #currentPlayer: AnimationControls | null = null;
   #isFocused = false;
@@ -70,6 +72,19 @@ export class MoveFocusDirective implements OnDestroy {
         this.play(true);
       }
     });
+  }
+
+  ngOnInit(): void {
+    this.#presence?.register(this);
+  }
+
+  /**
+   * Called by `MovePresenceParent` once a `*movePresence` exit begins on this element. Focus has
+   * no leave animation of its own to run — it just cancels whatever it's mid-flight and gets out
+   * of the way so the real leave animation doesn't race it.
+   */
+  playLeave(): void {
+    this.#currentPlayer?.cancel();
   }
 
   onFocus() {
@@ -132,6 +147,7 @@ export class MoveFocusDirective implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.#presence?.unregister(this);
     this.#currentPlayer?.cancel();
   }
 }

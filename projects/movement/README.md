@@ -4,9 +4,11 @@
 [![npm version](https://img.shields.io/npm/v/angular-movement.svg)](https://www.npmjs.com/package/angular-movement)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Andersseen/angular-movement/blob/main/LICENSE)
 
-Angular-native motion library powered by the browser Web Animations API. It provides declarative
-directives for motion-style states, presets, spring physics, SVG path drawing, drag, scroll-driven
-animation, and presence/stagger orchestration.
+Angular-native motion library powered by the browser Web Animations API and Angular signals. It
+provides declarative directives for motion-style states, presets, variants, gestures, spring
+physics, SVG path drawing, drag, scroll-driven and layout animation, presence/stagger
+orchestration, and imperative motion values (`moveValue`, `moveTransform`, `moveSpringValue`) — all
+SSR-safe and zoneless-compatible.
 
 ## Features
 
@@ -330,23 +332,30 @@ Main entrypoint exports:
 
 ## API stability
 
-| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
-| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                         |
-| **Experimental**     | `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                           |
+| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
+| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                                                       |
+| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                     |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small adjustments. Experimental APIs can change significantly between minor versions.
 Every exported type mirrors the stability of the API it supports — see the `@stability` JSDoc tag
 on the specific declaration for the authoritative answer.
 
+`MOVEMENT_DIRECTIVES` itself is stable, but its **contents** are not stability-pure — it includes
+all five experimental directives. `MOVEMENT_STABLE_DIRECTIVES` / `MOVEMENT_EXPERIMENTAL_DIRECTIVES`
+(added in the post-1.0 hardening pass, spec 013) split it additively, without changing
+`MOVEMENT_DIRECTIVES`'s own contents, for consumers who want a stability-pure spread.
+
 **Experimental compatibility policy, going into `1.x`:** no secondary `angular-movement/experimental`
 entry point — every experimental export stays in this package and may change or be removed in any
 `1.x` minor, including breaking changes (the one deliberate SemVer exception, mirroring Angular
 CDK's own experimental convention). Every such break gets its own `### Changed (experimental)`
 CHANGELOG heading. Where practical, removal is preceded by at least one minor version carrying a
-deprecation warning.
+deprecation warning. Reaffirmed in spec 013 after re-auditing `ng-package.json` and the current
+experimental surface — still no dependency stable consumers would need isolating from, so no
+package split.
 
 ## Input reactivity
 

@@ -4,6 +4,51 @@
 
 ### Added
 
+- Post-1.0 hardening pass (spec 013): `MOVEMENT_STABLE_DIRECTIVES` and
+  `MOVEMENT_EXPERIMENTAL_DIRECTIVES` — new aggregates additively splitting `MOVEMENT_DIRECTIVES`
+  (unchanged contents) by stability, for consumers who want a stability-pure `imports` spread.
+- A small cross-browser e2e smoke suite (`e2e/cross-browser.spec.ts`) now runs on Chromium,
+  Firefox, and WebKit in CI, alongside the existing Chromium-only comprehensive suite. New
+  `e2e/composition.spec.ts` adds adversarial composition scenarios (drag+hover/tap, presence-for
+  rapid mutations, presence destroy-mid-transition, scroll→transform→spring chains, rapid SVG
+  icon/variant toggling).
+- `docs/ai/ARCHITECTURE.md`: new sections documenting the transform ownership/composition model,
+  the Motion Values runtime model, the `moveTransform()` interpolation contract, the smooth-scroll
+  architectural status, the `MOVEMENT_DIRECTIVES` aggregate policy, and the browser
+  support/testing strategy — see `docs/ai/specs/013-post-1.0-hardening.md` for the full audit.
+
+### Changed (experimental)
+
+- `SmoothScrollService`: fixed a real accessibility bug where native keyboard scrolling (arrows,
+  Page Up/Down, Home/End, Tab-triggered focus-into-view) was fought and effectively broken while
+  `[moveSmoothScroll]` was active — the RAF lerp loop now resyncs when it detects a `scrollTop`
+  change it did not itself write, instead of snapping back toward a stale target. Internal only,
+  no signature change.
+
+### Fixed
+
+- `MoveDragDirective` now cancels any in-flight engine-driven animation (`moveWhileHover`,
+  `moveVariants`, `moveLayout`, ...) on the same element at `pointerdown`, instead of racing it — a
+  genuine bug where a hover/variant/layout animation still mid-flight when a drag started could
+  later overwrite the drag's movement when it committed its own final transform. Drag now owns the
+  transform exclusively from `pointerdown` forward (see "Transform ownership and composition" in
+  `ARCHITECTURE.md`).
+- `MoveHoverDirective` / `MoveTapDirective` / `MoveFocusDirective` now cancel their own player once
+  a `*movePresence` exit begins on their element, instead of potentially racing the real leave
+  animation. Internal only, no signature change.
+- `moveTransform()` now emits a dev-mode warning (once per distinct mismatched pair) when it falls
+  back to a discrete midpoint switch for mismatched units, non-numeric strings, or embedded
+  transform functions, instead of silently snapping with no indication why. Behavior for every
+  previously-working case (matching numeric units) is unchanged.
+
+### Investigated, no change made
+
+- Secondary `angular-movement/experimental` entry point: re-audited, decision from spec 009
+  reaffirmed — still no dependency stable consumers would need isolating from.
+- Motion Values (`moveSpringValue`'s one-RAF-loop-per-call architecture): benchmarked at
+  1/10/50/100 concurrent springs — linear registration growth, no leaks, no duplicate work found.
+  No shared/batched scheduler introduced.
+
 - New, independently-published package **`angular-movement-mcp`** (`projects/movement-mcp/`): a
   real MCP server (`list_directives`, `get_directive`, `list_presets`, `get_example`) plus an
   installable Claude Code skill (`movement-usage`), so an agent working in a consumer app can look

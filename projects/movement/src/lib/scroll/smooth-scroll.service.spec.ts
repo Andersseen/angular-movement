@@ -147,6 +147,7 @@ describe('SmoothScrollService', () => {
     expect(removeSpy).toHaveBeenCalledWith('touchstart', expect.any(Function));
     expect(removeSpy).toHaveBeenCalledWith('touchmove', expect.any(Function));
     expect(removeSpy).toHaveBeenCalledWith('touchend', expect.any(Function));
+    expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
   });
 
   it('scrollTo updates targetY (clamped to max scroll)', () => {
@@ -336,6 +337,40 @@ describe('SmoothScrollService', () => {
 
     expect(el.scrollTop).toBe(100);
     expect(service.scrollY()).toBe(100);
+  });
+
+  it('resyncs to a native (keyboard/programmatic) scrollTop change instead of fighting it', () => {
+    // Regression contract for a real accessibility bug: without resyncing, the RAF loop would
+    // snap `scrollTop` back toward the stale pre-scroll target on the very next tick, fighting
+    // native keyboard scrolling (arrows, Page Up/Down, Home/End, Tab-triggered focus-into-view)
+    // and effectively breaking it while [moveSmoothScroll] is active.
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.1 });
+
+    // Something other than this service's own writes (e.g. a native keyboard scroll) moves
+    // scrollTop and fires the native 'scroll' event.
+    el.scrollTop = 300;
+    el.dispatchEvent(new Event('scroll'));
+
+    rafCallbacks.at(-1)?.(16);
+
+    expect(el.scrollTop).toBeCloseTo(300, 0);
+    expect(service.scrollY()).toBeCloseTo(300, 0);
+  });
+
+  it('does not resync on its own scroll writes (no feedback loop)', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.5 });
+
+    service.scrollTo(100);
+    for (let i = 0; i < 10; i++) {
+      // #applyScroll's own scrollTop write also fires jsdom's native 'scroll' event; the service
+      // must not mistake that for a foreign scroll and keep progressing toward the real target.
+      el.dispatchEvent(new Event('scroll'));
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+
+    expect(el.scrollTop).toBe(100);
   });
 
   it('does not init on server (non-browser platform)', () => {
