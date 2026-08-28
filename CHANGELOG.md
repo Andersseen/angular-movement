@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.1.0] - 2026-08-28
+
 ### Added
 
 - Post-1.0 hardening pass (spec 013): `MOVEMENT_STABLE_DIRECTIVES` and

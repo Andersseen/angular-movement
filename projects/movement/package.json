@@ -1,6 +1,6 @@
 {
   "name": "angular-movement",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "module",
   "description": "Angular-native motion: signals-driven directives for presets, variants, presence, gestures, spring physics, scroll-linked animation, layout transitions and imperative motion values. SSR-safe, zoneless, zero dependencies.",
   "keywords": [
