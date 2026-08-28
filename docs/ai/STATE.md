@@ -241,6 +241,16 @@ cross-browser and composition e2e coverage.
   spec 010's new `animate` and `enter` demo tests — both are rock-solid single-worker
   (`--workers=1 --repeat-each=3`, 6/6) and only flake under the default parallel worker count, same
   as the 4 pre-existing ones. Not a new problem, just a bigger instance of the tracked one.
+  **Mitigated 2026-08-28**: `playwright.config.ts` now forces `workers: 1` when `process.env.CI` is
+  set (local runs stay parallel) — the PR #44 merge to `main` failed CI on 4 of these plus a new
+  `in-view` and a webkit cross-browser flake, all cross-test contention under the default parallel
+  worker count, not real regressions. Verified locally with `CI=1 pnpm exec playwright test
+--workers=1 --repeat-each=2` against all 6 named tests: 5 now pass clean every time; `enter demo
+replays with the newly selected preset` still flakes once per repeat even single-worker (a real,
+  separate timing sensitivity in that test/demo, not parallelism) but passes on `retries: 1`'s
+  built-in retry both times — so the job-level fix still holds, it just isn't a total fix for that
+  one test. Root cause addressed generically rather than one test at a time; "Next up" #2 below is
+  superseded by this.
 - **`projects/movement-mcp/` (spec 012) is a fully standalone pnpm package, deliberately not part
   of any workspace.** Its own `node_modules`/`pnpm-lock.yaml`, own `pnpm install`
   (`pnpm run mcp:install` from root). This is why `angular-movement`'s own `package.json` still has
@@ -284,13 +294,10 @@ cross-browser and composition e2e coverage.
 
 1. **Cut the spec 009 changes as a release** (or fold into the `1.0.0` cut directly — no more API
    decisions are pending) — follow `RELEASE_CHECKLIST.md`.
-2. At least six e2e tests are now known to flake under parallel load (`animation demo plays enter
-and exit through movePresence`, `drag demo moves the card…`, `smooth scroll demo exposes the
-live service readout`, `scroll demo maps container scroll onto the element transform`, `animate
-demo reflects slider changes…`, and `enter demo replays with the newly selected preset`) — each
-   asserts a transient mid-animation/mid-scroll state from outside the page and passes reliably
-   single-worker. Worth its own spec before 1.0 (increase timeouts, assert from inside
-   `page.evaluate`, or reduce worker count for this file).
+2. ~~At least six e2e tests are now known to flake under parallel load~~ — **mitigated 2026-08-28**:
+   `playwright.config.ts` forces `workers: 1` in CI (see gotchas above) instead of fixing each test
+   individually. Watch a few more CI runs to confirm the fix holds before considering this closed
+   for good.
 3. Toolchain upgrade: this repo builds on Angular 21 / TypeScript 5.9 while supporting consumers on
    Angular 22 / TypeScript 6. Needs its own spec.
 4. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
@@ -302,6 +309,15 @@ demo reflects slider changes…`, and `enter demo replays with the newly selecte
    has actually reached the npm registry. Push the tag when ready (see `RELEASE_CHECKLIST.md`).
    Other follow-ups noted in the spec: fix `api-surface.mjs`'s signal regex, consider a Claude Code
    plugin/marketplace listing once a marketplace account exists.
+   **The demo site's new `/docs/mcp` page (see below) already advertises `npx angular-movement-mcp
+init` as a live command — it will 404-from-npm until this tag is pushed.**
+
+**Demo site now documents the MCP server + skill.** New `src/app/pages/docs/mcp.page.ts`
+(`/docs/mcp`, sidebar group "AI Tooling", wired into the `presets → mcp → /demos` footer-nav
+chain) explains `angular-movement-mcp`/the `movement-usage` skill and gives the
+`npx angular-movement-mcp init` command. Demo-site-only change, not a library change — no
+`CHANGELOG.md` entry (that file tracks the published npm packages, not the site). Treated as a doc
+tweak (`SDD-WORKFLOW.md`'s non-trivial-task threshold), so no spec was written for it.
 
 ## Release process (when asked to release)
 

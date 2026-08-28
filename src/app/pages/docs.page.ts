@@ -88,6 +88,25 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
                 </li>
               </ul>
             </div>
+
+            <div>
+              <h4
+                class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
+              >
+                AI Tooling
+              </h4>
+              <ul class="space-y-1">
+                <li>
+                  <a
+                    routerLink="mcp"
+                    routerLinkActive="bg-accent/10 text-accent font-medium"
+                    class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
+                  >
+                    AI Agent Setup
+                  </a>
+                </li>
+              </ul>
+            </div>
           </nav>
         </aside>
 

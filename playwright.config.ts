@@ -12,6 +12,10 @@ export default defineConfig({
   // The warm-up removes the known cause of flakiness; one retry absorbs ordinary scheduling noise
   // without hiding a reproducible failure.
   retries: 1,
+  // Several timing-sensitive tests (mid-animation/mid-scroll assertions from outside the page) are
+  // rock-solid single-worker but flake under CI's default parallel worker count — cross-test CPU
+  // contention, not a real bug (see docs/ai/STATE.md). Local runs stay parallel for speed.
+  workers: process.env['CI'] ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,

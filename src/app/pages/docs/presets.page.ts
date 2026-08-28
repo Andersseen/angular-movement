@@ -125,8 +125,8 @@ interface PresetExample {
       <app-docs-footer-nav
         prevHref="/docs/reference"
         prevLabel="API Reference"
-        nextHref="/demos"
-        nextLabel="Try Demos"
+        nextHref="/docs/mcp"
+        nextLabel="AI Agent Setup"
       />
     </article>
   `,
