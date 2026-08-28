@@ -302,6 +302,15 @@ demo reflects slider changes…`, and `enter demo replays with the newly selecte
    has actually reached the npm registry. Push the tag when ready (see `RELEASE_CHECKLIST.md`).
    Other follow-ups noted in the spec: fix `api-surface.mjs`'s signal regex, consider a Claude Code
    plugin/marketplace listing once a marketplace account exists.
+   **The demo site's new `/docs/mcp` page (see below) already advertises `npx angular-movement-mcp
+init` as a live command — it will 404-from-npm until this tag is pushed.**
+
+**Demo site now documents the MCP server + skill.** New `src/app/pages/docs/mcp.page.ts`
+(`/docs/mcp`, sidebar group "AI Tooling", wired into the `presets → mcp → /demos` footer-nav
+chain) explains `angular-movement-mcp`/the `movement-usage` skill and gives the
+`npx angular-movement-mcp init` command. Demo-site-only change, not a library change — no
+`CHANGELOG.md` entry (that file tracks the published npm packages, not the site). Treated as a doc
+tweak (`SDD-WORKFLOW.md`'s non-trivial-task threshold), so no spec was written for it.
 
 ## Release process (when asked to release)
 
