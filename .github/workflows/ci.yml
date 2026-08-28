@@ -38,7 +38,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Install Playwright browsers
-        run: pnpm exec playwright install --with-deps chromium
+        # Firefox and WebKit are only exercised by the small e2e/cross-browser.spec.ts smoke suite
+        # (see playwright.config.ts) — the comprehensive suite stays Chromium-only.
+        run: pnpm exec playwright install --with-deps chromium firefox webkit
 
       - name: Lint
         run: pnpm run lint

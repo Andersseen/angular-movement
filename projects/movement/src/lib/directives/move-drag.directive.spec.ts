@@ -6,6 +6,7 @@ import { MoveDragDirective } from './move-drag.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { registerActivePlayer } from '../engines/active-player-registry';
 
 @Component({
   selector: 'move-drag-host',
@@ -214,6 +215,28 @@ describe('MoveDragDirective', () => {
     expect(mockPlayer.cancel).toHaveBeenCalled();
     expect(el.style.touchAction).toBe('');
     expect(el.style.userSelect).toBe('');
+  });
+
+  it('preempts an active engine-driven player on the same host at pointerdown', () => {
+    // Simulates a moveWhileHover/moveVariants/moveLayout animation still mid-flight on the same
+    // element the instant a drag starts — see "Transform ownership and composition" in
+    // ARCHITECTURE.md. Registering directly (rather than mocking `engine.play`) tests the actual
+    // contract MoveDragDirective relies on, independent of which directive registered it.
+    const mockPlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: new Promise(() => undefined),
+    };
+    const el = debugElement.nativeElement as HTMLElement;
+    registerActivePlayer(el, mockPlayer);
+
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: 100, clientY: 100 }),
+    );
+
+    expect(mockPlayer.cancel).toHaveBeenCalledTimes(1);
   });
 
   it('should lock movement to the x axis when moveDrag is "x"', () => {

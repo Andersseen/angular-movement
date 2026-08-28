@@ -3,8 +3,9 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-08-27
+**Last updated:** 2026-08-28
 **Library version:** `1.0.0` published to npm and tagged (`chore(release): v1.0.0`, 2026-08-27).
+Spec 013 (post-1.0 hardening) is implemented on this branch, not yet released.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
 **Branch state:** `main` includes the v1.0.0 release commit. Site work (spec 010) is on
 `chore/010-site-decomposition-and-hardening`, rebased on top of it.
@@ -119,6 +120,42 @@ Site-only, same session as spec 010 — see `docs/ai/specs/011-theme-and-code-ed
 - Full verification green: 491 + 11 unit tests, lint, build, format, e2e 47/47 (only the two
   pre-existing parallel-load-flaky tests flagged, confirmed still solid single-worker).
 
+## Done — Spec 013 (post-1.0 hardening pass)
+
+See `docs/ai/specs/013-post-1.0-hardening.md` for the full audit. Not a feature milestone — real
+bugs found and fixed, one architectural decision reaffirmed, one additive API split, new
+cross-browser and composition e2e coverage.
+
+- Two real bugs fixed: `MoveDragDirective` now preempts any in-flight engine-driven animation on
+  `pointerdown` (via new internal `engines/active-player-registry.ts`) instead of racing it, and
+  `SmoothScrollService` no longer fights native keyboard scrolling (it now resyncs on a foreign
+  `scrollTop` change instead of snapping back toward a stale target).
+  `MoveHoverDirective`/`MoveTapDirective`/`MoveFocusDirective` also now cancel their own player
+  once a `*movePresence` exit begins, instead of potentially racing the real leave animation.
+- `moveTransform()`'s interpolation is now an explicit, ordered list of strategies
+  (`VALUE_INTERPOLATORS` in `move-values.ts`) and warns (dev-mode, once per distinct pair) when it
+  falls back to a discrete midpoint switch for mismatched units/colors/transform-functions, instead
+  of silently snapping. Public signature unchanged.
+- `MOVEMENT_STABLE_DIRECTIVES` / `MOVEMENT_EXPERIMENTAL_DIRECTIVES` — new, additive aggregates.
+  `MOVEMENT_DIRECTIVES` is now defined as their concatenation (same 21 members); its JSDoc now
+  says explicitly that it includes experimental directives.
+- Motion Values (`moveSpringValue`) benchmarked at 1/10/50/100 concurrent springs — one
+  independent RAF loop per call is acceptable (linear registration growth, no leaks); no shared
+  scheduler introduced.
+- Secondary `angular-movement/experimental` entry point: re-audited, spec 009's decision
+  reaffirmed (still no dependency stable consumers would need isolating from).
+- New `e2e/cross-browser.spec.ts` (12 tests) runs on Chromium+Firefox+WebKit; new
+  `e2e/composition.spec.ts` (7 tests, Chromium) covers adversarial multi-primitive scenarios.
+  `motionState`/`settledMotionState` extracted from `demos.spec.ts` into `e2e/motion-state.ts`.
+  `drag.page.ts` and `scroll.page.ts` gained minimal demo markup (hover/tap on the drag card;
+  a moveTransform+moveSpringValue element chained off the scroll directive's own `progress`
+  signal) so these compositions are actually exercisable, not just theoretical.
+- Full verification gate green: 512 unit tests (up from 491), lint, build, format, `docs:check`,
+  `api:check` (manually confirmed it fails on the deliberate export additions, then passes clean
+  after regenerating the snapshot), `pack:check`, `build:prod`, `validate:consumer` (Angular 21 +
+  22), e2e 101/101 across all three browsers (1 pre-existing, already-documented parallel-load
+  flake retried clean — not introduced by this pass).
+
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
 - **Watch for the `disabled: false` hardcode pattern.** A directive that resolves
@@ -204,6 +241,44 @@ Site-only, same session as spec 010 — see `docs/ai/specs/011-theme-and-code-ed
   spec 010's new `animate` and `enter` demo tests — both are rock-solid single-worker
   (`--workers=1 --repeat-each=3`, 6/6) and only flake under the default parallel worker count, same
   as the 4 pre-existing ones. Not a new problem, just a bigger instance of the tracked one.
+- **`projects/movement-mcp/` (spec 012) is a fully standalone pnpm package, deliberately not part
+  of any workspace.** Its own `node_modules`/`pnpm-lock.yaml`, own `pnpm install`
+  (`pnpm run mcp:install` from root). This is why `angular-movement`'s own `package.json` still has
+  zero new dependencies — the MCP SDK lives only in that package. `ng lint` / `ng build` don't see
+  it (not registered in `angular.json`); use `pnpm run mcp:build` / `mcp:test` / `mcp:pack:check`.
+  Regenerate its embedded API data with `pnpm run mcp:snapshot` after any directive API change —
+  it is not wired into `docs:check` yet (see Next up). Published independently via
+  `.github/workflows/release-mcp.yml` on a `mcp-v*.*.*` tag (not `v*.*.*` — that's
+  `angular-movement`'s own), reusing the same `NPM_TOKEN` secret; see `RELEASE_CHECKLIST.md`.
+- **`pnpm --dir <path> publish` is broken in this repo's pnpm version (10.30.1)** — it mis-delegates
+  to a raw `npm publish` and fails with `EUSAGE`, even though `pnpm --dir <path> pack` works fine.
+  `mcp:publish` and `release-mcp.yml` both `cd` into `projects/movement-mcp` instead of using
+  `--dir` for the `publish` step specifically. If a future script needs `pnpm publish` on a
+  non-cwd package, use `cd`, not `--dir`.
+- **`engines/active-player-registry.ts`'s preemption is deliberately one-directional.** It exists
+  so `MoveDragDirective` can cancel an in-flight engine-driven animation on the same host at
+  `pointerdown` — it does **not** make a new engine-driven animation cancel a previous one on the
+  same element (e.g. a variant change does not cancel a running hover animation). Two WAAPI
+  animations composing concurrently on different properties is normal, desired layering; only
+  drag's bypass of WAAPI needed the fix. Do not "generalize" this into a general engine-vs-engine
+  cancellation policy — that would be a new regression, not a fix (see spec 013 / ARCHITECTURE.md
+  "Transform ownership and composition").
+- **`moveTransform()`'s discretely-falls-back warning dedup (`warnedMismatchedPairs` in
+  `move-values.ts`) is a module-level `Set`, not scoped per call or per test.** It persists for the
+  lifetime of the process/test file. Tests asserting on it must use pair values unique to that
+  test (see `move-values.spec.ts`) or the assertion can pass vacuously because an earlier test
+  already warned for the same pair.
+- **RAF-count assertions in library unit tests are contaminated by Angular's own zoneless
+  change-detection scheduler**, which also calls the global `requestAnimationFrame` — confirmed
+  while writing the spec 013 Motion Values benchmarks (`move-values.spec.ts`). A bare
+  `expect(rafMock).toHaveBeenCalledTimes(N)` after `fixture.detectChanges()` is not reliable; use a
+  delta against a same-test baseline plus a bounded allowance instead (see
+  `FRAMEWORK_RAF_ALLOWANCE` in that file), not an exact count.
+- **`.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic**
+  (`signal<T>(...)`) and misses every current `signal(...)` call (e.g. `MoveScrollDirective.progress`)
+  — so `signals` is `[]` everywhere in both that script's output and `movement-mcp`'s snapshot.
+  Discovered while building spec 012, not fixed (out of scope there). A real gap, not a false
+  positive — worth a small regex fix.
 
 ## Next up (priority order) — the road to 1.0
 
@@ -222,6 +297,11 @@ demo reflects slider changes…`, and `enter demo replays with the newly selecte
 5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
 6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
    no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
+7. **Publish `angular-movement-mcp` 0.1.0** — implemented and CI-wired (spec 012 +
+   `.github/workflows/release-mcp.yml`), but no `mcp-v0.1.0` tag has been pushed yet, so nothing
+   has actually reached the npm registry. Push the tag when ready (see `RELEASE_CHECKLIST.md`).
+   Other follow-ups noted in the spec: fix `api-surface.mjs`'s signal regex, consider a Claude Code
+   plugin/marketplace listing once a marketplace account exists.
 
 ## Release process (when asked to release)
 

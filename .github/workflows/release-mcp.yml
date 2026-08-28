@@ -1,0 +1,88 @@
+name: Release MCP server
+
+# Publishes `angular-movement-mcp` (projects/movement-mcp/) to npm and creates a GitHub Release.
+# Fully independent from release.yml (which publishes `angular-movement` itself) — this package
+# has its own version line, own lockfile, and is not part of any pnpm workspace.
+#
+# How to cut a release:
+#   1. Bump the version in projects/movement-mcp/package.json (and CHANGELOG.md if relevant).
+#   2. Commit, then tag and push:  git tag mcp-v0.1.0 && git push origin mcp-v0.1.0
+#   3. This workflow verifies, builds, publishes to npm, and creates the GitHub Release.
+#
+# Required secret: NPM_TOKEN (the same one release.yml uses — an npm "Automation" token with
+# publish rights covers both packages).
+
+on:
+  push:
+    tags:
+      - 'mcp-v*.*.*'
+
+permissions:
+  contents: write # create the GitHub Release
+  id-token: write # npm provenance (public repo)
+
+concurrency:
+  group: release-mcp-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/movement-mcp
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Verify tag matches package version
+        run: |
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          TAG_VERSION=${GITHUB_REF_NAME#mcp-v}
+          echo "package.json=$PKG_VERSION  tag=$TAG_VERSION"
+          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
+            echo "::error::Tag mcp-v$TAG_VERSION does not match projects/movement-mcp/package.json version $PKG_VERSION. Bump the package version before tagging."
+            exit 1
+          fi
+
+      - name: Install dependencies
+        # Standalone package (its own lockfile, not a pnpm workspace member) — installed here,
+        # not at the repo root.
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm run test
+
+      - name: Validate package contents
+        run: pnpm pack --dry-run
+
+      - name: Publish to npm
+        run: |
+          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
+          pnpm publish --no-git-checks --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${GITHUB_REF_NAME}" \
+            --title "angular-movement-mcp ${GITHUB_REF_NAME#mcp-v}" \
+            --generate-notes \
+            --verify-tag

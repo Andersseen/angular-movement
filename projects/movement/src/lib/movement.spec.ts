@@ -1,5 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import * as publicApi from './movement';
+import {
+  MOVEMENT_DIRECTIVES,
+  MOVEMENT_EXPERIMENTAL_DIRECTIVES,
+  MOVEMENT_STABLE_DIRECTIVES,
+} from './movement';
 import { MOVE_PRESETS } from './presets/presets';
 import { provideMovement } from './providers/provide-movement';
 import { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS } from './tokens/movement.tokens';
@@ -54,6 +59,23 @@ describe('movement library', () => {
       disabled: true,
       iterations: 1,
     });
+  });
+
+  it('composes MOVEMENT_DIRECTIVES from exactly the stable and experimental aggregates', () => {
+    // Locks down the split introduced for the post-1.0 stability audit: MOVEMENT_DIRECTIVES must
+    // never silently drift from being the union of the two stability-pure aggregates, and the two
+    // aggregates must never overlap.
+    const stable = new Set<unknown>(MOVEMENT_STABLE_DIRECTIVES);
+    const experimental = new Set<unknown>(MOVEMENT_EXPERIMENTAL_DIRECTIVES);
+
+    for (const directive of experimental) {
+      expect(stable.has(directive)).toBe(false);
+    }
+
+    expect(new Set(MOVEMENT_DIRECTIVES)).toEqual(new Set([...stable, ...experimental]));
+    expect(MOVEMENT_DIRECTIVES.length).toBe(
+      MOVEMENT_STABLE_DIRECTIVES.length + MOVEMENT_EXPERIMENTAL_DIRECTIVES.length,
+    );
   });
 
   it('defines every documented preset key', () => {

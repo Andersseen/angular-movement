@@ -1,5 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveDragDirective, type MoveDragAxis, type MoveDragSnapPoint } from 'movement';
+import {
+  MoveDragDirective,
+  MoveHoverDirective,
+  MoveTapDirective,
+  type MoveDragAxis,
+  type MoveDragSnapPoint,
+} from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
@@ -10,7 +16,7 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
 
 @Component({
   selector: 'app-demo-drag',
-  imports: [DemoContainer, MoveDragDirective],
+  imports: [DemoContainer, MoveDragDirective, MoveHoverDirective, MoveTapDirective],
   template: `
     <app-demo-container
       title="moveDrag"
@@ -53,6 +59,8 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
             class="bg-surface border-accent/40 relative z-10 flex cursor-grab flex-col items-center gap-3 rounded-xl border p-6 shadow-[0_0_30px_var(--color-accent-glow)] active:cursor-grabbing"
             data-testid="drag-card"
             [moveWhileDrag]="{ scale: [1, 1.06], rotate: [0, 2] }"
+            [moveWhileHover]="{ opacity: [1, 0.85] }"
+            [moveWhileTap]="{ opacity: [1, 0.7] }"
           >
             <div class="bg-accent/20 flex h-12 w-12 items-center justify-center rounded-full">
               <svg

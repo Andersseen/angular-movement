@@ -23,6 +23,7 @@ import { composeTransitionKeyframes } from './transition-composer';
 import { groupByEasing } from './easing-groups';
 import { CompositeAnimationControls } from './composite-controls';
 import { composeKeyframeAt } from './keyframe-composer';
+import { registerActivePlayer } from './active-player-registry';
 
 export interface PlayAnimationOptions {
   config?: MovementConfig;
@@ -72,7 +73,7 @@ export class AnimationEngine {
     if (options.transition && !isSpring) {
       const groups = groupByEasing(frames, options.transition, config);
       if (groups) {
-        return new CompositeAnimationControls(
+        const controls = new CompositeAnimationControls(
           groups.map((group, index) => {
             const keyframes = group.isTransform
               ? composeElementKeyframes(host, group.frames)
@@ -94,6 +95,8 @@ export class AnimationEngine {
             );
           }),
         );
+        registerActivePlayer(host, controls);
+        return controls;
       }
     }
 
@@ -101,7 +104,7 @@ export class AnimationEngine {
     if (options.transition && !isSpring) {
       const resolved = composeTransitionKeyframes(frames, options.transition, config);
       if (resolved) {
-        return new WaapiPlayer(
+        const controls = new WaapiPlayer(
           host,
           resolved.keyframes,
           {
@@ -114,6 +117,8 @@ export class AnimationEngine {
           options.onDone,
           repeat,
         );
+        registerActivePlayer(host, controls);
+        return controls;
       }
     }
 
@@ -123,7 +128,7 @@ export class AnimationEngine {
     if (times && !isSpring) {
       const timed = applyKeyframeTimes(composeElementKeyframes(host, frames), times);
       if (timed) {
-        return new WaapiPlayer(
+        const controls = new WaapiPlayer(
           host,
           timed,
           {
@@ -136,11 +141,13 @@ export class AnimationEngine {
           options.onDone,
           repeat,
         );
+        registerActivePlayer(host, controls);
+        return controls;
       }
     }
 
     if (isSpring) {
-      return new SpringPlayer(
+      const controls = new SpringPlayer(
         host,
         frames,
         spring ?? {},
@@ -148,8 +155,10 @@ export class AnimationEngine {
         iterations,
         options.onDone,
       );
+      registerActivePlayer(host, controls);
+      return controls;
     } else {
-      return new WaapiPlayer(
+      const controls = new WaapiPlayer(
         host,
         frames,
         {
@@ -162,6 +171,8 @@ export class AnimationEngine {
         options.onDone,
         repeat,
       );
+      registerActivePlayer(host, controls);
+      return controls;
     }
   }
 

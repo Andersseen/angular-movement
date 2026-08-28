@@ -299,7 +299,7 @@ declare class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild
  *
  * @stability stable
  */
-declare class MoveHoverDirective implements OnDestroy {
+declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild {
     #private;
     readonly moveWhileHover: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
     readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
@@ -310,6 +310,13 @@ declare class MoveHoverDirective implements OnDestroy {
     readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
     readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
     constructor();
+    ngOnInit(): void;
+    /**
+     * Called by `MovePresenceParent` once a `*movePresence` exit begins on this element. Hover has
+     * no leave animation of its own to run — it just cancels whatever it's mid-flight and gets out
+     * of the way so the real leave animation doesn't race it.
+     */
+    playLeave(): void;
     onMouseEnter(): void;
     onMouseLeave(): void;
     onTouchStart(event: TouchEvent): void;
@@ -325,7 +332,7 @@ declare class MoveHoverDirective implements OnDestroy {
  *
  * @stability stable
  */
-declare class MoveTapDirective implements OnDestroy {
+declare class MoveTapDirective implements OnDestroy, OnInit, MovePresenceChild {
     #private;
     readonly moveWhileTap: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
     readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
@@ -336,6 +343,13 @@ declare class MoveTapDirective implements OnDestroy {
     readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
     readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
     constructor();
+    ngOnInit(): void;
+    /**
+     * Called by `MovePresenceParent` once a `*movePresence` exit begins on this element. Tap has no
+     * leave animation of its own to run — it just cancels whatever it's mid-flight and gets out of
+     * the way so the real leave animation doesn't race it.
+     */
+    playLeave(): void;
     onPointerDown(): void;
     onPointerUp(): void;
     private play;
@@ -708,7 +722,7 @@ declare class MoveSmoothScrollDirective implements OnInit, OnDestroy {
  *
  * @stability stable
  */
-declare class MoveFocusDirective implements OnDestroy {
+declare class MoveFocusDirective implements OnDestroy, OnInit, MovePresenceChild {
     #private;
     readonly moveWhileFocus: _angular_core.InputSignal<MovePreset | MoveKeyframes>;
     readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
@@ -719,6 +733,13 @@ declare class MoveFocusDirective implements OnDestroy {
     readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
     readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
     constructor();
+    ngOnInit(): void;
+    /**
+     * Called by `MovePresenceParent` once a `*movePresence` exit begins on this element. Focus has
+     * no leave animation of its own to run — it just cancels whatever it's mid-flight and gets out
+     * of the way so the real leave animation doesn't race it.
+     */
+    playLeave(): void;
     onFocus(): void;
     onBlur(): void;
     private play;
@@ -1085,14 +1106,38 @@ declare function provideMovement(config?: MovementConfigInput): EnvironmentProvi
  * The authoritative summary lives in the "API stability" table in `README.md`.
  */
 /**
- * All directives the library ships, ready to spread into a standalone component's `imports`.
+ * Every stable directive — none of these change behavior or shape outside a major version.
  *
  * Prefer importing only the directives a component actually uses — it keeps route-level
- * tree-shaking effective.
+ * tree-shaking effective. Use this aggregate (rather than {@link MOVEMENT_DIRECTIVES}) when you
+ * want a stability-pure `imports` array that can never silently start pulling in an experimental
+ * directive.
  *
  * @stability stable
  */
-declare const MOVEMENT_DIRECTIVES: readonly [typeof MoveEnterDirective, typeof MoveLeaveDirective, typeof MoveAnimateDirective, typeof MoveHoverDirective, typeof MoveTapDirective, typeof MoveVariantsDirective, typeof MoveStaggerDirective, typeof MoveLayoutDirective, typeof MoveScrollDirective, typeof MovePresenceDirective, typeof MovePresenceForDirective, typeof MoveDragDirective, typeof MoveInViewDirective, typeof MoveTextDirective, typeof MoveSmoothScrollDirective, typeof MoveFocusDirective, typeof MoveParallaxDirective, typeof MoveAnimationDirective, typeof MoveLoopDirective, typeof MoveTargetDirective, typeof MoveTriggerDirective];
+declare const MOVEMENT_STABLE_DIRECTIVES: readonly [typeof MoveEnterDirective, typeof MoveLeaveDirective, typeof MoveAnimateDirective, typeof MoveHoverDirective, typeof MoveTapDirective, typeof MoveVariantsDirective, typeof MoveStaggerDirective, typeof MoveScrollDirective, typeof MovePresenceDirective, typeof MovePresenceForDirective, typeof MoveInViewDirective, typeof MoveTextDirective, typeof MoveFocusDirective, typeof MoveParallaxDirective, typeof MoveAnimationDirective, typeof MoveLoopDirective];
+/**
+ * Every experimental directive — may change or be removed in any `1.x` minor. See the
+ * "Experimental compatibility policy" in `README.md` / `docs/ai/ARCHITECTURE.md`.
+ *
+ * @stability experimental
+ * @experimental
+ */
+declare const MOVEMENT_EXPERIMENTAL_DIRECTIVES: readonly [typeof MoveLayoutDirective, typeof MoveDragDirective, typeof MoveSmoothScrollDirective, typeof MoveTargetDirective, typeof MoveTriggerDirective];
+/**
+ * All directives the library ships (every {@link MOVEMENT_STABLE_DIRECTIVES} plus every
+ * {@link MOVEMENT_EXPERIMENTAL_DIRECTIVES} member), ready to spread into a standalone component's
+ * `imports`.
+ *
+ * This aggregate itself is stable — spreading it will always compile and its own shape follows
+ * SemVer — but its **contents** are not stability-pure: it includes experimental directives, whose
+ * individual behavior may change in a `1.x` minor. Prefer importing only the directives a
+ * component actually uses (best for tree-shaking), or {@link MOVEMENT_STABLE_DIRECTIVES} if you
+ * want a spread that can never pull in an experimental directive.
+ *
+ * @stability stable
+ */
+declare const MOVEMENT_DIRECTIVES: readonly [typeof MoveEnterDirective, typeof MoveLeaveDirective, typeof MoveAnimateDirective, typeof MoveHoverDirective, typeof MoveTapDirective, typeof MoveVariantsDirective, typeof MoveStaggerDirective, typeof MoveScrollDirective, typeof MovePresenceDirective, typeof MovePresenceForDirective, typeof MoveInViewDirective, typeof MoveTextDirective, typeof MoveFocusDirective, typeof MoveParallaxDirective, typeof MoveAnimationDirective, typeof MoveLoopDirective, typeof MoveLayoutDirective, typeof MoveDragDirective, typeof MoveSmoothScrollDirective, typeof MoveTargetDirective, typeof MoveTriggerDirective];
 
-export { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MOVEMENT_DIRECTIVES, MOVE_PRESETS, MoveAnimateDirective, MoveAnimationDirective, MoveAnimator, MoveDragDirective, MoveEnterDirective, MoveFocusDirective, MoveHoverDirective, MoveInViewDirective, MoveLayoutDirective, MoveLeaveDirective, MoveLoopDirective, MoveParallaxDirective, MovePresenceDirective, MovePresenceForDirective, MoveScrollDirective, MoveSmoothScrollDirective, MoveStaggerDirective, MoveTapDirective, MoveTargetDirective, MoveTextDirective, MoveTriggerDirective, MoveVariantsDirective, SmoothScrollService, moveIconBounce, moveIconPulse, moveIconRotate, moveIconShake, movePathDraw, moveSpringValue, moveTransform, moveValue, provideMovement };
+export { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MOVEMENT_DIRECTIVES, MOVEMENT_EXPERIMENTAL_DIRECTIVES, MOVEMENT_STABLE_DIRECTIVES, MOVE_PRESETS, MoveAnimateDirective, MoveAnimationDirective, MoveAnimator, MoveDragDirective, MoveEnterDirective, MoveFocusDirective, MoveHoverDirective, MoveInViewDirective, MoveLayoutDirective, MoveLeaveDirective, MoveLoopDirective, MoveParallaxDirective, MovePresenceDirective, MovePresenceForDirective, MoveScrollDirective, MoveSmoothScrollDirective, MoveStaggerDirective, MoveTapDirective, MoveTargetDirective, MoveTextDirective, MoveTriggerDirective, MoveVariantsDirective, SmoothScrollService, moveIconBounce, moveIconPulse, moveIconRotate, moveIconShake, movePathDraw, moveSpringValue, moveTransform, moveValue, provideMovement };
 export type { AnimationControls, MoveAnimateOptions, MoveAnimationConfig, MoveDragAxis, MoveDragConstraints, MoveDragEvent, MoveDragSnapPoint, MoveKeyframeProperties, MoveKeyframeState, MoveKeyframes, MovePresenceForContext, MovePresenceForMode, MovePresenceForTrackBy, MovePreset, MovePresetDefinition, MovePropertyTransition, MoveRepeatOptions, MoveRepeatType, MoveSpring, MoveSpringValueConfig, MoveStaggerDirection, MoveStateValue, MoveTransformOptions, MoveTransformValue, MoveTransitionConfig, MoveValue, MoveValuePair, MoveVariant, MoveVariantOrchestration, MoveVariantState, MovementConfig, MovementConfigInput };

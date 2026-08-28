@@ -96,6 +96,29 @@ export class SmoothScrollService implements OnDestroy {
     this.#applyMomentum();
   };
 
+  /**
+   * There is no keyboard listener by design — arrow keys, Page Up/Down, Home/End, and
+   * Tab-triggered focus-into-view scrolling are all native browser scroll behavior, never
+   * intercepted here. Without this handler, native scroll would still change `scrollTop` (nothing
+   * prevents it), but the RAF loop would fight it on the very next frame, snapping back toward the
+   * stale `#targetY` — keyboard scrolling would be effectively broken while smooth scroll is
+   * active. Detecting a `scrollTop` change this service did not itself write and resyncing to it
+   * lets every native/keyboard scroll path just work.
+   */
+  readonly #onNativeScroll = (): void => {
+    if (!this.#scrollElement) return;
+
+    const current = this.#scrollElement.scrollTop;
+    if (Math.abs(current - this.#lastAppliedY) < 0.5) return;
+
+    this.#targetY = current;
+    this.#currentY = current;
+  };
+
+  /** The `scrollTop` value `#applyScroll()` last wrote — used to detect a foreign (non-wheel,
+   * non-touch, e.g. keyboard or programmatic) scroll in `#onNativeScroll`. */
+  #lastAppliedY = 0;
+
   // ─── Public API ────────────────────────────────────────────────────────────
 
   /** Whether the service is currently active (i.e. `init()` has been called). */
@@ -136,6 +159,7 @@ export class SmoothScrollService implements OnDestroy {
     this.#scrollElement = options.element ?? this.#document.documentElement;
     this.#currentY = this.#scrollElement.scrollTop;
     this.#targetY = this.#currentY;
+    this.#lastAppliedY = this.#currentY;
 
     const el = this.#scrollElement;
 
@@ -145,6 +169,11 @@ export class SmoothScrollService implements OnDestroy {
     el.addEventListener('touchstart', this.#onTouchStart, { passive: true });
     el.addEventListener('touchmove', this.#onTouchMove, { passive: false });
     el.addEventListener('touchend', this.#onTouchEnd, { passive: true });
+
+    // Setting `scrollTop` (this service's own writes, in #applyScroll) also fires this event, so
+    // #onNativeScroll compares against #lastAppliedY to tell those apart from a foreign
+    // (keyboard/programmatic) scroll it needs to resync to.
+    el.addEventListener('scroll', this.#onNativeScroll, { passive: true });
 
     this.#isRunning = true;
     this.#tick();
@@ -161,6 +190,7 @@ export class SmoothScrollService implements OnDestroy {
       el.removeEventListener('touchstart', this.#onTouchStart);
       el.removeEventListener('touchmove', this.#onTouchMove);
       el.removeEventListener('touchend', this.#onTouchEnd);
+      el.removeEventListener('scroll', this.#onNativeScroll);
     }
 
     this.#scrollElement = null;
@@ -217,6 +247,7 @@ export class SmoothScrollService implements OnDestroy {
   #applyScroll(y: number): void {
     if (!this.#scrollElement) return;
     this.#scrollElement.scrollTop = y;
+    this.#lastAppliedY = this.#scrollElement.scrollTop;
     // Update the reactive signal so consumers (e.g. MoveScrollDirective) can react
     // without relying on native scroll events which don't fire during lerp-based scroll.
     this.scrollY.set(y);

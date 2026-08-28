@@ -1,0 +1,56 @@
+{
+  "name": "angular-movement-mcp",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "MCP server + installable Claude Code skill exposing the angular-movement directive/preset API to coding agents.",
+  "keywords": [
+    "angular",
+    "animation",
+    "movement",
+    "mcp",
+    "model-context-protocol",
+    "claude",
+    "agent"
+  ],
+  "author": "Andersseen",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andersseen/angular-movement.git",
+    "directory": "projects/movement-mcp"
+  },
+  "homepage": "https://github.com/Andersseen/angular-movement#readme",
+  "bugs": {
+    "url": "https://github.com/Andersseen/angular-movement/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "bin": {
+    "movement-mcp": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "skill",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json && node -e \"const fs=require('node:fs');fs.cpSync('src/data','dist/data',{recursive:true});fs.chmodSync('dist/cli.js',0o755);\"",
+    "test": "vitest run",
+    "snapshot": "node scripts/generate-snapshot.mjs",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^4.3.0"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.18",
+    "@types/node": "^22.0.0"
+  },
+  "sideEffects": false
+}

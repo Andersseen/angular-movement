@@ -6,8 +6,9 @@
 
 ### Animate Angular with a single attribute.
 
-Declarative motion for **Angular 21 and 22** — presets, spring physics, drag, scroll, parallax,
-presence orchestration & SVG path-drawing. SSR-safe. Zero `@angular/animations`. Standalone-ready.
+Declarative, signals-native motion for **Angular 21 and 22** — presets, variants, gestures, spring
+physics, drag, scroll-linked animation, layout transitions, presence orchestration, motion values &
+SVG path-drawing. SSR-safe, zoneless-ready. Zero `@angular/animations`.
 
 <br/>
 
@@ -120,7 +121,11 @@ export class DemoCardComponent {}
 
 > `MOVEMENT_DIRECTIVES` (all 21, spread into `imports`) is still exported as a convenience for
 > prototyping or a component that genuinely uses most of the library — just know it pulls in
-> everything, including directives that component doesn't use.
+> everything, including directives that component doesn't use **and every experimental one**
+> (`moveLayout`, `moveDrag`, `moveSmoothScroll`, `moveTarget`, `moveTrigger`). If you want a spread
+> that can never silently start pulling in an experimental directive, use
+> `MOVEMENT_STABLE_DIRECTIVES` instead (there's also a standalone `MOVEMENT_EXPERIMENTAL_DIRECTIVES`
+> for the other five).
 
 ## 🧩 Pick the right primitive
 
@@ -349,11 +354,16 @@ Scroll directives expose progress as a signal, so you can derive values without 
 
 ## 🧪 API stability
 
-| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
-| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                         |
-| **Experimental**     | `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                           |
+| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
+| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                                                       |
+| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                     |
+
+`MOVEMENT_DIRECTIVES` itself is stable — spreading it always compiles and its own shape follows
+SemVer — but its **contents** are not stability-pure: it includes all five experimental directives
+above. Use `MOVEMENT_STABLE_DIRECTIVES` instead if you want a spread that can never silently start
+pulling in an experimental directive, or `MOVEMENT_EXPERIMENTAL_DIRECTIVES` for just those five.
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small naming or behavior adjustments. Experimental APIs can change significantly between
@@ -388,6 +398,11 @@ ships from the same package. This is the one deliberate exception to normal SemV
 
 If you only use `[move]`, `moveVariants`, `*movePresenceFor`, `moveScroll`, and the rest of the
 **Stable** row above, normal SemVer applies to your app without exception.
+
+This "no secondary entry point" decision was reaffirmed in the post-1.0 hardening pass (spec 013):
+the experimental surface still needs no dependency stable consumers shouldn't pay for, so splitting
+the package would be migration churn with no architectural win. It remains open for a future minor
+if a concrete reason appears.
 
 ## 🔄 Input reactivity
 

@@ -1,10 +1,11 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveScrollDirective } from 'movement';
+import { ChangeDetectionStrategy, Component, computed, signal, viewChild } from '@angular/core';
+import { DecimalPipe } from '@angular/common';
+import { MoveScrollDirective, moveSpringValue, moveTransform } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 @Component({
   selector: 'app-demo-scroll',
-  imports: [DemoContainer, MoveScrollDirective],
+  imports: [DemoContainer, MoveScrollDirective, DecimalPipe],
   template: `
     <app-demo-container
       title="moveScroll"
@@ -53,6 +54,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
 
             <!-- Foreground element -->
             <div
+              #fgScroll="moveScroll"
               data-testid="scroll-foreground"
               [moveScroll]="fgKeyframes()"
               moveScrollContainer="#scroll-demo-container"
@@ -60,6 +62,18 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             >
               <span class="font-display text-sm font-bold text-white">FG</span>
             </div>
+          </div>
+
+          <!-- Scroll progress chained through moveTransform and a spring-smoothed moveSpringValue,
+               so this page also demonstrates composing moveScroll with the Motion Values helpers,
+               not just the directive on its own. -->
+          <div
+            data-testid="scroll-linked-value"
+            [style.opacity]="linkedOpacity()"
+            [style.translate]="linkedSpringX() + 'px 0px'"
+            class="bg-surface border-accent/40 mx-auto flex w-fit items-center justify-center rounded-lg border px-3 py-1 text-xs"
+          >
+            linked: {{ fgProgress() | number: '1.2-2' }}
           </div>
 
           <!-- Description -->
@@ -108,6 +122,16 @@ export default class DemoScroll {
 
   protected effect = signal<'translate' | 'scale' | 'rotate' | 'mixed'>('mixed');
   protected intensity = signal(50);
+
+  // Chains moveScroll's own `progress` signal into moveTransform and moveSpringValue, so this
+  // page also demonstrates composing the directive with the Motion Values helpers.
+  protected readonly fgScrollRef = viewChild<MoveScrollDirective>('fgScroll');
+  protected readonly fgProgress = computed(() => this.fgScrollRef()?.progress() ?? 0);
+  protected readonly linkedOpacity = moveTransform(this.fgProgress, [0, 1], [0.3, 1]);
+  protected readonly linkedSpringX = moveSpringValue(
+    computed(() => this.fgProgress() * 40),
+    { stiffness: 120, damping: 20 },
+  );
 
   protected readonly scrollCode = computed(() => {
     const effect = this.effect();

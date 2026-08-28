@@ -17,6 +17,7 @@ import {
   resetTransformToBase,
   TransformState,
 } from '../engines/transform-state';
+import { cancelActivePlayer } from '../engines/active-player-registry';
 
 /**
  * Experimental API — may change significantly between minor versions.
@@ -144,6 +145,12 @@ export class MoveDragDirective implements OnDestroy {
     }
 
     this.#player?.cancel();
+    // Preempt any in-flight hover/tap/focus/variants/layout animation on this element: without
+    // this, a WAAPI animation still mid-flight at the instant a drag starts would later commit its
+    // own final transform over whatever the drag wrote in the meantime, discarding drag movement.
+    // Drag owns the transform exclusively from pointerdown forward — see "Transform ownership and
+    // composition" in ARCHITECTURE.md.
+    cancelActivePlayer(this.#host.nativeElement);
     // read bounds and base transform cleanly before we start mutating styles
     this.#dragBounds = this.resolveBounds();
     this.#baseTransform = readTransformState(this.#host.nativeElement);

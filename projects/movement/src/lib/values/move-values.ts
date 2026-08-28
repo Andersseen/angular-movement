@@ -12,6 +12,7 @@ import {
 import { DOCUMENT } from '@angular/common';
 import { MoveSpring } from '../presets/presets.types';
 import { prefersReducedMotion } from '../directives/move-animation.utils';
+import { movementWarn } from '../dev-warn';
 
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -235,22 +236,74 @@ function findSegment(value: number, inputRange: readonly number[], clamp: boolea
   return clamp ? 0 : inputRange.length - 2;
 }
 
+/**
+ * A single interpolation strategy. Returns `undefined` when `from`/`to` don't fit its shape, so
+ * `interpolateOutput` can fall through to the next one in order.
+ */
+type ValueInterpolator = (
+  from: MoveTransformValue,
+  to: MoveTransformValue,
+  progress: number,
+) => MoveTransformValue | undefined;
+
+/** Plain numeric endpoints — the common case for `moveTransform`'s number-output overload. */
+const numberInterpolator: ValueInterpolator = (from, to, progress) => {
+  if (typeof from !== 'number' || typeof to !== 'number') return undefined;
+  return from + (to - from) * progress;
+};
+
+/**
+ * String endpoints that share the same trailing unit ("0px"→"100px", "0%"→"100%", "0deg"→"180deg",
+ * "0rem"→"2rem", ...) — the unit is captured verbatim, not enumerated, so any matching-unit pair
+ * interpolates.
+ */
+const numericUnitInterpolator: ValueInterpolator = (from, to, progress) => {
+  const fromUnit = parseNumericUnit(from);
+  const toUnit = parseNumericUnit(to);
+  if (!fromUnit || !toUnit || fromUnit.unit !== toUnit.unit) return undefined;
+  return `${fromUnit.value + (toUnit.value - fromUnit.value) * progress}${fromUnit.unit}`;
+};
+
+/**
+ * Ordered strategies `interpolateOutput` tries in turn. `moveTransform` only understands numeric
+ * values with compatible units — extending this list (e.g. a future color interpolator) is the
+ * intended extension point rather than growing `interpolateOutput` into a conditional.
+ */
+const VALUE_INTERPOLATORS: readonly ValueInterpolator[] = [
+  numberInterpolator,
+  numericUnitInterpolator,
+];
+
+const warnedMismatchedPairs = new Set<string>();
+
+/**
+ * Mismatched units ("10px"→"2rem"), non-numeric strings ("red"→"blue"), and values with embedded
+ * functions ("translateX(0px)"→"translateX(100px)") are all things `moveTransform` deliberately
+ * does not attempt to interpolate — arbitrary CSS-string interpolation is out of scope. Warns once
+ * per distinct pair (not per frame) so a caller relying on smooth output finds out why it snapped.
+ */
+function warnDiscreteFallback(from: MoveTransformValue, to: MoveTransformValue): void {
+  const key = `${from}→${to}`;
+  if (warnedMismatchedPairs.has(key)) return;
+  warnedMismatchedPairs.add(key);
+  movementWarn(
+    `moveTransform() cannot smoothly interpolate "${from}" → "${to}" — moveTransform only ` +
+      'interpolates numbers and numeric strings that share the same unit. Falling back to a ' +
+      'discrete switch at the midpoint of the range.',
+  );
+}
+
 function interpolateOutput(
   from: MoveTransformValue,
   to: MoveTransformValue,
   progress: number,
 ): MoveTransformValue {
-  if (typeof from === 'number' && typeof to === 'number') {
-    return from + (to - from) * progress;
+  for (const interpolate of VALUE_INTERPOLATORS) {
+    const result = interpolate(from, to, progress);
+    if (result !== undefined) return result;
   }
 
-  const fromUnit = parseNumericUnit(from);
-  const toUnit = parseNumericUnit(to);
-
-  if (fromUnit && toUnit && fromUnit.unit === toUnit.unit) {
-    return `${fromUnit.value + (toUnit.value - fromUnit.value) * progress}${fromUnit.unit}`;
-  }
-
+  warnDiscreteFallback(from, to);
   return progress < 0.5 ? from : to;
 }
 

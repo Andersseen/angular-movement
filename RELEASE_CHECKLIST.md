@@ -62,3 +62,18 @@ Release automatically when a version tag is pushed.
 - [ ] Run `pnpm run pack:check`.
 - [ ] Publish with `pnpm run lib:publish`.
 - [ ] Verify the published package page and install command.
+
+## Publish `angular-movement-mcp` (independent package)
+
+Separate package, separate version line (`projects/movement-mcp/package.json`), separate CI
+workflow (`.github/workflows/release-mcp.yml`) — see `docs/ai/specs/012-mcp-server-and-skill.md`.
+No `pnpm release`-style bump script exists for it yet; bump the version by hand.
+
+- [ ] Bump `projects/movement-mcp/package.json` version, update `CHANGELOG.md` if relevant.
+- [ ] Regenerate the API snapshot if any directive changed since the last publish:
+      `pnpm run mcp:snapshot` (from repo root).
+- [ ] Commit, then tag with the `mcp-v` prefix (not `v` — that prefix is reserved for
+      `angular-movement` itself): `git tag mcp-v0.1.0 && git push origin mcp-v0.1.0`.
+- [ ] CI verifies the tag/version match, builds, tests, validates the package, and publishes with
+      provenance using the same `NPM_TOKEN` secret as the main release workflow.
+- [ ] Verify the published package page and `npx angular-movement-mcp init` in a scratch repo.

@@ -1,8 +1,9 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { MoveFocusDirective } from './move-focus.directive';
+import { MovePresenceDirective } from './move-presence.directive';
 import { provideMovement } from '../providers/provide-movement';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
@@ -68,4 +69,46 @@ describe('MoveFocusDirective', () => {
     debugElement.triggerEventHandler('focusout', null);
     expect(playSpy).not.toHaveBeenCalled();
   });
+
+  it('cancels its own player once a *movePresence exit begins, instead of racing the leave animation', async () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [PresenceHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(PresenceHostComponent);
+    localFixture.detectChanges();
+    const de = localFixture.debugElement.query(By.directive(MoveFocusDirective));
+
+    const localEngine = TestBed.inject(AnimationEngine);
+    const mockPlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: Promise.resolve(),
+    };
+    vi.spyOn(localEngine, 'play').mockReturnValue(mockPlayer);
+
+    de.triggerEventHandler('focusin', null);
+    expect(mockPlayer.cancel).not.toHaveBeenCalled();
+
+    localFixture.componentInstance.show.set(false);
+    localFixture.detectChanges();
+    await Promise.resolve();
+
+    expect(mockPlayer.cancel).toHaveBeenCalled();
+  });
 });
+
+@Component({
+  template: `
+    <ng-container *movePresence="show()">
+      <button [moveWhileFocus]="{ scale: [1, 1.05] }">Focus Me</button>
+    </ng-container>
+  `,
+  imports: [MoveFocusDirective, MovePresenceDirective],
+})
+class PresenceHostComponent {
+  show = signal(true);
+}

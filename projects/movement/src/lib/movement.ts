@@ -32,14 +32,16 @@ import { MoveTriggerDirective } from './directives/move-trigger.directive';
  */
 
 /**
- * All directives the library ships, ready to spread into a standalone component's `imports`.
+ * Every stable directive — none of these change behavior or shape outside a major version.
  *
  * Prefer importing only the directives a component actually uses — it keeps route-level
- * tree-shaking effective.
+ * tree-shaking effective. Use this aggregate (rather than {@link MOVEMENT_DIRECTIVES}) when you
+ * want a stability-pure `imports` array that can never silently start pulling in an experimental
+ * directive.
  *
  * @stability stable
  */
-export const MOVEMENT_DIRECTIVES = [
+export const MOVEMENT_STABLE_DIRECTIVES = [
   MoveEnterDirective,
   MoveLeaveDirective,
   MoveAnimateDirective,
@@ -47,20 +49,48 @@ export const MOVEMENT_DIRECTIVES = [
   MoveTapDirective,
   MoveVariantsDirective,
   MoveStaggerDirective,
-  MoveLayoutDirective,
   MoveScrollDirective,
   MovePresenceDirective,
   MovePresenceForDirective,
-  MoveDragDirective,
   MoveInViewDirective,
   MoveTextDirective,
-  MoveSmoothScrollDirective,
   MoveFocusDirective,
   MoveParallaxDirective,
   MoveAnimationDirective,
   MoveLoopDirective,
+] as const;
+
+/**
+ * Every experimental directive — may change or be removed in any `1.x` minor. See the
+ * "Experimental compatibility policy" in `README.md` / `docs/ai/ARCHITECTURE.md`.
+ *
+ * @stability experimental
+ * @experimental
+ */
+export const MOVEMENT_EXPERIMENTAL_DIRECTIVES = [
+  MoveLayoutDirective,
+  MoveDragDirective,
+  MoveSmoothScrollDirective,
   MoveTargetDirective,
   MoveTriggerDirective,
+] as const;
+
+/**
+ * All directives the library ships (every {@link MOVEMENT_STABLE_DIRECTIVES} plus every
+ * {@link MOVEMENT_EXPERIMENTAL_DIRECTIVES} member), ready to spread into a standalone component's
+ * `imports`.
+ *
+ * This aggregate itself is stable — spreading it will always compile and its own shape follows
+ * SemVer — but its **contents** are not stability-pure: it includes experimental directives, whose
+ * individual behavior may change in a `1.x` minor. Prefer importing only the directives a
+ * component actually uses (best for tree-shaking), or {@link MOVEMENT_STABLE_DIRECTIVES} if you
+ * want a spread that can never pull in an experimental directive.
+ *
+ * @stability stable
+ */
+export const MOVEMENT_DIRECTIVES = [
+  ...MOVEMENT_STABLE_DIRECTIVES,
+  ...MOVEMENT_EXPERIMENTAL_DIRECTIVES,
 ] as const;
 
 export * from './directives/move-animate.directive';
