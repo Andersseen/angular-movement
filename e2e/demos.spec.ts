@@ -373,8 +373,6 @@ test.describe('demo pages', () => {
     await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
     await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
 
-    const active = (await page.getByTestId('smooth-scroll-active').textContent())?.trim() === 'yes';
-
     // `scrollTo` clamps to the document's scrollable range, which depends on the rendered page
     // height — asserting a bare 400 made this test fail whenever the page was shorter than that.
     const expected = await page.evaluate(() => {
@@ -384,14 +382,21 @@ test.describe('demo pages', () => {
 
     await page.getByTestId('smooth-scroll-instant').click();
 
+    // `smooth-scroll-active` is SSR-rendered as "no" (isPlatformBrowser is false on the server)
+    // and only flips to its real client value once hydration runs. Reading it once right after
+    // goto() can catch that stale pre-hydration "no" on a slow runner even though the client is
+    // genuinely active — so re-read it on every poll tick instead of locking it in up front.
     // scrollTo(_, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
     // Under reduced motion the service never starts, so the readout legitimately stays at 0.
     await expect
       .poll(async () => {
-        const text = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
-        return Number.parseInt(text.trim(), 10);
+        const activeText = (await page.getByTestId('smooth-scroll-active').textContent()) ?? '';
+        const active = activeText.trim() === 'yes';
+        const valueText = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
+        const value = Number.parseInt(valueText.trim(), 10);
+        return active ? value === expected : value === 0;
       })
-      .toBe(active ? expected : 0);
+      .toBe(true);
   });
 
   test('animate demo reflects slider changes in the preview and generated code', async ({
