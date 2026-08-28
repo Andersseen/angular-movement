@@ -251,6 +251,22 @@ replays with the newly selected preset` still flakes once per repeat even single
   built-in retry both times — so the job-level fix still holds, it just isn't a total fix for that
   one test. Root cause addressed generically rather than one test at a time; "Next up" #2 below is
   superseded by this.
+  **Follow-up same day**: `workers: 1` alone did not make CI green — the very next push (a
+  bookkeeping-only merge, no app/library changes) failed CI again on `smooth scroll demo exposes
+  the live service readout`, twice in a row (exhausting `retries: 1`), even single-worker. Root
+  cause was a genuine test race, not parallelism: the test read `smooth-scroll-active`'s
+  `.textContent()` **once**, immediately after `page.goto()`. That testid is SSR-rendered as "no"
+  (`isPlatformBrowser` is false on the server) and only flips to the real client value once
+  hydration runs a change-detection pass — on a slow-enough runner the test can catch that stale
+  pre-hydration "no" and lock in the wrong expected value before the client settles. Proven by the
+  failure itself: `Received: 400` on an assertion that expected `0` — `SmoothScrollService.scrollTo`
+  only ever writes a non-zero value when `#scrollElement` is actually set, so the service _was_
+  active; the test's `active` read was just stale. Fixed in `e2e/demos.spec.ts` by moving the
+  `active` read inside the existing `expect.poll` alongside the value read, so both are re-derived
+  together on every poll tick instead of the `active` flag being captured once up front. This is
+  the kind of SSR/hydration race worth checking for in any e2e assertion that reads page state
+  immediately after `goto()` without waiting for it to settle — grep for other bare `.textContent()`
+  reads taken right after navigation before assuming a future CI flake here is "just" parallelism.
 - **`projects/movement-mcp/` (spec 012) is a fully standalone pnpm package, deliberately not part
   of any workspace.** Its own `node_modules`/`pnpm-lock.yaml`, own `pnpm install`
   (`pnpm run mcp:install` from root). This is why `angular-movement`'s own `package.json` still has
