@@ -64,7 +64,7 @@
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^20.5.0",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.62.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@testing-library/angular": "^19.4.2",
     "@testing-library/dom": "^10.4.1",
