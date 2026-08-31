@@ -76,12 +76,12 @@
     "lint-staged": "^16.4.0",
     "ng-packagr": "^21.2.0",
     "postcss": "^8.5.3",
-    "prettier": "^3.8.1",
+    "prettier": "^3.9.6",
     "prettier-plugin-tailwindcss": "^0.7.2",
-    "typescript": "~5.9.2",
-    "typescript-eslint": "8.56.1",
-    "vite": "^6.3.6",
-    "vitest": "4.0.18",
+    "typescript": "~7.0.2",
+    "typescript-eslint": "8.68.0",
+    "vite": "^8.2.2",
+    "vitest": "4.1.11",
     "wrangler": "^4.72.0"
   },
   "lint-staged": {
