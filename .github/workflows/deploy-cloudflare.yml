@@ -41,6 +41,10 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build application
+        env:
+          # Repo vars can override; defaults guarantee the tracker is always built in.
+          PUBLIC_UMAMI_URL: ${{ vars.PUBLIC_UMAMI_URL || 'https://umami.andersseen.dev/script.js' }}
+          PUBLIC_UMAMI_WEBSITE_ID: ${{ vars.PUBLIC_UMAMI_WEBSITE_ID || '95b99c2a-a614-4d3d-965b-5ae3ac546a48' }}
         run: pnpm run build:prod
 
       - name: Validate Cloudflare secrets
