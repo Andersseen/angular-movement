@@ -16,6 +16,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     target: ['es2020'],
   },
+  envPrefix: ['VITE_', 'PUBLIC_'],
   resolve: {
     mainFields: ['module'],
     alias: {
