@@ -38,6 +38,12 @@ export class SmoothScrollService implements OnDestroy {
   #rafId = 0;
   #isRunning = false;
   #scrollElement: HTMLElement | null = null;
+  /**
+   * Where `scroll` events for `#scrollElement` are dispatched. For the page itself that is the
+   * Document, not `documentElement` — a listener on `documentElement` never fires for page scroll,
+   * which is how the native-scroll resync below went dead in the default configuration.
+   */
+  #scrollEventTarget: EventTarget | null = null;
 
   /**
    * Reactive scroll position (in pixels) updated on every RAF tick.
@@ -113,6 +119,9 @@ export class SmoothScrollService implements OnDestroy {
 
     this.#targetY = current;
     this.#currentY = current;
+    this.#lastAppliedY = current;
+    // #tick no longer writes while idle, so keep the signal in step with native scrolling here.
+    this.scrollY.set(current);
   };
 
   /** The `scrollTop` value `#applyScroll()` last wrote — used to detect a foreign (non-wheel,
@@ -173,7 +182,8 @@ export class SmoothScrollService implements OnDestroy {
     // Setting `scrollTop` (this service's own writes, in #applyScroll) also fires this event, so
     // #onNativeScroll compares against #lastAppliedY to tell those apart from a foreign
     // (keyboard/programmatic) scroll it needs to resync to.
-    el.addEventListener('scroll', this.#onNativeScroll, { passive: true });
+    this.#scrollEventTarget = this.#isPageScroller(el) ? this.#document : el;
+    this.#scrollEventTarget.addEventListener('scroll', this.#onNativeScroll, { passive: true });
 
     this.#isRunning = true;
     this.#tick();
@@ -190,10 +200,11 @@ export class SmoothScrollService implements OnDestroy {
       el.removeEventListener('touchstart', this.#onTouchStart);
       el.removeEventListener('touchmove', this.#onTouchMove);
       el.removeEventListener('touchend', this.#onTouchEnd);
-      el.removeEventListener('scroll', this.#onNativeScroll);
     }
+    this.#scrollEventTarget?.removeEventListener('scroll', this.#onNativeScroll);
 
     this.#scrollElement = null;
+    this.#scrollEventTarget = null;
   }
 
   /** Scroll programmatically to a Y position */
@@ -214,13 +225,19 @@ export class SmoothScrollService implements OnDestroy {
   #tick(): void {
     if (!this.#isRunning) return;
 
-    this.#currentY += (this.#targetY - this.#currentY) * this.#lerp;
+    // Only write while this service's own lerp is moving. Writing `scrollTop` while idle — even
+    // the same value — cancels a native smooth scroll in progress (WebKit animates keyboard
+    // scrolling), and the stale write could land before the `scroll` event that would resync it.
+    if (this.#currentY !== this.#targetY) {
+      this.#currentY += (this.#targetY - this.#currentY) * this.#lerp;
 
-    if (Math.abs(this.#targetY - this.#currentY) < 0.1) {
-      this.#currentY = this.#targetY;
+      if (Math.abs(this.#targetY - this.#currentY) < 0.1) {
+        this.#currentY = this.#targetY;
+      }
+
+      this.#applyScroll(this.#currentY);
     }
 
-    this.#applyScroll(this.#currentY);
     this.#rafId = requestAnimationFrame(() => this.#tick());
   }
 
@@ -251,6 +268,11 @@ export class SmoothScrollService implements OnDestroy {
     // Update the reactive signal so consumers (e.g. MoveScrollDirective) can react
     // without relying on native scroll events which don't fire during lerp-based scroll.
     this.scrollY.set(y);
+  }
+
+  /** True when `el` scrolls the page itself, whose `scroll` events fire on the Document. */
+  #isPageScroller(el: HTMLElement): boolean {
+    return el === this.#document.documentElement || el === this.#document.scrollingElement;
   }
 
   #getMaxScroll(): number {

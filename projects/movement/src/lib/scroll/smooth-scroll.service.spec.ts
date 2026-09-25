@@ -358,6 +358,63 @@ describe('SmoothScrollService', () => {
     expect(service.scrollY()).toBeCloseTo(300, 0);
   });
 
+  it('resyncs for page scroll, whose scroll events fire on the Document, not documentElement', () => {
+    // The default configuration: init() with no element drives the page. A listener on
+    // documentElement never hears page scrolls, which left keyboard, focus-into-view and
+    // programmatic scrollIntoView() being snapped back to the top on every frame.
+    const root = document.documentElement;
+    Object.defineProperty(root, 'scrollHeight', { configurable: true, value: 2000 });
+    Object.defineProperty(root, 'clientHeight', { configurable: true, value: 800 });
+    root.scrollTop = 0;
+    service.init({ lerp: 0.1 });
+
+    root.scrollTop = 450;
+    document.dispatchEvent(new Event('scroll'));
+    rafCallbacks.at(-1)?.(16);
+
+    expect(root.scrollTop).toBeCloseTo(450, 0);
+    expect(service.scrollY()).toBeCloseTo(450, 0);
+
+    service.destroy();
+    delete (root as unknown as Record<string, unknown>)['scrollHeight'];
+    delete (root as unknown as Record<string, unknown>)['clientHeight'];
+    root.scrollTop = 0;
+  });
+
+  it('removes the Document scroll listener on destroy', () => {
+    const removeSpy = vi.spyOn(document, 'removeEventListener');
+    service.init({ lerp: 0.1 });
+
+    service.destroy();
+
+    expect(removeSpy).toHaveBeenCalledWith('scroll', expect.any(Function));
+  });
+
+  it('never writes scrollTop while idle, so a native smooth scroll in progress is not cancelled', () => {
+    const el = makeTrackedScrollEl();
+    service.init({ element: el, lerp: 0.1 });
+    const descriptor = Object.getOwnPropertyDescriptor(el, 'scrollTop')!;
+    const writes: number[] = [];
+    Object.defineProperty(el, 'scrollTop', {
+      configurable: true,
+      get: descriptor.get,
+      set(value: number) {
+        writes.push(value);
+        descriptor.set!.call(el, value);
+      },
+    });
+
+    for (let i = 0; i < 5; i++) {
+      rafCallbacks.splice(0).forEach((callback) => callback(16));
+    }
+    expect(writes).toEqual([]);
+
+    // It still writes while its own lerp is moving.
+    service.scrollTo(200);
+    rafCallbacks.splice(0).forEach((callback) => callback(16));
+    expect(writes.length).toBe(1);
+  });
+
   it('does not resync on its own scroll writes (no feedback loop)', () => {
     const el = makeTrackedScrollEl();
     service.init({ element: el, lerp: 0.5 });
