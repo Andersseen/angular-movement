@@ -26,5 +26,17 @@ export interface ApiSnapshot {
 export interface DirectiveExample {
   className: string;
   selector: string;
+  /** The narrow import to add — never `MOVEMENT_DIRECTIVES` for a single directive. */
+  importStatement: string;
+  /** What goes in the component's `imports` array. */
+  imports: string[];
   template: string;
+  /** Directive-specific usage notes (touch semantics, timing units). */
+  notes: string[];
+}
+
+export interface Guideline {
+  topic: string;
+  rule: string;
+  example?: string;
 }
