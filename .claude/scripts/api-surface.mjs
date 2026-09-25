@@ -76,7 +76,8 @@ function parseDirective(source, file) {
 
     // Public readonly signals (progress, isDragging, …) are part of the template API.
     const signals = [];
-    const signalRe = /readonly\s+(\w+)\s*=\s*(?:signal|computed|linkedSignal)</g;
+    // `signal(0)` as well as `signal<number>(0)` — the generic-only form missed every real signal.
+    const signalRe = /readonly\s+(\w+)\s*=\s*(?:signal|computed|linkedSignal)\s*[<(]/g;
     let signalMatch;
     while ((signalMatch = signalRe.exec(body))) {
       if (!signalMatch[1].startsWith('#')) signals.push(signalMatch[1]);
@@ -88,12 +89,27 @@ function parseDirective(source, file) {
 }
 
 const barrel = read(BARREL);
-const registered = new Set(
-  (barrel.match(/MOVEMENT_DIRECTIVES\s*=\s*\[([\s\S]*?)\]/)?.[1] ?? '')
+
+/**
+ * Members of an aggregate array in the barrel, following `...OTHER_AGGREGATE` spreads. Since spec
+ * 013 `MOVEMENT_DIRECTIVES` is `[...MOVEMENT_STABLE_DIRECTIVES, ...MOVEMENT_EXPERIMENTAL_DIRECTIVES]`;
+ * reading only its literal entries found no class names at all, which silently emptied the MCP
+ * snapshot generated from this script.
+ */
+function aggregateMembers(name, seen = new Set()) {
+  if (seen.has(name)) return [];
+  seen.add(name);
+  const body = barrel.match(new RegExp(`${name}\\s*=\\s*\\[([\\s\\S]*?)\\]`))?.[1] ?? '';
+  return body
     .split(',')
-    .map((s) => s.trim())
-    .filter(Boolean),
-);
+    .map((entry) => entry.trim())
+    .filter(Boolean)
+    .flatMap((entry) =>
+      entry.startsWith('...') ? aggregateMembers(entry.slice(3).trim(), seen) : [entry],
+    );
+}
+
+const registered = new Set(aggregateMembers('MOVEMENT_DIRECTIVES'));
 const reExported = new Set(
   [...barrel.matchAll(/export \* from '\.\/(.+?)'/g)].map((m) => m[1].split('/').pop()),
 );
