@@ -153,7 +153,7 @@ export default class DemoLoop {
     if (type === 'spin') {
       return `<svg
   moveLoop="spin"
-  moveDuration="${this.duration()}"
+  moveDuration="${this.duration()}ms"
   moveEasing="${this.easing()}"
 >
   <path d="..." />
@@ -162,7 +162,7 @@ export default class DemoLoop {
     if (type === 'pulse') {
       return `<div
   moveLoop="pulse"
-  moveDuration="${this.duration()}"
+  moveDuration="${this.duration()}ms"
   moveEasing="${this.easing()}"
 >
   Active state
@@ -170,7 +170,7 @@ export default class DemoLoop {
     }
     return `<path
   [moveLoop]="${keyframesToString(this.drawKeyframes())}"
-  moveDuration="${this.duration()}"
+  moveDuration="${this.duration()}ms"
   moveEasing="${this.easing()}"
   d="M14 25.5 21 32l14-17"
 />`;

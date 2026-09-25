@@ -37,6 +37,11 @@ E2E coverage is split by cost/value, not run identically everywhere:
   full comprehensive suite, including the adversarial composition scenarios (drag+hover+tap+
   variants, presence+layout+variants, presence+destroy-mid-transition, scroll+transform+spring
   chains, SVG+variants+presence). These need real WAAPI timing and are too expensive to triple.
+- **Chromium + Firefox + WebKit, touch** (`e2e/touch.spec.ts`, spec 014) — `hasTouch` at a phone
+  viewport: a `lift`+`press` link navigates on tap, `touchstart` is never default-prevented, no
+  sticky hover. Touch/pointer semantics are where engines differ most. Tests await real hydration
+  (`window.ng.getComponent`) — without it every "not prevented" assertion passes vacuously against
+  the SSR markup.
 - **Chromium + Firefox + WebKit** (`e2e/cross-browser.spec.ts`) — a small, high-value smoke suite:
   one assertion each for `[move]`, enter/leave, presence, variants, hover/focus/tap, drag pointer
   interaction, layout animation, scroll progress, SVG animation, spring completion, and
@@ -62,7 +67,10 @@ Template directive (e.g. [moveWhileHover]="{ scale: [1, 1.1] }")
 
 `MoveAnimator` (`engines/move-animator.service.ts`) is the same pipeline for callers without a
 directive: it resolves partial options through `resolveMovementConfig` + reduced motion and delegates
-to `AnimationEngine.play()`. It is the **only** exported way in — `AnimationEngine` stays internal so
+to `AnimationEngine.play()`. The resolution lives in the internal `engines/animate-with-options.ts`,
+shared with `MoveTriggerDirective.play()` so the two can never resolve options differently
+(`MOVEMENT_CONFIG` → optional middle layer such as directive inputs → per-call options → reduced
+motion). It is the **only** exported way in — `AnimationEngine` stays internal so
 1.0 can freeze the barrel without freezing the engine, and `movement.spec.ts` pins that.
 
 `engines/keyframe-composer.ts` and `engines/transition-composer.ts` build WAAPI keyframes from
@@ -78,7 +86,7 @@ to `AnimationEngine.play()`. It is the **only** exported way in — `AnimationEn
 | `MoveAnimationDirective`    | `[moveAnimation]`               | Framer-style `{ initial, animate, exit }` state objects                                                            |
 | `MoveEnterDirective`        | `[moveEnter]`                   | One-shot enter trigger                                                                                             |
 | `MoveLeaveDirective`        | `[moveLeave]`                   | Leave trigger — **only works inside `*movePresence`**                                                              |
-| `MoveHoverDirective`        | `[moveWhileHover]` ⚠️           | Hover (mouse + touch) with auto-reverse                                                                            |
+| `MoveHoverDirective`        | `[moveWhileHover]` ⚠️           | Hover (mouse + pen via Pointer Events; never touch) with auto-reverse                                              |
 | `MoveTapDirective`          | `[moveWhileTap]` ⚠️             | Press/tap                                                                                                          |
 | `MoveFocusDirective`        | `[moveWhileFocus]` ⚠️           | Focus                                                                                                              |
 | `MoveInViewDirective`       | `[moveInView]`                  | IntersectionObserver trigger                                                                                       |
@@ -93,7 +101,7 @@ to `AnimationEngine.play()`. It is the **only** exported way in — `AnimationEn
 | `MoveTextDirective`         | `[moveText]`                    | Text splitting/animation                                                                                           |
 | `MoveLoopDirective`         | `[moveLoop]`                    | Looping animation                                                                                                  |
 | `MoveTargetDirective`       | `[moveTarget]`                  | Named target for triggers                                                                                          |
-| `MoveTriggerDirective`      | `[moveTrigger]`                 | Triggers animations on targets                                                                                     |
+| `MoveTriggerDirective`      | `[moveTrigger]`                 | Boolean trigger; a bare attribute is an imperative handle (`play(frames, options)`)                                |
 | `MoveSmoothScrollDirective` | `[moveSmoothScroll]`            | Custom smooth-scroll containers (with `SmoothScrollService`)                                                       |
 
 ## API stability
@@ -102,11 +110,11 @@ Use this classification when documenting or consuming the public API. Stable API
 semantic-versioning expectations; experimental APIs can change significantly between minor
 versions.
 
-| Status               | Directives / helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
-| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS`, `movePathDraw`, `moveIconPulse`, `moveIconBounce`, `moveIconShake`, `moveIconRotate`) |
-| **Stable candidate** | _(none currently — spec 009 promoted every 0.9 candidate to stable after review; this tier stays in the taxonomy for future new APIs)_                                                                                                                                                                                                                                                                                                                                                                                                 |
-| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                                                      |
+| Status               | Directives / helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS`, `movePathDraw`, `moveIconPulse`, `moveIconBounce`, `moveIconShake`, `moveIconRotate`), `MoveTime` / `moveTimeToMs` |
+| **Stable candidate** | _(none currently — spec 009 promoted every 0.9 candidate to stable after review; this tier stays in the taxonomy for future new APIs)_                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                                                                                   |
 
 Every exported type mirrors the stability of the API it supports (`@stability` JSDoc tag on the
 declaration is authoritative). `AnimationControls` and the `MovementConfig` family are stable on
@@ -298,6 +306,87 @@ keyboard scrolling (arrows, Page Up/Down, Home/End, Tab-triggered focus-into-vie
 detects a `scrollTop` change the service did not itself write and resyncs to it instead of fighting
 it — internal only, no public API change, still respects `prefers-reduced-motion` (unchanged, the
 service no-ops entirely when reduced motion is active).
+
+**Spec 014 found that fix inert for page scroll**, the default configuration: the listener was on
+`documentElement`, but page `scroll` events fire on the Document. Its unit test dispatched the event
+on the element directly, so it passed. Now the listener goes on the Document when the service drives
+the page's scrolling element, and `#tick()` writes `scrollTop` only while its own lerp is moving —
+an idle write, even of the same value, cancelled WebKit's animated keyboard scroll. Covered by a
+cross-browser e2e (keyboard `End` and programmatic `scrollIntoView()` on the demo site, which runs
+the service app-wide).
+
+## Timing model — `MoveTime` (spec 014)
+
+Every public duration/delay/stagger accepts `MoveTime` (``number | `${number}ms` | `${number}s` ``).
+**Numbers are milliseconds and always will be** — reinterpreting `0.08` as seconds would be a
+silent breaking change. One parser, `lib/move-time.ts`, normalizes at the boundary:
+
+- directive inputs: `optionalTimeAttribute(name)` / `timeAttribute(name, fallback)` transforms. The
+  input's _read_ type stays `number | undefined` (the declared `InputSignalWithTransform` is
+  unchanged in the `.d.ts`); its write type was already `unknown`.
+- option objects (`transition`, variants, `[moveAnimation]` config, repeat): `resolveTime()` at the
+  read site (`transition-composer.ts`, `easing-groups.ts`, `waapi-player.ts`, the engine's
+  `resolveRepeat`, `move-variants`, `move-animation`). Idempotent on numbers.
+- `provideMovement()` normalizes into the numeric `MovementConfig`; `MOVEMENT_CONFIG` never holds a
+  string.
+
+Engine math is numeric throughout. A numeric value strictly between 0 and 1 warns once per
+input+value (it is almost always seconds written as a number); explicit unit strings never warn.
+An unparseable string warns and falls back to the default rather than producing `NaN`.
+
+## Pointer semantics (spec 014)
+
+`moveWhileHover` binds `pointerenter`/`pointerleave` and ignores `pointerType === 'touch'`. Pen is
+hover-capable (a hovering stylus reports enter before contact; a non-hovering pen gets
+`pointerleave` on lift, so nothing sticks). No `preventDefault()` anywhere — the old `touchstart`
+handler suppressed the synthesized click on links and could block scrolling, and the
+compatibility `mouseenter` a tap emits was the source of sticky hover. `moveWhileTap` already used
+pointer events without `preventDefault()`. Touch feedback is `moveWhileTap`'s job.
+
+`lift` (`translate`) and `press` (`scale`) are on disjoint channels on purpose: a tap release
+commits `scale: 1`, so a `lift` that also scaled would lose its scale whenever the element was
+pressed while hovered.
+
+## Imperative API: `MoveAnimator` vs `MoveTrigger` (spec 014)
+
+- **`MoveAnimator`** (stable) is _the_ imperative API: `animate()` (Element or `ElementRef`),
+  `set()` (commit a state through `engine.play(..., { disabled: true })`, i.e. the directives' own
+  composition, after `cancelActivePlayer`), `clear()`.
+- **`MoveTrigger`** (experimental) is a declarative trigger. It keeps an imperative handle
+  (`play(frames, options)`), and a bare `moveTrigger` attribute is imperative-only, but new
+  TypeScript-driven code should use `MoveAnimator`.
+- **`sequence()` — investigated, deferred.** `await animate(a)?.finished; commit(); await
+animate(b)?.finished` already expresses every audited flow and cannot reject or hang. A
+  sequence primitive needs its own controls type with unclear `pause`/`currentTime` semantics.
+
+### Pseudo-element path
+
+`engine.play(host, frames, { pseudoElement })` takes a separate branch
+(`AnimationEngine.#playPseudoElement`): plain composed keyframes (no base transform — the host's
+transform is irrelevant to its pseudo-element), `fill: 'backwards'`, `WaapiPlayer` with commit
+disabled (`commitStyles()` throws for pseudo-elements and there is no inline style), never
+registered in the active-player registry (a drag or `set()` on the host must not kill a View
+Transition). `disabled`/reduced motion **skips** the animation — applying "final styles" would
+write them onto the real element. Feature detection is `'pseudoElement' in
+KeyframeEffect.prototype`; an unsupported browser or a rejected selector is a no-op, never a
+fallback onto the host (animating `clipPath` on `<html>` would clip the live page).
+
+### `finished` contract
+
+`AnimationControls.finished` always resolves and never rejects: natural finish, `cancel()`,
+replacement (every player cancels its predecessor), drag preemption, owner destroy, and — since
+spec 014 — an external cancellation of the underlying `Animation` (`BaseAnimationPlayer` listens
+for its `cancel` event; before, a skipped View Transition left `finished` pending forever).
+`onDone` fires only on natural finish. Completion vs cancellation is not distinguishable; noted as
+a follow-up, not needed by any audited consumer.
+
+## Import DX decision (spec 014)
+
+No focused aggregates (`MOVEMENT_INTERACTION_DIRECTIVES`, …). The audited components use one to
+three directives, so the narrow import is already as short; a new taxonomy would add names to
+learn. The actual cause of `MOVEMENT_DIRECTIVES` spreading was our own onboarding: the site's Get
+Started page and home-page code preview both taught `imports: [...MOVEMENT_DIRECTIVES]`, and ten
+site components used it. All now import narrowly, and MCP `get_example` returns the narrow import.
 
 ## Adding a new directive — the complete checklist
 

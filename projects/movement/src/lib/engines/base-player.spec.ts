@@ -2,10 +2,13 @@ import { vi } from 'vitest';
 import { BaseAnimationPlayer } from './base-player';
 
 /** Minimal stand-in for a WAAPI `Animation`, with the finish listener captured. */
-function makeAnimation(
-  overrides: Partial<Animation> & { playState?: string } = {},
-): Animation & { fireFinish: () => void; listenerOptions: AddEventListenerOptions | undefined } {
+function makeAnimation(overrides: Partial<Animation> & { playState?: string } = {}): Animation & {
+  fireFinish: () => void;
+  fireCancel: () => void;
+  listenerOptions: AddEventListenerOptions | undefined;
+} {
   let finishListener: (() => void) | null = null;
+  let cancelListener: (() => void) | null = null;
   let listenerOptions: AddEventListenerOptions | undefined;
 
   const animation = {
@@ -20,8 +23,10 @@ function makeAnimation(
         finishListener = listener;
         listenerOptions = options as AddEventListenerOptions;
       }
+      if (event === 'cancel') cancelListener = listener;
     }),
     fireFinish: () => finishListener?.(),
+    fireCancel: () => cancelListener?.(),
     get listenerOptions() {
       return listenerOptions;
     },
@@ -30,15 +35,21 @@ function makeAnimation(
 
   return animation as unknown as Animation & {
     fireFinish: () => void;
+    fireCancel: () => void;
     listenerOptions: AddEventListenerOptions | undefined;
   };
 }
 
 /** Concrete subclass so the abstract base can be exercised directly. */
 class TestPlayer extends BaseAnimationPlayer {
-  constructor(animation: Animation | null, onDone?: () => void, passOnDoneToAttach = true) {
+  constructor(
+    animation: Animation | null,
+    onDone?: () => void,
+    passOnDoneToAttach = true,
+    commit = true,
+  ) {
     super();
-    this.attachAnimation(animation, passOnDoneToAttach ? onDone : undefined);
+    this.attachAnimation(animation, passOnDoneToAttach ? onDone : undefined, commit);
   }
 }
 
@@ -72,6 +83,53 @@ describe('BaseAnimationPlayer', () => {
     // commitStyles before cancel — cancelling first would discard the final frame.
     expect(animation.commitStyles).toHaveBeenCalledTimes(1);
     expect(animation.cancel).toHaveBeenCalledTimes(1);
+    expect(onDone).toHaveBeenCalledTimes(1);
+  });
+
+  it('resolves `finished` when the underlying animation is cancelled by someone else', async () => {
+    const onDone = vi.fn();
+    const animation = makeAnimation();
+    const player = new TestPlayer(animation, onDone);
+
+    // e.g. a skipped View Transition removing its pseudo-elements, or getAnimations().cancel().
+    animation.fireCancel();
+
+    await expect(player.finished).resolves.toBeUndefined();
+    // Cancellation is not completion — same as calling cancel() on the player.
+    expect(onDone).not.toHaveBeenCalled();
+    expect(animation.commitStyles).not.toHaveBeenCalled();
+  });
+
+  it('never rejects `finished`, whichever way the animation ends', async () => {
+    const finishing = makeAnimation();
+    const finishedPlayer = new TestPlayer(finishing);
+    const cancelledPlayer = new TestPlayer(makeAnimation());
+    const external = makeAnimation();
+    const externallyCancelled = new TestPlayer(external);
+
+    finishing.fireFinish();
+    cancelledPlayer.cancel();
+    external.fireCancel();
+
+    await expect(
+      Promise.all([
+        finishedPlayer.finished,
+        cancelledPlayer.finished,
+        externallyCancelled.finished,
+      ]),
+    ).resolves.toEqual([undefined, undefined, undefined]);
+  });
+
+  it('skips commitStyles/cancel on finish when commit is disabled (pseudo-elements)', async () => {
+    const onDone = vi.fn();
+    const animation = makeAnimation();
+    const player = new TestPlayer(animation, onDone, true, false);
+
+    animation.fireFinish();
+    await player.finished;
+
+    expect(animation.commitStyles).not.toHaveBeenCalled();
+    expect(animation.cancel).not.toHaveBeenCalled();
     expect(onDone).toHaveBeenCalledTimes(1);
   });
 

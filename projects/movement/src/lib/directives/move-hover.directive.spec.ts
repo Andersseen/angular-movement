@@ -36,71 +36,94 @@ describe('MoveHoverDirective', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    // Simulate mouseenter native host binding
-    debugElement.triggerEventHandler('mouseenter', null);
+    debugElement.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
     expect(playSpy).toHaveBeenCalledTimes(1);
 
     playSpy.mockClear();
 
-    // Simulate mouseleave
-    debugElement.triggerEventHandler('mouseleave', null);
+    debugElement.triggerEventHandler('pointerleave', { pointerType: 'mouse' });
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should ignore a repeated mouseenter while already hovered', () => {
+  it('should ignore a repeated pointerenter while already hovered', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    debugElement.triggerEventHandler('mouseenter', null);
-    debugElement.triggerEventHandler('mouseenter', null);
+    debugElement.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
+    debugElement.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
 
     // Browsers can emit repeated enters over child elements; replaying would restart the animation.
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('should ignore mouseleave when it was never hovered', () => {
+  it('should ignore pointerleave when it was never hovered', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    debugElement.triggerEventHandler('mouseleave', null);
+    debugElement.triggerEventHandler('pointerleave', { pointerType: 'mouse' });
 
     expect(playSpy).not.toHaveBeenCalled();
   });
 
-  it('should treat touchstart as hover and prevent the emulated mouse event', () => {
+  it('should ignore touch pointers entirely — touch has no hover state', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
-    const preventDefault = vi.fn();
 
-    debugElement.triggerEventHandler('touchstart', { preventDefault });
+    debugElement.triggerEventHandler('pointerenter', { pointerType: 'touch' });
+    debugElement.triggerEventHandler('pointerleave', { pointerType: 'touch' });
 
-    // Without preventDefault the browser also fires mouseenter, double-triggering on mobile.
-    expect(preventDefault).toHaveBeenCalledTimes(1);
-    expect(playSpy).toHaveBeenCalledTimes(1);
+    expect(playSpy).not.toHaveBeenCalled();
   });
 
-  it('should reverse on touchend and on touchcancel', () => {
+  it('should treat a pen as hover-capable and leave cleanly on lift', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
-    playSpy.mockClear();
-    debugElement.triggerEventHandler('touchend', null);
+    debugElement.triggerEventHandler('pointerenter', { pointerType: 'pen' });
     expect(playSpy).toHaveBeenCalledTimes(1);
 
-    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
-    playSpy.mockClear();
-    debugElement.triggerEventHandler('touchcancel', null);
-    expect(playSpy).toHaveBeenCalledTimes(1);
+    debugElement.triggerEventHandler('pointerleave', { pointerType: 'pen' });
+    expect(playSpy).toHaveBeenCalledTimes(2);
   });
 
-  it('should ignore a repeated touchstart while already active', () => {
+  it('should never bind touch events, so it cannot preventDefault a tap or a scroll', () => {
+    const host = debugElement.nativeElement as HTMLElement;
+    const touchstart = new Event('touchstart', { bubbles: true, cancelable: true });
+
+    host.dispatchEvent(touchstart);
+
+    expect(touchstart.defaultPrevented).toBe(false);
+    const bound = debugElement.listeners.map((listener) => listener.name);
+    expect(bound).toEqual(expect.arrayContaining(['pointerenter', 'pointerleave']));
+    expect(bound.filter((name) => name.startsWith('touch') || name.startsWith('mouse'))).toEqual(
+      [],
+    );
+  });
+
+  it('should not enter hover from the compatibility mouse events a touch tap emits', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+    const host = debugElement.nativeElement as HTMLElement;
 
-    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
-    debugElement.triggerEventHandler('touchstart', { preventDefault: vi.fn() });
+    // After a tap, browsers fire mouseover/mouseenter for legacy pages. Those used to leave the
+    // element stuck in its hovered state on mobile.
+    host.dispatchEvent(new MouseEvent('mouseenter'));
+    host.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
 
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('keeps the deprecated touch members callable without effect on hover start', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+    const directive = debugElement.injector.get(MoveHoverDirective);
+
+    directive.onTouchStart();
+    expect(playSpy).not.toHaveBeenCalled();
+
+    directive.onMouseEnter();
+    playSpy.mockClear();
+    directive.onTouchEnd();
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 
@@ -117,12 +140,12 @@ describe('MoveHoverDirective', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    de.triggerEventHandler('mouseenter', null);
+    de.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
     expect(playSpy).toHaveBeenCalledTimes(1);
 
     playSpy.mockClear();
 
-    de.triggerEventHandler('mouseleave', null);
+    de.triggerEventHandler('pointerleave', { pointerType: 'mouse' });
     expect(playSpy).not.toHaveBeenCalled();
     expect((de.nativeElement as HTMLElement).style.opacity).toBe('');
   });
@@ -140,7 +163,7 @@ describe('MoveHoverDirective', () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
-    de.triggerEventHandler('mouseenter', null);
+    de.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
     expect(playSpy).toHaveBeenCalledTimes(1);
 
     localFixture.componentInstance.duration.set(500);
@@ -170,7 +193,7 @@ describe('MoveHoverDirective', () => {
     };
     vi.spyOn(engine, 'play').mockReturnValue(mockPlayer);
 
-    de.triggerEventHandler('mouseenter', null);
+    de.triggerEventHandler('pointerenter', { pointerType: 'mouse' });
     expect(mockPlayer.cancel).not.toHaveBeenCalled();
 
     localFixture.componentInstance.show.set(false);

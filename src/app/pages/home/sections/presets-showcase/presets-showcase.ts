@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveEnterDirective, MovePreset } from 'movement';
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
 
 @Component({
   selector: 'app-presets-showcase',
-  imports: [...MOVEMENT_DIRECTIVES, CodeBlock],
+  imports: [MoveEnterDirective, CodeBlock],
   template: `
     <section class="border-border mx-auto max-w-7xl border-t px-4 py-24 sm:px-6 lg:px-8">
       <div class="mb-16 text-center">
@@ -35,7 +35,7 @@ import { CodeBlock } from '../../../../shared/components/code-block/code-block';
                 @if (activePresets()[preset] !== false) {
                   <div
                     [moveEnter]="preset"
-                    [moveDuration]="500"
+                    moveDuration="500ms"
                     class="bg-accent flex h-12 w-12 items-center justify-center rounded-lg shadow-[0_0_15px_var(--color-accent-glow)]"
                   >
                     <svg class="h-6 w-6 text-white" viewBox="0 0 100 100" fill="none">

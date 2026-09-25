@@ -1,4 +1,9 @@
+import { MoveTime } from '../move-time';
+
 /**
+ * Named animation presets. `lift` and `press` are interaction presets for `moveWhileHover` /
+ * `moveWhileTap`; the rest are entrance/exit presets.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -32,6 +37,8 @@ export type MovePreset =
   | 'icon-draw'
   | 'icon-pulse'
   | 'icon-bounce'
+  | 'lift'
+  | 'press'
   | 'none';
 
 /**
@@ -87,8 +94,8 @@ export interface MoveRepeatOptions {
   /** Number of cycles, or `Infinity` for an endless one. */
   repeat?: number;
   repeatType?: MoveRepeatType;
-  /** Pause between cycles, in milliseconds. */
-  repeatDelay?: number;
+  /** Pause between cycles. A number is milliseconds; `"150ms"` / `"0.15s"` also work. */
+  repeatDelay?: MoveTime;
 }
 
 /**
@@ -97,9 +104,11 @@ export interface MoveRepeatOptions {
  * @stability stable
  */
 export interface MovePropertyTransition {
-  duration?: number;
+  /** A number is milliseconds; `"300ms"` / `"0.3s"` also work. */
+  duration?: MoveTime;
   easing?: string;
-  delay?: number;
+  /** A number is milliseconds; `"300ms"` / `"0.3s"` also work. */
+  delay?: MoveTime;
 }
 
 /**
@@ -177,14 +186,14 @@ export type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
  */
 export type MoveVariant = MoveVariantState & {
   spring?: MoveSpring;
-  duration?: number;
+  duration?: MoveTime;
   easing?: string;
-  delay?: number;
+  delay?: MoveTime;
   transition?: MoveTransitionConfig;
-  /** Delay added per nested `[moveVariants]` child, in DOM order. */
-  staggerChildren?: number;
-  /** Delay applied to every nested `[moveVariants]` child before staggering. */
-  delayChildren?: number;
+  /** Delay added per nested `[moveVariants]` child, in DOM order (`MoveTime`). */
+  staggerChildren?: MoveTime;
+  /** Delay applied to every nested `[moveVariants]` child before staggering (`MoveTime`). */
+  delayChildren?: MoveTime;
   when?: MoveVariantOrchestration;
 };
 
@@ -234,8 +243,8 @@ export interface MoveAnimationConfig {
   initial?: MoveKeyframeState;
   animate?: MoveKeyframeState;
   exit?: MoveKeyframeState;
-  duration?: number;
+  duration?: MoveTime;
   easing?: string;
-  delay?: number;
+  delay?: MoveTime;
   spring?: MoveSpring;
 }

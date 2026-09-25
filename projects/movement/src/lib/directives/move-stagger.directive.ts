@@ -1,6 +1,7 @@
 import { Directive, forwardRef, input } from '@angular/core';
 import { MoveSpring } from '../presets/presets.types';
-import { compareDocumentOrder, optionalNumberAttribute } from './move-animation.utils';
+import { compareDocumentOrder } from './move-animation.utils';
+import { normalizeTime, optionalTimeAttribute } from '../move-time';
 import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.tokens';
 
 /**
@@ -25,15 +26,21 @@ export type MoveStaggerDirection = 'first' | 'last' | 'center';
   ],
 })
 export class MoveStaggerDirective implements MoveStaggerProvider {
+  /**
+   * Delay between consecutive children — a `MoveTime`: a number is milliseconds, or
+   * `"80ms"` / `"0.08s"`. A bare `moveStagger` attribute uses the 100ms default.
+   */
   readonly moveStagger = input<number | MoveSpring | '', unknown>(100, {
     transform: (value) => {
-      if (value === '' || typeof value === 'number' || typeof value === 'object')
-        return value as number | MoveSpring | '';
-      return Number(value);
+      if (value === '' || (typeof value === 'object' && value !== null)) {
+        return value as MoveSpring | '';
+      }
+      return normalizeTime('moveStagger', value) ?? '';
     },
   });
+  /** Overrides `moveStagger`'s step — same `MoveTime` units. */
   readonly moveStaggerStep = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveStaggerStep'),
   });
   readonly moveStaggerDirection = input<MoveStaggerDirection>('first');
 

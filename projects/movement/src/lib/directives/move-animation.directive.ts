@@ -4,7 +4,6 @@ import { MoveAnimationConfig, MoveKeyframeState, MoveSpring } from '../presets/p
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   statesToKeyframes,
@@ -13,6 +12,7 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
+import { optionalTimeAttribute, resolveTime } from '../move-time';
 
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -25,11 +25,11 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceChild {
   readonly moveAnimation = input.required<MoveAnimationConfig>();
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
@@ -111,9 +111,9 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
     this.#config = resolveMovementConfig(
       this.#defaults,
       {
-        duration: this.moveDuration() ?? cfg.duration,
+        duration: this.moveDuration() ?? resolveTime(cfg.duration),
         easing: this.moveEasing() ?? cfg.easing,
-        delay: (this.moveDelay() ?? cfg.delay ?? 0) + staggerDelay,
+        delay: (this.moveDelay() ?? resolveTime(cfg.delay) ?? 0) + staggerDelay,
         disabled: this.moveDisabled(),
       },
       prefersReducedMotion(this.#documentRef),

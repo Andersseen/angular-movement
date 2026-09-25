@@ -157,7 +157,12 @@ export default class AiAgentSetupPage {
     {
       name: 'get_example',
       returns:
-        'A minimal template-binding skeleton for a directive, generated from its own selector + inputs.',
+        'A minimal usage skeleton for a directive: the narrow import line, a template binding generated from its own selector + inputs, and usage notes.',
+    },
+    {
+      name: 'get_guidelines',
+      returns:
+        'Conventions the API surface does not reveal: timing units, lift/press, touch vs hover, automatic reduced motion, MoveAnimator, cancellation, View Transitions, narrow imports.',
     },
   ];
 }

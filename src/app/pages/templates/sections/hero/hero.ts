@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveEnterDirective, MoveStaggerDirective } from 'movement';
 import { VoltBadge, VoltButton } from '@voltui/components';
 import { LmnArrowRightIcon } from 'lumen-icons/arrow-right';
 import { LmnSparklesIcon } from 'lumen-icons/sparkles';
@@ -9,7 +9,8 @@ import { TemplateLivePreview } from './live-preview';
 @Component({
   selector: 'app-template-hero',
   imports: [
-    ...MOVEMENT_DIRECTIVES,
+    MoveEnterDirective,
+    MoveStaggerDirective,
     VoltBadge,
     VoltButton,
     LmnSparklesIcon,
@@ -21,7 +22,7 @@ import { TemplateLivePreview } from './live-preview';
       class="mx-auto grid max-w-7xl gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1fr_0.95fr] lg:px-8 lg:py-24"
     >
       <div class="flex flex-col justify-center">
-        <div moveStagger [moveStaggerStep]="90" class="space-y-8">
+        <div moveStagger moveStaggerStep="90ms" class="space-y-8">
           <volt-badge moveEnter="fade-up" variant="secondary" class="w-fit">
             <span class="inline-flex items-center gap-2">
               <lmn-sparkles tone="primary" [size]="14" [animate]="true" ariaLabel="Spark" />
@@ -68,7 +69,7 @@ import { TemplateLivePreview } from './live-preview';
         </div>
       </div>
 
-      <div moveEnter="fade-left" [moveDelay]="160" class="relative lg:min-h-[620px]">
+      <div moveEnter="fade-left" moveDelay="160ms" class="relative lg:min-h-[620px]">
         <app-template-live-preview />
       </div>
     </section>

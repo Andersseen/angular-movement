@@ -14,13 +14,12 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   applyInitialStyles,
   clearInitialStyles,
-  numberAttribute,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute, timeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
@@ -40,14 +39,16 @@ import { AnimationControls } from '../engines/animation-controls';
 export class MoveTextDirective implements OnDestroy {
   readonly moveText = input<MovePreset | MoveKeyframes>('fade-up');
   readonly moveTextSplit = input<'chars' | 'words'>('chars');
-  readonly moveTextStagger = input<number, unknown>(30, { transform: numberAttribute });
+  readonly moveTextStagger = input<number, unknown>(30, {
+    transform: timeAttribute('moveTextStagger', 30),
+  });
 
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,

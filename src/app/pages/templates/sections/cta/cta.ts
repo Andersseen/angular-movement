@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveInViewDirective } from 'movement';
 import {
   VoltBadge,
   VoltButton,
@@ -24,7 +24,7 @@ const TRUST_ITEMS = ['Standalone', 'Tree-shakable', 'Composable'];
 @Component({
   selector: 'app-template-cta',
   imports: [
-    ...MOVEMENT_DIRECTIVES,
+    MoveInViewDirective,
     VoltBadge,
     VoltButton,
     VoltCard,

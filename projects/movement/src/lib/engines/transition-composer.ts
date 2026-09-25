@@ -6,6 +6,7 @@ import {
 import { MovementConfig } from '../tokens/movement.tokens';
 import { composeInterpolatedKeyframe } from './keyframe-composer';
 import { movementWarn } from '../dev-warn';
+import { resolveTime } from '../move-time';
 
 function interpolateValue(
   values: readonly (number | string)[],
@@ -43,9 +44,9 @@ export function composeTransitionKeyframes(
   transition: MoveTransitionConfig,
   baseConfig: MovementConfig,
 ): ResolvedTransition | null {
-  const globalDuration = transition.duration ?? baseConfig.duration;
+  const globalDuration = resolveTime(transition.duration) ?? baseConfig.duration;
   const globalEasing = transition.easing ?? baseConfig.easing;
-  const globalDelay = transition.delay ?? baseConfig.delay;
+  const globalDelay = resolveTime(transition.delay) ?? baseConfig.delay;
 
   const propNames = Object.keys(frames).filter((k) => k !== 'transition');
   if (propNames.length === 0) return null;
@@ -55,9 +56,9 @@ export function composeTransitionKeyframes(
     const parsed = isPropertyTransition(pt) ? pt : ({} as MovePropertyTransition);
     return {
       prop,
-      duration: parsed.duration ?? globalDuration,
+      duration: resolveTime(parsed.duration) ?? globalDuration,
       easing: parsed.easing ?? globalEasing,
-      delay: parsed.delay ?? globalDelay,
+      delay: resolveTime(parsed.delay) ?? globalDelay,
       values: frames[prop]!,
     };
   });

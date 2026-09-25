@@ -451,7 +451,7 @@ test.describe('demo pages', () => {
   test('tap demo plays a WAAPI animation on press', async ({ page }) => {
     await page.goto('/demos/tap');
 
-    const button = page.locator('button', { hasText: /Press Down|Shrink|Ripple|Bounce/ });
+    const button = page.locator('button', { hasText: /Press|Shrink/ });
     await expect(button).toBeVisible();
 
     const box = await button.boundingBox();

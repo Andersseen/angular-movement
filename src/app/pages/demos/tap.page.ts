@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveTapDirective, MoveKeyframes } from 'movement';
+import { MoveTapDirective, MoveKeyframes, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
+
+type TapEffect = 'press' | 'press-down' | 'shrink';
 
 @Component({
   selector: 'app-demo-tap',
@@ -55,48 +57,50 @@ export default class DemoTap {
         label: 'Tap Effect',
         value: 'press',
         options: [
-          { label: 'Press Down', value: 'press' },
+          { label: 'Press (preset)', value: 'press' },
+          { label: 'Press Down', value: 'press-down' },
           { label: 'Shrink', value: 'shrink' },
-          { label: 'Ripple', value: 'ripple' },
-          { label: 'Bounce', value: 'bounce' },
         ],
       },
     ],
   };
 
-  protected effect = signal<'press' | 'shrink' | 'ripple' | 'bounce'>('press');
+  protected effect = signal<TapEffect>('press');
   protected duration = signal(100);
   protected easing = signal('ease-out');
 
-  protected readonly tapCode = computed(() => keyframesToString(this.tapKeyframes()));
+  protected readonly tapCode = computed(() => {
+    const tap = this.tapKeyframes();
+    return typeof tap === 'string' ? `'${tap}'` : keyframesToString(tap);
+  });
 
-  protected readonly tapKeyframes = (): MoveKeyframes => {
+  /**
+   * Two keyframes only: a tap animation plays forward while held and reverses on release, so a
+   * three-keyframe "bounce" (\`[1, 0.97, 1]\`) would replay the bounce on release instead of
+   * holding the pressed state.
+   */
+  protected readonly tapKeyframes = (): MovePreset | MoveKeyframes => {
     switch (this.effect()) {
-      case 'press':
+      case 'press-down':
         return { y: [0, 2], scale: [1, 0.98] };
       case 'shrink':
         return { scale: [1, 0.9] };
-      case 'ripple':
-        return { scale: [1, 0.95, 1] };
-      case 'bounce':
-        return { scale: [1, 0.9, 1.02, 1] };
       default:
-        return { scale: [1, 0.95] };
+        return 'press';
     }
   };
 
   protected readonly effectLabel = () => {
-    const labels: Record<string, string> = {
-      press: 'Press Down',
+    const labels: Record<TapEffect, string> = {
+      press: 'Press',
+      'press-down': 'Press Down',
       shrink: 'Shrink',
-      ripple: 'Ripple',
-      bounce: 'Bounce',
     };
-    return labels[this.effect()] || 'Tap Effect';
+    return labels[this.effect()] ?? 'Tap Effect';
   };
 
   protected onStateChange(state: DemoState): void {
-    this.effect.set((state['effect'] as 'press' | 'shrink' | 'ripple' | 'bounce') ?? 'press');
+    this.effect.set((state['effect'] as TapEffect) ?? 'press');
     this.duration.set(state.duration);
     this.easing.set(state.easing);
   }

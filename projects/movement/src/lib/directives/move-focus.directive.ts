@@ -5,12 +5,12 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   clearComposedStyle,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
   reverseFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
@@ -30,18 +30,18 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 export class MoveFocusDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly moveWhileFocus = input.required<MovePreset | MoveKeyframes>();
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveReverseDuration'),
   });
   readonly moveReverseEasing = input<string | undefined>(undefined);
 

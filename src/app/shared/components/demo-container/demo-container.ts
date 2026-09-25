@@ -443,10 +443,10 @@ export class DemoContainer implements OnInit {
     }
 
     if (duration !== 300 && this.controls().showDuration !== false) {
-      code += `\n  moveDuration="${duration}"`;
+      code += `\n  moveDuration="${duration}ms"`;
     }
     if (delay !== 0 && this.controls().showDelay !== false) {
-      code += `\n  moveDelay="${delay}"`;
+      code += `\n  moveDelay="${delay}ms"`;
     }
     if (easing !== 'ease' && this.controls().showEasing !== false) {
       code += `\n  moveEasing="${easing}"`;

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveEnterDirective } from 'movement';
 import { LmnSunIcon } from 'lumen-icons/sun';
 import { LmnMoonIcon } from 'lumen-icons/moon';
 import { MOVEMENT_VERSION_LABEL } from '../../shared/version';
@@ -8,7 +8,7 @@ import { ThemeService } from '../../shared/theme.service';
 
 @Component({
   selector: 'app-navbar',
-  imports: [RouterLink, RouterLinkActive, LmnSunIcon, LmnMoonIcon, ...MOVEMENT_DIRECTIVES],
+  imports: [RouterLink, RouterLinkActive, LmnSunIcon, LmnMoonIcon, MoveEnterDirective],
   template: `
     <nav
       class="fixed top-0 right-0 left-0 z-50 border-b border-transparent transition-all duration-300"
@@ -154,7 +154,7 @@ import { ThemeService } from '../../shared/theme.service';
           id="mobile-menu"
           class="bg-surface border-border border-b md:hidden"
           moveEnter="slide-down"
-          [moveDuration]="200"
+          moveDuration="200ms"
           moveEasing="ease-out"
         >
           <div class="flex flex-col space-y-1 px-2 pt-2 pb-3 sm:px-3">

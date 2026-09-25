@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveEnterDirective, MoveStaggerDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
@@ -15,6 +15,7 @@ import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
       [controls]="controlsConfig"
       [initialDuration]="400"
       initialEasing="ease-out"
+      [customCode]="staggerCode()"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
@@ -68,6 +69,14 @@ export default class DemoStagger {
   protected easing = signal('ease-out');
   protected staggerDelay = signal(50);
   protected showDemo = signal(true);
+
+  protected readonly staggerCode = computed(
+    () => `<div moveStagger moveStaggerStep="${this.staggerDelay()}ms">
+  @for (item of items; track item.id) {
+    <div moveEnter="${this.preset()}" moveDuration="${this.duration()}ms">{{ item.label }}</div>
+  }
+</div>`,
+  );
 
   protected onStateChange(state: DemoState): void {
     this.preset.set(state.preset);

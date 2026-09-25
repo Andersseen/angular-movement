@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveHoverDirective, MoveInViewDirective, MoveStaggerDirective } from 'movement';
 import {
   VoltBadge,
   VoltCard,
@@ -42,7 +42,9 @@ const FEATURES: FeatureCard[] = [
 @Component({
   selector: 'app-template-feature-grid',
   imports: [
-    ...MOVEMENT_DIRECTIVES,
+    MoveHoverDirective,
+    MoveInViewDirective,
+    MoveStaggerDirective,
     VoltBadge,
     VoltCard,
     VoltCardHeader,
@@ -62,7 +64,7 @@ const FEATURES: FeatureCard[] = [
           </h2>
         </div>
 
-        <div class="grid gap-4 md:grid-cols-3" moveStagger [moveStaggerStep]="110">
+        <div class="grid gap-4 md:grid-cols-3" moveStagger moveStaggerStep="110ms">
           @for (feature of features; track feature.title) {
             <volt-card moveInView="fade-up" [moveWhileHover]="{ y: [0, -8] }">
               <volt-card-header>

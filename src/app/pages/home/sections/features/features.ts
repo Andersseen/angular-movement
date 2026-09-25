@@ -1,17 +1,17 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveInViewDirective } from 'movement';
 
 @Component({
   selector: 'app-features',
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [MoveInViewDirective],
   template: `
     <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
         <!-- Feature 1: Attribute-first -->
         <div
           moveInView="fade-up"
-          [moveDuration]="500"
-          [moveDelay]="100"
+          moveDuration="500ms"
+          moveDelay="100ms"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
         >
           <div
@@ -36,8 +36,8 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
         <!-- Feature 2: Angular-native -->
         <div
           moveInView="fade-up"
-          [moveDuration]="500"
-          [moveDelay]="200"
+          moveDuration="500ms"
+          moveDelay="200ms"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
         >
           <div
@@ -61,8 +61,8 @@ import { MOVEMENT_DIRECTIVES } from 'movement';
         <!-- Feature 3: Accessible -->
         <div
           moveInView="fade-up"
-          [moveDuration]="500"
-          [moveDelay]="300"
+          moveDuration="500ms"
+          moveDelay="300ms"
           class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
         >
           <div

@@ -168,7 +168,7 @@ const CASES: Case[] = [
   { name: 'moveTarget', host: TargetHost },
   { name: 'moveTrigger', host: TriggerHost },
   { name: 'moveVariants', host: VariantsHost },
-  { name: 'moveWhileHover', host: HoverHost, trigger: triggerOn('mouseenter') },
+  { name: 'moveWhileHover', host: HoverHost, trigger: triggerOn('pointerenter') },
   { name: 'moveWhileTap', host: TapHost, trigger: triggerOn('pointerdown') },
   { name: 'moveWhileFocus', host: FocusHost, trigger: triggerOn('focusin') },
   { name: 'moveText', host: TextHost, trigger: enterViewport },

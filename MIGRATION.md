@@ -8,7 +8,95 @@ Every entry states whether it is **breaking** (your build or behaviour changes w
 
 ---
 
-## 0.9.0 → Unreleased (1.0 API freeze)
+## 1.1.x → 1.2.0
+
+Nothing here is required for a stable-API consumer to keep compiling and running. Each entry says
+what changed and what, if anything, to do.
+
+### `moveWhileHover` no longer reacts to touch — behavioural
+
+Hover is now mouse and pen only, via Pointer Events, and never calls `preventDefault()`. On touch
+devices a tap no longer plays the hover animation (and no longer leaves it stuck). If you relied on
+hover as touch feedback, add `moveWhileTap`:
+
+```html
+<!-- before: touch got the hover animation (and blocked the tap's click) -->
+<a routerLink="/pricing" moveWhileHover="lift">Pricing</a>
+
+<!-- 1.2: touch feedback comes from moveWhileTap -->
+<a routerLink="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+```
+
+`MoveHoverDirective.onTouchStart()` / `onTouchEnd()` still exist but are `@deprecated` and no
+longer bound to any event.
+
+### Fractional numeric timing values now warn — advisory
+
+Numbers are still milliseconds. A value like `[moveStaggerStep]="0.08"` keeps meaning 0.08ms, but
+dev mode now warns. If you meant seconds, say so:
+
+```html
+<ul moveStagger moveStaggerStep="80ms">
+  …
+</ul>
+<!-- or "0.08s", or [moveStaggerStep]="80" -->
+```
+
+### Timing option types widened to `MoveTime` — type-level, advisory
+
+`MovementConfigInput`, `MoveAnimateOptions`, `MovePropertyTransition`, `MoveRepeatOptions`,
+`MoveVariant` and `MoveAnimationConfig` timing fields are now `MoveTime` (``number | `${number}ms` | `${number}s` ``)
+instead of `number`. Code that **writes** them compiles unchanged. Code that
+**reads** one of these fields and does arithmetic on it needs a conversion:
+
+```ts
+const ms = moveTimeToMs(variant.duration ?? 300);
+```
+
+The injected `MOVEMENT_CONFIG` (`MovementConfig`) is still numeric milliseconds.
+
+### `MovePreset` gained `'lift'` and `'press'` — type-level, advisory
+
+An exhaustive `switch` over `MovePreset`, or a `Record<MovePreset, …>`, needs the two new members.
+
+### Reduced motion needs no configuration — advisory
+
+If you pass `matchMedia('(prefers-reduced-motion: reduce)').matches` into
+`provideMovement({ disabled })`, you can remove it — the library already honours the preference,
+and live rather than frozen at startup. Likewise `provideMovement({ disabled: true })` in a server
+config is unnecessary: directives are no-ops on the server.
+
+### `MoveTriggerDirective` imperative mode — experimental
+
+`moveTrigger` and `moveFrames` are optional, and a **bare** `moveTrigger` attribute now means
+imperative-only (nothing plays until `play()`):
+
+```html
+<!-- before -->
+<div #t="moveTrigger" [moveTrigger]="false" [moveFrames]="{}" [moveDuration]="520"></div>
+
+<!-- 1.2 -->
+<div #t="moveTrigger" moveTrigger></div>
+```
+
+```ts
+await t.play(expand, { duration: '520ms' });
+await t.play({ opacity: [1, 0] }, { duration: '160ms' });
+```
+
+Only a bare `moveTrigger` attribute combined with `moveFrames` changes behaviour — it used to mean
+"always true" and played once on init; bind `[moveTrigger]="true"` if you relied on that. For
+animation driven from TypeScript, prefer `MoveAnimator`, which needs no template element.
+
+### `try/catch` around `await …finished` is unnecessary — advisory
+
+`AnimationControls.finished` and `moveTrigger.play()` always resolve, including on cancellation
+(this was already true for `cancel()`; 1.2 also covers external cancellation). A `try/finally`
+still works; it just never sees an exception from the library.
+
+---
+
+## 0.9.0 → 1.0.0 (1.0 API freeze)
 
 Spec 009 decided the final 1.0 API contract — see
 `docs/ai/specs/009-10-api-freeze-decision.md`. No renames, removals, or behavior changes; nothing

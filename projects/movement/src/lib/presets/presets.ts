@@ -154,6 +154,21 @@ export const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition> = {
     leave: { y: [0, 0, 0], opacity: [1, 1, 1] },
     loop: { y: [0, -3, 0] },
   },
+  /**
+   * Hover elevation for cards, buttons and links: a 4px rise. Only `translate` — never `scale` —
+   * so it composes with `press` on one element: `moveWhileHover="lift" moveWhileTap="press"`.
+   * (A tap commits `scale: 1` on release; a lift that also scaled would lose that scale every time
+   * the element was pressed while hovered.)
+   */
+  lift: {
+    enter: { y: [0, -4] },
+    leave: { y: [-4, 0] },
+  },
+  /** Press feedback for `moveWhileTap`: a 3% scale-down. Only `scale`, so it composes with `lift`. */
+  press: {
+    enter: { scale: [1, 0.97] },
+    leave: { scale: [0.97, 1] },
+  },
   none: {
     enter: { opacity: [1, 1] },
     leave: { opacity: [1, 1] },

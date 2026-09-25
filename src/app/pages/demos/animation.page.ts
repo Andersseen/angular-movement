@@ -248,10 +248,10 @@ export default class DemoAnimation {
     code += `    }"\n`;
 
     if (this.duration() !== 400) {
-      code += `    moveDuration="${this.duration()}"\n`;
+      code += `    moveDuration="${this.duration()}ms"\n`;
     }
     if (this.delay()) {
-      code += `    moveDelay="${this.delay()}"\n`;
+      code += `    moveDelay="${this.delay()}ms"\n`;
     }
     if (this.easing() !== 'ease') {
       code += `    moveEasing="${this.easing()}"\n`;

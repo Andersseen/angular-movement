@@ -23,7 +23,10 @@ SSR-safe and zoneless-compatible.
 - Per-property transitions, including per-property easing and explicit keyframe `times`
 - SVG path drawing with `pathLength` and `pathOffset`
 - Drag gestures with constraints, elasticity, momentum, snap points, and a `moveWhileDrag` state
-- Imperative escape hatch via `MoveAnimator`
+- `lift` / `press` interaction presets that compose on one element
+- One timing vocabulary: numbers are milliseconds, or say `"80ms"` / `"0.08s"`
+- Imperative API via `MoveAnimator` — `animate()`, `set()`, `clear()`, and pseudo-element /
+  View Transition animation
 - Works with modern standalone Angular apps
 - No `@angular/animations` setup required
 
@@ -40,7 +43,8 @@ Peer dependencies:
 
 ## Quick Start
 
-Register global config and import directives in your app config.
+Optionally set library-wide defaults in your app config. The user's `prefers-reduced-motion`
+setting is honoured automatically — there is nothing to configure for it.
 
 ```ts
 import { ApplicationConfig } from '@angular/core';
@@ -49,10 +53,8 @@ import { provideMovement } from 'angular-movement';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideMovement({
-      duration: 320,
+      duration: '320ms', // or 320 — numbers are milliseconds
       easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-      delay: 0,
-      disabled: false,
     }),
   ],
 };
@@ -63,39 +65,166 @@ tree-shaking effective:
 
 ```ts
 import { Component } from '@angular/core';
-import { MoveAnimateDirective, MoveHoverDirective } from 'angular-movement';
+import { MoveAnimateDirective, MoveHoverDirective, MoveTapDirective } from 'angular-movement';
 
 @Component({
   selector: 'app-demo',
-  standalone: true,
-  imports: [MoveAnimateDirective, MoveHoverDirective],
+  imports: [MoveAnimateDirective, MoveHoverDirective, MoveTapDirective],
   template: `
-    <h2 [move]="'fade-up'">Hello movement</h2>
-    <button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
+    <h2 move="fade-up">Hello movement</h2>
+    <button moveWhileHover="lift" moveWhileTap="press">Hover or press me</button>
   `,
 })
 export class DemoComponent {}
 ```
 
-`MOVEMENT_DIRECTIVES` (spread into `imports`) remains available as a convenience for prototyping
-or a component that genuinely uses most of the library.
+`MOVEMENT_DIRECTIVES` (spread into `imports`) remains available, but it pulls in all 21
+directives — experimental ones included — and hides what a component depends on. Most components
+use one to three; import those.
+
+## Common patterns
+
+Taken from how real apps use the library.
+
+**Product card** — reveal once in view, lift on hover:
+
+```html
+<article moveInView="fade-up" moveWhileHover="lift">…</article>
+```
+
+**Button or link** — `lift` moves `translate`, `press` moves `scale`, so they compose on one
+element. Hover responds to mouse and pen only; a finger has no hover state, so touch gets its
+feedback from `moveWhileTap`. Neither directive calls `preventDefault()` — taps, link activation
+and scrolling stay native.
+
+```html
+<button moveWhileHover="lift" moveWhileTap="press">Buy now</button>
+<a routerLink="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+```
+
+**Staggered grid:**
+
+```html
+<ul moveStagger moveStaggerStep="80ms">
+  @for (item of items(); track item.id) {
+  <li moveInView="fade-up">{{ item.label }}</li>
+  }
+</ul>
+```
+
+**Imperative animation** — `MoveAnimator` takes an `Element` or the `ElementRef` from
+`viewChild()`:
+
+```ts
+readonly #animator = inject(MoveAnimator);
+readonly toast = viewChild.required<ElementRef<HTMLElement>>('toast');
+
+async dismiss() {
+  await this.#animator.animate(this.toast(), { opacity: [1, 0], y: [0, 12] }, { duration: '180ms' })
+    ?.finished;
+  this.remove();
+}
+
+reset() {
+  this.#animator.set(this.toast(), { opacity: 1, y: 0 }); // commit a state instantly
+  this.#animator.clear(this.toast()); // or drop what the library wrote inline
+}
+```
+
+**View Transition** — `pseudoElement` animates `::view-transition-new(root)` (or any
+pseudo-element) through the same API:
+
+```ts
+const transition = document.startViewTransition(() => commitTheme());
+await transition.ready;
+
+animator.animate(
+  document.documentElement,
+  { clipPath: ['circle(0px at 40px 40px)', 'circle(1500px at 40px 40px)'] },
+  { duration: '520ms', pseudoElement: '::view-transition-new(root)' },
+);
+```
+
+Pseudo-element animations use duration, delay, easing and repeat (no springs), commit nothing
+when they finish, and are skipped under reduced motion — the DOM change itself is the committed
+state. A browser that cannot target pseudo-elements gets a no-op, never an exception. Turn off the
+default cross-fade with `::view-transition-old(root), ::view-transition-new(root) { animation:
+none; }`.
+
+## Timing units
+
+Every duration, delay and stagger accepts a `MoveTime`:
+
+| Written                    | Means                                                          |
+| -------------------------- | -------------------------------------------------------------- |
+| `80` (a number, or `"80"`) | 80ms                                                           |
+| `"80ms"`                   | 80ms                                                           |
+| `"0.08s"`                  | 80ms                                                           |
+| `[moveStaggerStep]="0.08"` | **0.08ms** — dev mode warns: _Did you mean "80ms" or "0.08s"?_ |
+
+Numbers are milliseconds forever; that never changes. On static attributes, write the unit
+(`moveStaggerStep="80ms"`). The same type is accepted by `provideMovement()`,
+`MoveAnimator.animate()`, variants (`duration`, `delay`, `staggerChildren`, `delayChildren`) and
+`transition` (`duration`, `delay`, `repeatDelay`). `moveTimeToMs()` converts one when your own
+code needs the number.
+
+## Reduced motion
+
+Three layers, strongest first:
+
+1. **The OS `prefers-reduced-motion` setting — automatic.** Every directive and
+   `MoveAnimator` jump straight to the end state, including scroll-linked and parallax motion.
+   You do not need to query `matchMedia` or pass it anywhere.
+2. **`provideMovement({ disabled: true })` — an application kill switch** for app-owned reasons:
+   a user-facing "reduce animations" setting, screenshot tests. It is not needed for reduced
+   motion, and not needed for SSR (directives are already no-ops on the server).
+3. **`moveDisabled` / the `disabled` option** — one element or one `animate()` call.
+
+Avoid a starting style that only an animation undoes (`.card { opacity: 0 }`): users with reduced
+motion would never see the element.
+
+## Awaiting and cancellation
+
+`AnimationControls.finished` — and `moveTrigger`'s `play()` — **always resolve and never
+reject**: on natural finish, on `cancel()`, when a newer `play()` replaces the running one, when
+the owning directive is destroyed, and when something else cancels the underlying animation (a
+skipped View Transition). `await …finished` needs no `try/catch`, and the code after it always
+runs. (Raw WAAPI differs: its `finished` rejects on cancel.) The promise does not say whether the
+animation completed or was cancelled; track that in your own state when it matters.
+
+## Any CSS property
+
+Keyframes are typed for the common shorthands (`x`, `y`, `scale`, `rotate`, `blur`, SVG path
+properties), and **any other property passes straight through** to the Web Animations API:
+
+```html
+<div [moveEnter]="{ clipPath: ['inset(0 100% 0 0)', 'inset(0 0% 0 0)'] }">Wipe</div>
+<img [moveWhileHover]="{ filter: ['saturate(0.6)', 'saturate(1)'] }" />
+<div [moveTarget]="open()" [moveFrames]="{ borderRadius: ['24px', '8px'] }">…</div>
+```
+
+## When CSS is the better tool
+
+Angular Movement runs once the app is running — after hydration. An above-the-fold entrance that
+must already be moving at first paint belongs in a CSS animation. Use the library for
+interaction, reveal-on-scroll, presence, state changes and imperative sequences.
 
 ## Common Usage
 
 ### API quick reference
 
-| Directive                                        | Use it for                                                            |
-| ------------------------------------------------ | --------------------------------------------------------------------- |
-| `[move]` / `[moveAnimate]`                       | Preset, keyframe, or state-object entrance animations.                |
-| `[moveInitial]` / `[moveAnimate]` / `[moveExit]` | Motion-style initial, animate, and exit states.                       |
-| `*movePresence`                                  | Wait for child exit animations before removing DOM.                   |
-| `moveStagger`                                    | Choreograph children with DOM-order delays.                           |
-| `[moveVariants]`                                 | Named states driven by string variant names.                          |
-| `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false. |
-| `[moveTrigger]`                                  | One-shot boolean triggers with reset/imperative controls.             |
-| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap behavior.  |
-| `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                       |
-| `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                         |
+| Directive                                        | Use it for                                                              |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| `[move]` / `[moveAnimate]`                       | Preset, keyframe, or state-object entrance animations.                  |
+| `[moveInitial]` / `[moveAnimate]` / `[moveExit]` | Motion-style initial, animate, and exit states.                         |
+| `*movePresence`                                  | Wait for child exit animations before removing DOM.                     |
+| `moveStagger`                                    | Choreograph children with DOM-order delays.                             |
+| `[moveVariants]`                                 | Named states driven by string variant names.                            |
+| `[moveTarget]`                                   | Boolean target animations that reverse when the target becomes false.   |
+| `[moveTrigger]`                                  | Boolean trigger with reset; bare `moveTrigger` is an imperative handle. |
+| `[moveDrag]`                                     | Pointer drag gestures with constraints, momentum, and snap behavior.    |
+| `[moveScroll]` / `[moveParallax]`                | Scroll-linked progress and parallax transforms.                         |
+| `[moveInView]` / `[moveText]`                    | IntersectionObserver-based reveal animations.                           |
 
 ### Recommended API path
 
@@ -141,7 +270,7 @@ A few of these look interchangeable but solve different problems:
   [moveInitial]="{ opacity: 0, y: 24 }"
   [moveAnimate]="{ opacity: 1, y: 0 }"
   [moveExit]="{ opacity: 0, y: -16 }"
-  moveDuration="300"
+  moveDuration="300ms"
 >
   Item
 </article>
@@ -198,14 +327,14 @@ too early for a normal attribute directive to animate.
 ### Staggered lists
 
 ```html
-<ul moveStagger [moveStaggerStep]="80">
+<ul moveStagger moveStaggerStep="80ms">
   <li [move]="'fade-up'">One</li>
   <li [move]="'fade-up'">Two</li>
   <li [move]="'fade-up'">Three</li>
 </ul>
 ```
 
-For the compact form, bind the step directly: `<ul [moveStagger]="80">`.
+For the compact form, put the step on the directive itself: `<ul moveStagger="80ms">`.
 
 ### Motion-style variants
 
@@ -269,7 +398,7 @@ Use `moveTarget` when the same boolean should animate forward and back. It accep
 frames or a named preset:
 
 ```html
-<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500ms">
   <!-- icon paths -->
 </svg>
 ```
@@ -314,7 +443,9 @@ pointer and settle into a real position with constraints, momentum, snap-to-orig
 
 ## Available Presets
 
-fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in,
+Interaction (for `moveWhileHover` / `moveWhileTap`): **lift**, **press**.
+
+Entrance and exit: fade-up, fade-down, fade-left, fade-right, slide-up, slide-down, slide-left, slide-right, zoom-in,
 zoom-out, flip-x, flip-y, bounce-in, blur-in, spin, pulse, shake, swing, wobble, rubber-band,
 heart-beat, tada, jello, light-speed, roll-in, icon-draw, icon-pulse, icon-bounce, none
 
@@ -322,21 +453,21 @@ heart-beat, tada, jello, light-speed, roll-in, icon-draw, icon-pulse, icon-bounc
 
 Main entrypoint exports:
 
-- MOVEMENT_DIRECTIVES
-- All directives
-- provideMovement
-- Preset and keyframe types
-- AnimationControls
-- Movement config types and token
-- Presets and icon helper functions
+- All directives (and the `MOVEMENT_DIRECTIVES` / `MOVEMENT_STABLE_DIRECTIVES` /
+  `MOVEMENT_EXPERIMENTAL_DIRECTIVES` aggregates)
+- `provideMovement`, `MOVEMENT_CONFIG`, `MOVEMENT_DEFAULTS` and the config types
+- `MoveAnimator` (with `MoveAnimateOptions`, `MoveAnimationTarget`) and `AnimationControls`
+- `MoveTime` and `moveTimeToMs`
+- Preset and keyframe types, `MOVE_PRESETS` and the icon helper functions
+- `moveValue`, `moveTransform`, `moveSpringValue`
 
 ## API stability
 
-| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers) |
-| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                                                       |
-| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                     |
+| Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |
+| -------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Stable**           | `provideMovement`, `MOVEMENT_DIRECTIVES`, `MOVEMENT_STABLE_DIRECTIVES`, `[move]`, `[moveAnimate]`, `moveEnter`, `moveLeave`, `*movePresence`, `moveStagger`, `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveInView`, `moveScroll`, `moveParallax`, `[moveAnimation]`, `*movePresenceFor`, `moveVariants`, `moveText`, `moveLoop`, `MoveAnimator`, `moveValue`, `moveTransform`, `moveSpringValue`, the preset library (`MOVE_PRESETS` and the icon helpers), `MoveTime` / `moveTimeToMs` |
+| **Stable candidate** | _(none currently — the 1.0 freeze pass promoted every candidate; new APIs may land here first)_                                                                                                                                                                                                                                                                                                                                                                                                    |
+| **Experimental**     | `MOVEMENT_EXPERIMENTAL_DIRECTIVES`, `moveLayout`, `moveDrag` (the whole directive — constraints, momentum, snap points, `moveWhileDrag`), `moveSmoothScroll` / `SmoothScrollService`, `moveTarget`, `moveTrigger`                                                                                                                                                                                                                                                                                  |
 
 Stable APIs follow semantic-versioning expectations. Candidate APIs are feature-complete but may
 receive small adjustments. Experimental APIs can change significantly between minor versions.

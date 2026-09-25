@@ -106,7 +106,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
                 [moveTransition]="mailTransition()"
-                moveReverseDuration="0"
+                moveReverseDuration="0ms"
                 d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
               />
               <path
@@ -115,8 +115,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
                 [moveTransition]="mailTransition()"
-                moveReverseDuration="0"
-                moveDelay="120"
+                moveReverseDuration="0ms"
+                moveDelay="120ms"
                 d="M22 6l-10 7L2 6"
               />
             </svg>
@@ -139,7 +139,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                 movePreset="icon-bounce"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                moveReverseDuration="0"
+                moveReverseDuration="0ms"
                 d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"
               />
               <polyline
@@ -147,8 +147,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                 movePreset="icon-bounce"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                moveReverseDuration="0"
-                moveDelay="60"
+                moveReverseDuration="0ms"
+                moveDelay="60ms"
                 points="7 10 12 15 17 10"
               />
               <line
@@ -156,8 +156,8 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
                 movePreset="icon-bounce"
                 [moveDuration]="duration()"
                 [moveEasing]="easing()"
-                moveReverseDuration="0"
-                moveDelay="120"
+                moveReverseDuration="0ms"
+                moveDelay="120ms"
                 x1="12"
                 y1="15"
                 x2="12"
@@ -210,7 +210,7 @@ export default class DemoIcons {
 <path
   [moveTrigger]="animated()"
   [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-  moveDuration="${this.duration()}"
+  moveDuration="${this.duration()}ms"
   moveResetState="clear" />
 
 <!-- Variants with per-property transition -->
@@ -229,7 +229,7 @@ export default class DemoIcons {
 <path
   [moveTarget]="animated()"
   [moveFrames]="movePathDraw({ opacity: [0, 0.72, 1] })"
-  moveDuration="${this.duration()}" />`;
+  moveDuration="${this.duration()}ms" />`;
   });
 
   protected onStateChange(state: DemoState): void {

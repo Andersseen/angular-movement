@@ -80,7 +80,7 @@ npm install angular-movement
 > **Peer dependencies:** `@angular/core` and `@angular/common` — `^21.2.0 || ^22.0.0`.
 > Every supported major is compiled against the packed package in CI (`pnpm validate:consumer`).
 
-**1. Provide global defaults**
+**1. Provide global defaults (optional)**
 
 ```ts
 import { ApplicationConfig } from '@angular/core';
@@ -89,14 +89,16 @@ import { provideMovement } from 'angular-movement';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideMovement({
-      duration: 320,
+      duration: '320ms', // or 320 — numbers are milliseconds
       easing: 'cubic-bezier(0.16, 1, 0.3, 1)',
-      delay: 0,
-      disabled: false,
     }),
   ],
 };
 ```
+
+`prefers-reduced-motion` is honoured automatically — there is nothing to configure for it.
+`disabled` is an app-level kill switch (a user setting, screenshot tests), not the reduced-motion
+mechanism, and SSR needs nothing either: every directive is a no-op on the server.
 
 **2. Import only the directives you use**
 
@@ -105,15 +107,14 @@ directive that's never imported anywhere never ships.
 
 ```ts
 import { Component } from '@angular/core';
-import { MoveAnimateDirective, MoveHoverDirective } from 'angular-movement';
+import { MoveAnimateDirective, MoveHoverDirective, MoveTapDirective } from 'angular-movement';
 
 @Component({
   selector: 'app-demo-card',
-  standalone: true,
-  imports: [MoveAnimateDirective, MoveHoverDirective],
+  imports: [MoveAnimateDirective, MoveHoverDirective, MoveTapDirective],
   template: `
-    <h2 [move]="'fade-up'">Hello movement</h2>
-    <button [moveWhileHover]="{ scale: [1, 1.05] }">Hover me</button>
+    <h2 move="fade-up">Hello movement</h2>
+    <button moveWhileHover="lift" moveWhileTap="press">Hover or press me</button>
   `,
 })
 export class DemoCardComponent {}
@@ -175,6 +176,53 @@ Every directive has a focused page with a live config panel and copy-paste HTML 
 **Demo pages:** Animate · Animation (object API) · Enter & Leave · Hover & Tap · Focus · In-View ·
 Scroll & Parallax · Presence · Layout · Drag · Variants · Text · SVG Icons
 
+## 🧭 Common patterns
+
+The shapes real apps use most — full explanations on the
+[patterns page](https://angular-movement.andersseen.dev/docs/patterns).
+
+```html
+<!-- Product card: reveal in view, lift on hover -->
+<article moveInView="fade-up" moveWhileHover="lift">…</article>
+
+<!-- Button or link: lift (translate) + press (scale) compose on one element.
+     Hover is mouse/pen only; touch gets moveWhileTap. Taps and scrolling stay native. -->
+<a routerLink="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+
+<!-- Staggered grid: numbers are ms; strings say their unit -->
+<ul moveStagger moveStaggerStep="80ms">
+  @for (item of items(); track item.id) {
+  <li moveInView="fade-up">{{ item.label }}</li>
+  }
+</ul>
+```
+
+```ts
+// Imperative: MoveAnimator takes an Element or the ElementRef from viewChild()
+const animator = inject(MoveAnimator);
+await animator.animate(this.panel(), { opacity: [0, 1], y: [12, 0] }, { duration: '240ms' })
+  ?.finished;
+animator.set(this.panel(), { opacity: 1 }); // commit a state instantly; clear() removes it
+
+// View Transition: animate the pseudo-element through the same API
+animator.animate(
+  document.documentElement,
+  { clipPath: ['circle(0px at 40px 40px)', 'circle(1500px at 40px 40px)'] },
+  { duration: '520ms', pseudoElement: '::view-transition-new(root)' },
+);
+```
+
+- **Timing:** every duration/delay/stagger takes `80`, `"80ms"` or `"0.08s"`. A bound `0.08` is
+  0.08 **milliseconds** — dev mode warns and suggests `"80ms"` / `"0.08s"`.
+- **Reduced motion:** OS preference (automatic) → `provideMovement({ disabled })` (app kill
+  switch) → `moveDisabled` (one element).
+- **Cancellation:** `finished` and `moveTrigger.play()` always resolve, never reject — no
+  `try/catch` around `await`.
+- **Any CSS property** passes through: `{ clipPath: [...] }`, `{ filter: [...] }`,
+  `{ borderRadius: [...] }`.
+- **First paint:** an above-the-fold entrance that must move before hydration belongs in CSS;
+  the library takes over once the app runs.
+
 ## 📖 Recipes
 
 <details>
@@ -188,7 +236,7 @@ Scroll & Parallax · Presence · Layout · Drag · Variants · Text · SVG Icons
     [moveInitial]="{ opacity: 0, y: 24 }"
     [moveAnimate]="{ opacity: 1, y: 0 }"
     [moveExit]="{ opacity: 0, y: -16 }"
-    moveDuration="300"
+    moveDuration="300ms"
   >
     Card
   </article>
@@ -237,7 +285,7 @@ and converts it to WAAPI-compatible `strokeDasharray` / `strokeDashoffset` keyfr
   <path
     [moveTarget]="animate()"
     [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-    moveDuration="700"
+    moveDuration="700ms"
     fill="none"
     stroke="currentColor"
     stroke-width="2"
@@ -253,7 +301,7 @@ import { movePathDraw, moveIconPulse } from 'angular-movement';
 ```
 
 ```html
-<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500">
+<svg [moveTarget]="animate()" movePreset="icon-bounce" moveDuration="500ms">
   <!-- icon paths -->
 </svg>
 ```

@@ -6,12 +6,12 @@ import {
   isMovePresetOrKeyframes,
   isMoveState,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
   statesToKeyframes,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
@@ -33,11 +33,11 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly moveExit = input<MoveKeyframeState | undefined>(undefined);
   readonly moveAnimateLeave = input<MovePreset | MoveKeyframes | undefined>(undefined);
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,

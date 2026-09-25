@@ -12,12 +12,12 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   booleanAttribute,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
   reverseFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { movementWarn } from '../dev-warn';
 
 /**
@@ -35,18 +35,18 @@ export class MoveTargetDirective implements OnDestroy {
   readonly moveFrames = input<MoveKeyframes | undefined>(undefined);
   readonly movePreset = input<MovePreset | undefined>(undefined);
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
   });
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveReverseDuration'),
   });
   readonly moveReverseEasing = input<string | undefined>(undefined);
   readonly moveTransition = input<MoveTransitionConfig | undefined>(undefined);

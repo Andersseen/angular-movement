@@ -73,6 +73,11 @@ const DEMO_GROUPS: DemoGroup[] = [
         description: 'Exit animations for keyed lists',
       },
       { path: 'values', label: 'Signal values', description: 'moveValue / moveTransform / spring' },
+      {
+        path: 'imperative',
+        label: 'MoveAnimator',
+        description: 'Imperative animation and View Transitions',
+      },
     ],
   },
 ];

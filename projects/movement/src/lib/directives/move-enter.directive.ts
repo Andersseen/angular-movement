@@ -4,11 +4,11 @@ import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types'
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
@@ -24,11 +24,11 @@ import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 export class MoveEnterDirective implements OnDestroy, OnInit {
   readonly moveEnter = input<MovePreset | MoveKeyframes>('none');
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,

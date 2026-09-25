@@ -22,7 +22,6 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
 } from './move-animation.utils';
@@ -30,6 +29,7 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 import { MOVE_VARIANTS_PARENT, MoveVariantsProvider } from '../tokens/variants.tokens';
+import { optionalTimeAttribute, resolveTime } from '../move-time';
 
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -57,11 +57,11 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   readonly moveExitVariant = input<string | undefined>(undefined);
 
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
@@ -131,13 +131,15 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
     const variant = this.moveVariants()?.[variantName];
     if (!variant) return 0;
 
-    const stagger = variant.staggerChildren ?? 0;
-    const base = variant.delayChildren ?? 0;
+    const stagger = resolveTime(variant.staggerChildren) ?? 0;
+    const base = resolveTime(variant.delayChildren) ?? 0;
     if (stagger === 0 && base === 0 && variant.when !== 'beforeChildren') return 0;
 
     const index = this.#childIndex(element);
     const lead =
-      variant.when === 'beforeChildren' ? (variant.duration ?? this.#config.duration) : 0;
+      variant.when === 'beforeChildren'
+        ? (resolveTime(variant.duration) ?? this.#config.duration)
+        : 0;
 
     return base + lead + index * stagger;
   }
@@ -150,12 +152,12 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
 
   /** How long the whole child stagger takes, used by `when: 'afterChildren'`. */
   #childrenSpan(variant: MoveVariant): number {
-    const stagger = variant.staggerChildren ?? 0;
-    const base = variant.delayChildren ?? 0;
+    const stagger = resolveTime(variant.staggerChildren) ?? 0;
+    const base = resolveTime(variant.delayChildren) ?? 0;
     const count = this.#orchestratedChildren.size;
     const lastStart = count > 1 ? (count - 1) * stagger : 0;
 
-    return base + lastStart + (variant.duration ?? this.#defaults.duration);
+    return base + lastStart + (resolveTime(variant.duration) ?? this.#defaults.duration);
   }
 
   playLeave(): Promise<void> {
@@ -193,10 +195,13 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
     this.#config = resolveMovementConfig(
       this.#defaults,
       {
-        duration: duration ?? this.moveDuration(),
+        duration: resolveTime(duration) ?? this.moveDuration(),
         easing: easing ?? this.moveEasing(),
         delay:
-          (delay ?? this.moveDelay() ?? 0) + staggerDelay + orchestrationDelay + afterChildrenDelay,
+          (resolveTime(delay) ?? this.moveDelay() ?? 0) +
+          staggerDelay +
+          orchestrationDelay +
+          afterChildrenDelay,
         disabled: this.moveDisabled(),
       },
       this.#isReducedMotion,

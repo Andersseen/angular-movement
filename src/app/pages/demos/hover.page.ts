@@ -1,15 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MoveHoverDirective, MoveKeyframes } from 'movement';
+import { RouterLink } from '@angular/router';
+import { MoveHoverDirective, MoveKeyframes, MovePreset, MoveTapDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
 @Component({
   selector: 'app-demo-hover',
-  imports: [DemoContainer, MoveHoverDirective],
+  imports: [DemoContainer, MoveHoverDirective, MoveTapDirective, RouterLink],
   template: `
     <app-demo-container
       title="moveWhileHover"
-      description="Add hover animations to elements. The animation plays forward on mouse enter and reverses on mouse leave."
+      description="Hover animations for mouse and pen. Plays forward on pointer enter and reverses on leave. Touch has no hover state, so pair it with moveWhileTap for press feedback — the card below uses the lift and press presets together."
       directive="moveWhileHover"
       [availablePresets]="[]"
       [controls]="controlsConfig"
@@ -17,14 +18,16 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
       initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
-      [directiveBinding]="hoverCode()"
+      [customCode]="hoverCode()"
     >
       <!-- Preview -->
-      <div preview class="flex h-full w-full items-center justify-center">
+      <div preview class="flex h-full w-full flex-col items-center justify-center gap-6">
         <div
+          data-testid="hover-card"
           [moveWhileHover]="hoverKeyframes()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
+          moveWhileTap="press"
           class="bg-surface border-accent/40 group flex min-w-[240px] cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border p-8 shadow-[0_0_30px_var(--color-accent-glow)] transition-shadow hover:shadow-[0_0_50px_var(--color-accent-glow)]"
         >
           <div
@@ -42,9 +45,20 @@ import { keyframesToString } from '../../shared/utils/demo.utils';
           <div class="font-display text-text text-xl font-bold">{{ effectLabel() }}</div>
           <div class="text-text-muted text-sm">
             <span class="hidden sm:inline">Hover over this card</span>
-            <span class="sm:hidden">Tap this card</span>
+            <span class="sm:hidden">Press this card — touch uses moveWhileTap</span>
           </div>
         </div>
+
+        <!-- The pattern real apps use on links: must stay tappable and scrollable on touch. -->
+        <a
+          data-testid="hover-link"
+          routerLink="/demos/tap"
+          moveWhileHover="lift"
+          moveWhileTap="press"
+          class="text-accent border-accent/30 bg-surface rounded-lg border px-4 py-2 text-sm font-semibold"
+        >
+          Next: moveWhileTap →
+        </a>
       </div>
     </app-demo-container>
   `,
@@ -61,10 +75,10 @@ export default class DemoHover {
         id: 'effect',
         type: 'select' as const,
         label: 'Hover Effect',
-        value: 'scale',
+        value: 'lift',
         options: [
+          { label: 'Lift (preset)', value: 'lift' },
           { label: 'Scale Up', value: 'scale' },
-          { label: 'Lift Up', value: 'lift' },
           { label: 'Pulse', value: 'pulse' },
           { label: 'Glow', value: 'glow' },
         ],
@@ -72,18 +86,31 @@ export default class DemoHover {
     ],
   };
 
-  protected effect = signal<'scale' | 'lift' | 'pulse' | 'glow'>('scale');
+  protected effect = signal<'scale' | 'lift' | 'pulse' | 'glow'>('lift');
   protected duration = signal(200);
   protected easing = signal('ease-out');
 
-  protected readonly hoverCode = computed(() => keyframesToString(this.hoverKeyframes()));
+  protected readonly hoverCode = computed(() => {
+    const hover = this.hoverKeyframes();
+    const binding =
+      typeof hover === 'string'
+        ? `moveWhileHover="${hover}"`
+        : `[moveWhileHover]="${keyframesToString(hover)}"`;
+    return `<article
+  ${binding}
+  moveWhileTap="press"
+  moveDuration="${this.duration()}ms"
+  moveEasing="${this.easing()}">
+  …
+</article>`;
+  });
 
-  protected readonly hoverKeyframes = (): MoveKeyframes => {
+  protected readonly hoverKeyframes = (): MovePreset | MoveKeyframes => {
     switch (this.effect()) {
       case 'scale':
         return { scale: [1, 1.1] };
       case 'lift':
-        return { y: [0, -8], scale: [1, 1.02] };
+        return 'lift';
       case 'pulse':
         return { scale: [1, 1.05, 1] };
       case 'glow':
@@ -96,7 +123,7 @@ export default class DemoHover {
   protected readonly effectLabel = () => {
     const labels: Record<string, string> = {
       scale: 'Scale Up',
-      lift: 'Lift Up',
+      lift: 'Lift',
       pulse: 'Pulse',
       glow: 'Glow',
     };
@@ -104,7 +131,7 @@ export default class DemoHover {
   };
 
   protected onStateChange(state: DemoState): void {
-    this.effect.set((state['effect'] as 'scale' | 'lift' | 'pulse' | 'glow') ?? 'scale');
+    this.effect.set((state['effect'] as 'scale' | 'lift' | 'pulse' | 'glow') ?? 'lift');
     this.duration.set(state.duration);
     this.easing.set(state.easing);
   }

@@ -71,12 +71,24 @@ export interface MoveInputOverrides {
   iterations?: number;
 }
 
+/**
+ * The reduced-motion notice is informational and true for the whole session, so it is logged once
+ * — not on every hover in and out, which is how often `resolveMovementConfig` runs.
+ */
+let reducedMotionNoticeShown = false;
+
+/** Test-only. */
+export function resetReducedMotionNoticeForTesting(): void {
+  reducedMotionNoticeShown = false;
+}
+
 export function resolveMovementConfig(
   defaults: MovementConfig,
   overrides: MoveInputOverrides,
   reducedMotion: boolean,
 ): MovementConfig {
-  if (reducedMotion) {
+  if (reducedMotion && !reducedMotionNoticeShown) {
+    reducedMotionNoticeShown = true;
     movementWarn(
       'Animations disabled: prefers-reduced-motion is active. ' +
         'Disable "Reduce motion" in your OS accessibility settings to see animations.',

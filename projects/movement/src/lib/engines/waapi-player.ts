@@ -3,6 +3,7 @@ import { MoveKeyframes, MoveRepeatOptions } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
 import { composeElementKeyframes } from './keyframe-composer';
 import { BaseAnimationPlayer } from './base-player';
+import { resolveTime } from '../move-time';
 
 export class WaapiPlayer extends BaseAnimationPlayer implements AnimationControls {
   constructor(
@@ -11,6 +12,7 @@ export class WaapiPlayer extends BaseAnimationPlayer implements AnimationControl
     config: MovementConfig,
     onDone?: () => void,
     repeat?: MoveRepeatOptions,
+    pseudoElement?: string,
   ) {
     super();
 
@@ -27,7 +29,7 @@ export class WaapiPlayer extends BaseAnimationPlayer implements AnimationControl
     // WAAPI has no per-iteration delay, so a repeatDelay has to be baked into the timeline: the
     // existing keyframes are squeezed into the leading fraction and the final value is held for
     // the rest of the cycle.
-    const repeatDelay = Math.max(0, repeat?.repeatDelay ?? 0);
+    const repeatDelay = Math.max(0, resolveTime(repeat?.repeatDelay) ?? 0);
     const padded =
       repeatDelay > 0 && iterations !== 1
         ? padTimelineWithHold(composed, config.duration, repeatDelay)
@@ -35,24 +37,32 @@ export class WaapiPlayer extends BaseAnimationPlayer implements AnimationControl
     const duration =
       repeatDelay > 0 && iterations !== 1 ? config.duration + repeatDelay : config.duration;
 
-    const animation = (host as HTMLElement).animate(padded, {
+    const timing: KeyframeAnimationOptions = {
       duration,
       easing: config.easing,
       delay: config.delay,
-      fill: 'both',
+      // A pseudo-element has no inline style to commit the end state to, so its animation must not
+      // fill forwards (it would hold a finished Animation alive forever). `backwards` still shows
+      // the first keyframe through the delay — a View Transition reveal must not flash the
+      // unclipped new snapshot before it starts.
+      fill: pseudoElement ? 'backwards' : 'both',
       iterations,
       // Without this every cycle jumps back to the first keyframe — the reason `moveLoop` could
       // never breathe or yoyo.
       direction: repeat?.repeatType === 'reverse' ? 'alternate' : 'normal',
-    });
+    };
+    if (pseudoElement) timing.pseudoElement = pseudoElement;
+
+    const animation = (host as HTMLElement).animate(padded, timing);
+    const commit = !pseudoElement;
 
     if (iterations === Infinity) {
       // Infinite loops never finish; consumer must call cancel() manually.
-      this.attachAnimation(animation);
+      this.attachAnimation(animation, undefined, commit);
       return;
     }
 
-    this.attachAnimation(animation, onDone);
+    this.attachAnimation(animation, onDone, commit);
   }
 }
 

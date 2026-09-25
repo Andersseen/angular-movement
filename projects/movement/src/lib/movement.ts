@@ -80,6 +80,13 @@ export const MOVEMENT_EXPERIMENTAL_DIRECTIVES = [
  * {@link MOVEMENT_EXPERIMENTAL_DIRECTIVES} member), ready to spread into a standalone component's
  * `imports`.
  *
+ * Most components use one to three directives — import those instead; it is just as short and
+ * keeps the component's dependencies explicit:
+ *
+ * ```ts
+ * imports: [MoveHoverDirective, MoveTapDirective]
+ * ```
+ *
  * This aggregate itself is stable — spreading it will always compile and its own shape follows
  * SemVer — but its **contents** are not stability-pure: it includes experimental directives, whose
  * individual behavior may change in a `1.x` minor. Prefer importing only the directives a
@@ -123,3 +130,5 @@ export * from './presets/icon-helpers';
 export * from './values/move-values';
 export * from './providers/provide-movement';
 export * from './tokens/movement.tokens';
+export { moveTimeToMs } from './move-time';
+export type { MoveTime } from './move-time';

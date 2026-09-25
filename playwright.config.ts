@@ -31,14 +31,15 @@ export default defineConfig({
     {
       // A small, high-value smoke suite also runs on Firefox and WebKit to catch browser-specific
       // WAAPI/pointer-event/IntersectionObserver differences — see e2e/cross-browser.spec.ts and
-      // "Browser support and testing strategy" in docs/ai/ARCHITECTURE.md.
+      // "Browser support and testing strategy" in docs/ai/ARCHITECTURE.md. The touch suite
+      // (e2e/touch.spec.ts) runs here too: touch/pointer semantics differ most between engines.
       name: 'firefox',
-      testMatch: /cross-browser\.spec\.ts/,
+      testMatch: /(cross-browser|touch)\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testMatch: /cross-browser\.spec\.ts/,
+      testMatch: /(cross-browser|touch)\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
   ],
