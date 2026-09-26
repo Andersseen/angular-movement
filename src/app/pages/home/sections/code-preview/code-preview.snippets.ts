@@ -18,11 +18,11 @@ export const BEFORE_CODE_SNIPPET = `<span class="code-keyword">import</span> { C
 }`;
 
 export const AFTER_CODE_SNIPPET = `<span class="code-keyword">import</span> { Component } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { MOVEMENT_DIRECTIVES } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
+<span class="code-keyword">import</span> { MoveEnterDirective } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
 
 <span class="code-attr">@Component</span>({
   selector: <span class="code-string">'my-component'</span>,
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [MoveEnterDirective],
   template: <span class="code-string">\`
     &#64;if (show) {
       &lt;div moveEnter="fade-up"&gt;Content&lt;/div&gt;

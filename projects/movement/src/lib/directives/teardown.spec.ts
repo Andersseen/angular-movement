@@ -175,7 +175,7 @@ describe('animation lifecycle hygiene', () => {
       { name: 'moveTarget', host: TargetHost },
       { name: 'moveTrigger', host: TriggerHost },
       { name: 'moveVariants', host: VariantsHost },
-      { name: 'moveWhileHover', host: HoverHost, trigger: 'mouseenter' },
+      { name: 'moveWhileHover', host: HoverHost, trigger: 'pointerenter' },
       { name: 'moveWhileTap', host: TapHost, trigger: 'pointerdown' },
       { name: 'moveWhileFocus', host: FocusHost, trigger: 'focusin' },
     ];
@@ -200,11 +200,11 @@ describe('animation lifecycle hygiene', () => {
     it('moveWhileHover: rapid enter/leave/enter does not stack animations', async () => {
       const fixture = await render(HoverHost);
 
-      fire(fixture, 'mouseenter');
+      fire(fixture, 'pointerenter');
       const first = created.at(-1)!;
-      fire(fixture, 'mouseleave');
+      fire(fixture, 'pointerleave');
       const second = created.at(-1)!;
-      fire(fixture, 'mouseenter');
+      fire(fixture, 'pointerenter');
 
       expect(first.cancel).toHaveBeenCalled();
       expect(second.cancel).toHaveBeenCalled();

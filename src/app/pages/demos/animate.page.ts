@@ -337,10 +337,10 @@ export default class DemoAnimate {
     code += `  [moveAnimate]="{ ${fmtState(anim)} }"`;
 
     if (this.duration() !== 300) {
-      code += `\n  moveDuration="${this.duration()}"`;
+      code += `\n  moveDuration="${this.duration()}ms"`;
     }
     if (this.delay()) {
-      code += `\n  moveDelay="${this.delay()}"`;
+      code += `\n  moveDelay="${this.delay()}ms"`;
     }
     if (this.easing() !== 'ease') {
       code += `\n  moveEasing="${this.easing()}"`;

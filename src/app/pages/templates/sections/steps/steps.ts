@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
 import { VoltBadge } from '@voltui/components';
 
 interface StepCard {
@@ -28,7 +28,7 @@ const STEPS: StepCard[] = [
 
 @Component({
   selector: 'app-template-steps',
-  imports: [...MOVEMENT_DIRECTIVES, VoltBadge],
+  imports: [MoveInViewDirective, MoveStaggerDirective, VoltBadge],
   template: `
     <section class="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8">
       <div class="grid gap-10 lg:grid-cols-[0.75fr_1fr]">
@@ -41,7 +41,7 @@ const STEPS: StepCard[] = [
           </p>
         </div>
 
-        <div class="grid gap-4" moveStagger [moveStaggerStep]="100">
+        <div class="grid gap-4" moveStagger moveStaggerStep="100ms">
           @for (step of steps; track step.title; let index = $index) {
             <div
               moveInView="fade-left"

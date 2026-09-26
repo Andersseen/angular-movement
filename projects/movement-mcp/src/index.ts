@@ -2,7 +2,7 @@ import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
 import { loadSnapshot } from './snapshot.js';
-import { getDirective, getExample, listDirectives, listPresets } from './tools.js';
+import { getDirective, getExample, getGuidelines, listDirectives, listPresets } from './tools.js';
 
 function text(payload: unknown) {
   return { content: [{ type: 'text' as const, text: JSON.stringify(payload, null, 2) }] };
@@ -10,7 +10,7 @@ function text(payload: unknown) {
 
 export function createServer(): McpServer {
   const snapshot = loadSnapshot();
-  const server = new McpServer({ name: 'angular-movement', version: '0.1.0' });
+  const server = new McpServer({ name: 'angular-movement', version: '0.2.0' });
 
   server.registerTool(
     'list_directives',
@@ -54,7 +54,7 @@ export function createServer(): McpServer {
     {
       title: 'List movement presets',
       description:
-        'Lists every valid MovePreset name usable as a string value for a preset-typed input.',
+        'Lists every valid MovePreset name usable as a string value for a preset-typed input. lift (hover) and press (tap) are the interaction presets; the rest are entrance/exit presets.',
       inputSchema: {},
     },
     () => text(listPresets(snapshot)),
@@ -65,7 +65,7 @@ export function createServer(): McpServer {
     {
       title: 'Get a minimal usage skeleton',
       description:
-        'Generates a minimal template-binding skeleton for a directive, built from its own selector and inputs (not a curated demo — verifies attribute names and value shape).',
+        'Generates a minimal usage skeleton for a directive: the narrow import line, the imports array entry, a template binding built from its own selector and inputs, and directive-specific notes. Use the returned import — never MOVEMENT_DIRECTIVES for a component that uses a few directives.',
       inputSchema: {
         nameOrSelector: z.string(),
       },
@@ -79,6 +79,22 @@ export function createServer(): McpServer {
             isError: true,
           };
     },
+  );
+
+  server.registerTool(
+    'get_guidelines',
+    {
+      title: 'Get angular-movement usage guidelines',
+      description:
+        'Conventions that selectors and input names do not reveal: timing units (numbers are milliseconds), lift/press presets, touch vs hover, automatic reduced motion, MoveAnimator for imperative animation, cancellation, View Transitions, narrow imports, and when CSS is better. Call this once before writing or reviewing animation code.',
+      inputSchema: {
+        topic: z
+          .string()
+          .optional()
+          .describe('Optional case-insensitive filter, e.g. "timing", "touch", "imports"'),
+      },
+    },
+    ({ topic }) => text(getGuidelines(topic)),
   );
 
   return server;

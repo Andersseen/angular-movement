@@ -53,7 +53,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             [moveDuration]="duration()"
             [moveReverseDuration]="reverseDuration()"
             [moveEasing]="easing()"
-            moveDelay="90"
+            moveDelay="90ms"
             d="M28 51l13 13 28-32"
             stroke-width="7"
           />
@@ -96,14 +96,14 @@ export default class DemoTarget {
   <circle
     [moveTarget]="animated()"
     [moveFrames]="{ pathLength: [0, 1], opacity: [0.18, 0.42] }"
-    moveDuration="${this.duration()}"
-    moveReverseDuration="${this.reverseDuration()}" />
+    moveDuration="${this.duration()}ms"
+    moveReverseDuration="${this.reverseDuration()}ms" />
 
   <path
     [moveTarget]="animated()"
     [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-    moveDuration="${this.duration()}"
-    moveDelay="90"
+    moveDuration="${this.duration()}ms"
+    moveDelay="90ms"
     d="M28 51l13 13 28-32" />
 </svg>`;
   });

@@ -2,6 +2,106 @@
 
 ## Unreleased
 
+**1.2 — Consumer DX & Imperative Motion.** Driven by an audit of the real apps that consume the
+library (spec 014): the everyday path — hover, tap, in-view, stagger, enter, `provideMovement` —
+gets clearer timing, correct touch semantics and shared interaction presets; `MoveAnimator`
+becomes a complete imperative API. No stable API is broken; see `MIGRATION.md` for the few
+type-level and behavioral notes.
+
+### Added
+
+- **`MoveTime`** — one timing vocabulary for every duration, delay and stagger: a number is
+  milliseconds (unchanged, forever), a string states its unit (`"80ms"`, `"0.08s"`). Accepted by
+  every directive timing input (`moveDuration`, `moveDelay`, `moveReverseDuration`, `moveStagger`,
+  `moveStaggerStep`, `moveTextStagger`, `moveLoopDelay`), `provideMovement()` (`duration`,
+  `delay`), `MoveAnimateOptions` (`duration`, `delay`), `MovePropertyTransition`,
+  `MoveRepeatOptions.repeatDelay`, `MoveVariant` (`duration`, `delay`, `staggerChildren`,
+  `delayChildren`) and `MoveAnimationConfig`. The injected `MovementConfig` stays numeric
+  milliseconds. New helper `moveTimeToMs()`.
+- Dev-mode warning for a numeric timing value between 0 and 1 (`[moveStaggerStep]="0.08"` —
+  "Numeric timing values are milliseconds. Did you mean "80ms" or "0.08s"?"), once per input and
+  value. Zero, whole milliseconds and explicit unit strings never warn.
+- **`lift` and `press` presets** for `moveWhileHover` / `moveWhileTap` (`lift`: 4px rise on
+  `translate`; `press`: 3% scale-down on `scale`). They write different style channels, so
+  `moveWhileHover="lift" moveWhileTap="press"` composes exactly on one element.
+- **`MoveAnimator`**: `animate()` accepts an `ElementRef` as well as an `Element` (new
+  `MoveAnimationTarget` type); new `set(target, state)` commits a state instantly through the same
+  composition the directives use; new `clear(target, properties?)` removes library-written inline
+  styles. Both cancel the target's in-flight engine animation first and are SSR no-ops.
+- **Pseudo-element / View Transition support**: `MoveAnimateOptions.pseudoElement` animates e.g.
+  `::view-transition-new(root)` through the normal timing and reduced-motion resolution. Nothing is
+  committed on finish (a pseudo-element has no inline style), it is skipped under reduced motion or
+  `disabled`, never registered as the host's active player, and a no-op (never a throw, never a
+  fallback onto the host element) where pseudo-element animation or the selector is unsupported.
+- Documented and tested contract: `AnimationControls.finished` always resolves and never rejects.
+- Docs: "Common patterns" (product card, button/link, staggered grid, imperative, View
+  Transition), timing units, the three reduced-motion layers, awaiting and cancellation,
+  arbitrary CSS properties, and when CSS is the better tool (pre-hydration first paint) — in both
+  READMEs and on the site's patterns page. New `/demos/imperative` demo (MoveAnimator, View
+  Transition reveal, trigger handle).
+- E2E: `e2e/touch.spec.ts` (Chromium, Firefox, WebKit — tap on a `lift`+`press` link navigates,
+  `touchstart` is never default-prevented, no sticky hover, touch-scroll from an animated link) and
+  `e2e/consumer-dx.spec.ts` (lift+press composition, MoveAnimator set/clear/animate, View
+  Transition reveal incl. reduced motion, two-phase trigger).
+
+### Changed
+
+- `moveWhileHover` now listens to Pointer Events and responds to mouse and pen only. Touch never
+  triggers hover (touch feedback is `moveWhileTap`'s job), and the directive no longer calls
+  `preventDefault()` — which used to suppress link/button activation on tap and could block
+  scrolling, while compatibility mouse events after a tap left elements stuck "hovered". Mouse
+  behavior is unchanged.
+- An unparseable timing string (`moveDuration="fast"`) now warns and falls back to the default
+  instead of producing `NaN`, which `element.animate()` rejects.
+- `provideMovement()` treats an explicit `undefined` `duration`/`delay` as "not provided" instead
+  of injecting `undefined`.
+- The reduced-motion notice is logged once per session instead of on every animation resolution.
+- `MovementConfig.disabled`, `provideMovement()` and `MoveAnimateOptions` JSDoc now explain the
+  reduced-motion layering (OS preference automatic → `disabled` app kill switch → `moveDisabled`).
+
+### Changed (experimental)
+
+- `MoveTriggerDirective`: `moveTrigger` and `moveFrames` are optional. A bare `moveTrigger`
+  attribute (or no value) is **imperative-only mode** — nothing plays until `play()` is called — so
+  `<div #t="moveTrigger" moveTrigger>` replaces the `[moveTrigger]="false" [moveFrames]="{}"`
+  workaround. Bound booleans behave exactly as before. Breaking only for a bare `moveTrigger`
+  attribute used with `moveFrames`, which previously meant "always true" and played on init; bind
+  `[moveTrigger]="true"` for that.
+- `MoveTriggerDirective.play(frames?, options?)`: per-call `MoveAnimateOptions` (duration, delay,
+  easing, spring, disabled, iterations, transition incl. repeat). Resolution order:
+  `MOVEMENT_CONFIG` → directive inputs → `play()` options → reduced motion. `reset()` and destroy
+  clean up the frames that were actually played.
+- `SmoothScrollService` (fix): its native-scroll resync listened on `documentElement`, where page
+  scroll events never fire, so in the default configuration keyboard scrolling, focus-into-view and
+  programmatic `scrollIntoView()` were snapped back every frame — the spec 013 fix never ran for
+  page scroll. It now listens on the Document for page scroll, and the RAF loop only writes
+  `scrollTop` while its own lerp is moving (an idle write cancelled WebKit's animated keyboard
+  scroll).
+
+### Deprecated
+
+- `MoveHoverDirective.onTouchStart()` / `onTouchEnd()` — no longer bound to any event; kept so the
+  class shape stays compatible in 1.x.
+
+### Fixed
+
+- `AnimationControls.finished` could hang forever when the underlying WAAPI animation was cancelled
+  by something other than the player (a skipped View Transition removing its pseudo-elements,
+  `el.getAnimations().forEach((a) => a.cancel())`). It now resolves.
+
+### `angular-movement-mcp` 0.2.0
+
+- New `get_guidelines` tool: timing units, `lift`/`press`, touch vs hover, automatic reduced
+  motion, `MoveAnimator` for imperative code, cancellation, View Transitions, narrow imports, CSS
+  for first paint.
+- `get_example` returns the narrow `importStatement` / `imports` and usage notes, writes presets
+  and times as static attributes (`moveWhileHover="lift"`, `moveStagger="100ms"`), and uses the
+  interaction presets for hover/tap.
+- Fixed: regenerating the API snapshot produced **zero directives** since 1.1.0 —
+  `.claude/scripts/api-surface.mjs` could not read `MOVEMENT_DIRECTIVES` once it became a spread of
+  two aggregates. The extractor now follows spreads (and detects non-generic `signal()` members);
+  a new test pins the committed snapshot. The `movement-usage` skill covers the same conventions.
+
 ## [1.1.0] - 2026-08-28
 
 ### Added

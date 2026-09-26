@@ -580,4 +580,271 @@ describe('AnimationEngine per-property easing', () => {
 
     expect(animate).toHaveBeenCalledTimes(1);
   });
+  describe('pseudoElement', () => {
+    const PSEUDO = '::view-transition-new(root)';
+    const view = document.defaultView as unknown as Record<string, unknown>;
+    let originalKeyframeEffect: unknown;
+
+    function supportPseudoElements(supported: boolean) {
+      view['KeyframeEffect'] = supported
+        ? class {
+            // Real browsers expose it as a prototype accessor, which is what feature detection sees
+            // — a readonly field would live on the instance and fail detection.
+            // eslint-disable-next-line @typescript-eslint/class-literal-property-style
+            get pseudoElement(): string | null {
+              return null;
+            }
+          }
+        : class {};
+    }
+
+    function stubAnimation(host: Element) {
+      const listeners = new Map<string, () => void>();
+      const animation = {
+        addEventListener: vi.fn((type: string, listener: () => void) => {
+          listeners.set(type, listener);
+        }),
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        commitStyles: vi.fn(),
+        currentTime: 0,
+        playState: 'running',
+        fire: (type: string) => listeners.get(type)?.(),
+      };
+      const animate = vi.fn().mockReturnValue(animation);
+      (host as HTMLElement).animate = animate;
+      return { animate, animation };
+    }
+
+    beforeEach(() => {
+      originalKeyframeEffect = view['KeyframeEffect'];
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+    });
+
+    afterEach(() => {
+      view['KeyframeEffect'] = originalKeyframeEffect;
+      vi.restoreAllMocks();
+    });
+
+    it('passes pseudoElement to WAAPI with plain keyframes and backwards fill', () => {
+      supportPseudoElements(true);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animate } = stubAnimation(host);
+
+      engine.play(
+        host,
+        { clipPath: ['circle(0px at 10px 10px)', 'circle(900px at 10px 10px)'] },
+        {
+          pseudoElement: PSEUDO,
+          config: { duration: 520, easing: 'ease-out', delay: 0, disabled: false },
+        },
+      );
+
+      const [keyframes, timing] = animate.mock.calls[0];
+      expect(keyframes).toEqual([
+        { clipPath: 'circle(0px at 10px 10px)' },
+        { clipPath: 'circle(900px at 10px 10px)' },
+      ]);
+      expect(timing).toEqual(
+        expect.objectContaining({
+          pseudoElement: PSEUDO,
+          duration: 520,
+          easing: 'ease-out',
+          fill: 'backwards',
+        }),
+      );
+    });
+
+    it('never commits styles on finish — a pseudo-element has no inline style', async () => {
+      supportPseudoElements(true);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animation } = stubAnimation(host);
+      const onDone = vi.fn();
+
+      const controls = engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO, onDone });
+      animation.fire('finish');
+      await controls?.finished;
+
+      expect(animation.commitStyles).not.toHaveBeenCalled();
+      expect(animation.cancel).not.toHaveBeenCalled();
+      expect(onDone).toHaveBeenCalledTimes(1);
+      expect(host.style.opacity).toBe('');
+    });
+
+    it('settles when the View Transition is skipped and cancels the animation', async () => {
+      supportPseudoElements(true);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animation } = stubAnimation(host);
+
+      const controls = engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO });
+      animation.fire('cancel');
+
+      await expect(controls?.finished).resolves.toBeUndefined();
+    });
+
+    it('skips the animation entirely when disabled / reduced motion, touching no styles', () => {
+      supportPseudoElements(true);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animate } = stubAnimation(host);
+      const onDone = vi.fn();
+
+      const result = engine.play(
+        host,
+        { opacity: [0, 1] },
+        { pseudoElement: PSEUDO, disabled: true, onDone },
+      );
+
+      expect(result).toBeNull();
+      expect(animate).not.toHaveBeenCalled();
+      // The "final style" path must not run: it would write opacity onto the real element.
+      expect(host.style.opacity).toBe('');
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('no-ops without throwing where pseudo-element animation is unsupported', () => {
+      supportPseudoElements(false);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animate } = stubAnimation(host);
+
+      const result = engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO });
+
+      // Crucially the host itself is not animated as a fallback.
+      expect(result).toBeNull();
+      expect(animate).not.toHaveBeenCalled();
+    });
+
+    it('no-ops without throwing when the browser rejects the selector', () => {
+      supportPseudoElements(true);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      (host as HTMLElement).animate = vi.fn(() => {
+        throw new DOMException("'::view-transition-new(root)' is not a valid", 'SyntaxError');
+      });
+      const onDone = vi.fn();
+
+      expect(() =>
+        engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO, onDone }),
+      ).not.toThrow();
+      expect(onDone).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('Could not animate pseudo-element'),
+      );
+    });
+
+    it('warns that springs are not applied, and still animates with WAAPI timing', () => {
+      supportPseudoElements(true);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animate } = stubAnimation(host);
+
+      engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO, spring: { stiffness: 200 } });
+
+      expect(animate).toHaveBeenCalledTimes(1);
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('not applied to pseudo-elements'));
+    });
+
+    it('honours repeat from transition, and warns only about per-property timing', () => {
+      supportPseudoElements(true);
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animate } = stubAnimation(host);
+
+      engine.play(
+        host,
+        { opacity: [0, 1] },
+        { pseudoElement: PSEUDO, transition: { repeat: 3, repeatType: 'reverse' } },
+      );
+      expect(animate.mock.calls[0][1]).toEqual(
+        expect.objectContaining({ iterations: 3, direction: 'alternate' }),
+      );
+      expect(warn).not.toHaveBeenCalled();
+
+      engine.play(
+        host,
+        { opacity: [0, 1] },
+        {
+          pseudoElement: PSEUDO,
+          transition: { opacity: { duration: 100 } },
+        },
+      );
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('not applied to pseudo-elements'));
+    });
+
+    it('does not claim the host as its active player', async () => {
+      supportPseudoElements(true);
+      const { cancelActivePlayer } = await import('./active-player-registry');
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const { animation } = stubAnimation(host);
+
+      engine.play(host, { opacity: [0, 1] }, { pseudoElement: PSEUDO });
+      cancelActivePlayer(host);
+
+      // A drag or MoveAnimator.set() on the real element must not kill a View Transition.
+      expect(animation.cancel).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('arbitrary CSS properties', () => {
+    it('pass straight through to WAAPI keyframes without being enumerated', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+      const animate = vi.fn().mockReturnValue({
+        addEventListener: vi.fn(),
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(),
+        currentTime: 0,
+        playState: 'running',
+      });
+      (host as HTMLElement).animate = animate;
+
+      engine.play(host, {
+        clipPath: ['inset(0 100% 0 0)', 'inset(0 0% 0 0)'],
+        filter: ['saturate(0)', 'saturate(1)'],
+        borderRadius: ['0px', '24px'],
+        backgroundColor: ['rgb(0, 0, 0)', 'rgb(255, 0, 0)'],
+      });
+
+      expect(animate.mock.calls[0][0]).toEqual([
+        {
+          clipPath: 'inset(0 100% 0 0)',
+          filter: 'saturate(0)',
+          borderRadius: '0px',
+          backgroundColor: 'rgb(0, 0, 0)',
+        },
+        {
+          clipPath: 'inset(0 0% 0 0)',
+          filter: 'saturate(1)',
+          borderRadius: '24px',
+          backgroundColor: 'rgb(255, 0, 0)',
+        },
+      ]);
+    });
+
+    it('commit their end state when motion is disabled', () => {
+      TestBed.configureTestingModule({ providers: [provideMovement()] });
+      const engine = TestBed.inject(AnimationEngine);
+      const host = document.createElement('div');
+
+      engine.play(
+        host,
+        { clipPath: ['inset(50%)', 'inset(0%)'], borderRadius: ['0px', '24px'] },
+        { disabled: true },
+      );
+
+      expect(host.style.clipPath).toBe('inset(0%)');
+      expect(host.style.borderRadius).toBe('24px');
+    });
+  });
 });

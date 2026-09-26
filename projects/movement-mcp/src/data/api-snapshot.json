@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-27T18:31:27.966Z",
+  "generatedAt": "2026-09-25T19:12:48.001Z",
   "directives": [
     {
       "className": "MoveAnimateDirective",
@@ -34,13 +34,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -78,13 +78,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -177,13 +177,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -221,7 +221,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
@@ -233,7 +233,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -244,7 +244,7 @@
         },
         {
           "name": "moveReverseDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "200"
         },
@@ -268,7 +268,7 @@
       "className": "MoveHoverDirective",
       "selector": "[moveWhileHover]",
       "exportAs": null,
-      "description": "Animate elements on hover",
+      "description": "Animate elements while a mouse or pen hovers them. Touch never triggers hover — pair with moveWhileTap (e.g. moveWhileHover=\"lift\" moveWhileTap=\"press\")",
       "inputs": [
         {
           "name": "moveWhileHover",
@@ -277,7 +277,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
@@ -289,7 +289,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -300,7 +300,7 @@
         },
         {
           "name": "moveReverseDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "200"
         },
@@ -351,7 +351,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "800"
         },
@@ -363,7 +363,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -401,7 +401,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "400"
         },
@@ -413,7 +413,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -445,13 +445,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -495,7 +495,7 @@
         },
         {
           "name": "moveLoopDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -507,7 +507,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
@@ -519,7 +519,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -564,7 +564,7 @@
         }
       ],
       "outputs": [],
-      "signals": [],
+      "signals": ["progress"],
       "oneShot": null
     },
     {
@@ -636,7 +636,7 @@
         }
       ],
       "outputs": [],
-      "signals": [],
+      "signals": ["progress"],
       "oneShot": null
     },
     {
@@ -664,13 +664,13 @@
       "inputs": [
         {
           "name": "moveStagger",
-          "type": "number | MoveSpring | \"\"",
+          "type": "MoveTime | MoveSpring | \"\"",
           "required": false,
           "defaultValue": "100"
         },
         {
           "name": "moveStaggerStep",
-          "type": "number",
+          "type": "MoveTime",
           "required": false
         },
         {
@@ -697,7 +697,7 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
@@ -709,7 +709,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -720,7 +720,7 @@
         },
         {
           "name": "moveReverseDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "200"
         },
@@ -763,13 +763,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -781,7 +781,7 @@
         },
         {
           "name": "moveReverseDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "200"
         },
@@ -830,13 +830,13 @@
         },
         {
           "name": "moveTextStagger",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "30"
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
@@ -848,7 +848,7 @@
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -871,17 +871,17 @@
       "className": "MoveTriggerDirective",
       "selector": "[moveTrigger]",
       "exportAs": "moveTrigger",
-      "description": "Trigger animations imperatively from a boolean or via exportAs methods",
+      "description": "Play frames when a boolean flips to true and reset when it flips back. A bare `moveTrigger` attribute is an imperative handle (play(frames, options)); for animation driven from TypeScript prefer MoveAnimator",
       "inputs": [
         {
           "name": "moveTrigger",
           "type": "boolean",
-          "required": true
+          "required": false
         },
         {
           "name": "moveFrames",
           "type": "MoveKeyframes",
-          "required": true
+          "required": false
         },
         {
           "name": "moveResetFrames",
@@ -896,13 +896,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -914,7 +914,7 @@
         },
         {
           "name": "moveReverseDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "200"
         },
@@ -967,13 +967,13 @@
         },
         {
           "name": "moveDuration",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "300"
         },
         {
           "name": "moveDelay",
-          "type": "number",
+          "type": "MoveTime",
           "required": false,
           "defaultValue": "0"
         },
@@ -1000,7 +1000,7 @@
         }
       ],
       "outputs": [],
-      "signals": [],
+      "signals": ["activeVariant"],
       "oneShot": null
     }
   ],
@@ -1033,6 +1033,8 @@
     "icon-draw",
     "icon-pulse",
     "icon-bounce",
+    "lift",
+    "press",
     "none"
   ]
 }

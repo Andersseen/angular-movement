@@ -28,12 +28,13 @@ Resulting `.mcp.json` entry:
 
 ## Tools exposed
 
-| Tool              | What it returns                                                                                                           |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| `list_directives` | Every directive wired into `MOVEMENT_DIRECTIVES` (selector, inputs, outputs, signals), optionally filtered by a substring |
-| `get_directive`   | Full detail for one directive, by class name or selector                                                                  |
-| `list_presets`    | Every valid `MovePreset` string                                                                                           |
-| `get_example`     | A minimal template-binding skeleton for a directive, generated from its own selector + inputs                             |
+| Tool              | What it returns                                                                                                                                                                                         |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_directives` | Every directive wired into `MOVEMENT_DIRECTIVES` (selector, inputs, outputs, signals), optionally filtered by a substring                                                                               |
+| `get_directive`   | Full detail for one directive, by class name or selector                                                                                                                                                |
+| `list_presets`    | Every valid `MovePreset` string                                                                                                                                                                         |
+| `get_example`     | A minimal usage skeleton for a directive: the narrow `import` line, a template binding generated from its own selector + inputs, and usage notes                                                        |
+| `get_guidelines`  | Conventions the API surface does not reveal: timing units, `lift`/`press`, touch vs hover, automatic reduced motion, `MoveAnimator`, cancellation, View Transitions, narrow imports, when CSS is better |
 
 All four are backed by a committed JSON snapshot regenerated from the library's actual source
 (see `scripts/generate-snapshot.mjs` in this package) — not documentation that can silently drift.

@@ -13,6 +13,7 @@ export const DEMO_ROUTES = [
   'focus',
   'hover',
   'icons',
+  'imperative',
   'in-view',
   'layout',
   'leave',

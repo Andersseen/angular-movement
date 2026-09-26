@@ -1,10 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveEnterDirective } from 'movement';
 import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 
 @Component({
   selector: 'app-hero',
-  imports: [...MOVEMENT_DIRECTIVES, InstallCommand],
+  imports: [MoveEnterDirective, InstallCommand],
   template: `
     <section
       class="relative flex min-h-[90vh] flex-col items-center justify-center overflow-hidden pt-24 pb-16"
@@ -19,7 +19,7 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
         class="relative z-10 mx-auto flex w-full max-w-7xl flex-col items-center px-4 text-center sm:px-6 lg:px-8"
       >
         <!-- Logo animates in -->
-        <div moveEnter="zoom-in" [moveDuration]="600" moveEasing="ease-out" class="mb-8">
+        <div moveEnter="zoom-in" moveDuration="600ms" moveEasing="ease-out" class="mb-8">
           <svg class="text-accent mx-auto mb-4 h-20 w-20" viewBox="0 0 100 100" fill="none">
             <path
               d="M 25 20 L 50 50 L 25 80 L 45 80 L 70 50 L 45 20 Z"
@@ -36,8 +36,8 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
         <!-- H1 -->
         <h1
           moveEnter="fade-up"
-          [moveDelay]="100"
-          [moveDuration]="600"
+          moveDelay="100ms"
+          moveDuration="600ms"
           class="font-display text-text mb-6 max-w-4xl text-5xl font-extrabold tracking-tighter md:text-7xl"
         >
           Animate Angular with a
@@ -49,8 +49,8 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
         <!-- Subheading -->
         <p
           moveEnter="fade-up"
-          [moveDelay]="200"
-          [moveDuration]="600"
+          moveDelay="200ms"
+          moveDuration="600ms"
           class="text-text-muted mb-10 max-w-2xl text-xl font-light md:text-2xl"
         >
           Motion-style states, presence, SVG drawing, drag, scroll, and layout primitives for
@@ -60,8 +60,8 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
         <!-- CTAs -->
         <div
           moveEnter="fade-up"
-          [moveDelay]="300"
-          [moveDuration]="600"
+          moveDelay="300ms"
+          moveDuration="600ms"
           class="mb-16 flex w-full flex-col justify-center gap-4 sm:flex-row"
         >
           <a
@@ -83,8 +83,8 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
         <!-- Install block -->
         <div
           moveEnter="fade-up"
-          [moveDelay]="400"
-          [moveDuration]="600"
+          moveDelay="400ms"
+          moveDuration="600ms"
           class="mx-auto w-full max-w-md"
         >
           <app-install-command [interactiveScale]="false" />

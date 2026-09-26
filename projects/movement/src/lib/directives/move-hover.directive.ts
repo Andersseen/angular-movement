@@ -5,17 +5,30 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   clearComposedStyle,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
   reverseFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 /**
+ * Plays while a hover-capable pointer is over the element, and reverses when it leaves.
+ *
+ * Hover means real hover: a mouse, or a pen/stylus (which reports hover when the device supports
+ * it, and leaves on lift when it does not). **Touch never triggers it** — a finger has no hover
+ * state, and emulating one is what produced sticky hover and blocked taps. For press feedback on
+ * touch, pair it with `moveWhileTap`:
+ *
+ * ```html
+ * <a href="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+ * ```
+ *
+ * The directive never calls `preventDefault()`: links, buttons and scrolling behave natively.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -23,28 +36,25 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 @Directive({
   selector: '[moveWhileHover]',
   host: {
-    '(mouseenter)': 'onMouseEnter()',
-    '(mouseleave)': 'onMouseLeave()',
-    '(touchstart)': 'onTouchStart($event)',
-    '(touchend)': 'onTouchEnd()',
-    '(touchcancel)': 'onTouchEnd()',
+    '(pointerenter)': 'onPointerEnter($event)',
+    '(pointerleave)': 'onPointerLeave()',
   },
 })
 export class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild {
   readonly moveWhileHover = input.required<MovePreset | MoveKeyframes>();
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
   });
   readonly moveSpring = input<MoveSpring | undefined>(undefined);
   readonly moveReverseDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveReverseDuration'),
   });
   readonly moveReverseEasing = input<string | undefined>(undefined);
 
@@ -90,29 +100,47 @@ export class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild 
     this.#currentPlayer?.cancel();
   }
 
+  /** Starts the hover animation for any pointer except touch. */
+  onPointerEnter(event?: Pick<PointerEvent, 'pointerType'>) {
+    if (event?.pointerType === 'touch') return;
+    this.onMouseEnter();
+  }
+
+  /** Ends hover. A no-op when hover never started, which is always the case for touch. */
+  onPointerLeave() {
+    this.onMouseLeave();
+  }
+
+  /** Enters the hovered state. Called by `onPointerEnter()`; kept public for compatibility. */
   onMouseEnter() {
     if (this.#isHovered) return;
     this.#isHovered = true;
     this.play(false);
   }
 
+  /** Leaves the hovered state. Called by `onPointerLeave()`; kept public for compatibility. */
   onMouseLeave() {
     if (!this.#isHovered) return;
     this.#isHovered = false;
     this.play(true);
   }
 
-  onTouchStart(event: TouchEvent) {
-    event.preventDefault();
-    if (this.#isHovered) return;
-    this.#isHovered = true;
-    this.play(false);
+  /**
+   * @deprecated No longer bound to any event and does nothing: touch does not emulate hover as of
+   * 1.2 (use `moveWhileTap` for touch feedback). Kept so the class shape stays compatible within
+   * 1.x.
+   */
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- keeps the 1.x call signature
+  onTouchStart(_event?: TouchEvent) {
+    // Intentionally empty — see the deprecation note.
   }
 
+  /**
+   * @deprecated No longer bound to any event. Ends a hover in progress, like `onMouseLeave()`.
+   * Kept so the class shape stays compatible within 1.x.
+   */
   onTouchEnd() {
-    if (!this.#isHovered) return;
-    this.#isHovered = false;
-    this.play(true);
+    this.onMouseLeave();
   }
 
   private play(reverse: boolean) {

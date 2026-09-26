@@ -36,8 +36,8 @@ import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-foot
 
         <h2>3. Import Directives</h2>
         <p>
-          Import <code>MOVEMENT_DIRECTIVES</code> into the components where you want to use the
-          animations.
+          Import the directives each component uses — usually one to three. Every directive is
+          standalone, so there is nothing else to register.
         </p>
 
         <div class="my-6 h-80">
@@ -68,19 +68,20 @@ export default class GetStarted {
 <span class="code-keyword">export const</span> appConfig: ApplicationConfig = {
   providers: [
     <span class="code-keyword">provideMovement</span>({
-      duration: <span class="code-attr">300</span>, <span class="code-comment">// Global default 300ms</span>
-      easing: <span class="code-string">'ease-out'</span> <span class="code-comment">// Global default ease-out</span>
-    })
+      duration: <span class="code-string">'300ms'</span>, <span class="code-comment">// or 300 — numbers are milliseconds</span>
+      easing: <span class="code-string">'ease-out'</span>,
+    }),
+    <span class="code-comment">// prefers-reduced-motion is honoured automatically — no config needed.</span>
   ]
 };`;
 
   protected readonly componentCode = `<span class="code-comment">// my.component.ts</span>
 <span class="code-keyword">import</span> { Component } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { MOVEMENT_DIRECTIVES } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
+<span class="code-keyword">import</span> { MoveEnterDirective } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
 
 <span class="code-attr">@Component</span>({
   selector: <span class="code-string">'my-component'</span>,
-  imports: [...MOVEMENT_DIRECTIVES],
+  imports: [MoveEnterDirective],
   template: <span class="code-string">\`
     &lt;div moveEnter="fade-up"&gt;
       I animate on enter!

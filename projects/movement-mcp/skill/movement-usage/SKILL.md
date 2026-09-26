@@ -1,6 +1,6 @@
 ---
 name: movement-usage
-description: Use the angular-movement animation library correctly by querying its MCP tools (list_directives, get_directive, list_presets, get_example) instead of guessing selectors or inputs. Use whenever writing, reviewing, or debugging a [move*] template binding, or when asked to animate something in an Angular app that has angular-movement installed.
+description: Use the angular-movement animation library correctly by querying its MCP tools (get_guidelines, list_directives, get_directive, list_presets, get_example) instead of guessing selectors, inputs, timing units or imports. Use whenever writing, reviewing, or debugging a [move*] template binding, or when asked to animate something in an Angular app that has angular-movement installed.
 ---
 
 # movement-usage
@@ -17,12 +17,13 @@ already wired into this repo's `.mcp.json` if you're reading this file from `.cl
 
 ## Before writing any `[move*]` binding
 
+0. Call `get_guidelines` once per task — it carries the conventions below with examples.
 1. Call `list_directives` (optionally with a `filter`, e.g. `"drag"` or `"hover"`) to find the
    right directive instead of assuming one exists.
 2. Call `get_directive` with the class name or selector to get its exact inputs (name, type,
    required, default), outputs, and public signals.
 3. Call `get_example` to get a minimal, structurally-valid template skeleton for that directive's
-   main input before writing the real binding.
+   main input before writing the real binding. Use the `importStatement` it returns.
 4. Call `list_presets` when a value needs to be one of the built-in `MovePreset` strings (e.g.
    `'fade-up'`) — do not invent a preset name.
 
@@ -38,6 +39,31 @@ already wired into this repo's `.mcp.json` if you're reading this file from `.cl
   so don't assume reactivity.
 - `provideMovement(config)` sets library-wide defaults (`duration`, `easing`, `delay`, `disabled`)
   — check whether an app already configures this before hardcoding per-directive durations/easings.
+- **Imports:** import the directives the component uses (`imports: [MoveHoverDirective,
+MoveTapDirective]`). Do not write `imports: [MOVEMENT_DIRECTIVES]` for a component that uses one
+  to three directives — it pulls in all 21, experimental ones included.
+- **Timing units:** a number is always **milliseconds**. `[moveStaggerStep]="0.08"` is 0.08ms, not
+  80ms. Write `moveStaggerStep="80ms"` or `"0.08s"` on static attributes; `provideMovement`,
+  `MoveAnimator` options, variants and `transition` accept the same `MoveTime` values.
+- **Interaction presets:** `moveWhileHover="lift"` and `moveWhileTap="press"` instead of
+  hand-written literals; they compose on one element. Tap keyframes have two values — a
+  three-value tap (`[1, 0.97, 1]`) replays on release.
+- **Touch:** `moveWhileHover` is mouse/pen only; touch never hovers. Add `moveWhileTap` for touch
+  feedback. Neither calls `preventDefault()`.
+- **Reduced motion is automatic.** Never query `matchMedia('(prefers-reduced-motion…)')` to pass
+  into `provideMovement({ disabled })`, and never disable motion for SSR — directives are already
+  no-ops on the server. `disabled` is an app-level kill switch; `moveDisabled` is per element.
+- **Imperative animation:** from TypeScript, `inject(MoveAnimator)` —
+  `animate(target, keyframes, options)` accepts an `Element` or `ElementRef`; `set()` / `clear()`
+  commit or remove a state. Do not add a template element with `moveTrigger` just to get a handle;
+  `moveTarget`/`moveTrigger` are experimental and meant for declarative trigger relationships.
+- **Awaiting:** `controls.finished` and `moveTrigger.play()` always resolve (also on cancel) —
+  no `try/catch` needed.
+- **View Transitions:** `animator.animate(document.documentElement, frames, { pseudoElement:
+'::view-transition-new(root)' })` — not raw `element.animate()`.
+- **Any CSS property** passes through keyframes (`clipPath`, `filter`, `borderRadius`, …).
+- **First paint:** the library runs after hydration. An above-the-fold entrance that must animate
+  at first paint belongs in CSS.
 
 ## When the MCP tools don't cover it
 

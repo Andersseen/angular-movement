@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES, MovePreset } from 'movement';
+import { MoveEnterDirective, MoveHoverDirective, MovePreset, MoveTapDirective } from 'movement';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { PageHeader } from '../../shared/components/page-header/page-header';
 import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
@@ -15,11 +15,20 @@ interface PresetExample {
   preset: MovePreset;
   use: string;
   demo: string;
+  /** Interaction presets are previewed on a hoverable/pressable button, not as an entrance. */
+  interaction?: boolean;
 }
 
 @Component({
   selector: 'app-docs-presets',
-  imports: [CodeBlock, PageHeader, DocsFooterNav, ...MOVEMENT_DIRECTIVES],
+  imports: [
+    CodeBlock,
+    PageHeader,
+    DocsFooterNav,
+    MoveEnterDirective,
+    MoveHoverDirective,
+    MoveTapDirective,
+  ],
   template: `
     <article class="max-w-5xl">
       <app-page-header
@@ -32,9 +41,11 @@ interface PresetExample {
       >
         <h2>Where presets fit</h2>
         <p>
-          Presets work with <code>moveEnter</code>, <code>moveLeave</code>, <code>[move]</code>,
-          <code>moveInView</code>, and staggered children. They are the fastest way to add
-          consistent motion to empty states, cards, menus, alerts, SVG icons, and list reveals.
+          Entrance presets work with <code>moveEnter</code>, <code>moveLeave</code>,
+          <code>[move]</code>, <code>moveInView</code>, and staggered children. The two interaction
+          presets, <code>lift</code> and <code>press</code>, are for <code>moveWhileHover</code> and
+          <code>moveWhileTap</code>. They are the fastest way to add consistent motion to empty
+          states, cards, menus, alerts, SVG icons, and list reveals.
         </p>
 
         <div class="not-prose my-8 grid gap-4 md:grid-cols-3">
@@ -58,12 +69,29 @@ interface PresetExample {
                 @for (example of group.examples; track example.name) {
                   <article class="border-border bg-surface rounded-lg border p-5">
                     <div class="mb-5 flex h-24 items-center justify-center">
-                      @if (example.preset.startsWith('icon-')) {
+                      @if (example.interaction && example.preset === 'lift') {
+                        <button
+                          type="button"
+                          moveWhileHover="lift"
+                          moveWhileTap="press"
+                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                        >
+                          Hover me
+                        </button>
+                      } @else if (example.interaction) {
+                        <button
+                          type="button"
+                          moveWhileTap="press"
+                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                        >
+                          Press me
+                        </button>
+                      } @else if (example.preset.startsWith('icon-')) {
                         @if (example.preset === 'icon-draw') {
                           <svg class="text-accent h-14 w-14" viewBox="0 0 48 48" fill="none">
                             <path
                               [moveEnter]="example.preset"
-                              [moveDuration]="700"
+                              moveDuration="700ms"
                               d="M14 25.5 21 32l14-17"
                               stroke="currentColor"
                               stroke-width="4"
@@ -74,7 +102,7 @@ interface PresetExample {
                         } @else {
                           <svg
                             [moveEnter]="example.preset"
-                            [moveDuration]="700"
+                            moveDuration="700ms"
                             class="text-accent h-14 w-14"
                             viewBox="0 0 48 48"
                             fill="none"
@@ -91,7 +119,7 @@ interface PresetExample {
                       } @else {
                         <div
                           [moveEnter]="example.preset"
-                          [moveDuration]="550"
+                          moveDuration="550ms"
                           class="bg-accent text-text flex h-16 w-16 items-center justify-center rounded-lg font-mono text-sm font-bold shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           UI
@@ -178,10 +206,40 @@ export default class PresetsPage {
           use: 'Good for badges, confirmation UI, and small attention moments.',
           demo: `&lt;<span class="code-keyword">span</span>
   <span class="code-attr">moveEnter</span>=<span class="code-string">"zoom-in"</span>
-  [<span class="code-attr">moveDuration</span>]=<span class="code-string">"300"</span>
+  <span class="code-attr">moveDuration</span>=<span class="code-string">"300ms"</span>
 &gt;
   Saved
 &lt;/<span class="code-keyword">span</span>&gt;`,
+        },
+      ],
+    },
+    {
+      title: 'Interaction',
+      description:
+        'For moveWhileHover and moveWhileTap. They write different style channels, so they compose on one element.',
+      examples: [
+        {
+          name: 'Lift on hover',
+          preset: 'lift',
+          interaction: true,
+          use: 'A 4px rise for cards, buttons and links. Mouse and pen only — touch has no hover.',
+          demo: `&lt;<span class="code-keyword">a</span>
+  <span class="code-attr">moveWhileHover</span>=<span class="code-string">"lift"</span>
+  <span class="code-attr">moveWhileTap</span>=<span class="code-string">"press"</span>
+&gt;
+  Pricing
+&lt;/<span class="code-keyword">a</span>&gt;`,
+        },
+        {
+          name: 'Press on tap',
+          preset: 'press',
+          interaction: true,
+          use: 'A 3% scale-down while pressed — the touch feedback for anything tappable.',
+          demo: `&lt;<span class="code-keyword">button</span>
+  <span class="code-attr">moveWhileTap</span>=<span class="code-string">"press"</span>
+&gt;
+  Save
+&lt;/<span class="code-keyword">button</span>&gt;`,
         },
       ],
     },
@@ -195,7 +253,7 @@ export default class PresetsPage {
           use: 'Signals live activity without moving layout around.',
           demo: `&lt;<span class="code-keyword">div</span>
   <span class="code-attr">moveEnter</span>=<span class="code-string">"pulse"</span>
-  [<span class="code-attr">moveDuration</span>]=<span class="code-string">"900"</span>
+  <span class="code-attr">moveDuration</span>=<span class="code-string">"900ms"</span>
 &gt;
   Syncing
 &lt;/<span class="code-keyword">div</span>&gt;`,

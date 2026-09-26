@@ -13,10 +13,10 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   booleanAttribute,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { hasInlineTransform } from '../engines/transform-state';
@@ -61,11 +61,11 @@ export class MoveLayoutDirective implements OnDestroy {
   readonly moveLayout = input<boolean | '', unknown>(true, { transform: booleanAttribute });
   readonly moveLayoutId = input<string | undefined>(undefined);
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,

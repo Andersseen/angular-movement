@@ -3,11 +3,17 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-08-28
+**Last updated:** 2026-09-25
 **Library version:** `1.1.0` published to npm (`v1.1.0` tag, 2026-08-28) — includes spec 013
 (post-1.0 hardening). `angular-movement-mcp` `0.1.0` also published (`mcp-v0.1.0` tag, same day).
+**1.2.0 prepared, not released:** branch `feat/014-consumer-dx-imperative-motion` carries spec 014
+(Consumer DX & Imperative Motion) with everything under `## Unreleased` in `CHANGELOG.md` and
+`projects/movement/package.json` still at `1.1.0` — cut it with `pnpm release minor --push` after
+merge (the script bumps, rolls the changelog, commits and tags in one go; do **not** tag locally
+ahead of the push — see the recurring gotcha below). `angular-movement-mcp` is bumped to `0.2.0` in
+its `package.json` by hand (no bump script); tag `mcp-v0.2.0` after merge.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` includes everything through PR #45 (`docs/mcp-setup-and-ci-stability`).
+**Branch state:** `main` includes everything through PR #60 (Umami favicon).
 **Roadmap phase:** **1.0.0 is out**, and 1.1.0 has since shipped on top of it (spec 013). Spec 009
 made the API-freeze decisions (see `docs/ai/specs/009-10-api-freeze-decision.md`). **Recurring
 gotcha, now resolved twice:** both the `v1.0.0` and `v1.1.0`/`mcp-v0.1.0` release tags were created
@@ -156,6 +162,19 @@ cross-browser and composition e2e coverage.
   22), e2e 101/101 across all three browsers (1 pre-existing, already-documented parallel-load
   flake retried clean — not introduced by this pass).
 
+## Done — Spec 014 (1.2: Consumer DX & Imperative Motion) — prepared, not released
+
+Driven by a grep audit of the local consumer checkouts (Volt UI, Palette Crafter, Lumen Icons,
+Agentyx, Wisp, DevFlare, CV Builder, Quartz; ForgeCMS has no usage) — evidence table in the spec.
+Pointer-based `moveWhileHover` (touch never hovers, no `preventDefault()`), `MoveTime` everywhere
+timing is accepted (+ fractional-ms dev warning), `lift`/`press` presets, `MoveAnimator`
+(`ElementRef`, `set()`, `clear()`, `pseudoElement`), `MoveTrigger` imperative mode + per-call
+options (experimental), `finished` never hangs, MCP 0.2.0 (`get_guidelines`, narrow imports).
+Also fixed along the way: `SmoothScrollService` page-scroll resync (spec 013's fix was inert), the
+MCP snapshot extractor (empty since 1.1.0), and the dev-server/e2e break from PR #58. No focused
+directive aggregates (decision in `ARCHITECTURE.md`), no `sequence()` (deferred), no experimental
+API promoted. Gate results are recorded in the spec's "Verification notes".
+
 ## Known gotchas / open issues (do not "fix" these blindly — they are known)
 
 - **Watch for the `disabled: false` hardcode pattern.** A directive that resolves
@@ -300,36 +319,61 @@ replays with the newly selected preset` still flakes once per repeat even single
   `expect(rafMock).toHaveBeenCalledTimes(N)` after `fixture.detectChanges()` is not reliable; use a
   delta against a same-test baseline plus a bounded allowance instead (see
   `FRAMEWORK_RAF_ALLOWANCE` in that file), not an exact count.
-- **`.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic**
-  (`signal<T>(...)`) and misses every current `signal(...)` call (e.g. `MoveScrollDirective.progress`)
-  — so `signals` is `[]` everywhere in both that script's output and `movement-mcp`'s snapshot.
-  Discovered while building spec 012, not fixed (out of scope there). A real gap, not a false
-  positive — worth a small regex fix.
+- ~~`.claude/scripts/api-surface.mjs`'s signal regex requires an explicit generic~~ — **fixed in
+  spec 014**, together with a worse bug in the same script: it read `MOVEMENT_DIRECTIVES`'s literal
+  entries only, so after spec 013 turned it into `[...STABLE, ...EXPERIMENTAL]` every
+  `pnpm mcp:snapshot` produced **zero directives** (the published 0.1.0 predates spec 013, so it was
+  never shipped empty). The script now follows spreads; `movement-mcp/src/snapshot.spec.ts` pins the
+  committed snapshot at 21 directives.
+- **The dev server (and therefore all of e2e) was broken on `main` from PR #58 (Umami) until spec
+  014**: `src/main.ts` reads `import.meta.env`, but `tsconfig.app.json` declared `types: ["node"]`
+  only, so the Analog dev server failed to compile `main.ts` and served no client JS. `pnpm build`
+  still passed, which hid it; CI failed on every PR since. Fixed by adding `"vite/client"` to
+  `types`. If e2e ever fails wholesale with every page un-hydrated, check the `[WebServer]` lines in
+  the Playwright output for a `Pre-transform error` first.
+- **E2E hydration waits must compare, not `typeof`-truthy-check.** `typeof window.ng?.getComponent`
+  is always a non-empty (truthy) string, so `waitForFunction(() => typeof …)` returns immediately.
+  Use `=== 'function'`. With no client JS, tests like "touchstart is not default-prevented" pass
+  vacuously against the SSR markup — which is exactly what happened on the first spec 014 run.
+- **The demo site runs `SmoothScrollService` app-wide** (`src/app/app.ts`). Page `scroll` events
+  fire on the Document, not `documentElement` — the spec 013 resync listener was attached to the
+  latter and never ran, so keyboard/programmatic scrolling was snapped back on every page (and
+  Playwright's own scroll-into-view before a tap/click got reverted). Fixed in spec 014; the RAF
+  loop also no longer writes `scrollTop` while idle.
+- **Directive timing inputs keep a numeric _read_ type.** `moveDuration` etc. are
+  `input<number | undefined, unknown>` with a `MoveTime`-parsing transform, so the published
+  declarations did not change. Do not "tidy" them into `input<MoveTime>` — that changes every
+  directive's `.d.ts` and pushes string handling into engine math.
+- **Pseudo-element animations never commit, never fill forwards, never register as the host's
+  active player** (`AnimationEngine.#playPseudoElement`). Each of those is load-bearing — see
+  "Pseudo-element path" in `ARCHITECTURE.md`.
 
-## Next up (priority order) — the road to 1.0
+## Next up (priority order)
 
-1. **Cut the spec 009 changes as a release** (or fold into the `1.0.0` cut directly — no more API
-   decisions are pending) — follow `RELEASE_CHECKLIST.md`.
-2. ~~At least six e2e tests are now known to flake under parallel load~~ — **mitigated 2026-08-28**:
+1. **Merge spec 014 and cut `1.2.0`** (`pnpm release minor --push`) and `mcp-v0.2.0` — the branch is
+   release-ready; see the spec's final report. Merging also restores green CI on `main` (the
+   `vite/client` fix).
+2. ~~Cut the spec 009 changes as a release~~ — done long ago (1.0.0, then 1.1.0).
+3. ~~At least six e2e tests are now known to flake under parallel load~~ — **mitigated 2026-08-28**:
    `playwright.config.ts` forces `workers: 1` in CI (see gotchas above) instead of fixing each test
    individually. Watch a few more CI runs to confirm the fix holds before considering this closed
    for good.
-3. Toolchain upgrade: this repo builds on Angular 21 / TypeScript 5.9 while supporting consumers on
+4. Toolchain upgrade: this repo builds on Angular 21 / TypeScript 5.9 while supporting consumers on
    Angular 22 / TypeScript 6. Needs its own spec.
-4. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
-5. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
-6. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
+5. Add Angular 22 to the CI matrix for the library's own unit tests, not just the consumer app.
+6. SSR-render the built package in the consumer fixture (needs an `ssr.entry` server).
+7. ~~Revisit a secondary `angular-movement/experimental` entry point~~ — **decided** in spec 009:
    no secondary entry point for 1.0 (Option A, see `ROADMAP.md`). Not open anymore.
-7. ~~Publish `angular-movement-mcp` 0.1.0~~ — **done 2026-08-28**: `mcp-v0.1.0` tag pushed,
+8. ~~Publish `angular-movement-mcp` 0.1.0~~ — **done 2026-08-28**: `mcp-v0.1.0` tag pushed,
    `.github/workflows/release-mcp.yml` published it to npm with provenance. Verified end-to-end
    with `npx angular-movement-mcp@latest init` in a scratch dir — writes `.mcp.json` and copies the
-   skill correctly. Remaining follow-ups from spec 012: fix `api-surface.mjs`'s signal regex,
-   consider a Claude Code plugin/marketplace listing once a marketplace account exists.
+   skill correctly. Remaining follow-up from spec 012: consider a Claude Code plugin/marketplace
+   listing once a marketplace account exists (the signal regex was fixed in spec 014).
 
 **Demo site now documents the MCP server + skill.** New `src/app/pages/docs/mcp.page.ts`
 (`/docs/mcp`, sidebar group "AI Tooling", wired into the `presets → mcp → /demos` footer-nav
 chain) explains `angular-movement-mcp`/the `movement-usage` skill and gives the
-`npx angular-movement-mcp init` command — now a real, working command (see #7 above). Demo-site-only
+`npx angular-movement-mcp init` command — now a real, working command (see #8 above). Demo-site-only
 change, not a library change — no `CHANGELOG.md` entry (that file tracks the published npm
 packages, not the site). Treated as a doc tweak (`SDD-WORKFLOW.md`'s non-trivial-task threshold),
 so no spec was written for it.

@@ -118,9 +118,30 @@ investigation, decisions, and verification.
 - [x] Composition/adversarial e2e coverage added (`e2e/composition.spec.ts`).
 - [x] Package description/keywords repositioned to reflect the library's actual current scope.
 
+## 1.2 - Consumer DX & Imperative Motion (spec 014) — prepared, not yet released
+
+Driven by an audit of the real apps consuming the library, not by feature count. See
+`docs/ai/specs/014-consumer-dx-imperative-motion.md`.
+
+- [x] `moveWhileHover` uses Pointer Events: mouse and pen hover, touch never does, no
+      `preventDefault()` (links and scrolling stay native on touch).
+- [x] `MoveTime`: one timing vocabulary (`80`, `"80ms"`, `"0.08s"`) across directives, options and
+      `provideMovement()`; dev warning for fractional-millisecond values.
+- [x] `lift` / `press` interaction presets that compose on one element.
+- [x] `MoveAnimator`: `ElementRef` targets, `set()` / `clear()`, pseudo-element / View Transition
+      support.
+- [x] `MoveTrigger` (experimental): imperative-only mode, per-call `play()` options.
+- [x] `finished` never hangs or rejects; contract documented.
+- [x] Docs: common patterns, timing, reduced-motion layers, cancellation, arbitrary CSS, when CSS is
+      better. Site onboarding no longer teaches `MOVEMENT_DIRECTIVES`.
+- [x] MCP 0.2.0: `get_guidelines`, narrow imports in `get_example`, snapshot extractor fixed.
+- [ ] Cut the release (`pnpm release minor --push`) and `mcp-v0.2.0`.
+
 ## Later ideas
 
 - Visual regression tests for selected demos.
 - More preset packs for product UI, icons, and route transitions.
-- Better imperative controls for advanced orchestration.
+- A `sequence()` primitive on `MoveAnimator`, if a consumer needs whole-chain cancellation (see
+  spec 014 §10).
+- An SSR-rendered initial-state mechanism for above-the-fold entrances (today: CSS).
 - Additional examples for dashboards, SaaS apps, marketing pages, and mobile UI.

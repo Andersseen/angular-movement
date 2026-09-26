@@ -1,12 +1,45 @@
 import * as _angular_core from '@angular/core';
-import { OnDestroy, OnInit, Injector, Signal, WritableSignal, InjectionToken, EnvironmentProviders } from '@angular/core';
+import { OnDestroy, OnInit, ElementRef, Injector, Signal, WritableSignal, InjectionToken, EnvironmentProviders } from '@angular/core';
 
 /**
+ * A duration or delay.
+ *
+ * - A **number is always milliseconds** — `80` is 80ms. This never changes.
+ * - A string states its unit: `'80ms'`, `'0.08s'`.
+ *
+ * Every public timing option accepts it, and it is normalized to milliseconds before any
+ * animation math runs. In templates, a static attribute reads naturally with a unit
+ * (`moveStaggerStep="80ms"`); a bound expression is a number of milliseconds
+ * (`[moveStaggerStep]="80"`).
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
-type MovePreset = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'zoom-in' | 'zoom-out' | 'flip-x' | 'flip-y' | 'bounce-in' | 'blur-in' | 'spin' | 'pulse' | 'shake' | 'swing' | 'wobble' | 'rubber-band' | 'heart-beat' | 'tada' | 'jello' | 'light-speed' | 'roll-in' | 'icon-draw' | 'icon-pulse' | 'icon-bounce' | 'none';
+type MoveTime = number | `${number}ms` | `${number}s`;
+/**
+ * Converts a {@link MoveTime} to milliseconds: `moveTimeToMs('0.08s') === 80`,
+ * `moveTimeToMs(80) === 80`. Returns `NaN` (and warns in dev mode) for a string that is not a time,
+ * which is only reachable by bypassing the type.
+ *
+ * Useful when application code needs the resolved number — for example to schedule work after an
+ * animation whose duration came from configuration.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare function moveTimeToMs(value: MoveTime): number;
+
+/**
+ * Named animation presets. `lift` and `press` are interaction presets for `moveWhileHover` /
+ * `moveWhileTap`; the rest are entrance/exit presets.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MovePreset = 'fade-up' | 'fade-down' | 'fade-left' | 'fade-right' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'zoom-in' | 'zoom-out' | 'flip-x' | 'flip-y' | 'bounce-in' | 'blur-in' | 'spin' | 'pulse' | 'shake' | 'swing' | 'wobble' | 'rubber-band' | 'heart-beat' | 'tada' | 'jello' | 'light-speed' | 'roll-in' | 'icon-draw' | 'icon-pulse' | 'icon-bounce' | 'lift' | 'press' | 'none';
 /**
  * Stable API — covered by semantic-versioning guarantees.
  *
@@ -55,8 +88,8 @@ interface MoveRepeatOptions {
     /** Number of cycles, or `Infinity` for an endless one. */
     repeat?: number;
     repeatType?: MoveRepeatType;
-    /** Pause between cycles, in milliseconds. */
-    repeatDelay?: number;
+    /** Pause between cycles. A number is milliseconds; `"150ms"` / `"0.15s"` also work. */
+    repeatDelay?: MoveTime;
 }
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -64,9 +97,11 @@ interface MoveRepeatOptions {
  * @stability stable
  */
 interface MovePropertyTransition {
-    duration?: number;
+    /** A number is milliseconds; `"300ms"` / `"0.3s"` also work. */
+    duration?: MoveTime;
     easing?: string;
-    delay?: number;
+    /** A number is milliseconds; `"300ms"` / `"0.3s"` also work. */
+    delay?: MoveTime;
 }
 /**
  * Stable API — covered by semantic-versioning guarantees.
@@ -134,14 +169,14 @@ type MoveVariantOrchestration = 'beforeChildren' | 'afterChildren';
  */
 type MoveVariant = MoveVariantState & {
     spring?: MoveSpring;
-    duration?: number;
+    duration?: MoveTime;
     easing?: string;
-    delay?: number;
+    delay?: MoveTime;
     transition?: MoveTransitionConfig;
-    /** Delay added per nested `[moveVariants]` child, in DOM order. */
-    staggerChildren?: number;
-    /** Delay applied to every nested `[moveVariants]` child before staggering. */
-    delayChildren?: number;
+    /** Delay added per nested `[moveVariants]` child, in DOM order (`MoveTime`). */
+    staggerChildren?: MoveTime;
+    /** Delay applied to every nested `[moveVariants]` child before staggering (`MoveTime`). */
+    delayChildren?: MoveTime;
     when?: MoveVariantOrchestration;
 };
 /**
@@ -188,9 +223,9 @@ interface MoveAnimationConfig {
     initial?: MoveKeyframeState;
     animate?: MoveKeyframeState;
     exit?: MoveKeyframeState;
-    duration?: number;
+    duration?: MoveTime;
     easing?: string;
-    delay?: number;
+    delay?: MoveTime;
     spring?: MoveSpring;
 }
 
@@ -295,6 +330,19 @@ declare class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild
 }
 
 /**
+ * Plays while a hover-capable pointer is over the element, and reverses when it leaves.
+ *
+ * Hover means real hover: a mouse, or a pen/stylus (which reports hover when the device supports
+ * it, and leaves on lift when it does not). **Touch never triggers it** — a finger has no hover
+ * state, and emulating one is what produced sticky hover and blocked taps. For press feedback on
+ * touch, pair it with `moveWhileTap`:
+ *
+ * ```html
+ * <a href="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+ * ```
+ *
+ * The directive never calls `preventDefault()`: links, buttons and scrolling behave natively.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -317,9 +365,24 @@ declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild
      * of the way so the real leave animation doesn't race it.
      */
     playLeave(): void;
+    /** Starts the hover animation for any pointer except touch. */
+    onPointerEnter(event?: Pick<PointerEvent, 'pointerType'>): void;
+    /** Ends hover. A no-op when hover never started, which is always the case for touch. */
+    onPointerLeave(): void;
+    /** Enters the hovered state. Called by `onPointerEnter()`; kept public for compatibility. */
     onMouseEnter(): void;
+    /** Leaves the hovered state. Called by `onPointerLeave()`; kept public for compatibility. */
     onMouseLeave(): void;
-    onTouchStart(event: TouchEvent): void;
+    /**
+     * @deprecated No longer bound to any event and does nothing: touch does not emulate hover as of
+     * 1.2 (use `moveWhileTap` for touch feedback). Kept so the class shape stays compatible within
+     * 1.x.
+     */
+    onTouchStart(_event?: TouchEvent): void;
+    /**
+     * @deprecated No longer bound to any event. Ends a hover in progress, like `onMouseLeave()`.
+     * Kept so the class shape stays compatible within 1.x.
+     */
     onTouchEnd(): void;
     private play;
     ngOnDestroy(): void;
@@ -427,7 +490,12 @@ type MoveStaggerDirection = 'first' | 'last' | 'center';
  */
 declare class MoveStaggerDirective implements MoveStaggerProvider {
     #private;
+    /**
+     * Delay between consecutive children — a `MoveTime`: a number is milliseconds, or
+     * `"80ms"` / `"0.08s"`. A bare `moveStagger` attribute uses the 100ms default.
+     */
     readonly moveStagger: _angular_core.InputSignalWithTransform<number | "" | MoveSpring, unknown>;
+    /** Overrides `moveStagger`'s step — same `MoveTime` units. */
     readonly moveStaggerStep: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
     readonly moveStaggerDirection: _angular_core.InputSignal<MoveStaggerDirection>;
     register(el: HTMLElement): void;
@@ -785,7 +853,7 @@ declare class MoveLoopDirective implements OnDestroy {
      * animation plays back down to its start — what breathing, pulsing and yoyo effects need.
      */
     readonly moveLoopType: _angular_core.InputSignal<MoveRepeatType>;
-    /** Pause between cycles, in milliseconds. */
+    /** Pause between cycles — a `MoveTime`: a number is milliseconds, or `"150ms"` / `"0.15s"`. */
     readonly moveLoopDelay: _angular_core.InputSignalWithTransform<number, unknown>;
     /** Cycle count. Defaults to endless, which is what makes it a loop. */
     readonly moveLoopCount: _angular_core.InputSignalWithTransform<number, unknown>;
@@ -820,6 +888,156 @@ declare class MoveTargetDirective implements OnDestroy {
 }
 
 /**
+ * The universal handle every animation returns, whether it comes from a directive internally or
+ * from `MoveAnimator.animate()`.
+ *
+ * **`finished` always resolves and never rejects.** It settles when the animation:
+ *
+ * - finishes naturally (the end state has been committed to inline styles);
+ * - is cancelled through `cancel()` — including the replacement case, since every directive and
+ *   `MoveTriggerDirective.play()` cancel their previous player before starting a new one;
+ * - is preempted (a `moveDrag` gesture starting on the element);
+ * - is torn down with its owner (directives cancel in `ngOnDestroy`);
+ * - is cancelled by something else, e.g. a skipped View Transition removing its pseudo-elements.
+ *
+ * So `await controls.finished` needs no `try/catch`, and code after it runs in every case. It does
+ * not tell completion and cancellation apart; when that matters, track it in application state.
+ * (Raw WAAPI differs: `Animation.finished` rejects with an `AbortError` on cancel.)
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface AnimationControls {
+    play(): void;
+    pause(): void;
+    cancel(): void;
+    currentTime: number;
+    readonly finished: Promise<void>;
+}
+
+/**
+ * Options for one imperative animation — the same vocabulary `MoveTriggerDirective.play()` takes.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+interface MoveAnimateOptions {
+    /** A number is milliseconds; `'180ms'` / `'0.18s'` also work. */
+    duration?: MoveTime;
+    easing?: string;
+    /** A number is milliseconds; `'180ms'` / `'0.18s'` also work. */
+    delay?: MoveTime;
+    /**
+     * `true` skips the animation and commits the end state instantly. The user's reduced-motion
+     * preference already does this automatically — you never need to pass it for that.
+     */
+    disabled?: boolean;
+    spring?: MoveSpring;
+    iterations?: number;
+    /** Per-property timing, keyframe `times`, and `repeat` / `repeatType` / `repeatDelay`. */
+    transition?: MoveTransitionConfig;
+    /**
+     * Animate a pseudo-element of the target instead of the target itself — e.g.
+     * `'::view-transition-new(root)'` on `document.documentElement`, or `'::before'`.
+     *
+     * Pseudo-element animations are plain WAAPI interop: duration, delay, easing, iterations and
+     * repeat apply; `spring` and per-property `transition` do not. Nothing is committed when it
+     * finishes (a pseudo-element has no inline style), so style its resting state in CSS. Under
+     * reduced motion or `disabled` the animation is skipped and `null` is returned. Browsers that
+     * cannot target pseudo-elements get the same no-op — never an exception.
+     */
+    pseudoElement?: string;
+    /** Called when the animation finishes naturally — not when it is cancelled. */
+    onDone?: () => void;
+}
+/**
+ * Anything `MoveAnimator` can animate: an element, or the `ElementRef` a `viewChild()` already
+ * gives you.
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+type MoveAnimationTarget = Element | ElementRef<Element>;
+/**
+ * The supported way to animate from TypeScript — sequencing phases, reacting to a server
+ * response, driving a node the template does not own, View Transitions. For a trigger
+ * relationship between two elements in a template, see `moveTarget` / `moveTrigger`.
+ *
+ * Resolution order matches the directives exactly: `MOVEMENT_CONFIG` defaults, then the options
+ * passed here, then the reduced-motion override. `animate()` returns `null` when nothing was
+ * scheduled — on the server, or when motion is disabled — in which case the final styles have
+ * still been applied (except for pseudo-elements, which have none).
+ *
+ * ```ts
+ * readonly #animator = inject(MoveAnimator);
+ * readonly panel = viewChild.required<ElementRef<HTMLElement>>('panel');
+ *
+ * async reveal() {
+ *   await this.#animator.animate(this.panel(), { opacity: [0, 1], y: [20, 0] }, { duration: '400ms' })
+ *     ?.finished;
+ * }
+ * ```
+ *
+ * `finished` always resolves — also when the animation is cancelled — so sequencing needs no
+ * `try/catch` (see {@link AnimationControls}).
+ *
+ * Stable API — covered by semantic-versioning guarantees.
+ *
+ * @stability stable
+ */
+declare class MoveAnimator {
+    #private;
+    animate(target: MoveAnimationTarget, keyframes: MoveKeyframes, options?: MoveAnimateOptions): AnimationControls | null;
+    /**
+     * Commits a state instantly, through the same style composition the directives use — so `x`,
+     * `scale`, `blur` and friends land on the right channels and compose with an existing
+     * transform, instead of hand-writing `style.transform`.
+     *
+     * Cancels the target's in-flight engine animation first, so a finishing animation cannot
+     * overwrite the state afterwards. A no-op on the server.
+     *
+     * ```ts
+     * animator.set(overlay, { opacity: 0, clipPath: 'circle(0px at 50% 50%)' });
+     * ```
+     */
+    set(target: MoveAnimationTarget, state: MoveKeyframeState): void;
+    /**
+     * Removes styles the library wrote inline, returning the element to its stylesheet state.
+     *
+     * With `properties`, only those keyframe keys are cleared (`['opacity', 'y']`; transform
+     * shorthands clear the channel they wrote). Without, the library's common channels are cleared:
+     * opacity, translate, scale, rotate, transform and filter. Cancels the target's in-flight engine
+     * animation first. A no-op on the server.
+     */
+    clear(target: MoveAnimationTarget, properties?: readonly string[]): void;
+    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveAnimator, never>;
+    static ɵprov: _angular_core.ɵɵInjectableDeclaration<MoveAnimator>;
+}
+
+/**
+ * Plays keyframes on its host when a boolean flips to `true`, and resets when it flips back —
+ * the declarative trigger side of `moveTarget`/`moveTrigger`.
+ *
+ * ```html
+ * <div [moveTrigger]="open()" [moveFrames]="{ opacity: [0, 1] }"></div>
+ * ```
+ *
+ * It also exposes an imperative handle. A bare `moveTrigger` attribute means *imperative only* —
+ * no declarative trigger, no frames required:
+ *
+ * ```html
+ * <div #overlay="moveTrigger" moveTrigger></div>
+ * ```
+ * ```ts
+ * await overlay.play({ opacity: [0, 1] }, { duration: '180ms' });
+ * ```
+ *
+ * For animation driven entirely from TypeScript, prefer `MoveAnimator` — it needs no template
+ * element at all and supports pseudo-elements.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental
@@ -827,8 +1045,13 @@ declare class MoveTargetDirective implements OnDestroy {
  */
 declare class MoveTriggerDirective implements OnDestroy {
     #private;
-    readonly moveTrigger: _angular_core.InputSignalWithTransform<boolean, unknown>;
-    readonly moveFrames: _angular_core.InputSignal<MoveKeyframes>;
+    /**
+     * `true` plays `moveFrames`, `false` resets. A bare attribute (`<div moveTrigger>`) or no value
+     * leaves the directive in imperative-only mode: nothing plays until `play()` is called.
+     */
+    readonly moveTrigger: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
+    /** Keyframes the declarative trigger plays, and the default for `play()` without frames. */
+    readonly moveFrames: _angular_core.InputSignal<MoveKeyframes | undefined>;
     readonly moveResetFrames: _angular_core.InputSignal<MoveKeyframes | undefined>;
     readonly moveResetState: _angular_core.InputSignal<"initial" | "final" | "clear">;
     readonly moveDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
@@ -838,12 +1061,23 @@ declare class MoveTriggerDirective implements OnDestroy {
     readonly moveDisabled: _angular_core.InputSignalWithTransform<boolean | undefined, unknown>;
     readonly moveReverseDuration: _angular_core.InputSignalWithTransform<number | undefined, unknown>;
     readonly moveReverseEasing: _angular_core.InputSignal<string | undefined>;
-    play(frames?: MoveKeyframes): Promise<void>;
+    /**
+     * Plays `frames` (or `moveFrames`) on the host, cancelling whatever this directive was playing.
+     *
+     * `options` apply to this call only — no need to mutate inputs to play two phases with different
+     * timing. Resolution order: `MOVEMENT_CONFIG` → this directive's inputs → `options` → reduced
+     * motion.
+     *
+     * The promise always resolves, never rejects: when the animation finishes, and also when it is
+     * cancelled (a second `play()`, `reset()`, destroy). Code after `await` always runs.
+     */
+    play(frames?: MoveKeyframes, options?: MoveAnimateOptions): Promise<void>;
+    /** Cancels the current animation and restores the host per `moveResetState`. */
     reset(): void;
     set(state: MoveKeyframeState): void;
     ngOnDestroy(): void;
     static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveTriggerDirective, never>;
-    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTriggerDirective, "[moveTrigger]", ["moveTrigger"], { "moveTrigger": { "alias": "moveTrigger"; "required": true; "isSignal": true; }; "moveFrames": { "alias": "moveFrames"; "required": true; "isSignal": true; }; "moveResetFrames": { "alias": "moveResetFrames"; "required": false; "isSignal": true; }; "moveResetState": { "alias": "moveResetState"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
+    static ɵdir: _angular_core.ɵɵDirectiveDeclaration<MoveTriggerDirective, "[moveTrigger]", ["moveTrigger"], { "moveTrigger": { "alias": "moveTrigger"; "required": false; "isSignal": true; }; "moveFrames": { "alias": "moveFrames"; "required": false; "isSignal": true; }; "moveResetFrames": { "alias": "moveResetFrames"; "required": false; "isSignal": true; }; "moveResetState": { "alias": "moveResetState"; "required": false; "isSignal": true; }; "moveDuration": { "alias": "moveDuration"; "required": false; "isSignal": true; }; "moveEasing": { "alias": "moveEasing"; "required": false; "isSignal": true; }; "moveDelay": { "alias": "moveDelay"; "required": false; "isSignal": true; }; "moveSpring": { "alias": "moveSpring"; "required": false; "isSignal": true; }; "moveDisabled": { "alias": "moveDisabled"; "required": false; "isSignal": true; }; "moveReverseDuration": { "alias": "moveReverseDuration"; "required": false; "isSignal": true; }; "moveReverseEasing": { "alias": "moveReverseEasing"; "required": false; "isSignal": true; }; }, {}, never, never, true, never>;
 }
 
 /**
@@ -890,64 +1124,6 @@ declare class SmoothScrollService implements OnDestroy {
     ngOnDestroy(): void;
     static ɵfac: _angular_core.ɵɵFactoryDeclaration<SmoothScrollService, never>;
     static ɵprov: _angular_core.ɵɵInjectableDeclaration<SmoothScrollService>;
-}
-
-/**
- * Stable API — covered by semantic-versioning guarantees.
- *
- * The universal handle every animation returns, whether it comes from a directive internally or
- * from `MoveAnimator.animate()`.
- *
- * @stability stable
- */
-interface AnimationControls {
-    play(): void;
-    pause(): void;
-    cancel(): void;
-    currentTime: number;
-    readonly finished: Promise<void>;
-}
-
-/**
- * Stable API — covered by semantic-versioning guarantees.
- *
- * @stability stable
- */
-interface MoveAnimateOptions {
-    duration?: number;
-    easing?: string;
-    delay?: number;
-    disabled?: boolean;
-    spring?: MoveSpring;
-    iterations?: number;
-    transition?: MoveTransitionConfig;
-    onDone?: () => void;
-}
-/**
- * The supported way to animate an element without a directive — sequencing several elements,
- * reacting to a server response, driving a node the template does not own.
- *
- * Resolution order matches the directives exactly: `MOVEMENT_CONFIG` defaults, then the options
- * passed here, then the reduced-motion override. Returns `null` when nothing was scheduled — on
- * the server, or when motion is disabled — in which case the final styles have still been applied.
- *
- * ```ts
- * readonly #animator = inject(MoveAnimator);
- *
- * async reveal(el: HTMLElement) {
- *   await this.#animator.animate(el, { opacity: [0, 1], y: [20, 0] }, { duration: 400 })?.finished;
- * }
- * ```
- *
- * Stable API — covered by semantic-versioning guarantees.
- *
- * @stability stable
- */
-declare class MoveAnimator {
-    #private;
-    animate(target: Element, keyframes: MoveKeyframes, options?: MoveAnimateOptions): AnimationControls | null;
-    static ɵfac: _angular_core.ɵɵFactoryDeclaration<MoveAnimator, never>;
-    static ɵprov: _angular_core.ɵɵInjectableDeclaration<MoveAnimator>;
 }
 
 declare const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition>;
@@ -1058,14 +1234,30 @@ declare function moveTransform(source: Signal<number>, inputRange: readonly numb
 declare function moveSpringValue(source: Signal<number>, config?: MoveSpringValueConfig): Signal<number>;
 
 /**
+ * The resolved, library-wide animation defaults — what `MOVEMENT_CONFIG` injects. Every timing
+ * value here is already normalized to milliseconds; `provideMovement()` is where `"320ms"` /
+ * `"0.32s"` are accepted.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
 interface MovementConfig {
+    /** Default duration, in milliseconds. */
     duration: number;
+    /** Default CSS easing. */
     easing: string;
+    /** Default delay, in milliseconds. */
     delay: number;
+    /**
+     * Application-level kill switch: `true` turns every animation into an instant jump to its end
+     * state. **Not** the reduced-motion mechanism — the library already honours the user's
+     * `prefers-reduced-motion: reduce` preference automatically, whatever this is set to. Use it
+     * for app-owned reasons: a user-facing "disable animations" setting, visual regression tests.
+     *
+     * Precedence: OS reduced-motion preference (always wins) → this flag → per-element
+     * `moveDisabled`.
+     */
     disabled: boolean;
     iterations?: number;
 }
@@ -1083,12 +1275,30 @@ declare const MOVEMENT_DEFAULTS: MovementConfig;
 declare const MOVEMENT_CONFIG: InjectionToken<MovementConfig>;
 
 /**
+ * What `provideMovement()` accepts: any subset of {@link MovementConfig}, with `duration` and
+ * `delay` taking a {@link MoveTime} (`320`, `'320ms'`, `'0.32s'`). The injected
+ * `MOVEMENT_CONFIG` is always normalized to numeric milliseconds.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
-type MovementConfigInput = Partial<MovementConfig>;
+type MovementConfigInput = Partial<Omit<MovementConfig, 'duration' | 'delay'>> & {
+    duration?: MoveTime;
+    delay?: MoveTime;
+};
 /**
+ * Sets library-wide animation defaults.
+ *
+ * ```ts
+ * provideMovement({ duration: '320ms', easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+ * ```
+ *
+ * Reduced motion needs no configuration: the user's `prefers-reduced-motion: reduce` preference
+ * is honoured automatically. `disabled` is an application-level kill switch, not a place to
+ * forward `matchMedia('(prefers-reduced-motion: reduce)')` — see {@link MovementConfig.disabled}.
+ * Nothing needs disabling for SSR either; animations are already no-ops on the server.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1129,6 +1339,13 @@ declare const MOVEMENT_EXPERIMENTAL_DIRECTIVES: readonly [typeof MoveLayoutDirec
  * {@link MOVEMENT_EXPERIMENTAL_DIRECTIVES} member), ready to spread into a standalone component's
  * `imports`.
  *
+ * Most components use one to three directives — import those instead; it is just as short and
+ * keeps the component's dependencies explicit:
+ *
+ * ```ts
+ * imports: [MoveHoverDirective, MoveTapDirective]
+ * ```
+ *
  * This aggregate itself is stable — spreading it will always compile and its own shape follows
  * SemVer — but its **contents** are not stability-pure: it includes experimental directives, whose
  * individual behavior may change in a `1.x` minor. Prefer importing only the directives a
@@ -1139,5 +1356,5 @@ declare const MOVEMENT_EXPERIMENTAL_DIRECTIVES: readonly [typeof MoveLayoutDirec
  */
 declare const MOVEMENT_DIRECTIVES: readonly [typeof MoveEnterDirective, typeof MoveLeaveDirective, typeof MoveAnimateDirective, typeof MoveHoverDirective, typeof MoveTapDirective, typeof MoveVariantsDirective, typeof MoveStaggerDirective, typeof MoveScrollDirective, typeof MovePresenceDirective, typeof MovePresenceForDirective, typeof MoveInViewDirective, typeof MoveTextDirective, typeof MoveFocusDirective, typeof MoveParallaxDirective, typeof MoveAnimationDirective, typeof MoveLoopDirective, typeof MoveLayoutDirective, typeof MoveDragDirective, typeof MoveSmoothScrollDirective, typeof MoveTargetDirective, typeof MoveTriggerDirective];
 
-export { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MOVEMENT_DIRECTIVES, MOVEMENT_EXPERIMENTAL_DIRECTIVES, MOVEMENT_STABLE_DIRECTIVES, MOVE_PRESETS, MoveAnimateDirective, MoveAnimationDirective, MoveAnimator, MoveDragDirective, MoveEnterDirective, MoveFocusDirective, MoveHoverDirective, MoveInViewDirective, MoveLayoutDirective, MoveLeaveDirective, MoveLoopDirective, MoveParallaxDirective, MovePresenceDirective, MovePresenceForDirective, MoveScrollDirective, MoveSmoothScrollDirective, MoveStaggerDirective, MoveTapDirective, MoveTargetDirective, MoveTextDirective, MoveTriggerDirective, MoveVariantsDirective, SmoothScrollService, moveIconBounce, moveIconPulse, moveIconRotate, moveIconShake, movePathDraw, moveSpringValue, moveTransform, moveValue, provideMovement };
-export type { AnimationControls, MoveAnimateOptions, MoveAnimationConfig, MoveDragAxis, MoveDragConstraints, MoveDragEvent, MoveDragSnapPoint, MoveKeyframeProperties, MoveKeyframeState, MoveKeyframes, MovePresenceForContext, MovePresenceForMode, MovePresenceForTrackBy, MovePreset, MovePresetDefinition, MovePropertyTransition, MoveRepeatOptions, MoveRepeatType, MoveSpring, MoveSpringValueConfig, MoveStaggerDirection, MoveStateValue, MoveTransformOptions, MoveTransformValue, MoveTransitionConfig, MoveValue, MoveValuePair, MoveVariant, MoveVariantOrchestration, MoveVariantState, MovementConfig, MovementConfigInput };
+export { MOVEMENT_CONFIG, MOVEMENT_DEFAULTS, MOVEMENT_DIRECTIVES, MOVEMENT_EXPERIMENTAL_DIRECTIVES, MOVEMENT_STABLE_DIRECTIVES, MOVE_PRESETS, MoveAnimateDirective, MoveAnimationDirective, MoveAnimator, MoveDragDirective, MoveEnterDirective, MoveFocusDirective, MoveHoverDirective, MoveInViewDirective, MoveLayoutDirective, MoveLeaveDirective, MoveLoopDirective, MoveParallaxDirective, MovePresenceDirective, MovePresenceForDirective, MoveScrollDirective, MoveSmoothScrollDirective, MoveStaggerDirective, MoveTapDirective, MoveTargetDirective, MoveTextDirective, MoveTriggerDirective, MoveVariantsDirective, SmoothScrollService, moveIconBounce, moveIconPulse, moveIconRotate, moveIconShake, movePathDraw, moveSpringValue, moveTimeToMs, moveTransform, moveValue, provideMovement };
+export type { AnimationControls, MoveAnimateOptions, MoveAnimationConfig, MoveAnimationTarget, MoveDragAxis, MoveDragConstraints, MoveDragEvent, MoveDragSnapPoint, MoveKeyframeProperties, MoveKeyframeState, MoveKeyframes, MovePresenceForContext, MovePresenceForMode, MovePresenceForTrackBy, MovePreset, MovePresetDefinition, MovePropertyTransition, MoveRepeatOptions, MoveRepeatType, MoveSpring, MoveSpringValueConfig, MoveStaggerDirection, MoveStateValue, MoveTime, MoveTransformOptions, MoveTransformValue, MoveTransitionConfig, MoveValue, MoveValuePair, MoveVariant, MoveVariantOrchestration, MoveVariantState, MovementConfig, MovementConfigInput };

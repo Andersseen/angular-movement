@@ -86,7 +86,7 @@ test('focus: moveWhileFocus keeps the element visible and focused', async ({ pag
 test('tap: moveWhileTap starts a WAAPI animation on press', async ({ page }) => {
   await page.goto('/demos/tap');
 
-  const button = page.locator('button', { hasText: /Press Down|Shrink|Ripple|Bounce/ });
+  const button = page.locator('button', { hasText: /Press|Shrink/ });
   await expect(button).toBeVisible();
 
   const box = await button.boundingBox();
@@ -211,4 +211,26 @@ test('reduced motion: content that animates in is still readable', async ({ page
       { timeout: 3000 },
     )
     .toBe(true);
+});
+
+test('smooth scroll: keyboard and programmatic page scrolls are not snapped back', async ({
+  page,
+}) => {
+  // The site runs SmoothScrollService app-wide. Its resync listener used to sit on
+  // documentElement, where page scroll events never fire, so every non-wheel scroll was reverted.
+  await page.goto('/demos/hover');
+  await page.waitForFunction(
+    () =>
+      typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
+      'function',
+  );
+
+  await page.evaluate(() => document.querySelector('[data-testid="hover-link"]')?.scrollIntoView());
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.locator('body').press('End');
+  await page.waitForTimeout(400);
+  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
 });

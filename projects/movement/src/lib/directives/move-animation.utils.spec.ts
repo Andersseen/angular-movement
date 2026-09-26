@@ -6,6 +6,7 @@ import {
   optionalBooleanAttribute,
   optionalNumberAttribute,
   prefersReducedMotion,
+  resetReducedMotionNoticeForTesting,
   resolveMovementConfig,
   resolveMoveFrames,
   reverseFrames,
@@ -123,6 +124,21 @@ describe('move-animation.utils', () => {
     it('forces disabled = true when reducedMotion is true', () => {
       const result = resolveMovementConfig(MOVEMENT_DEFAULTS, { disabled: false }, true);
       expect(result.disabled).toBe(true);
+    });
+
+    it('logs the reduced-motion notice once, not on every resolution', () => {
+      resetReducedMotionNoticeForTesting();
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+      for (let i = 0; i < 5; i++) {
+        resolveMovementConfig(MOVEMENT_DEFAULTS, {}, true);
+      }
+
+      const notices = warn.mock.calls.filter(([message]) =>
+        String(message).includes('prefers-reduced-motion is active'),
+      );
+      expect(notices).toHaveLength(1);
+      warn.mockRestore();
     });
 
     it('clamps negative duration to 0', () => {

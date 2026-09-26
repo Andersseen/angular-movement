@@ -4,6 +4,7 @@ import {
   MoveTransitionConfig,
 } from '../presets/presets.types';
 import { MovementConfig } from '../tokens/movement.tokens';
+import { resolveTime } from '../move-time';
 
 /**
  * Transform channels all end up in one composed `transform` string, so they cannot be split across
@@ -47,9 +48,9 @@ export function groupByEasing(
   transition: MoveTransitionConfig,
   config: MovementConfig,
 ): EasingGroup[] | null {
-  const globalDuration = transition.duration ?? config.duration;
+  const globalDuration = resolveTime(transition.duration) ?? config.duration;
   const globalEasing = transition.easing ?? config.easing;
-  const globalDelay = transition.delay ?? config.delay;
+  const globalDelay = resolveTime(transition.delay) ?? config.delay;
 
   const properties = Object.keys(frames).filter((key) => frames[key] !== undefined);
   if (properties.length === 0) return null;
@@ -58,9 +59,9 @@ export function groupByEasing(
     const parsed = propertyTransition(transition[property]);
     return {
       property,
-      duration: parsed?.duration ?? globalDuration,
+      duration: resolveTime(parsed?.duration) ?? globalDuration,
       easing: parsed?.easing ?? globalEasing,
-      delay: parsed?.delay ?? globalDelay,
+      delay: resolveTime(parsed?.delay) ?? globalDelay,
     };
   });
 

@@ -4,5 +4,5 @@ import { provideMovement } from 'angular-movement';
 import { App } from './app';
 
 bootstrapApplication(App, {
-  providers: [provideZonelessChangeDetection(), provideMovement({ duration: 300 })],
+  providers: [provideZonelessChangeDetection(), provideMovement({ duration: '300ms' })],
 }).catch((error) => console.error(error));

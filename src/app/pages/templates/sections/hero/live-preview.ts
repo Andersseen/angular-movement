@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MOVEMENT_DIRECTIVES } from 'movement';
+import { MoveEnterDirective, MoveHoverDirective, MoveStaggerDirective } from 'movement';
 import {
   VoltBadge,
   VoltCard,
@@ -26,7 +26,9 @@ const PROGRESS_BARS = [
 @Component({
   selector: 'app-template-live-preview',
   imports: [
-    ...MOVEMENT_DIRECTIVES,
+    MoveEnterDirective,
+    MoveHoverDirective,
+    MoveStaggerDirective,
     VoltBadge,
     VoltCard,
     VoltCardHeader,
@@ -49,7 +51,7 @@ const PROGRESS_BARS = [
         <volt-badge variant="outline">Live preview</volt-badge>
       </div>
 
-      <div class="grid gap-4 p-5" moveStagger [moveStaggerStep]="120">
+      <div class="grid gap-4 p-5" moveStagger moveStaggerStep="120ms">
         <volt-card moveEnter="fade-up">
           <volt-card-header>
             <volt-card-title>Campaign health</volt-card-title>
@@ -123,7 +125,7 @@ const PROGRESS_BARS = [
                       [class.bg-amber-300]="bar.color === 'warning'"
                       [style.width.%]="bar.value"
                       moveEnter="slide-right"
-                      [moveDuration]="700"
+                      moveDuration="700ms"
                     ></div>
                   </div>
                 </div>

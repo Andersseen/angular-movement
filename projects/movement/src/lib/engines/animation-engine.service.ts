@@ -10,7 +10,8 @@ import {
   MoveSpring,
   MoveTransitionConfig,
 } from '../presets/presets.types';
-import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+import { MovementConfig, MOVEMENT_CONFIG, MOVEMENT_DEFAULTS } from '../tokens/movement.tokens';
+import { movementWarn } from '../dev-warn';
 import {
   applyComposedStyle,
   applyKeyframeTimes,
@@ -24,6 +25,7 @@ import { groupByEasing } from './easing-groups';
 import { CompositeAnimationControls } from './composite-controls';
 import { composeKeyframeAt } from './keyframe-composer';
 import { registerActivePlayer } from './active-player-registry';
+import { resolveTime } from '../move-time';
 
 export interface PlayAnimationOptions {
   config?: MovementConfig;
@@ -34,6 +36,8 @@ export interface PlayAnimationOptions {
   onDone?: () => void;
   transition?: MoveTransitionConfig;
   repeat?: MoveRepeatOptions;
+  /** Animate a pseudo-element of `host` (`'::before'`, `'::view-transition-new(root)'`). */
+  pseudoElement?: string;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -49,6 +53,10 @@ export class AnimationEngine {
     if (!isPlatformBrowser(this.#platformId)) {
       options.onDone?.();
       return null;
+    }
+
+    if (options.pseudoElement) {
+      return this.#playPseudoElement(host, rawFrames, options.pseudoElement, options);
     }
 
     const frames = this.#resolveSvgFrames(host, rawFrames);
@@ -173,6 +181,66 @@ export class AnimationEngine {
       );
       registerActivePlayer(host, controls);
       return controls;
+    }
+  }
+
+  /**
+   * WAAPI interop for pseudo-elements, the path View Transitions need.
+   *
+   * Deliberately narrower than the element path: there is no inline style on a pseudo-element, so
+   * nothing is committed on finish, and reduced motion / `disabled` means *skip the animation* —
+   * the caller's DOM change is already the committed state (applying "final styles" to a
+   * pseudo-element is impossible). It is also never registered as the host's active player: a
+   * `moveDrag` or `MoveAnimator.set()` on the real element must not cancel a View Transition.
+   *
+   * Progressive enhancement: a browser without `KeyframeEffect.pseudoElement`, or one that rejects
+   * the selector (`::view-transition-new(root)` where View Transitions are unsupported), gets a
+   * no-op instead of a throw — and never the dangerous fallback of animating the host itself.
+   */
+  #playPseudoElement(
+    host: Element,
+    frames: MoveKeyframes,
+    pseudoElement: string,
+    options: PlayAnimationOptions,
+  ): AnimationControls | null {
+    if (options.disabled || !supportsPseudoElementAnimation(host)) {
+      options.onDone?.();
+      return null;
+    }
+
+    const config = options.config ?? this.#defaults;
+    if (options.spring || config.easing === 'spring' || hasPerPropertyTiming(options.transition)) {
+      movementWarn(
+        `pseudoElement "${pseudoElement}": \`spring\` and per-property \`transition\` timing are ` +
+          'not applied to pseudo-elements. Using duration, delay, easing and repeat only.',
+      );
+    }
+
+    const repeat = resolveRepeat(options);
+    const iterations = repeat?.repeat ?? options.iterations ?? config.iterations;
+
+    try {
+      return new WaapiPlayer(
+        host,
+        composeStandaloneKeyframes(frames),
+        {
+          duration: config.duration,
+          easing: config.easing === 'spring' ? MOVEMENT_DEFAULTS.easing : config.easing,
+          delay: options.delay ?? config.delay,
+          disabled: false,
+          iterations,
+        },
+        options.onDone,
+        repeat,
+        pseudoElement,
+      );
+    } catch (error) {
+      movementWarn(
+        `Could not animate pseudo-element "${pseudoElement}" (${String(error)}). ` +
+          'Skipping the animation.',
+      );
+      options.onDone?.();
+      return null;
     }
   }
 
@@ -307,7 +375,7 @@ function resolveRepeat(options: PlayAnimationOptions): MoveRepeatOptions | undef
     repeat: options.repeat?.repeat ?? (fromTransition?.repeat as number | undefined),
     repeatType:
       options.repeat?.repeatType ?? (fromTransition?.repeatType as MoveRepeatType | undefined),
-    repeatDelay: options.repeat?.repeatDelay ?? (fromTransition?.repeatDelay as number | undefined),
+    repeatDelay: resolveTime(options.repeat?.repeatDelay ?? fromTransition?.repeatDelay),
   };
 
   const hasAny =
@@ -316,4 +384,22 @@ function resolveRepeat(options: PlayAnimationOptions): MoveRepeatOptions | undef
     merged.repeatDelay !== undefined;
 
   return hasAny ? merged : undefined;
+}
+
+/** True when the host's realm can target a pseudo-element with `element.animate()`. */
+function supportsPseudoElementAnimation(host: Element): boolean {
+  const view = host.ownerDocument?.defaultView as (Window & typeof globalThis) | null | undefined;
+  const KeyframeEffectCtor = view?.KeyframeEffect;
+  return (
+    typeof (host as HTMLElement).animate === 'function' &&
+    typeof KeyframeEffectCtor === 'function' &&
+    'pseudoElement' in KeyframeEffectCtor.prototype
+  );
+}
+
+const REPEAT_KEYS = new Set(['repeat', 'repeatType', 'repeatDelay']);
+
+function hasPerPropertyTiming(transition: MoveTransitionConfig | undefined): boolean {
+  if (!transition) return false;
+  return Object.keys(transition).some((key) => !REPEAT_KEYS.has(key));
 }

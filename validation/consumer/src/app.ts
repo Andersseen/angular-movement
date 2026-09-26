@@ -45,6 +45,7 @@ import {
   type MoveTransitionConfig,
   type MoveVariant,
 } from 'angular-movement';
+import { ConsumerDx } from './consumer-dx';
 
 /**
  * Exercises the **published package** the way a real consumer does: importing from
@@ -78,6 +79,7 @@ import {
     MoveTextDirective,
     MoveTriggerDirective,
     MoveVariantsDirective,
+    ConsumerDx,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -165,6 +167,9 @@ import {
     <div [style.transform]="'translateX(' + x() + 'px)'">{{ springX() }}</div>
     <!-- moveTransform's string/unit overload must infer Signal<string>, not Signal<number> -->
     <div [style.width]="width()">{{ inferredSpring() }}</div>
+
+    <!-- 1.2 consumer-DX surface -->
+    <app-consumer-dx />
   `,
 })
 export class App {

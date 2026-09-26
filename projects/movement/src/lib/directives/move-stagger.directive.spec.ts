@@ -284,3 +284,76 @@ describe('MoveStaggerDirective — integration with child directives', () => {
     expect(stagger.getDelay(last)).toBe(0);
   });
 });
+
+describe('MoveStaggerDirective timing units (MoveTime)', () => {
+  @Component({
+    template: `
+      <ul moveStagger moveStaggerStep="80ms" id="ms">
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+      </ul>
+      <ul moveStagger moveStaggerStep="0.08s" id="s">
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+      </ul>
+      <ul moveStagger [moveStaggerStep]="80" id="bound">
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+      </ul>
+      <ul moveStagger="80ms" id="stagger-ms">
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+      </ul>
+      <ul moveStagger [moveStaggerStep]="0.08" id="fraction">
+        <li>a</li>
+        <li>b</li>
+        <li>c</li>
+      </ul>
+    `,
+    imports: [MoveStaggerDirective],
+  })
+  class UnitsHost {}
+
+  function delaysFor(fixture: ComponentFixture<UnitsHost>, id: string): number[] {
+    const list = fixture.debugElement.query(By.css(`#${id}`));
+    const directive = list.injector.get(MoveStaggerDirective);
+    const items = Array.from(list.nativeElement.querySelectorAll('li')) as HTMLElement[];
+    items.forEach((item) => directive.register(item));
+    return items.map((item) => directive.getDelay(item));
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    TestBed.resetTestingModule();
+  });
+
+  it('"80ms", "0.08s", [80] and moveStagger="80ms" all produce identical delays', () => {
+    TestBed.configureTestingModule({ imports: [UnitsHost] });
+    const fixture = TestBed.createComponent(UnitsHost);
+    fixture.detectChanges();
+
+    for (const id of ['ms', 's', 'bound', 'stagger-ms']) {
+      expect(delaysFor(fixture, id), id).toEqual([0, 80, 160]);
+    }
+  });
+
+  it('keeps [moveStaggerStep]="0.08" as 0.08ms for compatibility, and warns once', async () => {
+    const { resetTimeWarningsForTesting } = await import('../move-time');
+    resetTimeWarningsForTesting();
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+
+    TestBed.configureTestingModule({ imports: [UnitsHost] });
+    const fixture = TestBed.createComponent(UnitsHost);
+    fixture.detectChanges();
+    fixture.detectChanges();
+
+    expect(delaysFor(fixture, 'fraction')).toEqual([0, 0.08, 0.16]);
+    const fractional = warn.mock.calls.filter(([m]) => String(m).includes('moveStaggerStep'));
+    expect(fractional).toHaveLength(1);
+    expect(fractional[0][0]).toContain('Did you mean "80ms" or "0.08s"?');
+  });
+});

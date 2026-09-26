@@ -100,8 +100,8 @@ export default class DemoLeave {
     return `<ng-container *movePresence="showCard()">
   <article
     moveLeave="${this.preset()}"
-    moveDuration="${this.duration()}"
-    moveDelay="${this.delay()}"
+    moveDuration="${this.duration()}ms"
+    moveDelay="${this.delay()}ms"
     moveEasing="${this.easing()}"
   >
     Leaving card

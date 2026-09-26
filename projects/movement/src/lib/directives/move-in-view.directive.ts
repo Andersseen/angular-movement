@@ -15,11 +15,11 @@ import {
   booleanAttribute,
   clearInitialStyles,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
@@ -39,11 +39,11 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
   readonly moveInViewRoot = input<string | null>(null);
 
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,

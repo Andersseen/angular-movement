@@ -1,10 +1,11 @@
-import { Component, input, signal } from '@angular/core';
+import { Component, input, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
 import { AnimationControls } from '../engines/animation-controls';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MoveTriggerDirective } from './move-trigger.directive';
+import { provideMovement } from '../providers/provide-movement';
 
 describe('MoveTriggerDirective', () => {
   afterEach(() => {
@@ -141,6 +142,192 @@ describe('MoveTriggerDirective', () => {
     );
   });
 
+  describe('imperative-only mode (bare attribute)', () => {
+    function setupImperative(providers: unknown[] = []) {
+      TestBed.configureTestingModule({
+        imports: [ImperativeHostComponent],
+        providers: providers as never[],
+      });
+      const fixture = TestBed.createComponent(ImperativeHostComponent);
+      const engine = TestBed.inject(AnimationEngine);
+      const playSpy = vi.spyOn(engine, 'play').mockReturnValue({
+        finished: Promise.resolve(),
+        cancel: vi.fn(),
+        play: vi.fn(),
+        pause: vi.fn(),
+        currentTime: 0,
+      } as unknown as AnimationControls);
+      fixture.detectChanges();
+      const trigger = fixture.componentInstance.trigger();
+      return { fixture, playSpy, trigger };
+    }
+
+    it('needs no dummy [moveTrigger]="false" / [moveFrames]="{}" and plays nothing on its own', async () => {
+      const { fixture, playSpy, trigger } = setupImperative();
+      await fixture.whenStable();
+
+      expect(trigger.moveTrigger()).toBeUndefined();
+      expect(trigger.moveFrames()).toBeUndefined();
+      expect(playSpy).not.toHaveBeenCalled();
+    });
+
+    it('plays frames passed to play()', async () => {
+      const { playSpy, trigger } = setupImperative();
+
+      await trigger.play({ opacity: [0, 1] });
+
+      expect(playSpy).toHaveBeenCalledWith(
+        expect.any(HTMLElement),
+        { opacity: [0, 1] },
+        expect.anything(),
+      );
+    });
+
+    it('warns and resolves when play() has nothing to play', async () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined);
+      const { playSpy, trigger } = setupImperative();
+
+      await expect(trigger.play()).resolves.toBeUndefined();
+
+      expect(playSpy).not.toHaveBeenCalled();
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('without frames'));
+      warn.mockRestore();
+    });
+
+    it('reset() and destroy clean up the frames that were actually played', async () => {
+      const { fixture, trigger } = setupImperative();
+      const host = fixture.nativeElement.querySelector('div') as HTMLElement;
+
+      await trigger.play({ clipPath: ['inset(50%)', 'inset(0%)'] });
+      host.style.clipPath = 'inset(0%)';
+      trigger.reset();
+      expect(host.style.clipPath).toBe('');
+
+      await trigger.play({ opacity: [0, 1] });
+      host.style.opacity = '1';
+      fixture.destroy();
+      expect(host.style.opacity).toBe('');
+    });
+  });
+
+  describe('per-call play() options', () => {
+    function setupWithInputs() {
+      TestBed.configureTestingModule({
+        imports: [InputsHostComponent],
+        providers: [provideMovement({ duration: 999, easing: 'linear', delay: 7 })],
+      });
+      const fixture = TestBed.createComponent(InputsHostComponent);
+      const engine = TestBed.inject(AnimationEngine);
+      const playSpy = vi.spyOn(engine, 'play').mockReturnValue({
+        finished: Promise.resolve(),
+        cancel: vi.fn(),
+        play: vi.fn(),
+        pause: vi.fn(),
+        currentTime: 0,
+      } as unknown as AnimationControls);
+      fixture.detectChanges();
+      return { playSpy, trigger: fixture.componentInstance.trigger() };
+    }
+
+    function lastConfig(playSpy: ReturnType<typeof vi.spyOn>) {
+      const [, , options] = playSpy.mock.calls.at(-1)!;
+      return options as {
+        config: { duration: number; easing: string; delay: number; disabled: boolean };
+        disabled: boolean;
+        spring?: unknown;
+      };
+    }
+
+    it('layer 1+2: global defaults, overridden by the directive inputs', async () => {
+      const { playSpy, trigger } = setupWithInputs();
+
+      await trigger.play({ opacity: [0, 1] });
+
+      // moveDuration=520 beats the global 999; delay falls through to the global 7.
+      expect(lastConfig(playSpy).config).toEqual(
+        expect.objectContaining({ duration: 520, easing: 'ease-in', delay: 7 }),
+      );
+    });
+
+    it('layer 3: play() options beat the directive inputs, for that call only', async () => {
+      const { playSpy, trigger } = setupWithInputs();
+
+      await trigger.play({ opacity: [0, 1] }, { duration: '180ms', easing: 'ease-out' });
+      expect(lastConfig(playSpy).config).toEqual(
+        expect.objectContaining({ duration: 180, easing: 'ease-out', delay: 7 }),
+      );
+
+      await trigger.play({ opacity: [1, 0] });
+      expect(lastConfig(playSpy).config).toEqual(
+        expect.objectContaining({ duration: 520, easing: 'ease-in' }),
+      );
+    });
+
+    it('passes spring and transition through from the call', async () => {
+      const { playSpy, trigger } = setupWithInputs();
+
+      await trigger.play(
+        { opacity: [0, 1] },
+        { spring: { stiffness: 300 }, transition: { repeat: 2, repeatType: 'reverse' } },
+      );
+
+      const [, , options] = playSpy.mock.calls.at(-1)!;
+      expect(options).toEqual(
+        expect.objectContaining({
+          spring: { stiffness: 300 },
+          transition: { repeat: 2, repeatType: 'reverse' },
+        }),
+      );
+    });
+
+    it('layer 4: reduced motion wins over everything, including disabled: false', async () => {
+      vi.stubGlobal(
+        'matchMedia',
+        vi.fn().mockImplementation((query: string) => ({
+          matches: query.includes('prefers-reduced-motion'),
+          media: query,
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+        })),
+      );
+      const { playSpy, trigger } = setupWithInputs();
+
+      await trigger.play({ opacity: [0, 1] }, { disabled: false });
+
+      expect(lastConfig(playSpy).disabled).toBe(true);
+      vi.unstubAllGlobals();
+    });
+
+    it('resolves (never rejects) when a second play() cancels the first', async () => {
+      TestBed.configureTestingModule({ imports: [ImperativeHostComponent] });
+      const fixture = TestBed.createComponent(ImperativeHostComponent);
+      fixture.detectChanges();
+      const trigger = fixture.componentInstance.trigger();
+      const host = fixture.nativeElement.querySelector('div') as HTMLElement;
+      const listeners: Record<string, () => void>[] = [];
+      host.animate = vi.fn(() => {
+        const bag: Record<string, () => void> = {};
+        listeners.push(bag);
+        return {
+          addEventListener: (type: string, cb: () => void) => (bag[type] = cb),
+          cancel: vi.fn(),
+          play: vi.fn(),
+          pause: vi.fn(),
+          commitStyles: vi.fn(),
+          playState: 'running',
+          currentTime: 0,
+        } as unknown as Animation;
+      });
+
+      const first = trigger.play({ opacity: [0, 1] }, { duration: 400 });
+      const second = trigger.play({ opacity: [1, 0] }, { duration: 160 });
+      listeners[1]['finish']?.();
+
+      await expect(first).resolves.toBeUndefined();
+      await expect(second).resolves.toBeUndefined();
+    });
+  });
+
   describe('moveResetState', () => {
     /**
      * Renders a host with the given reset mode, plays forward, then releases the trigger so the
@@ -228,4 +415,22 @@ class TestHostComponent {
 })
 class ResetHostComponent {
   active = input(false);
+}
+
+@Component({
+  standalone: true,
+  imports: [MoveTriggerDirective],
+  template: `<div moveTrigger></div>`,
+})
+class ImperativeHostComponent {
+  readonly trigger = viewChild.required(MoveTriggerDirective);
+}
+
+@Component({
+  standalone: true,
+  imports: [MoveTriggerDirective],
+  template: `<div moveTrigger moveDuration="520ms" moveEasing="ease-in"></div>`,
+})
+class InputsHostComponent {
+  readonly trigger = viewChild.required(MoveTriggerDirective);
 }

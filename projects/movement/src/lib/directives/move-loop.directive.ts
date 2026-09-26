@@ -5,11 +5,11 @@ import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
   numberAttribute,
   optionalBooleanAttribute,
-  optionalNumberAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
   resolveMoveFrames,
 } from './move-animation.utils';
+import { optionalTimeAttribute, timeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
@@ -24,11 +24,11 @@ import { AnimationControls } from '../engines/animation-controls';
 export class MoveLoopDirective implements OnDestroy {
   readonly moveLoop = input<MovePreset | MoveKeyframes>('none');
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDuration'),
   });
   readonly moveEasing = input<string | undefined>(undefined);
   readonly moveDelay = input<number | undefined, unknown>(undefined, {
-    transform: optionalNumberAttribute,
+    transform: optionalTimeAttribute('moveDelay'),
   });
   readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
     transform: optionalBooleanAttribute,
@@ -40,8 +40,10 @@ export class MoveLoopDirective implements OnDestroy {
    * animation plays back down to its start — what breathing, pulsing and yoyo effects need.
    */
   readonly moveLoopType = input<MoveRepeatType>('loop');
-  /** Pause between cycles, in milliseconds. */
-  readonly moveLoopDelay = input<number, unknown>(0, { transform: numberAttribute });
+  /** Pause between cycles — a `MoveTime`: a number is milliseconds, or `"150ms"` / `"0.15s"`. */
+  readonly moveLoopDelay = input<number, unknown>(0, {
+    transform: timeAttribute('moveLoopDelay', 0),
+  });
   /** Cycle count. Defaults to endless, which is what makes it a loop. */
   readonly moveLoopCount = input<number, unknown>(Infinity, {
     transform: (value) => {

@@ -32,6 +32,21 @@ describe('movement library', () => {
     expect(publicApi).not.toHaveProperty('CompositeAnimationControls');
   });
 
+  it('exports the MoveTime helper but none of the internal time transforms', () => {
+    expect(publicApi.moveTimeToMs('0.08s')).toBe(80);
+
+    for (const internal of [
+      'normalizeTime',
+      'resolveTime',
+      'optionalTimeAttribute',
+      'timeAttribute',
+      'resetTimeWarningsForTesting',
+      'animateWithOptions',
+    ]) {
+      expect(publicApi).not.toHaveProperty(internal);
+    }
+  });
+
   it('provides default movement config', () => {
     TestBed.configureTestingModule({
       providers: [provideMovement()],
@@ -93,8 +108,10 @@ describe('movement library', () => {
       'icon-draw',
       'icon-pulse',
       'jello',
+      'lift',
       'light-speed',
       'none',
+      'press',
       'pulse',
       'roll-in',
       'rubber-band',
