@@ -3,17 +3,15 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-09-25
-**Library version:** `1.1.0` published to npm (`v1.1.0` tag, 2026-08-28) — includes spec 013
-(post-1.0 hardening). `angular-movement-mcp` `0.1.0` also published (`mcp-v0.1.0` tag, same day).
-**1.2.0 prepared, not released:** branch `feat/014-consumer-dx-imperative-motion` carries spec 014
-(Consumer DX & Imperative Motion) with everything under `## Unreleased` in `CHANGELOG.md` and
-`projects/movement/package.json` still at `1.1.0` — cut it with `pnpm release minor --push` after
-merge (the script bumps, rolls the changelog, commits and tags in one go; do **not** tag locally
-ahead of the push — see the recurring gotcha below). `angular-movement-mcp` is bumped to `0.2.0` in
-its `package.json` by hand (no bump script); tag `mcp-v0.2.0` after merge.
+**Last updated:** 2026-09-26
+**Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
+Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
+`0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
+**WebKit touch e2e:** Playwright's Linux WebKit (CI) dispatches no pointer events for `tap()`, so
+`moveWhileTap` cannot fire there; `e2e/touch.spec.ts` only asserts the press state when a touch
+`pointerdown` actually arrived. macOS WebKit does send them, so a local run cannot reproduce CI.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` includes everything through PR #60 (Umami favicon).
+**Branch state:** `main` includes everything through PR #69 (spec 014) plus the `v1.2.0` release commit.
 **Roadmap phase:** **1.0.0 is out**, and 1.1.0 has since shipped on top of it (spec 013). Spec 009
 made the API-freeze decisions (see `docs/ai/specs/009-10-api-freeze-decision.md`). **Recurring
 gotcha, now resolved twice:** both the `v1.0.0` and `v1.1.0`/`mcp-v0.1.0` release tags were created
@@ -162,7 +160,7 @@ cross-browser and composition e2e coverage.
   22), e2e 101/101 across all three browsers (1 pre-existing, already-documented parallel-load
   flake retried clean — not introduced by this pass).
 
-## Done — Spec 014 (1.2: Consumer DX & Imperative Motion) — prepared, not released
+## Done — Spec 014 (1.2: Consumer DX & Imperative Motion) — released as 1.2.0
 
 Driven by a grep audit of the local consumer checkouts (Volt UI, Palette Crafter, Lumen Icons,
 Agentyx, Wisp, DevFlare, CV Builder, Quartz; ForgeCMS has no usage) — evidence table in the spec.
@@ -350,9 +348,7 @@ replays with the newly selected preset` still flakes once per repeat even single
 
 ## Next up (priority order)
 
-1. **Merge spec 014 and cut `1.2.0`** (`pnpm release minor --push`) and `mcp-v0.2.0` — the branch is
-   release-ready; see the spec's final report. Merging also restores green CI on `main` (the
-   `vite/client` fix).
+1. **Tag `mcp-v0.2.0`** — `1.2.0` is out; the MCP server bump is committed but not yet published.
 2. ~~Cut the spec 009 changes as a release~~ — done long ago (1.0.0, then 1.1.0).
 3. ~~At least six e2e tests are now known to flake under parallel load~~ — **mitigated 2026-08-28**:
    `playwright.config.ts` forces `workers: 1` in CI (see gotchas above) instead of fixing each test
