@@ -62,16 +62,37 @@ test('tapping leaves no sticky hover state, and press still plays and releases',
   await card.scrollIntoViewIfNeeded();
   await waitForHydration(page);
 
+  // Playwright's Linux WebKit dispatches no pointer events for a synthesized tap (macOS WebKit and
+  // real iOS Safari do), so moveWhileTap has nothing to react to there. Record what the engine sent.
+  await card.evaluate((el) => {
+    el.addEventListener(
+      'pointerdown',
+      (event) => {
+        if (event.pointerType === 'touch') el.dataset['touchPointer'] = 'true';
+      },
+      { once: true },
+    );
+  });
+
   await card.tap();
   await settledMotionState(card);
 
-  const { translate, inlineScale } = await card.evaluate((el) => ({
+  const { translate, inlineScale, sawTouchPointer } = await card.evaluate((el) => ({
     translate: getComputedStyle(el).translate,
     inlineScale: (el as HTMLElement).style.scale,
+    sawTouchPointer: (el as HTMLElement).dataset['touchPointer'] === 'true',
   }));
 
   // `lift` would leave translate at "0px -4px" if the tap had been treated as hover.
   expect(['none', '0px', '0px 0px']).toContain(translate);
+
+  if (!sawTouchPointer) {
+    test.info().annotations.push({
+      type: 'skipped-assertion',
+      description: 'engine dispatched no touch pointer events for tap(); press not observable',
+    });
+    return;
+  }
   // moveWhileTap="press" ran (it commits its released state inline) and released fully.
   expect(inlineScale).toBe('1');
 });
