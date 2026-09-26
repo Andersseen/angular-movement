@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## [1.2.0] - 2026-09-26
+
 **1.2 — Consumer DX & Imperative Motion.** Driven by an audit of the real apps that consume the
 library (spec 014): the everyday path — hover, tap, in-view, stagger, enter, `provideMovement` —
 gets clearer timing, correct touch semantics and shared interaction presets; `MoveAnimator`
