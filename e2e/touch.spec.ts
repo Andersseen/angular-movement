@@ -62,39 +62,43 @@ test('tapping leaves no sticky hover state, and press still plays and releases',
   await card.scrollIntoViewIfNeeded();
   await waitForHydration(page);
 
-  // Playwright's Linux WebKit dispatches no pointer events for a synthesized tap (macOS WebKit and
-  // real iOS Safari do), so moveWhileTap has nothing to react to there. Record what the engine sent.
+  // Synthesized taps are not uniform across Playwright engines: Linux WebKit sends a touch
+  // `pointerdown` but not always a matching `pointerup`/`pointercancel` (macOS WebKit and real iOS
+  // Safari send the full sequence). Record what the engine actually sent.
   await card.evaluate((el) => {
-    el.addEventListener(
-      'pointerdown',
-      (event) => {
-        if (event.pointerType === 'touch') el.dataset['touchPointer'] = 'true';
-      },
-      { once: true },
-    );
+    const seen = new Set<string>();
+    for (const type of ['pointerdown', 'pointerup', 'pointercancel']) {
+      el.addEventListener(type, (event) => {
+        if ((event as PointerEvent).pointerType !== 'touch') return;
+        seen.add(type);
+        el.dataset['touchPointers'] = [...seen].join(' ');
+      });
+    }
   });
 
   await card.tap();
   await settledMotionState(card);
 
-  const { translate, inlineScale, sawTouchPointer } = await card.evaluate((el) => ({
+  const { translate, touchPointers } = await card.evaluate((el) => ({
     translate: getComputedStyle(el).translate,
-    inlineScale: (el as HTMLElement).style.scale,
-    sawTouchPointer: (el as HTMLElement).dataset['touchPointer'] === 'true',
+    touchPointers: ((el as HTMLElement).dataset['touchPointers'] ?? '').split(' '),
   }));
 
   // `lift` would leave translate at "0px -4px" if the tap had been treated as hover.
   expect(['none', '0px', '0px 0px']).toContain(translate);
 
-  if (!sawTouchPointer) {
+  const sawPress = touchPointers.includes('pointerdown');
+  const sawRelease = touchPointers.includes('pointerup') || touchPointers.includes('pointercancel');
+  if (!sawPress || !sawRelease) {
     test.info().annotations.push({
       type: 'skipped-assertion',
-      description: 'engine dispatched no touch pointer events for tap(); press not observable',
+      description: `engine sent only [${touchPointers.join(', ')}] for tap(); press not observable`,
     });
     return;
   }
-  // moveWhileTap="press" ran (it commits its released state inline) and released fully.
-  expect(inlineScale).toBe('1');
+  // moveWhileTap="press" ran and released fully: the release commits scale inline once it
+  // finishes. Poll for it — the settle heuristic can return before a 3% scale starts moving.
+  await expect.poll(() => card.evaluate((el) => (el as HTMLElement).style.scale)).toBe('1');
 });
 
 test('a touch scroll that starts on an animated link still scrolls the page', async ({
