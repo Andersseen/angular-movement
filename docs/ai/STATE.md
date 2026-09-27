@@ -3,13 +3,15 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-09-26
+**Last updated:** 2026-09-27
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
 Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
-**WebKit touch e2e:** Playwright's Linux WebKit (CI) dispatches no pointer events for `tap()`, so
-`moveWhileTap` cannot fire there; `e2e/touch.spec.ts` only asserts the press state when a touch
-`pointerdown` actually arrived. macOS WebKit does send them, so a local run cannot reproduce CI.
+**WebKit touch e2e:** Playwright's Linux WebKit (CI) _does_ send a touch `pointerdown` for `tap()`
+(the 1.2.0 guard assumed it sent none and never fired), but not reliably the matching
+`pointerup`/`pointercancel`. `e2e/touch.spec.ts` now records the full touch pointer sequence, asserts
+the press only when both press and release arrived, and polls for the committed `scale: 1` rather
+than reading it once. macOS WebKit sends everything, so a local run cannot reproduce CI.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
 **Branch state:** `main` includes everything through PR #69 (spec 014) plus the `v1.2.0` release commit.
 **Roadmap phase:** **1.0.0 is out**, and 1.1.0 has since shipped on top of it (spec 013). Spec 009
