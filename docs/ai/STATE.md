@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-09-27
+**Last updated:** 2026-09-28
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
 Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
@@ -331,6 +331,10 @@ replays with the newly selected preset` still flakes once per repeat even single
   still passed, which hid it; CI failed on every PR since. Fixed by adding `"vite/client"` to
   `types`. If e2e ever fails wholesale with every page un-hydrated, check the `[WebServer]` lines in
   the Playwright output for a `Pre-transform error` first.
+- **E2E: wait for hydration before driving SSR-rendered controls.** A `selectOption`/`click` that
+  lands before hydration hits the server markup and is silently dropped — this failed `main` CI on
+  every push after PR #69 (`enter demo replays…`, WebKit `moveLeave…`). Use `waitForHydration` from
+  `e2e/hydration.ts` before the first interaction.
 - **E2E hydration waits must compare, not `typeof`-truthy-check.** `typeof window.ng?.getComponent`
   is always a non-empty (truthy) string, so `waitForFunction(() => typeof …)` returns immediately.
   Use `=== 'function'`. With no client JS, tests like "touchstart is not default-prevented" pass

@@ -1,4 +1,5 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
+import { waitForHydration } from './hydration';
 import { settledMotionState } from './motion-state';
 
 /**
@@ -10,20 +11,6 @@ import { settledMotionState } from './motion-state';
  * touch input — unit tests cannot see any of it.
  */
 test.use({ hasTouch: true, viewport: { width: 390, height: 844 } });
-
-/**
- * Host listeners only exist after hydration; asserting before it would test the SSR markup.
- * Dev builds publish the `ng` debugging global when the client app bootstraps.
- */
-async function waitForHydration(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () =>
-      typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
-      'function',
-    undefined,
-    { timeout: 15_000 },
-  );
-}
 
 test('a link with moveWhileHover="lift" moveWhileTap="press" navigates on tap', async ({
   page,
