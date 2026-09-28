@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { waitForHydration } from './hydration';
 import { DEMO_ROUTES } from './routes';
 import { motionState, settledMotionState } from './motion-state';
 
@@ -429,6 +430,8 @@ test.describe('demo pages', () => {
 
     const label = page.locator('.font-display', { hasText: /^Fade Up$/i });
     await expect(label).toBeVisible();
+    // The select is SSR-rendered: changing it before hydration never reaches ngModelChange.
+    await waitForHydration(page);
 
     await page.selectOption('#preset-select', 'zoom-in');
 

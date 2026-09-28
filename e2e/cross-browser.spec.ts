@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { waitForHydration } from './hydration';
 import { motionState, settledMotionState } from './motion-state';
 
 /**
@@ -22,6 +23,8 @@ test('enter/leave: moveLeave plays before *movePresence removes the view', async
 
   const card = page.getByTestId('leave-demo-card');
   await expect(card).toBeVisible();
+  // A click on the SSR-rendered button before hydration has no handler to toggle the view.
+  await waitForHydration(page);
 
   await page
     .getByTestId('leave-toggle-button')
