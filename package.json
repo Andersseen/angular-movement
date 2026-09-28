@@ -82,7 +82,7 @@
     "typescript-eslint": "8.56.1",
     "vite": "^6.3.6",
     "vitest": "4.0.18",
-    "wrangler": "^4.72.0"
+    "wrangler": "^4.140.0"
   },
   "lint-staged": {
     "*.ts": [
