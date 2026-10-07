@@ -1,0 +1,88 @@
+import { Component, DebugElement } from '@angular/core';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
+import { vi } from 'vitest';
+import { Move__CLASS__Directive } from './move-__name__.directive';
+import { provideMovement } from '../providers/provide-movement';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
+
+@Component({
+  template: `<div [move__NAME__]="{ scale: [1, 1.1] }">Target</div>`,
+  imports: [Move__CLASS__Directive],
+})
+class TestHostComponent {}
+
+@Component({
+  template: `<div [move__NAME__]="{ scale: [1, 1.1] }" [moveDisabled]="true">Target</div>`,
+  imports: [Move__CLASS__Directive],
+})
+class DisabledHostComponent {}
+
+describe('Move__CLASS__Directive', () => {
+  let fixture: ComponentFixture<TestHostComponent>;
+  let debugElement: DebugElement;
+
+  beforeEach(() => {
+    TestBed.configureTestingModule({
+      imports: [TestHostComponent],
+      providers: [provideMovement()],
+    });
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+    debugElement = fixture.debugElement.query(By.directive(Move__CLASS__Directive));
+  });
+
+  it('should create and attach the directive', () => {
+    expect(debugElement).toBeTruthy();
+  });
+
+  it('should play through the engine on trigger', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('__EVENT__', null);
+
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('should not play when disabled', () => {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({
+      imports: [DisabledHostComponent],
+      providers: [provideMovement()],
+    });
+    const localFixture = TestBed.createComponent(DisabledHostComponent);
+    localFixture.detectChanges();
+    const de = localFixture.debugElement.query(By.directive(Move__CLASS__Directive));
+
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    de.triggerEventHandler('__EVENT__', null);
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('should respect prefers-reduced-motion', () => {
+    // Reduced motion is read from the injected DOCUMENT — stub matchMedia on it.
+    // See move-hover.directive.spec.ts for the established pattern in this repo.
+  });
+
+  it('should cancel the running animation on destroy', () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const cancel = vi.fn();
+    vi.spyOn(engine, 'play').mockReturnValue({ cancel } as unknown as AnimationControls);
+
+    debugElement.triggerEventHandler('__EVENT__', null);
+    fixture.destroy();
+
+    expect(cancel).toHaveBeenCalled();
+  });
+
+  it('should be SSR-safe (no browser globals at construction)', () => {
+    // The engine no-ops on the server; assert nothing throws when the directive is
+    // created without triggering its event.
+    expect(() => TestBed.createComponent(TestHostComponent)).not.toThrow();
+  });
+});

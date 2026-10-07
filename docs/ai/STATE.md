@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-09-28
+**Last updated:** 2026-10-07
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
 Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
@@ -21,6 +21,29 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## Done — Spec 015 (1.3–2.0 strategic planning; documentation only)
+
+Created [docs/v2](../v2/README.md): current-state audit, serious SDD, migration/validation/decision
+documents and eight future plans. Preserves all seven 1.x minors; 2.0 requires useful unavoidable
+breaking changes and evidence, not a scheduled version bump. No feature implementation, API/version
+changes or publishing. Historical specs/release wording remain intact; docs/v2/AUDIT.md records drift.
+
+Actual surface at `1464331`: 73 named exports, 62 stable and 11 experimental; 21 directives split
+16/5; 31 preset choices (30 animations plus `none`). Layout/drag/smooth-scroll/target/trigger remain
+experimental, together with SmoothScrollService, the experimental aggregate and four drag types.
+The current registry tracks only the latest player, not every concurrent writer. Layout cancellation
+cleanup and transform-space risks need focused reproduction before changes; they were source findings,
+not browser-tested bugs in this planning task. Preserve independent property layering in 1.x.
+
+The existing consumer script proves tarball install/AOT on two majors, not real-app runtime or packed
+SSR/hydration. Spec 014's eight-app static audit is historical, not fresh 1.2 validation. Future gates
+require real consumers, physical touch, measured frame/heap behavior and explicit experimental decisions.
+**Next implementation milestone: 1.3 Adoption & Migration**, under a separate implementation spec;
+group cancellation/ownership groundwork starts in 1.4, layout contracts mature in 1.6.
+Docs-only verification: formatting, local links/required sections, public-surface/source review and
+`git diff --check` passed; fresh `docs:check` passed in the read-only audit. Runtime/browser/device
+suites were not rerun or certified; verification details are in spec 015.
 
 ## What is DONE and stable
 

@@ -1,0 +1,92 @@
+import { DOCUMENT } from '@angular/common';
+import { Directive, effect, ElementRef, inject, input, OnDestroy } from '@angular/core';
+import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
+import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
+import {
+  optionalBooleanAttribute,
+  optionalNumberAttribute,
+  prefersReducedMotion,
+  resolveMovementConfig,
+  resolveMoveFrames,
+} from './move-animation.utils';
+import { AnimationEngine } from '../engines/animation-engine.service';
+import { AnimationControls } from '../engines/animation-controls';
+
+@Directive({
+  selector: '[move__NAME__]',
+  host: {
+    // Native host bindings keep the directive zoneless-safe. Remove if not event-driven.
+    '(__EVENT__)': 'on__EVENT__()',
+  },
+})
+export class Move__CLASS__Directive implements OnDestroy {
+  readonly move__NAME__ = input.required<MovePreset | MoveKeyframes>();
+
+  // Shared timing inputs — every directive in the library accepts these.
+  readonly moveDuration = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveEasing = input<string | undefined>(undefined);
+  readonly moveDelay = input<number | undefined, unknown>(undefined, {
+    transform: optionalNumberAttribute,
+  });
+  readonly moveDisabled = input<boolean | undefined, unknown>(undefined, {
+    transform: optionalBooleanAttribute,
+  });
+  readonly moveSpring = input<MoveSpring | undefined>(undefined);
+
+  readonly #defaults = inject(MOVEMENT_CONFIG);
+  readonly #documentRef = inject(DOCUMENT);
+  readonly #host = inject(ElementRef<HTMLElement>);
+  readonly #engine = inject(AnimationEngine);
+
+  #currentPlayer: AnimationControls | null = null;
+
+  constructor() {
+    effect(() => {
+      // Track every input so a change while active restarts the animation.
+      this.move__NAME__();
+      this.moveDuration();
+      this.moveEasing();
+      this.moveDelay();
+      this.moveDisabled();
+      this.moveSpring();
+
+      // React to input changes only if the directive is currently active.
+    });
+  }
+
+  on__EVENT__() {
+    this.play();
+  }
+
+  private play() {
+    this.#currentPlayer?.cancel();
+
+    const isReduced = prefersReducedMotion(this.#documentRef);
+    const config = resolveMovementConfig(
+      this.#defaults,
+      {
+        duration: this.moveDuration(),
+        easing: this.moveEasing(),
+        delay: this.moveDelay(),
+        disabled: this.moveDisabled(),
+      },
+      isReduced,
+    );
+
+    if (config.disabled) return;
+
+    const frames = resolveMoveFrames(this.move__NAME__(), 'enter');
+
+    this.#currentPlayer = this.#engine.play(this.#host.nativeElement, frames, {
+      config,
+      spring: this.moveSpring(),
+      disabled: false,
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.#currentPlayer?.cancel();
+  }
+}

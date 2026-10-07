@@ -1,5 +1,9 @@
 # Roadmap
 
+The current repository baseline is **1.2.0**. The historical milestones below retain their original
+planning/release wording. For the proposed **1.3 → 1.9 → conditional 2.0** runway, implementation-backed
+audit, SDD, migration strategy and validation gates, see [the future roadmap](docs/v2/README.md).
+
 This roadmap is intentionally focused on making angular-movement stable and useful in real Angular
 projects. New features are welcome, but the main priority before `1.0` is predictability.
 

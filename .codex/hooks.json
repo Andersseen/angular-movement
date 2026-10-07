@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/scripts/ssr-guard.sh\"",
+            "timeout": 10,
+            "statusMessage": "Checking SSR safety"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$CLAUDE_PROJECT_DIR/.claude/scripts/record-check.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ]
+  }
+}

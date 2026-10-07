@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Future planning documentation in `docs/v2/`: implementation-backed 1.2 audit, 1.3–1.9 release
+  plans, conditional 2.0 SDD, migration strategy, validation gates and decision register. Planning
+  only; no runtime, public API, package version or historical spec changes.
+
 ## [1.2.0] - 2026-09-26
 
 **1.2 — Consumer DX & Imperative Motion.** Driven by an audit of the real apps that consume the
