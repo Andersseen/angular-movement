@@ -1,0 +1,17 @@
+{
+  "packs": [
+    "technical",
+    "typescript",
+    "angular",
+    "testing",
+    "performance",
+    "accessibility",
+    "documentation",
+    "git",
+    "devops",
+    "efficiency",
+    "agentic"
+  ],
+  "enable": ["playwright", "codebase-memory", "rtk"],
+  "targets": ["codex", "claude", "kimi"]
+}

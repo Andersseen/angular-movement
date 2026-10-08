@@ -1,19 +1,27 @@
 {
   "mcpServers": {
-    "playwright": {
-      "command": "npx",
-      "args": ["-y", "@playwright/mcp@latest", "--browser", "chromium"]
+    "codebase-memory": {
+      "args": [],
+      "command": "codebase-memory-mcp",
+      "env": {},
+      "type": "stdio"
     },
     "context7": {
-      "command": "npx",
-      "args": ["-y", "@upstash/context7-mcp"]
+      "type": "http",
+      "url": "https://mcp.context7.com/mcp"
     },
     "memory": {
-      "command": "npx",
       "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "command": "npx",
       "env": {
         "MEMORY_FILE_PATH": "${HOME}/.claude/memory/angular-movement-kg.json"
       }
+    },
+    "playwright": {
+      "args": ["@playwright/mcp@0.0.81"],
+      "command": "npx",
+      "env": {},
+      "type": "stdio"
     }
   }
 }

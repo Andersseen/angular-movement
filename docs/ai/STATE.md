@@ -22,6 +22,16 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
 
+## Done — Agentyx harness (tooling only)
+
+`@agentyx/cli` (devDependency) manages generic skills/MCP/hooks for Codex, Claude Code and Kimi via
+`.agentyx.json` + `.agentyx.lock.json`. Do not hand-edit Agentyx-owned files (the 43 generic skills in
+`.agents/skills` / `.claude/skills`, `.kimi-code/mcp.json`, the context7/playwright/codebase-memory
+MCP entries); change `.agentyx.json` and run `npx agentyx install`. Repo skills (`spec`, `verify`,
+`release`, `new-directive`), hooks and `docs/ai/` stay authoritative for project rules.
+`codebase-memory-mcp` must be installed locally for that MCP to start. Chrome DevTools MCP is
+deliberately not enabled (`npx agentyx install --enable chrome-devtools` for one-off perf/a11y runs).
+
 ## Done — Spec 015 (1.3–2.0 strategic planning; documentation only)
 
 Created [docs/v2](../v2/README.md): current-state audit, serious SDD, migration/validation/decision
