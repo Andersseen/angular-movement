@@ -1,0 +1,17 @@
+{
+  "mcpServers": {
+    "codebase-memory": {
+      "args": [],
+      "command": "codebase-memory-mcp",
+      "env": {}
+    },
+    "context7": {
+      "url": "https://mcp.context7.com/mcp"
+    },
+    "playwright": {
+      "args": ["@playwright/mcp@0.0.81"],
+      "command": "npx",
+      "env": {}
+    }
+  }
+}
