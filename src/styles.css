@@ -1,11 +1,13 @@
-@import url('https://fonts.bunny.net/css?family=geist:400,700,800|geist-mono:400');
 @import 'tailwindcss';
 
 @source inline(
   'block w-full inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer select-none bg-primary text-primary-foreground shadow-sm data-[hover]:bg-primary/90 data-[press]:scale-[0.98] border border-input bg-background data-[hover]:bg-accent data-[hover]:text-accent-foreground h-8 h-9 h-10 h-11 w-9 rounded-md rounded-lg rounded-xl rounded-full px-2.5 px-3 px-4 px-8 py-0.5 py-2 text-xs text-sm text-base border-transparent bg-muted text-foreground border-border bg-surface text-surface-foreground text-muted-foreground flex flex-col gap-1.5 p-6 pt-0 leading-none tracking-tight text-lg font-semibold file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 shrink-0 h-px'
 );
 
+@custom-variant dark (&:where(:root:not([data-theme='light']) *));
+
 @theme {
+  --color-accent-solid: var(--color-accent-solid);
   --color-accent: var(--color-accent);
   --color-accent-light: var(--color-accent-light);
   --color-accent-glow: var(--color-accent-glow);
@@ -48,6 +50,8 @@
   /* Brand */
   --color-accent: oklch(0.62 0.24 268); /* electric indigo */
   --color-accent-light: oklch(0.72 0.18 268);
+  /* Filled controls with white text: darker than --color-accent so it meets 4.5:1 */
+  --color-accent-solid: oklch(0.52 0.23 268);
   --color-accent-glow: oklch(0.62 0.24 268 / 0.15);
 
   /* Surface */
@@ -58,15 +62,15 @@
 
   /* Text */
   --color-text: oklch(0.96 0.005 268);
-  --color-text-muted: oklch(0.65 0.01 268);
-  --color-text-subtle: oklch(0.45 0.01 268);
+  --color-text-muted: oklch(0.74 0.01 268);
+  --color-text-subtle: oklch(0.64 0.01 268);
 
   /* Code */
   --color-code-bg: oklch(0.09 0.015 268);
   --color-code-string: oklch(0.75 0.18 155); /* green */
   --color-code-keyword: oklch(0.72 0.18 268); /* indigo */
   --color-code-attr: oklch(0.78 0.15 55); /* amber */
-  --color-code-comment: oklch(0.5 0.01 268);
+  --color-code-comment: oklch(0.64 0.01 268);
 
   /* Typography */
   --font-display: 'Geist', 'Inter', system-ui; /* headings */
@@ -84,6 +88,7 @@
   /* Brand */
   --color-accent: oklch(0.5 0.22 268);
   --color-accent-light: oklch(0.42 0.2 268);
+  --color-accent-solid: oklch(0.5 0.22 268);
   --color-accent-glow: oklch(0.5 0.22 268 / 0.12);
 
   /* Surface */
@@ -95,14 +100,14 @@
   /* Text */
   --color-text: oklch(0.17 0.015 268);
   --color-text-muted: oklch(0.4 0.015 268);
-  --color-text-subtle: oklch(0.55 0.012 268);
+  --color-text-subtle: oklch(0.48 0.014 268);
 
   /* Code */
   --color-code-bg: oklch(0.96 0.006 268);
   --color-code-string: oklch(0.48 0.15 155);
   --color-code-keyword: oklch(0.5 0.2 268);
   --color-code-attr: oklch(0.52 0.16 55);
-  --color-code-comment: oklch(0.58 0.012 268);
+  --color-code-comment: oklch(0.48 0.014 268);
 }
 
 body {
@@ -150,4 +155,68 @@ code {
 }
 .code-comment {
   color: var(--color-code-comment);
+}
+
+/*
+ * Documentation prose. Tailwind Typography is not installed, so `prose` utilities do nothing;
+ * this is the single place article text is styled. Everything sits in :where() (specificity 0)
+ * so utility classes on individual elements — and `not-prose` blocks — always win.
+ */
+:where(.docs-prose) {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+:where(.docs-prose) :where(h2) {
+  font-family: var(--font-display);
+  color: var(--color-text);
+  font-size: 1.625rem;
+  line-height: 1.25;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin: 2.75rem 0 1rem;
+}
+:where(.docs-prose) :where(h3) {
+  font-family: var(--font-display);
+  color: var(--color-text);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 650;
+  margin: 2rem 0 0.75rem;
+}
+:where(.docs-prose) :where(p, ul, ol) {
+  margin: 1rem 0;
+}
+:where(.docs-prose) :where(ul) {
+  list-style: disc;
+  padding-left: 1.5rem;
+}
+:where(.docs-prose) :where(ol) {
+  list-style: decimal;
+  padding-left: 1.5rem;
+}
+:where(.docs-prose) :where(li) {
+  margin: 0.4rem 0;
+}
+:where(.docs-prose) :where(strong) {
+  color: var(--color-text);
+  font-weight: 650;
+}
+:where(.docs-prose) :where(a) {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+:where(.docs-prose) :where(code) {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.875em;
+  color: var(--color-accent-light);
+  background: var(--color-surface-raised);
+  padding: 0.1em 0.35em;
+  border-radius: 0.3rem;
+}
+:where(.docs-prose) :where(pre code, .not-prose code) {
+  color: inherit;
+  background: transparent;
+  padding: 0;
 }

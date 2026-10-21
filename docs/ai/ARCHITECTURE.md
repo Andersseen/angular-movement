@@ -16,7 +16,15 @@ projects/movement/src/       ← THE LIBRARY (published to npm)
     values/move-values.ts    ← moveValue / moveTransform / moveSpringValue signal helpers
     scroll/                  ← SmoothScrollService + MoveSmoothScrollDirective
 
+projects/movement-migrate/   ← read-only legacy-animation assessment (private, unpublished; TS compiler API + @angular/compiler)
+projects/movement-mcp/       ← MCP server + skill (own install and lockfile)
+validation/consumer/         ← AOT-compile fixture for the packed tarball (scripts/validate-consumer.mjs)
+validation/consumer-runtime/ ← prerender + hydrate + browser fixture (scripts/validate-consumer-runtime.mjs)
+
 src/                         ← THE DEMO SITE (AnalogJS: Vite + SSR + file-based routing)
+  app/shared/docs-nav.ts     ← single docs navigation model (sidebar, quick find, prev/next)
+  app/shared/utils/          ← highlight.ts (tokenizer), clipboard.ts (copy with fallback)
+  app/shared/directives/     ← heading-anchors.ts (ids + copy-link anchors on docs headings)
   app/pages/                 ← routes: (home).page.ts, demos/, docs/, templates.page.ts
   app/pages/demos/<name>/    ← one demo folder per directive
   app/shared/components/     ← CodeBlock, DemoContainer, etc.

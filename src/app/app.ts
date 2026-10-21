@@ -1,8 +1,7 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Navbar } from './layout/navbar/navbar';
 import { Footer } from './layout/footer/footer';
-import { SmoothScrollService } from 'movement';
 
 @Component({
   selector: 'app-root',
@@ -16,8 +15,4 @@ import { SmoothScrollService } from 'movement';
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class App {
-  constructor() {
-    inject(SmoothScrollService).init({ lerp: 0.1 });
-  }
-}
+export class App {}

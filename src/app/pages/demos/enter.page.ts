@@ -1,7 +1,10 @@
+import type { RouteMeta } from '@analogjs/router';
 import { Component, signal } from '@angular/core';
 import { MoveEnterDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/utils/demo.utils';
+
+export const routeMeta: RouteMeta = { title: 'moveEnter demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-enter',

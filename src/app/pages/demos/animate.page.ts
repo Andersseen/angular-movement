@@ -1,14 +1,8 @@
-import {
-  CUSTOM_ELEMENTS_SCHEMA,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import type { RouteMeta } from '@analogjs/router';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveAnimateDirective, MoveKeyframeState } from 'movement';
+import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { RangeSlider } from '../../shared/components/range-slider/range-slider';
-import { ThemeService } from '../../shared/theme.service';
 
 const NATURAL: Record<string, number> = {
   opacity: 1,
@@ -19,11 +13,12 @@ const NATURAL: Record<string, number> = {
   blur: 0,
 };
 
+export const routeMeta: RouteMeta = { title: 'moveAnimate demo — Angular Movement' };
+
 @Component({
   selector: 'app-demo-animate',
-  imports: [MoveAnimateDirective, RangeSlider],
+  imports: [MoveAnimateDirective, RangeSlider, CodeBlock],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="space-y-8">
       <div>
@@ -31,7 +26,7 @@ const NATURAL: Record<string, number> = {
           class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
         >
           moveAnimate
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
+          <div class="bg-accent-solid absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
         <p class="text-text-muted mt-6 max-w-2xl text-lg">
           Define <span class="text-text font-medium">initial</span>,
@@ -170,7 +165,7 @@ const NATURAL: Record<string, number> = {
                         (click)="easing.set(e)"
                         [class]="
                           easing() === e
-                            ? 'bg-accent border-accent text-white'
+                            ? 'bg-accent-solid border-accent-solid text-white'
                             : 'bg-bg text-text-muted border-border hover:border-accent/50'
                         "
                         class="rounded-lg border py-2 text-center text-sm transition-all"
@@ -236,46 +231,13 @@ const NATURAL: Record<string, number> = {
             </div>
           </div>
 
-          <div class="bg-code-bg border-border relative overflow-hidden rounded-2xl border">
-            <div
-              class="border-border bg-surface absolute top-0 right-0 left-0 z-20 flex h-10 items-center justify-between border-b px-4"
-            >
-              <div class="text-text-subtle font-mono text-xs">HTML Output</div>
-              <button
-                type="button"
-                class="text-text-muted hover:text-text flex items-center gap-1 text-xs font-medium transition-colors"
-                (click)="copyCode()"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                {{ copied() ? 'Copied!' : 'Copy' }}
-              </button>
-            </div>
-            <div class="pt-10">
-              <vertex-editor-lite
-                [value]="highlightedCode()"
-                language="html"
-                [theme]="theme()"
-                height="220px"
-                aria-label="Generated code for this demo"
-              ></vertex-editor-lite>
-            </div>
-          </div>
+          <app-code-block title="demo.html" language="html" [code]="highlightedCode()" />
         </div>
       </div>
     </div>
   `,
 })
 export default class DemoAnimate {
-  readonly #themeService = inject(ThemeService);
-  protected readonly theme = this.#themeService.theme;
-
   protected readonly opacity = signal(0);
   protected readonly y = signal(30);
   protected readonly x = signal(0);
@@ -286,7 +248,6 @@ export default class DemoAnimate {
   protected readonly delay = signal(0);
   protected readonly easing = signal('ease');
   protected readonly showElement = signal(true);
-  protected readonly copied = signal(false);
   protected readonly easings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
 
   protected readonly initialState = computed((): MoveKeyframeState => {
@@ -353,11 +314,5 @@ export default class DemoAnimate {
   protected replay(): void {
     this.showElement.set(false);
     setTimeout(() => this.showElement.set(true), 50);
-  }
-
-  protected copyCode(): void {
-    navigator.clipboard.writeText(this.highlightedCode());
-    this.copied.set(true);
-    setTimeout(() => this.copied.set(false), 2000);
   }
 }

@@ -113,13 +113,13 @@ export class PresetsShowcase {
 
   protected readonly dynamicSnippet = computed(() => {
     const preset = this.selectedPreset() || 'fade-up'; // Fallback visual
-    return `<span class="code-comment">&lt;!-- Just add the moveEnter directive --&gt;</span>
-&lt;div 
-  <span class="code-keyword">moveEnter</span>=<span class="code-string">"${preset}"</span>
-  <span class="code-keyword">[moveDuration]</span>=<span class="code-string">"500"</span>
-&gt;
+    return `<!-- Just add the moveEnter directive -->
+<div 
+  moveEnter="${preset}"
+  [moveDuration]="500"
+>
   Hello Movement!
-&lt;/div&gt;`;
+</div>`;
   });
 
   // Map to track visibility state per preset to force re-render

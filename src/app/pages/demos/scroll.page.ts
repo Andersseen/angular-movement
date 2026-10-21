@@ -1,7 +1,10 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MoveScrollDirective, moveSpringValue, moveTransform } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'moveScroll demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-scroll',

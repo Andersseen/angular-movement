@@ -1,8 +1,8 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MoveEnterDirective, MoveHoverDirective, MovePreset, MoveTapDirective } from 'movement';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { PageHeader } from '../../shared/components/page-header/page-header';
-import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
 
 interface PresetGroup {
   title: string;
@@ -19,16 +19,11 @@ interface PresetExample {
   interaction?: boolean;
 }
 
+export const routeMeta: RouteMeta = { title: 'Presets — Angular Movement' };
+
 @Component({
   selector: 'app-docs-presets',
-  imports: [
-    CodeBlock,
-    PageHeader,
-    DocsFooterNav,
-    MoveEnterDirective,
-    MoveHoverDirective,
-    MoveTapDirective,
-  ],
+  imports: [CodeBlock, PageHeader, MoveEnterDirective, MoveHoverDirective, MoveTapDirective],
   template: `
     <article class="max-w-5xl">
       <app-page-header
@@ -36,9 +31,7 @@ interface PresetExample {
         description="Named animations for common product UI moments. Use them when the desired motion is already known and you do not need custom state logic."
       />
 
-      <div
-        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
-      >
+      <div class="docs-prose max-w-none">
         <h2>Where presets fit</h2>
         <p>
           Entrance presets work with <code>moveEnter</code>, <code>moveLeave</code>,
@@ -74,7 +67,7 @@ interface PresetExample {
                           type="button"
                           moveWhileHover="lift"
                           moveWhileTap="press"
-                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           Hover me
                         </button>
@@ -82,7 +75,7 @@ interface PresetExample {
                         <button
                           type="button"
                           moveWhileTap="press"
-                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           Press me
                         </button>
@@ -120,7 +113,7 @@ interface PresetExample {
                         <div
                           [moveEnter]="example.preset"
                           moveDuration="550ms"
-                          class="bg-accent text-text flex h-16 w-16 items-center justify-center rounded-lg font-mono text-sm font-bold shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid text-text flex h-16 w-16 items-center justify-center rounded-lg font-mono text-sm font-bold shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           UI
                         </div>
@@ -149,13 +142,6 @@ interface PresetExample {
           <code>moveLayout</code>, <code>moveScroll</code>, or <code>moveParallax</code>.
         </p>
       </div>
-
-      <app-docs-footer-nav
-        prevHref="/docs/reference"
-        prevLabel="API Reference"
-        nextHref="/docs/mcp"
-        nextLabel="AI Agent Setup"
-      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -185,31 +171,31 @@ export default class PresetsPage {
           name: 'Fade up card',
           preset: 'fade-up',
           use: 'A calm default for cards, settings sections, and page content.',
-          demo: `&lt;<span class="code-keyword">article</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"fade-up"</span>&gt;
+          demo: `<article moveEnter="fade-up">
   Billing summary
-&lt;/<span class="code-keyword">article</span>&gt;`,
+</article>`,
         },
         {
           name: 'Slide up panel',
           preset: 'slide-up',
           use: 'Useful for drawers, bottom sheets, and contextual panels.',
-          demo: `&lt;<span class="code-keyword">aside</span>
-  <span class="code-attr">moveEnter</span>=<span class="code-string">"slide-up"</span>
-  <span class="code-attr">moveLeave</span>=<span class="code-string">"slide-down"</span>
-&gt;
+          demo: `<aside
+  moveEnter="slide-up"
+  moveLeave="slide-down"
+>
   Filters
-&lt;/<span class="code-keyword">aside</span>&gt;`,
+</aside>`,
         },
         {
           name: 'Zoom in status',
           preset: 'zoom-in',
           use: 'Good for badges, confirmation UI, and small attention moments.',
-          demo: `&lt;<span class="code-keyword">span</span>
-  <span class="code-attr">moveEnter</span>=<span class="code-string">"zoom-in"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"300ms"</span>
-&gt;
+          demo: `<span
+  moveEnter="zoom-in"
+  moveDuration="300ms"
+>
   Saved
-&lt;/<span class="code-keyword">span</span>&gt;`,
+</span>`,
         },
       ],
     },
@@ -223,23 +209,23 @@ export default class PresetsPage {
           preset: 'lift',
           interaction: true,
           use: 'A 4px rise for cards, buttons and links. Mouse and pen only — touch has no hover.',
-          demo: `&lt;<span class="code-keyword">a</span>
-  <span class="code-attr">moveWhileHover</span>=<span class="code-string">"lift"</span>
-  <span class="code-attr">moveWhileTap</span>=<span class="code-string">"press"</span>
-&gt;
+          demo: `<a
+  moveWhileHover="lift"
+  moveWhileTap="press"
+>
   Pricing
-&lt;/<span class="code-keyword">a</span>&gt;`,
+</a>`,
         },
         {
           name: 'Press on tap',
           preset: 'press',
           interaction: true,
           use: 'A 3% scale-down while pressed — the touch feedback for anything tappable.',
-          demo: `&lt;<span class="code-keyword">button</span>
-  <span class="code-attr">moveWhileTap</span>=<span class="code-string">"press"</span>
-&gt;
+          demo: `<button
+  moveWhileTap="press"
+>
   Save
-&lt;/<span class="code-keyword">button</span>&gt;`,
+</button>`,
         },
       ],
     },
@@ -251,29 +237,29 @@ export default class PresetsPage {
           name: 'Pulse loading state',
           preset: 'pulse',
           use: 'Signals live activity without moving layout around.',
-          demo: `&lt;<span class="code-keyword">div</span>
-  <span class="code-attr">moveEnter</span>=<span class="code-string">"pulse"</span>
-  <span class="code-attr">moveDuration</span>=<span class="code-string">"900ms"</span>
-&gt;
+          demo: `<div
+  moveEnter="pulse"
+  moveDuration="900ms"
+>
   Syncing
-&lt;/<span class="code-keyword">div</span>&gt;`,
+</div>`,
         },
         {
           name: 'Shake validation',
           preset: 'shake',
           use: 'Draws attention to a failed field after explicit user action.',
-          demo: `&lt;<span class="code-keyword">input</span>
-  <span class="code-attr">moveEnter</span>=<span class="code-string">"shake"</span>
-  <span class="code-attr">aria-invalid</span>=<span class="code-string">"true"</span>
-/&gt;`,
+          demo: `<input
+  moveEnter="shake"
+  aria-invalid="true"
+/>`,
         },
         {
           name: 'Tada success',
           preset: 'tada',
           use: 'A celebratory moment for complete setup or milestone progress.',
-          demo: `&lt;<span class="code-keyword">strong</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"tada"</span>&gt;
+          demo: `<strong moveEnter="tada">
   Workspace ready
-&lt;/<span class="code-keyword">strong</span>&gt;`,
+</strong>`,
         },
       ],
     },
@@ -285,27 +271,27 @@ export default class PresetsPage {
           name: 'Draw checkmark',
           preset: 'icon-draw',
           use: 'Reveals the actual SVG stroke instead of faking it with opacity.',
-          demo: `&lt;<span class="code-keyword">path</span>
-  <span class="code-attr">moveEnter</span>=<span class="code-string">"icon-draw"</span>
-  <span class="code-attr">d</span>=<span class="code-string">"M14 25.5 21 32l14-17"</span>
-  <span class="code-attr">stroke</span>=<span class="code-string">"currentColor"</span>
-/&gt;`,
+          demo: `<path
+  moveEnter="icon-draw"
+  d="M14 25.5 21 32l14-17"
+  stroke="currentColor"
+/>`,
         },
         {
           name: 'Icon pulse',
           preset: 'icon-pulse',
           use: 'Adds emphasis to a selected tool or active navigation icon.',
-          demo: `&lt;<span class="code-keyword">svg</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"icon-pulse"</span>&gt;
-  &lt;<span class="code-keyword">path</span> <span class="code-attr">d</span>=<span class="code-string">"..."</span> /&gt;
-&lt;/<span class="code-keyword">svg</span>&gt;`,
+          demo: `<svg moveEnter="icon-pulse">
+  <path d="..." />
+</svg>`,
         },
         {
           name: 'Icon bounce',
           preset: 'icon-bounce',
           use: 'Gives small icons a friendly confirmation motion.',
-          demo: `&lt;<span class="code-keyword">svg</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"icon-bounce"</span>&gt;
-  &lt;<span class="code-keyword">path</span> <span class="code-attr">d</span>=<span class="code-string">"..."</span> /&gt;
-&lt;/<span class="code-keyword">svg</span>&gt;`,
+          demo: `<svg moveEnter="icon-bounce">
+  <path d="..." />
+</svg>`,
         },
       ],
     },

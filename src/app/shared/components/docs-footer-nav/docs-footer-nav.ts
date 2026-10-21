@@ -6,9 +6,11 @@ import { RouterLink } from '@angular/router';
   imports: [RouterLink],
   template: `
     <div
-      class="border-border mt-16 flex items-center border-t pt-8"
+      class="border-border mt-16 flex items-center gap-4 border-t pt-8"
       [class.justify-between]="prevHref()"
       [class.justify-end]="!prevHref()"
+      aria-label="Previous and next pages"
+      role="navigation"
     >
       @if (prevHref()) {
         <a
@@ -23,16 +25,18 @@ import { RouterLink } from '@angular/router';
         </a>
       }
 
-      <a
-        [routerLink]="nextHref()"
-        class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
-      >
-        <span class="text-text-subtle text-sm font-medium">Next</span>
-        <span class="font-display flex items-center gap-2 text-lg font-semibold">
-          {{ nextLabel() }}
-          <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
-        </span>
-      </a>
+      @if (nextHref()) {
+        <a
+          [routerLink]="nextHref()"
+          class="group hover:text-accent flex flex-col items-end gap-1 transition-colors"
+        >
+          <span class="text-text-subtle text-sm font-medium">Next</span>
+          <span class="font-display flex items-center gap-2 text-lg font-semibold">
+            {{ nextLabel() }}
+            <span class="transition-transform group-hover:translate-x-1">&rarr;</span>
+          </span>
+        </a>
+      }
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +44,6 @@ import { RouterLink } from '@angular/router';
 export class DocsFooterNav {
   readonly prevHref = input<string | undefined>(undefined);
   readonly prevLabel = input<string>('');
-  readonly nextHref = input.required<string>();
-  readonly nextLabel = input.required<string>();
+  readonly nextHref = input<string | undefined>(undefined);
+  readonly nextLabel = input<string>('');
 }

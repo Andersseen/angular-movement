@@ -381,6 +381,9 @@ test.describe('demo pages', () => {
       return Math.min(400, Math.max(0, doc.scrollHeight - doc.clientHeight));
     });
 
+    // The button's handler only exists after hydration; the page now also starts the service in its
+    // constructor, so wait for the client app before driving it.
+    await waitForHydration(page);
     await page.getByTestId('smooth-scroll-instant').click();
 
     // `smooth-scroll-active` is SSR-rendered as "no" (isPlatformBrowser is false on the server)
@@ -405,24 +408,15 @@ test.describe('demo pages', () => {
   }) => {
     await page.goto('/demos/animate');
 
-    // vertex-editor-lite initializes its editor view asynchronously (dynamic import of the
-    // language mode); a [value] change that lands before it's ready is silently dropped. Wait
-    // for the default code to actually render before driving the slider, so the assertion isn't
-    // racing that init.
-    const editor = page.locator('vertex-editor-lite');
-    await expect
-      .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
-        timeout: 3000,
-      })
-      .toContain('scale: 0.85');
+    // The generated snippet is a plain CodeBlock bound to the same signals as the controls, so it
+    // updates synchronously with the slider; the control is SSR-rendered, so wait for hydration.
+    await waitForHydration(page);
+    const snippet = page.locator('app-code-block pre code');
+    await expect(snippet).toContainText('scale: 0.85');
 
     await page.locator('#scale').fill('1.5');
 
-    await expect
-      .poll(async () => editor.evaluate((el) => (el as { value?: string }).value ?? ''), {
-        timeout: 3000,
-      })
-      .toContain('scale: 1.5');
+    await expect(snippet).toContainText('scale: 1.5');
   });
 
   test('enter demo replays with the newly selected preset', async ({ page }) => {

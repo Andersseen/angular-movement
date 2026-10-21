@@ -141,3 +141,65 @@ rejection/deprecation decision with migration, not by quietly skipping validatio
 - [ ] Production tooling/tree-shaking/package boundaries meet budget and dependency constraints.
 - [ ] Real consumer cohort and migration rehearsals are reviewed, with limitations published.
 - [ ] A significant breaking-change benefit outweighs costs; otherwise remain 1.x.
+
+## 1.3 evidence record (spec 016)
+
+_Update:_ after folding the toolchain bumps (Angular 22.2 repo toolchain, Vite 8, Vitest 5), `ng build movement`, `api:check` (regenerated snapshot, identical exports), `validate:consumer` and `validate:consumer:runtime` (18/18 on Angular 21 and 22) and the full e2e were re-run and pass. The Lighthouse and bundle numbers below predate that bump.
+
+Recorded 2026-10-21 on the `feat/1.3-adoption-dx-site` branch. Commands are repository scripts, so the
+results are reproducible. Raw per-check output: [consumer-runtime.json](evidence/1.3/consumer-runtime.json).
+
+**Packed-package runtime (executed, not compile-only)** — `pnpm validate:consumer:runtime`. Builds the
+library, packs the tarball, installs it into a throwaway app, prerenders on the server, then drives
+Chromium 145 (macOS arm64, headless). 18/18 checks passed on each major:
+
+| Angular | `@angular/core` | `@angular/ssr` | TypeScript | Checks |
+| ------- | --------------- | -------------- | ---------- | ------ |
+| 21      | 21.2.25         | 21.2.27        | 5.9.3      | 18/18  |
+| 22      | 22.2.3          | 22.2.3         | 6.0.3      | 18/18  |
+
+Covered: server HTML contents and hydration annotations; no inline hiding before hydration;
+hydration; `moveEnter`/`moveLeave` + `*movePresence` running real Web Animations and staying mounted
+until leave finishes; `moveWhileHover` with a real pointer; `[moveAnimation]` following a signal;
+`*movePresenceFor` add/remove; teardown of a looping + hover host leaves zero running animations; no
+console/page errors; `prefers-reduced-motion` (no animations, final state immediate); no-JS rendering;
+slow hydration (1.5 s delayed bundle) with a pre-hydration click replayed by event replay.
+**Not covered:** Firefox/WebKit against the tarball (those run against the source alias in the demo
+e2e suite), physical touch, a real third-party application.
+
+**Install resolution.** npm 10 crashes (`edgesOut`) resolving the Angular 21.2 toolchain graph even
+without our package. `scripts/lib/install-with-peer-check.mjs` retries with `--legacy-peer-deps` and
+checks the library's own peer ranges against what was installed; Angular 22 resolves with strict peers.
+This had been failing `validate:consumer` on every PR since mid-October.
+
+**Bundle baseline** (production, `ng build`, prerendered static app with router + hydration + event
+replay, narrow imports of 7 directives + `provideMovement`):
+
+| Build                         | main.js raw | main.js gzip (Angular 21)         |
+| ----------------------------- | ----------- | --------------------------------- |
+| Same app, no angular-movement | 237.1 kB    | ≈ 74.8 kB (66.2 kB est. transfer) |
+| With angular-movement         | 303.7 kB    | 90.8 kB                           |
+| Delta                         | +66.6 kB    | ≈ +16 kB                          |
+
+Package: tarball 159.5 kB, 824 kB unpacked, `fesm2022/angular-movement.mjs` 275.9 kB raw / 53.4 kB gzip.
+This is the 1.2-code baseline for 1.4+ comparisons, not a budget decision.
+
+**Site, Lighthouse 12 (mobile preset, Chrome for Testing 145, local Nitro server, 3 runs each).**
+Local server has no HTTP compression or cache headers, so “text compression”/“cache” audits are
+environment artefacts and were ignored.
+
+| Home page        | Performance | Accessibility         | FCP       | LCP       | CLS | TBT      |
+| ---------------- | ----------- | --------------------- | --------- | --------- | --- | -------- |
+| `main` (b14c409) | 67–68       | 84                    | 3.8–4.2 s | 6.8 s     | 0   | 10–50 ms |
+| branch           | 75–80       | 100 (BP 100, SEO 100) | 3.7–4.1 s | 3.8–4.4 s | 0   | 10–30 ms |
+
+axe (WCAG 2.1 A/AA, serious+critical) is zero on `/`, three docs pages, a demo page in light and dark
+themes (`e2e/site-experience.spec.ts`).
+
+**Idle animation-frame cost.** Before this branch the site called `SmoothScrollService.init()` at the
+app root, which kept a `requestAnimationFrame` loop running while idle: 60 callbacks/s on every page
+(measured on `main`). The service is experimental and its idle loop is a known 1.8 topic (audit §11);
+the site now initialises it only on `/demos/smooth-scroll`.
+
+**Not measured / unverified:** real-device mobile, INP, a long-session heap/listener soak (1.8), real
+consumer apps, Firefox/WebKit of the packed tarball. The two-reviewed-migration-apps gate is **open**.

@@ -1,99 +1,53 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { MoveInViewDirective } from 'movement';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-features',
-  imports: [MoveInViewDirective],
+  imports: [RouterLink],
   template: `
-    <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
-      <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-        <!-- Feature 1: Attribute-first -->
-        <div
-          moveInView="fade-up"
-          moveDuration="500ms"
-          moveDelay="100ms"
-          class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-        >
-          <div
-            class="bg-surface-raised border-border group-hover:bg-accent/10 mb-6 flex h-12 w-12 items-center justify-center rounded-xl border transition-transform group-hover:scale-110"
-          >
-            <svg class="text-accent h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="font-display text-text mb-3 text-xl font-bold">Attribute-first</h3>
-          <p class="text-text-muted leading-relaxed">
-            Add animations with a single HTML attribute. No TypeScript setup, triggers, or state
-            boilerplate required.
-          </p>
-        </div>
-
-        <!-- Feature 2: Angular-native -->
-        <div
-          moveInView="fade-up"
-          moveDuration="500ms"
-          moveDelay="200ms"
-          class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-        >
-          <div
-            class="bg-surface-raised border-border group-hover:bg-accent/10 mb-6 flex h-12 w-12 items-center justify-center rounded-xl border transition-transform group-hover:scale-110"
-          >
-            <!-- Angular Hexagon Base -->
-            <svg class="text-accent h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M12 2L2 6v12l10 4 10-4V6L12 2zm0 2.2l8 3.2v9l-8 3.2-8-3.2v-9l8-3.2z" />
-            </svg>
-          </div>
-          <h3 class="font-display text-text mb-3 text-xl font-bold">Angular-native</h3>
-          <p class="text-text-muted leading-relaxed">
-            Angular template APIs powered by the browser Web Animations API. No
-            <code class="bg-surface-raised text-text-subtle rounded px-1 py-0.5 font-mono text-sm"
-              >@angular/animations</code
-            >
-            setup, no CSS animation boilerplate, and zero Zone.js requirements.
-          </p>
-        </div>
-
-        <!-- Feature 3: Accessible -->
-        <div
-          moveInView="fade-up"
-          moveDuration="500ms"
-          moveDelay="300ms"
-          class="group bg-surface border-border hover:border-accent/40 hover:shadow-accent-glow rounded-2xl border p-8 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.12)]"
-        >
-          <div
-            class="bg-surface-raised border-border group-hover:bg-accent/10 mb-6 flex h-12 w-12 items-center justify-center rounded-xl border transition-transform group-hover:scale-110"
-          >
-            <svg class="text-accent h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              ></path>
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-              ></path>
-            </svg>
-          </div>
-          <h3 class="font-display text-text mb-3 text-xl font-bold">Accessible defaults</h3>
-          <p class="text-text-muted leading-relaxed">
-            Automatically respects user device preferences. Safe for all users out of the box with
-            <code class="bg-surface-raised text-text-subtle rounded px-1 py-0.5 font-mono text-sm"
-              >prefers-reduced-motion</code
-            >.
-          </p>
-        </div>
+    <section class="border-border mx-auto max-w-7xl border-t px-4 py-20 sm:px-6 lg:px-8">
+      <div class="mb-12 max-w-2xl">
+        <h2 class="font-display text-text mb-4 text-3xl font-bold tracking-tight md:text-4xl">
+          Why Angular Movement
+        </h2>
+        <p class="text-text-muted text-lg leading-relaxed">
+          Angular already animates simple enter and leave. Movement exists for the part that is hard
+          to coordinate by hand: motion that is driven by application state.
+        </p>
       </div>
+
+      <div class="grid grid-cols-1 gap-6 md:grid-cols-3">
+        @for (item of pillars; track item.title) {
+          <article class="bg-surface border-border rounded-2xl border p-7">
+            <h3 class="font-display text-text mb-3 text-xl font-bold">{{ item.title }}</h3>
+            <p class="text-text-muted m-0 leading-relaxed">{{ item.body }}</p>
+          </article>
+        }
+      </div>
+
+      <p class="text-text-muted mt-8 text-sm">
+        Not sure whether you need it?
+        <a routerLink="/docs/choose-a-tool" class="text-accent font-semibold underline"
+          >Read when CSS or Angular's native animations are enough.</a
+        >
+      </p>
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class Features {}
+export class Features {
+  protected readonly pillars = [
+    {
+      title: 'Signals in, motion out',
+      body: 'Bind an object or a signal and the element animates to the new state. moveValue, moveTransform and moveSpringValue derive motion from signals without a change-detection detour.',
+    },
+    {
+      title: 'Native browser animation',
+      body: 'Playback runs on the Web Animations API, so transforms and opacity stay on the compositor where the browser allows it. Final styles are committed, not left in a fill. No animation runtime to ship.',
+    },
+    {
+      title: 'Presence that owns lifetime',
+      body: 'movePresence and movePresenceFor keep an element mounted until every leave animation has finished, including keyed lists that are reordered or revived mid-exit.',
+    },
+  ];
+}

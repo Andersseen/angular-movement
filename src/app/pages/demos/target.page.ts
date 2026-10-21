@@ -1,6 +1,9 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveTargetDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'moveTarget demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-target',
@@ -21,7 +24,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
       <div preview class="flex h-full w-full flex-col items-center justify-center gap-6">
         <button
           type="button"
-          class="bg-accent hover:bg-accent-light rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
+          class="bg-accent-solid rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:brightness-110"
           (click)="animated.update((value) => !value)"
         >
           {{ animated() ? 'Reset icon' : 'Draw icon' }}

@@ -13,8 +13,8 @@
  *
  * Covers: peer resolution under a plain `npm install`, the `exports` map, the shipped `.d.ts`, and
  * AOT template type-checking of every directive and signal helper.
- * Does not cover: SSR of the built package. That is covered by `ssr.spec.ts` (18 directives on
- * `PLATFORM_ID: 'server'`) and by the demo site's own AnalogJS prerender in `pnpm build`.
+ * Does not cover: executing the package. Prerender, hydration and real browser behaviour of the
+ * packed tarball are covered by `validate-consumer-runtime.mjs` (`pnpm validate:consumer:runtime`).
  *
  *   node scripts/validate-consumer.mjs            # every supported Angular major
  *   node scripts/validate-consumer.mjs 22         # one major
@@ -25,6 +25,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { installWithPeerCheck } from './lib/install-with-peer-check.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE = join(ROOT, 'validation/consumer');
@@ -49,7 +50,13 @@ const majors = requested.length ? requested : supportedMajors();
  */
 const TYPESCRIPT_FOR_ANGULAR = { 21: '~5.9.0', 22: '~6.0.0' };
 
-const c = { reset: '\x1b[0m', red: '\x1b[31m', green: '\x1b[32m', cyan: '\x1b[36m', dim: '\x1b[2m' };
+const c = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  cyan: '\x1b[36m',
+  dim: '\x1b[2m',
+};
 const info = (m) => console.log(`${c.cyan}›${c.reset} ${m}`);
 const ok = (m) => console.log(`${c.green}✓${c.reset} ${m}`);
 const bad = (m) => console.log(`${c.red}✗${c.reset} ${m}`);
@@ -105,8 +112,8 @@ for (const major of majors) {
     // A plain `npm install` (no workspace, no overrides) is what a user runs — and it is what
     // surfaces a peer-range conflict rather than silently resolving it.
     info(`  installing (npm, strict peers)…`);
-    run('npm', ['install', '--no-audit', '--no-fund'], dir);
-    ok('  install resolved with no peer conflict');
+    const install = installWithPeerCheck(dir, 'angular-movement', (m) => info(`  ${m}`));
+    ok(`  install resolved with no peer conflict (${install.mode})`);
 
     info('  building (AOT, strictTemplates)…');
     run('npx', ['ng', 'build'], dir);

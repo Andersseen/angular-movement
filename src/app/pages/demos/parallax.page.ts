@@ -1,6 +1,9 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveParallaxDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'Parallax Effect demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-parallax',

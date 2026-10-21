@@ -1,7 +1,10 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MoveLeaveDirective, MovePresenceDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
+
+export const routeMeta: RouteMeta = { title: 'movePresence demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-presence',
@@ -24,7 +27,7 @@ import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/util
               [attr.data-testid]="'presence-tab-' + tab.id"
               (click)="activeTab.set(tab.id)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-accent]="activeTab() === tab.id"
+              [class.bg-accent-solid]="activeTab() === tab.id"
               [class.text-white]="activeTab() === tab.id"
               [class.bg-surface]="activeTab() !== tab.id"
               [class.text-text-muted]="activeTab() !== tab.id"

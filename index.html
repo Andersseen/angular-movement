@@ -17,6 +17,18 @@
     <meta property="og:description" content="Animate Angular with a single attribute." />
     <meta property="og:image" content="/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="preconnect" href="https://fonts.bunny.net" crossorigin />
+    <link
+      rel="preload"
+      as="font"
+      type="font/woff2"
+      href="https://fonts.bunny.net/geist/files/geist-latin-800-normal.woff2"
+      crossorigin
+    />
+    <link
+      rel="stylesheet"
+      href="https://fonts.bunny.net/css?family=geist:400,700,800|geist-mono:400&display=swap"
+    />
     <link rel="stylesheet" href="/src/styles.css" />
     <script>
       // Resolve the theme before first paint so there is never a flash of the wrong one. Runs
@@ -31,13 +43,16 @@
               : matchMedia('(prefers-color-scheme: light)').matches
                 ? 'light'
                 : 'dark';
-          if (theme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+          document.documentElement.setAttribute('data-theme', theme);
+          if (theme === 'light') {
+            var meta = document.querySelector('meta[name="theme-color"]');
+            if (meta) meta.setAttribute('content', '#fbfbfe');
+          }
         } catch (e) {
           // localStorage/matchMedia can throw in locked-down environments — default stays dark.
         }
       })();
     </script>
-    <script src="/web-editor-lite.min.js" defer></script>
   </head>
   <body class="bg-bg text-text selection:bg-accent/30 pb-32 selection:text-white">
     <app-root></app-root>

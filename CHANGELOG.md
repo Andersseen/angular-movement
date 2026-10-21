@@ -2,11 +2,61 @@
 
 ## Unreleased
 
+**1.3 — Adoption, DX & Website (spec 016).** No runtime API change: the public barrel, selectors
+and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new docs and tooling.
+
+### Fixed
+
+- `moveLayout`: a FLIP that is **cancelled** (preempted by a drag, `MoveAnimator.set()/clear()` or a
+  newer animation) now releases its render suppression and restores `transform-origin`. Previously
+  only a natural finish did, so the host could stop measuring and animating layout changes.
+- Package README: the variants example bound `[moveAnimate]` on a `moveVariants` host (ignored there);
+  it now uses `moveVariant`. The per-property easing note no longer claims a global fallback — only the
+  transform channels share one easing.
+
 ### Added
 
+- `movement-migrate` (`projects/movement-migrate`, private, not published): read-only assessment of
+  legacy `@angular/animations` usage using the TypeScript compiler API and Angular's template parser.
+  Classifies triggers as automatic candidate / partial / manual / keep-native with file spans and
+  reasons. Writes nothing.
+- `pnpm validate:consumer:runtime`: prerenders, hydrates and **executes** the packed tarball in Chromium
+  on Angular 21 and 22 (SSR output, hydration, event replay, real animations, presence, reduced motion,
+  teardown, no-JS). CI job `consumer-runtime`.
+- Docs: "Choose the right tool" (CSS vs native `animate.enter/leave` vs Movement vs WAAPI), "Choose an
+  API" (one-shot vs reactive matrix), "Migrate from legacy animations" recipes, "Accessibility &
+  troubleshooting". Grouped docs navigation, quick find, mobile menu, heading anchors with copyable
+  links, previous/next from one nav model, per-route page titles.
+- Site: interactive homepage showcase built only from stable APIs, honest positioning and use-case
+  sections; shared `CodeBlock` with real copy-to-clipboard, live-region feedback and a tokenizer-based
+  highlighter (no `innerHTML`, no sanitizer bypass).
+- MCP guidelines: one-shot vs reactive, leave/presence ownership (the package version is unchanged).
+- `docs:check` now scans every docs page, the home sections and all READMEs for unknown `move*`
+  identifiers and rejects known-wrong patterns (variants + `moveAnimate`, the old easing claim, an
+  advertised `npx movement-migrate`).
 - Future planning documentation in `docs/v2/`: implementation-backed 1.2 audit, 1.3–1.9 release
   plans, conditional 2.0 SDD, migration strategy, validation gates and decision register. Planning
   only; no runtime, public API, package version or historical spec changes.
+- Site e2e: clipboard, docs navigation, mobile menu, theme persistence, overflow at 360/768/1280 and
+  axe (WCAG 2.1 AA) in both themes.
+
+### Changed
+
+- **Repo toolchain** (dependabot #76, #80, #81, #82, #84 folded into this PR): Angular 22.2 (site, ng-packagr 22,
+  angular-eslint 22), Analog 2.9, Vite 8, Vitest 5, `@voltui/components` 1.2, commitlint 21, ESLint 10.12.
+  TypeScript is held at 6.0 — #82 proposed 7.0, which ng-packagr and typescript-eslint do not support yet.
+  The published peer range is unchanged (`^21.2.0 || ^22.0.0`); the library built with ng-packagr 22 still
+  compiles and runs on Angular 21 and 22 consumers (`validate:consumer*`). The API snapshot was regenerated
+  because ng-packagr 22 emits a more verbose `.d.ts`: the 73 exports and the source-level API surface
+  (`api-surface.mjs`) are identical to 1.2.0. `zone.js` is a dev dependency only because Angular 22's
+  unit-test builder probes for it.
+- `validate:consumer` survives npm's `edgesOut` arborist crash on the Angular 21.2 toolchain by
+  retrying with `--legacy-peer-deps` and verifying the library's peer ranges explicitly.
+- Site: accessible filled-button token, `dark:` utilities follow `data-theme`, higher-contrast muted/
+  subtle text, font preload + swap, `robots.txt`, removed an unused 460 KB editor bundle, smooth scrolling
+  only on its demo page (the idle rAF loop it kept running on every page is gone).
+- Docs/status text synchronised with source: CONTEXT, ROADMAP, stability table (aggregates, `MoveTime`,
+  experimental aggregate).
 
 ## [1.2.0] - 2026-09-26
 

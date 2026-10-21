@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import {
   MoveAnimateDirective,
@@ -12,6 +13,8 @@ interface ListItem {
   id: number;
   label: string;
 }
+
+export const routeMeta: RouteMeta = { title: 'movePresenceFor demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-presence-list',
@@ -32,7 +35,7 @@ interface ListItem {
           <button
             data-testid="presence-list-add"
             (click)="add()"
-            class="bg-accent rounded-lg px-4 py-2 text-sm font-medium text-white"
+            class="bg-accent-solid rounded-lg px-4 py-2 text-sm font-medium text-white"
           >
             Add item
           </button>

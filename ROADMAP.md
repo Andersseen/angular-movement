@@ -122,7 +122,7 @@ investigation, decisions, and verification.
 - [x] Composition/adversarial e2e coverage added (`e2e/composition.spec.ts`).
 - [x] Package description/keywords repositioned to reflect the library's actual current scope.
 
-## 1.2 - Consumer DX & Imperative Motion (spec 014) — prepared, not yet released
+## 1.2 - Consumer DX & Imperative Motion (spec 014) — released 2026-09-26 as 1.2.0
 
 Driven by an audit of the real apps consuming the library, not by feature count. See
 `docs/ai/specs/014-consumer-dx-imperative-motion.md`.
@@ -139,7 +139,7 @@ Driven by an audit of the real apps consuming the library, not by feature count.
 - [x] Docs: common patterns, timing, reduced-motion layers, cancellation, arbitrary CSS, when CSS is
       better. Site onboarding no longer teaches `MOVEMENT_DIRECTIVES`.
 - [x] MCP 0.2.0: `get_guidelines`, narrow imports in `get_example`, snapshot extractor fixed.
-- [ ] Cut the release (`pnpm release minor --push`) and `mcp-v0.2.0`.
+- [x] Cut the release (`pnpm release minor --push`) and `mcp-v0.2.0`.
 
 ## Later ideas
 
@@ -149,3 +149,10 @@ Driven by an audit of the real apps consuming the library, not by feature count.
   spec 014 §10).
 - An SSR-rendered initial-state mechanism for above-the-fold entrances (today: CSS).
 - Additional examples for dashboards, SaaS apps, marketing pages, and mobile UI.
+
+## 1.3 - Adoption, DX & Website (spec 016) — in development
+
+See [spec 016](docs/ai/specs/016-1.3-adoption-dx-site.md). Documentation correctness, a safe code
+block, docs navigation, a new homepage, "choose the right tool" and migration guidance, a read-only
+migration assessment package, packed-package browser/SSR/hydration validation and runtime regression
+tests. No new runtime API.

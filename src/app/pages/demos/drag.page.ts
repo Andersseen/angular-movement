@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import {
   MoveDragDirective,
@@ -13,6 +14,8 @@ const SNAP_POINTS: readonly MoveDragSnapPoint[] = [
   { x: 0, y: 0 },
   { x: 80, y: 56 },
 ];
+
+export const routeMeta: RouteMeta = { title: 'moveDrag demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-drag',

@@ -109,7 +109,7 @@ import { ThemeService } from '../../shared/theme.service';
             <button
               type="button"
               (click)="toggleTheme()"
-              class="text-text-muted hover:text-text p-2"
+              class="text-text-muted hover:text-text focus-visible:outline-accent inline-flex min-h-11 min-w-11 items-center justify-center p-2 focus-visible:outline-2"
               [attr.aria-label]="
                 theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
               "
@@ -124,7 +124,8 @@ import { ThemeService } from '../../shared/theme.service';
               (click)="toggleMobileMenu()"
               [attr.aria-expanded]="mobileMenuOpen()"
               aria-controls="mobile-menu"
-              class="text-text-muted hover:text-text p-2"
+              [attr.aria-label]="mobileMenuOpen() ? 'Close menu' : 'Open menu'"
+              class="text-text-muted hover:text-text focus-visible:outline-accent inline-flex min-h-11 min-w-11 items-center justify-center p-2 focus-visible:outline-2"
             >
               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 @if (mobileMenuOpen()) {
@@ -221,6 +222,7 @@ import { ThemeService } from '../../shared/theme.service';
   `,
   host: {
     '(window:scroll)': 'onWindowScroll()',
+    '(keydown.escape)': 'closeMobileMenu()',
   },
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

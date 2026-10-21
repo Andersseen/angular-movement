@@ -1,0 +1,210 @@
+[
+  {
+    "major": "21",
+    "versions": {
+      "@angular/core": "21.2.25",
+      "@angular/ssr": "21.2.27",
+      "@angular/platform-server": "21.2.25",
+      "@angular/router": "21.2.25",
+      "typescript": "5.9.3",
+      "angular-movement": "angular-movement-1.2.0.tgz"
+    },
+    "chromium": "145.0.7632.6",
+    "checks": [
+      {
+        "name": "SSR: prerendered HTML contains the app content",
+        "passed": true,
+        "detail": "title + row-1 present"
+      },
+      {
+        "name": "SSR: hydration annotations are present",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "SSR: content is not hidden by inline styles before hydration",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "SSR: server-only branch is not rendered (panel closed, spinner unmounted)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Hydration: app hydrates (afterNextRender marks the client)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Presence: enter plays a real animation and ends fully visible",
+        "passed": true,
+        "detail": "1 animation(s) while entering"
+      },
+      {
+        "name": "Presence: leave keeps the node mounted, then removes it",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Interaction: moveWhileHover scales the card (real pointer hover)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reactive state: [moveAnimation] follows a signal change",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Keyed list: added row enters; removed row leaves after its animation",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Teardown: destroying a looping + hover host leaves no running animations",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "No console errors or page errors during the whole session",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reduced motion: panel appears with no running animations",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reduced motion: state change applies immediately",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "No JS: server HTML is readable and visible",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Slow hydration: SSR content is visible before the bundle arrives",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Slow hydration: a pre-hydration click is replayed once the app is ready",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Measured: narrow-import production bundle (main.js, includes Angular + router + hydration)",
+        "passed": true,
+        "detail": "303.7 kB raw, 90.8 kB gzip"
+      }
+    ]
+  },
+  {
+    "major": "22",
+    "versions": {
+      "@angular/core": "22.2.3",
+      "@angular/ssr": "22.2.3",
+      "@angular/platform-server": "22.2.3",
+      "@angular/router": "22.2.3",
+      "typescript": "6.0.3",
+      "angular-movement": "angular-movement-1.2.0.tgz"
+    },
+    "chromium": "145.0.7632.6",
+    "checks": [
+      {
+        "name": "SSR: prerendered HTML contains the app content",
+        "passed": true,
+        "detail": "title + row-1 present"
+      },
+      {
+        "name": "SSR: hydration annotations are present",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "SSR: content is not hidden by inline styles before hydration",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "SSR: server-only branch is not rendered (panel closed, spinner unmounted)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Hydration: app hydrates (afterNextRender marks the client)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Presence: enter plays a real animation and ends fully visible",
+        "passed": true,
+        "detail": "1 animation(s) while entering"
+      },
+      {
+        "name": "Presence: leave keeps the node mounted, then removes it",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Interaction: moveWhileHover scales the card (real pointer hover)",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reactive state: [moveAnimation] follows a signal change",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Keyed list: added row enters; removed row leaves after its animation",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Teardown: destroying a looping + hover host leaves no running animations",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "No console errors or page errors during the whole session",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reduced motion: panel appears with no running animations",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Reduced motion: state change applies immediately",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "No JS: server HTML is readable and visible",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Slow hydration: SSR content is visible before the bundle arrives",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Slow hydration: a pre-hydration click is replayed once the app is ready",
+        "passed": true,
+        "detail": ""
+      },
+      {
+        "name": "Measured: narrow-import production bundle (main.js, includes Angular + router + hydration)",
+        "passed": true,
+        "detail": "308.1 kB raw, 92.4 kB gzip"
+      }
+    ]
+  }
+]

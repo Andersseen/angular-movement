@@ -1,6 +1,9 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveVariant, MoveVariantsDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'moveVariants demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-variants',
@@ -25,7 +28,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
               [attr.data-testid]="'variant-button-' + variant"
               (click)="currentVariant.set(variant)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-accent]="currentVariant() === variant"
+              [class.bg-accent-solid]="currentVariant() === variant"
               [class.text-white]="currentVariant() === variant"
               [class.bg-surface]="currentVariant() !== variant"
               [class.text-text-muted]="currentVariant() !== variant"

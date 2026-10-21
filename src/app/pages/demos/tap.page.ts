@@ -1,9 +1,12 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveTapDirective, MoveKeyframes, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
 type TapEffect = 'press' | 'press-down' | 'shrink';
+
+export const routeMeta: RouteMeta = { title: 'moveWhileTap demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-tap',
@@ -27,7 +30,7 @@ type TapEffect = 'press' | 'press-down' | 'shrink';
           [moveWhileTap]="tapKeyframes()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="bg-accent hover:bg-accent-light active:bg-accent/80 font-display flex items-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white transition-colors"
+          class="bg-accent-solid active:bg-accent/80 font-display flex items-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white transition-colors hover:brightness-110"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path

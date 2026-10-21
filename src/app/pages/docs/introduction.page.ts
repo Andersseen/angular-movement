@@ -1,11 +1,13 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { PageHeader } from '../../shared/components/page-header/page-header';
-import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
+
+export const routeMeta: RouteMeta = { title: 'Introduction — Angular Movement' };
 
 @Component({
   selector: 'app-docs-introduction',
-  imports: [CodeBlock, PageHeader, DocsFooterNav],
+  imports: [CodeBlock, PageHeader],
   template: `
     <article class="max-w-3xl">
       <app-page-header
@@ -13,9 +15,7 @@ import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-foot
         description="Angular Movement is a motion library for Angular 21 and 22 with Angular-native directives, state APIs, and Web Animations API-powered runtime playback."
       />
 
-      <div
-        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
-      >
+      <div class="docs-prose max-w-none">
         <h2>Why Angular Movement?</h2>
         <p>
           Angular teams often need the same motion primitives that product interfaces use every day:
@@ -123,12 +123,10 @@ import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-foot
           </li>
         </ul>
       </div>
-
-      <app-docs-footer-nav nextHref="/docs/get-started" nextLabel="Get Started" />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class Introduction {
-  protected readonly htmlCode = `&lt;<span class="code-keyword">div</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"fade-up"</span>&gt;This fades up on enter&lt;/<span class="code-keyword">div</span>&gt;`;
+  protected readonly htmlCode = `<div moveEnter="fade-up">This fades up on enter</div>`;
 }

@@ -1,6 +1,9 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MoveLayoutDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'moveLayout demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-layout',
@@ -26,7 +29,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             data-testid="layout-grid-button"
             [attr.aria-pressed]="layout() === 'grid'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-            [class.bg-accent]="layout() === 'grid'"
+            [class.bg-accent-solid]="layout() === 'grid'"
             [class.text-white]="layout() === 'grid'"
             [class.bg-accent/10]="layout() !== 'grid'"
           >
@@ -37,7 +40,7 @@ import { DemoContainer, DemoState } from '../../shared/components/demo-container
             data-testid="layout-list-button"
             [attr.aria-pressed]="layout() === 'list'"
             class="text-accent hover:text-accent-light rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-            [class.bg-accent]="layout() === 'list'"
+            [class.bg-accent-solid]="layout() === 'list'"
             [class.text-white]="layout() === 'list'"
             [class.bg-accent/10]="layout() !== 'list'"
           >

@@ -71,7 +71,9 @@ function gt(a, b) {
 
 // ---- 0. Validate input --------------------------------------------------
 if (!bumpArg) {
-  fail('Missing version.  Usage: pnpm release <patch|minor|major|X.Y.Z> [--push] [--dry-run] [--verify]');
+  fail(
+    'Missing version.  Usage: pnpm release <patch|minor|major|X.Y.Z> [--push] [--dry-run] [--verify]',
+  );
 }
 
 const pkgText = readFileSync(LIB_PKG, 'utf8');
@@ -82,8 +84,8 @@ if (!current) fail(`Current library version "${currentVersion}" is not plain sem
 let next;
 if (['patch', 'minor', 'major'].includes(bumpArg)) {
   next = { ...current };
-  if (bumpArg === 'major') (next.major += 1), (next.minor = 0), (next.patch = 0);
-  if (bumpArg === 'minor') (next.minor += 1), (next.patch = 0);
+  if (bumpArg === 'major') ((next.major += 1), (next.minor = 0), (next.patch = 0));
+  if (bumpArg === 'minor') ((next.minor += 1), (next.patch = 0));
   if (bumpArg === 'patch') next.patch += 1;
 } else {
   next = parseSemver(bumpArg);
@@ -92,7 +94,8 @@ if (['patch', 'minor', 'major'].includes(bumpArg)) {
 const nextVersion = `${next.major}.${next.minor}.${next.patch}`;
 const tag = `v${nextVersion}`;
 
-if (!gt(next, current)) fail(`Target ${nextVersion} is not greater than current ${currentVersion}.`);
+if (!gt(next, current))
+  fail(`Target ${nextVersion} is not greater than current ${currentVersion}.`);
 
 // ---- 1. Preconditions ---------------------------------------------------
 const branch = sh('git rev-parse --abbrev-ref HEAD');
@@ -126,13 +129,14 @@ const date = (() => {
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 })();
 
-const newPkgText = pkgText.replace(
-  /("version":\s*")\d+\.\d+\.\d+(")/,
-  `$1${nextVersion}$2`,
-);
-if (newPkgText === pkgText) fail('Could not find a "version" field to update in the library package.json.');
+const newPkgText = pkgText.replace(/("version":\s*")\d+\.\d+\.\d+(")/, `$1${nextVersion}$2`);
+if (newPkgText === pkgText)
+  fail('Could not find a "version" field to update in the library package.json.');
 
-const newChangelog = changelog.replace(unreleasedRe, `## Unreleased\n\n## [${nextVersion}] - ${date}`);
+const newChangelog = changelog.replace(
+  unreleasedRe,
+  `## Unreleased\n\n## [${nextVersion}] - ${date}`,
+);
 
 // ---- Summary ------------------------------------------------------------
 log('');
