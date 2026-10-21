@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
@@ -73,6 +74,8 @@ type RevealResult = 'idle' | 'animated' | 'skipped' | 'unsupported';
 interface ViewTransitionLike {
   ready: Promise<void>;
 }
+
+export const routeMeta: RouteMeta = { title: 'MoveAnimator demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-imperative',

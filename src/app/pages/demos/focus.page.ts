@@ -1,7 +1,10 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveFocusDirective, MoveKeyframes } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
+
+export const routeMeta: RouteMeta = { title: 'moveWhileFocus demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-focus',

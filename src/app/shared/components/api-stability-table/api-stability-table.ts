@@ -13,20 +13,25 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
         </thead>
         <tbody class="divide-border text-text-muted divide-y">
           <tr>
-            <td class="px-4 py-3 font-medium text-emerald-400">Stable</td>
+            <td class="px-4 py-3 font-medium text-emerald-700 dark:text-emerald-400">Stable</td>
             <td class="px-4 py-3">
-              <code>provideMovement</code>, <code>MOVEMENT_DIRECTIVES</code>, <code>[move]</code>,
+              <code>provideMovement</code>, <code>MOVEMENT_STABLE_DIRECTIVES</code>,
+              <code>MOVEMENT_DIRECTIVES</code> (includes experimental members), <code>[move]</code>,
               <code>[moveAnimate]</code>, <code>moveEnter</code>, <code>moveLeave</code>,
               <code>*movePresence</code>, <code>moveStagger</code>, <code>moveWhileHover</code>,
               <code>moveWhileTap</code>, <code>moveWhileFocus</code>, <code>moveInView</code>,
               <code>moveScroll</code>, <code>moveParallax</code>, <code>[moveAnimation]</code>,
               <code>*movePresenceFor</code>, <code>moveVariants</code>, <code>moveText</code>,
               <code>moveLoop</code>, <code>MoveAnimator</code>, <code>moveValue</code>,
-              <code>moveTransform</code>, <code>moveSpringValue</code>, presets and icon helpers
+              <code>moveTransform</code>, <code>moveSpringValue</code>,
+              <code>MOVE_PRESETS</code> and icon helpers, <code>MoveTime</code> /
+              <code>moveTimeToMs</code>
             </td>
           </tr>
           <tr>
-            <td class="px-4 py-3 font-medium text-amber-400">Stable candidate</td>
+            <td class="px-4 py-3 font-medium text-amber-700 dark:text-amber-400">
+              Stable candidate
+            </td>
             <td class="px-4 py-3">
               <em
                 >None currently — the 1.0 freeze pass promoted every candidate. New APIs may land
@@ -35,10 +40,12 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
             </td>
           </tr>
           <tr>
-            <td class="px-4 py-3 font-medium text-rose-400">Experimental</td>
+            <td class="px-4 py-3 font-medium text-rose-700 dark:text-rose-400">Experimental</td>
             <td class="px-4 py-3">
               <code>moveLayout</code>, <code>moveDrag</code> (the whole directive),
-              <code>moveSmoothScroll</code>, <code>moveTarget</code>, <code>moveTrigger</code>
+              <code>moveSmoothScroll</code> / <code>SmoothScrollService</code>,
+              <code>moveTarget</code>, <code>moveTrigger</code>,
+              <code>MOVEMENT_EXPERIMENTAL_DIRECTIVES</code>
             </td>
           </tr>
         </tbody>

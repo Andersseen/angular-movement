@@ -35,7 +35,10 @@
     "mcp:pack:check": "pnpm --dir projects/movement-mcp run build && pnpm --dir projects/movement-mcp pack --dry-run",
     "mcp:publish": "pnpm --dir projects/movement-mcp run build && cd projects/movement-mcp && pnpm publish --no-git-checks",
     "prepare": "husky",
-    "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'"
+    "format": "prettier --write '**/*.{ts,html,css,scss,md,json}'",
+    "migrate:build": "tsc -p projects/movement-migrate/tsconfig.json",
+    "migrate:test": "vitest run --root projects/movement-migrate",
+    "migrate:assess": "node projects/movement-migrate/dist/cli.js"
   },
   "packageManager": "pnpm@10.30.1",
   "dependencies": {

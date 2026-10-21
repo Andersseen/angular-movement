@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'movement';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
@@ -24,6 +25,10 @@ export class Demo {
     injector: this.#injector, // required: moveSpringValue creates an effect
   });
 }`;
+
+export const routeMeta: RouteMeta = {
+  title: 'moveValue and moveTransform demo — Angular Movement',
+};
 
 @Component({
   selector: 'app-demo-values',

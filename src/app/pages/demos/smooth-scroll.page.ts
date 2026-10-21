@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -38,6 +39,8 @@ const DIRECTIVE_CODE = `<!-- Scopes smooth scroll to one scrollable container in
      style="overflow-y: auto; height: 100vh">
   ...content...
 </div>`;
+
+export const routeMeta: RouteMeta = { title: 'moveSmoothScroll demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-smooth-scroll',

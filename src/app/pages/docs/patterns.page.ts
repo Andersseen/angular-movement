@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
@@ -149,6 +150,8 @@ const STANDALONE_ALL = `import { MOVEMENT_DIRECTIVES } from 'angular-movement';
   imports: [...MOVEMENT_DIRECTIVES],
 })
 export class Playground {}`;
+
+export const routeMeta: RouteMeta = { title: 'Angular patterns — Angular Movement' };
 
 @Component({
   selector: 'app-docs-patterns',

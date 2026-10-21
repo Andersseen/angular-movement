@@ -1,10 +1,8 @@
 import {
-  CUSTOM_ELEMENTS_SCHEMA,
   ChangeDetectionStrategy,
   Component,
   OnInit,
   computed,
-  inject,
   input,
   output,
   signal,
@@ -12,7 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { MovePreset } from 'movement';
 import { RangeSlider } from '../range-slider/range-slider';
-import { ThemeService } from '../../theme.service';
+import { CodeBlock } from '../code-block/code-block';
 
 export interface DemoControlConfig {
   showPreset?: boolean;
@@ -46,7 +44,7 @@ export interface DemoState {
 
 @Component({
   selector: 'app-demo-container',
-  imports: [FormsModule, RangeSlider],
+  imports: [FormsModule, RangeSlider, CodeBlock],
   template: `
     <div class="space-y-8">
       <!-- Header -->
@@ -55,7 +53,7 @@ export interface DemoState {
           class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
         >
           {{ title() }}
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
+          <span class="bg-accent absolute -bottom-2 left-0 block h-1 w-1/3 rounded-full"></span>
         </h1>
         <p class="text-text-muted mt-6 max-w-2xl text-lg">
           {{ description() }}
@@ -277,39 +275,8 @@ export interface DemoState {
             </div>
           </div>
 
-          <!-- Generated Code Snippet -->
-          <div class="bg-code-bg border-border relative overflow-hidden rounded-2xl border">
-            <div
-              class="border-border bg-surface absolute top-0 right-0 left-0 z-20 flex h-10 items-center justify-between border-b px-4"
-            >
-              <div class="text-text-subtle font-mono text-xs">HTML Output</div>
-              <button
-                type="button"
-                class="text-text-muted hover:text-text flex items-center gap-1 text-xs font-medium transition-colors"
-                (click)="copyCode()"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  ></path>
-                </svg>
-                {{ copied() ? 'Copied!' : 'Copy' }}
-              </button>
-            </div>
-
-            <div class="pt-10">
-              <vertex-editor-lite
-                [value]="highlightedCode()"
-                language="html"
-                [theme]="theme()"
-                height="220px"
-                aria-label="Generated code for this demo"
-              ></vertex-editor-lite>
-            </div>
-          </div>
+          <!-- Generated Code Snippet: same source of truth as the controls above -->
+          <app-code-block title="demo.html" language="html" [code]="highlightedCode()" />
         </div>
       </div>
 
@@ -318,12 +285,8 @@ export interface DemoState {
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
 export class DemoContainer implements OnInit {
-  readonly #themeService = inject(ThemeService);
-  protected readonly theme = this.#themeService.theme;
-
   // Inputs
   readonly title = input.required<string>();
   readonly description = input.required<string>();
@@ -377,7 +340,6 @@ export class DemoContainer implements OnInit {
   readonly duration = signal(300);
   readonly delay = signal(0);
   readonly easing = signal('ease');
-  readonly copied = signal(false);
   readonly customValues = signal<Record<string, unknown>>({});
 
   readonly #defaultEasings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
@@ -517,11 +479,5 @@ export class DemoContainer implements OnInit {
       easing: this.easing(),
       ...this.customValues(),
     });
-  }
-
-  protected copyCode(): void {
-    navigator.clipboard.writeText(this.highlightedCode());
-    this.copied.set(true);
-    setTimeout(() => this.copied.set(false), 2000);
   }
 }

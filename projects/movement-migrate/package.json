@@ -1,0 +1,28 @@
+{
+  "name": "angular-movement-migrate",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Read-only migration assessment for legacy @angular/animations usage. Classifies each trigger as automatic / partial / manual / keep-native. Never writes files.",
+  "license": "MIT",
+  "author": "Andersseen",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Andersseen/angular-movement.git",
+    "directory": "projects/movement-migrate"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "bin": {
+    "movement-migrate": "dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run"
+  },
+  "peerDependencies": {
+    "@angular/compiler": "^21.2.0 || ^22.0.0",
+    "typescript": ">=5.9.0"
+  }
+}

@@ -11,7 +11,7 @@ test.describe('docs pages', () => {
 
       await expect(page.getByRole('heading', { name: route.heading }).first()).toBeVisible();
       await expect(page.getByText(route.text).first()).toBeVisible();
-      await expect(page.locator('app-docs-layout main')).toBeVisible();
+      await expect(page.locator('[data-testid="docs-content"]')).toBeVisible();
       expect(errors).toEqual([]);
     });
   }

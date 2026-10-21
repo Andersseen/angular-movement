@@ -1,9 +1,12 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveTapDirective, MoveKeyframes, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
 
 type TapEffect = 'press' | 'press-down' | 'shrink';
+
+export const routeMeta: RouteMeta = { title: 'moveWhileTap demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-tap',

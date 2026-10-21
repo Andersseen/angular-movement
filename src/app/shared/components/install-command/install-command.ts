@@ -1,4 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  input,
+  signal,
+} from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { copyToClipboard } from '../../utils/clipboard';
 
 type PackageManager = 'npm' | 'pnpm' | 'yarn';
 
@@ -19,7 +29,8 @@ const INSTALL_COMMANDS: Record<PackageManager, string> = {
         @for (manager of managers; track manager) {
           <button
             type="button"
-            class="rounded-md px-3 py-1.5 font-mono text-xs transition-colors"
+            class="focus-visible:outline-accent min-h-8 rounded-md px-3 py-1.5 font-mono text-xs transition-colors focus-visible:outline-2"
+            [attr.aria-pressed]="selectedManager() === manager"
             [class.bg-surface-raised]="selectedManager() === manager"
             [class.text-text]="selectedManager() === manager"
             [class.text-text-subtle]="selectedManager() !== manager"
@@ -39,7 +50,8 @@ const INSTALL_COMMANDS: Record<PackageManager, string> = {
         </code>
         <button
           type="button"
-          class="text-text-subtle hover:text-text hover:bg-surface-raised shrink-0 rounded-md p-2 transition-colors"
+          class="text-text-subtle hover:text-text hover:bg-surface-raised focus-visible:outline-accent shrink-0 rounded-md p-2.5 transition-colors focus-visible:outline-2"
+          data-testid="copy-install"
           (click)="copyInstallCommand()"
           aria-label="Copy install command"
         >
@@ -52,6 +64,7 @@ const INSTALL_COMMANDS: Record<PackageManager, string> = {
             ></path>
           </svg>
         </button>
+        <span class="sr-only" role="status">{{ status() }}</span>
       </div>
     </div>
   `,
@@ -73,8 +86,18 @@ export class InstallCommand {
   protected readonly selectedManager = signal<PackageManager>('npm');
   protected readonly command = computed(() => INSTALL_COMMANDS[this.selectedManager()]);
 
-  protected copyInstallCommand(): void {
-    if (typeof navigator === 'undefined') return;
-    navigator.clipboard?.writeText(this.command()).catch(() => void 0);
+  readonly #document = inject(DOCUMENT);
+  #timer: ReturnType<typeof setTimeout> | undefined;
+  protected readonly status = signal('');
+
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#timer));
+  }
+
+  protected async copyInstallCommand(): Promise<void> {
+    const ok = await copyToClipboard(this.#document, this.command());
+    this.status.set(ok ? 'Install command copied' : 'Copy failed. Select the command manually.');
+    clearTimeout(this.#timer);
+    this.#timer = setTimeout(() => this.status.set(''), 2500);
   }
 }

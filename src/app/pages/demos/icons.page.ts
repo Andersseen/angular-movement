@@ -1,3 +1,4 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import {
   MoveAnimateDirective,
@@ -7,6 +8,8 @@ import {
   movePathDraw,
 } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'SVG Icons demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-icons',

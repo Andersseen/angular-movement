@@ -1,20 +1,15 @@
-import {
-  CUSTOM_ELEMENTS_SCHEMA,
-  ChangeDetectionStrategy,
-  Component,
-  computed,
-  inject,
-  signal,
-} from '@angular/core';
+import type { RouteMeta } from '@analogjs/router';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MoveAnimationDirective, MoveAnimationConfig, MovePresenceDirective } from 'movement';
-import { ThemeService } from '../../shared/theme.service';
+import { CodeBlock } from '../../shared/components/code-block/code-block';
+
+export const routeMeta: RouteMeta = { title: 'moveAnimation demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-animation',
-  imports: [FormsModule, MoveAnimationDirective, MovePresenceDirective],
+  imports: [FormsModule, MoveAnimationDirective, MovePresenceDirective, CodeBlock],
   changeDetection: ChangeDetectionStrategy.OnPush,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   template: `
     <div class="space-y-8">
       <div>
@@ -180,51 +175,17 @@ import { ThemeService } from '../../shared/theme.service';
             </div>
           </div>
 
-          <div class="bg-code-bg border-border relative overflow-hidden rounded-2xl border">
-            <div
-              class="border-border bg-surface absolute top-0 right-0 left-0 z-20 flex h-10 items-center justify-between border-b px-4"
-            >
-              <div class="text-text-subtle font-mono text-xs">HTML Output</div>
-              <button
-                type="button"
-                class="text-text-muted hover:text-text flex items-center gap-1 text-xs font-medium transition-colors"
-                (click)="copyCode()"
-              >
-                <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-                {{ copied() ? 'Copied!' : 'Copy' }}
-              </button>
-            </div>
-            <div class="pt-10">
-              <vertex-editor-lite
-                [value]="highlightedCode()"
-                language="html"
-                [theme]="theme()"
-                height="220px"
-                aria-label="Generated code for this demo"
-              ></vertex-editor-lite>
-            </div>
-          </div>
+          <app-code-block title="demo.html" language="html" [code]="highlightedCode()" />
         </div>
       </div>
     </div>
   `,
 })
 export default class DemoAnimation {
-  readonly #themeService = inject(ThemeService);
-  protected readonly theme = this.#themeService.theme;
-
   protected readonly duration = signal(400);
   protected readonly delay = signal(0);
   protected readonly easing = signal('ease');
   protected readonly show = signal(true);
-  protected readonly copied = signal(false);
   protected readonly easings = ['ease', 'ease-in', 'ease-out', 'ease-in-out'];
 
   protected readonly animationConfig = computed(
@@ -265,11 +226,5 @@ export default class DemoAnimation {
 
   protected toggleShow(): void {
     this.show.update((v) => !v);
-  }
-
-  protected copyCode(): void {
-    navigator.clipboard.writeText(this.highlightedCode());
-    this.copied.set(true);
-    setTimeout(() => this.copied.set(false), 2000);
   }
 }

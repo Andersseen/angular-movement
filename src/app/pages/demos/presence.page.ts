@@ -1,7 +1,10 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MoveLeaveDirective, MovePresenceDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
+
+export const routeMeta: RouteMeta = { title: 'movePresence demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-presence',

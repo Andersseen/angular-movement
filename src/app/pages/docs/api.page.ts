@@ -1,12 +1,14 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { PageHeader } from '../../shared/components/page-header/page-header';
-import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
 import { ApiStabilityTable } from '../../shared/components/api-stability-table/api-stability-table';
+
+export const routeMeta: RouteMeta = { title: 'API guide — Angular Movement' };
 
 @Component({
   selector: 'app-docs-api',
-  imports: [CodeBlock, PageHeader, DocsFooterNav, ApiStabilityTable],
+  imports: [CodeBlock, PageHeader, ApiStabilityTable],
   template: `
     <article class="max-w-4xl">
       <app-page-header
@@ -14,9 +16,7 @@ import { ApiStabilityTable } from '../../shared/components/api-stability-table/a
         description="Start with the motion-style state API, then reach for focused directives when the interaction needs presence, scroll, SVG, drag, or orchestration."
       />
 
-      <div
-        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
-      >
+      <div class="docs-prose max-w-none">
         <h2>Recommended path</h2>
         <p>
           The library has a broad surface area, but most teams should learn it in this order: basic
@@ -152,9 +152,11 @@ import { ApiStabilityTable } from '../../shared/components/api-stability-table/a
           than a simple reveal effect.
         </p>
         <p>
-          Per-property transitions support different <code>duration</code> and
-          <code>delay</code> values. Different per-property <code>easing</code> values currently
-          fall back to the global easing so WAAPI receives one composed timeline.
+          Per-property transitions support different <code>duration</code>, <code>delay</code> and
+          <code>easing</code> values. Independent properties such as <code>opacity</code> run as
+          separate animations with their own easing; only the transform channels (<code>x</code>,
+          <code>y</code>, <code>scale</code>, <code>rotate</code>, …) share one easing, because they
+          compose into a single <code>transform</code>.
         </p>
         <p>
           Use <code>moveWhileTap</code> for temporary press feedback that returns on release. Use
@@ -166,13 +168,6 @@ import { ApiStabilityTable } from '../../shared/components/api-stability-table/a
           <app-code-block title="svg-draw.html" [code]="svgCode"></app-code-block>
         </div>
       </div>
-
-      <app-docs-footer-nav
-        prevHref="/docs/get-started"
-        prevLabel="Get Started"
-        nextHref="/docs/reference"
-        nextLabel="API Reference"
-      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -236,52 +231,52 @@ export default class ApiGuide {
     },
   ];
 
-  protected readonly motionStyleCode = `&lt;<span class="code-keyword">ng-container</span> *<span class="code-attr">movePresence</span>=<span class="code-string">"isOpen()"</span>&gt;
-  &lt;<span class="code-keyword">article</span>
-    [<span class="code-attr">moveInitial</span>]=<span class="code-string">"{ opacity: 0, y: 24 }"</span>
-    [<span class="code-attr">moveAnimate</span>]=<span class="code-string">"{ opacity: 1, y: 0 }"</span>
-    [<span class="code-attr">moveExit</span>]=<span class="code-string">"{ opacity: 0, y: -16 }"</span>
-  &gt;
+  protected readonly motionStyleCode = `<ng-container *movePresence="isOpen()">
+  <article
+    [moveInitial]="{ opacity: 0, y: 24 }"
+    [moveAnimate]="{ opacity: 1, y: 0 }"
+    [moveExit]="{ opacity: 0, y: -16 }"
+  >
     Panel
-  &lt;/<span class="code-keyword">article</span>&gt;
-&lt;/<span class="code-keyword">ng-container</span>&gt;`;
+  </article>
+</ng-container>`;
 
-  protected readonly presetCode = `&lt;<span class="code-keyword">section</span> <span class="code-attr">moveEnter</span>=<span class="code-string">"fade-up"</span>&gt;
+  protected readonly presetCode = `<section moveEnter="fade-up">
   Content
-&lt;/<span class="code-keyword">section</span>&gt;
+</section>
 
-&lt;<span class="code-keyword">ng-container</span> *<span class="code-attr">movePresence</span>=<span class="code-string">"isOpen()"</span>&gt;
-  &lt;<span class="code-keyword">aside</span> <span class="code-attr">moveLeave</span>=<span class="code-string">"fade-down"</span>&gt;
+<ng-container *movePresence="isOpen()">
+  <aside moveLeave="fade-down">
     Leaving panel
-  &lt;/<span class="code-keyword">aside</span>&gt;
-&lt;/<span class="code-keyword">ng-container</span>&gt;`;
+  </aside>
+</ng-container>`;
 
-  protected readonly variantsCode = `&lt;<span class="code-keyword">div</span>
-  [<span class="code-attr">moveVariants</span>]=<span class="code-string">"{
+  protected readonly variantsCode = `<div
+  [moveVariants]="{
     idle: { scale: 1, rotate: 0 },
     active: { scale: 1.08, rotate: 4 }
-  }"</span>
-  [<span class="code-attr">moveVariant</span>]=<span class="code-string">"selected() ? 'active' : 'idle'"</span>
-&gt;
+  }"
+  [moveVariant]="selected() ? 'active' : 'idle'"
+>
   Card
-&lt;/<span class="code-keyword">div</span>&gt;`;
+</div>`;
 
-  protected readonly motionValuesCode = `<span class="code-keyword">const</span> progress = <span class="code-function">moveValue</span>(0);
-<span class="code-keyword">const</span> x = <span class="code-function">moveTransform</span>(progress, [0, 1], [0, 120]);
-<span class="code-keyword">const</span> scale = <span class="code-function">moveSpringValue</span>(
-  <span class="code-function">moveTransform</span>(progress, [0, 1], [0.9, 1]),
-  { <span class="code-attr">injector</span>: <span class="code-function">inject</span>(Injector) }
+  protected readonly motionValuesCode = `const progress = moveValue(0);
+const x = moveTransform(progress, [0, 1], [0, 120]);
+const scale = moveSpringValue(
+  moveTransform(progress, [0, 1], [0.9, 1]),
+  { injector: inject(Injector) }
 );
 
-<span class="code-keyword">const</span> transform = <span class="code-function">computed</span>(
-  () =&gt; <span class="code-string">\`translateX(\${x()}px) scale(\${scale()})\`</span>
+const transform = computed(
+  () => \`translateX(\${x()}px) scale(\${scale()})\`
 );`;
 
-  protected readonly svgCode = `&lt;<span class="code-keyword">path</span>
-  [<span class="code-attr">moveTarget</span>]=<span class="code-string">"draw()"</span>
-  [<span class="code-attr">moveFrames</span>]=<span class="code-string">"{ pathLength: [0, 1], opacity: [0, 1] }"</span>
-  [<span class="code-attr">moveTransition</span>]=<span class="code-string">"{ duration: 700, opacity: { duration: 200 } }"</span>
-  fill=<span class="code-string">"none"</span>
-  stroke=<span class="code-string">"currentColor"</span>
-/&gt;`;
+  protected readonly svgCode = `<path
+  [moveTarget]="draw()"
+  [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
+  [moveTransition]="{ duration: 700, opacity: { duration: 200 } }"
+  fill="none"
+  stroke="currentColor"
+/>`;
 }

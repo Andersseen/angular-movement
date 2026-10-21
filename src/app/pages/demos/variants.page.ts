@@ -1,6 +1,9 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveVariant, MoveVariantsDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
+
+export const routeMeta: RouteMeta = { title: 'moveVariants demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-variants',

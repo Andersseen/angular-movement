@@ -1,16 +1,18 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { PageHeader } from '../../shared/components/page-header/page-header';
-import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
 
 interface McpTool {
   name: string;
   returns: string;
 }
 
+export const routeMeta: RouteMeta = { title: 'AI agent setup — Angular Movement' };
+
 @Component({
   selector: 'app-docs-mcp',
-  imports: [CodeBlock, PageHeader, DocsFooterNav],
+  imports: [CodeBlock, PageHeader],
   template: `
     <article class="max-w-3xl">
       <app-page-header
@@ -18,9 +20,7 @@ interface McpTool {
         description="Give Claude Code (or any MCP-compatible agent) ground-truth access to every directive, input, and preset — no more guessed selectors."
       />
 
-      <div
-        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-a:no-underline hover:prose-a:underline prose-code:text-accent-light prose-code:bg-surface-raised prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-none prose-code:after:content-none max-w-none"
-      >
+      <div class="docs-prose max-w-none">
         <h2>Why</h2>
         <p>
           An agent working in a repo that has <code>angular-movement</code> installed has almost
@@ -115,27 +115,20 @@ interface McpTool {
           specifically the Claude Code integration.
         </p>
       </div>
-
-      <app-docs-footer-nav
-        prevHref="/docs/presets"
-        prevLabel="Presets"
-        nextHref="/demos"
-        nextLabel="Demos"
-      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class AiAgentSetupPage {
-  protected readonly installCode = `<span class="code-comment"># from your app's repo root</span>
-<span class="code-keyword">npx</span> angular-movement-mcp init`;
+  protected readonly installCode = `# from your app's repo root
+npx angular-movement-mcp init`;
 
-  protected readonly mcpConfigCode = `<span class="code-comment">// .mcp.json</span>
+  protected readonly mcpConfigCode = `// .mcp.json
 {
-  <span class="code-string">"mcpServers"</span>: {
-    <span class="code-string">"movement"</span>: {
-      <span class="code-string">"command"</span>: <span class="code-string">"npx"</span>,
-      <span class="code-string">"args"</span>: [<span class="code-string">"-y"</span>, <span class="code-string">"angular-movement-mcp"</span>]
+  "mcpServers": {
+    "movement": {
+      "command": "npx",
+      "args": ["-y", "angular-movement-mcp"]
     }
   }
 }`;

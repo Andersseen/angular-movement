@@ -1,8 +1,11 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MoveHoverDirective, MoveKeyframes, MovePreset, MoveTapDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
+
+export const routeMeta: RouteMeta = { title: 'moveWhileHover demo — Angular Movement' };
 
 @Component({
   selector: 'app-demo-hover',

@@ -364,7 +364,7 @@ overrides the default:
     idle: { opacity: 0.6, scale: 1 },
     active: { opacity: 1, scale: 1.08 }
   }"
-  [moveAnimate]="isActive ? 'active' : 'idle'"
+  [moveVariant]="isActive ? 'active' : 'idle'"
   [moveTransition]="{ duration: 420, opacity: { duration: 180 } }"
 >
   Card
@@ -388,9 +388,11 @@ Use `moveExitVariant` inside `movePresence` when a named variant should play bef
 </ng-container>
 ```
 
-Per-property transitions support different `duration` and `delay` values per property. Different
-per-property `easing` values currently fall back to the global easing so the generated WAAPI
-keyframes stay in one composed timeline.
+Per-property transitions support different `duration`, `delay` and `easing` values per property.
+Independent properties (for example `opacity` and `filter`) run as separate animations, each with its
+own easing. The one exception is the transform channels (`x`, `y`, `scale`, `rotate`, …): they compose
+into a single `transform`, so they share one easing — if you give them different easings the global
+easing is used and a dev-mode warning is logged.
 
 ### Target presets
 

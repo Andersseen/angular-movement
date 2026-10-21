@@ -57,3 +57,4 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+/projects/movement-migrate/dist

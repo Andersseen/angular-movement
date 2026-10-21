@@ -1,12 +1,14 @@
+import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 import { InstallCommand } from '../../shared/components/install-command/install-command';
 import { PageHeader } from '../../shared/components/page-header/page-header';
-import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-footer-nav';
+
+export const routeMeta: RouteMeta = { title: 'Get started — Angular Movement' };
 
 @Component({
   selector: 'app-docs-get-started',
-  imports: [CodeBlock, InstallCommand, PageHeader, DocsFooterNav],
+  imports: [CodeBlock, InstallCommand, PageHeader],
   template: `
     <article class="max-w-3xl">
       <app-page-header
@@ -14,9 +16,7 @@ import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-foot
         description="Install the library and set up your application configuration."
       />
 
-      <div
-        class="prose prose-invert prose-p:text-text-muted prose-headings:text-text prose-headings:font-display prose-a:text-accent prose-code:text-accent-light prose-code:bg-surface-raised max-w-none"
-      >
+      <div class="docs-prose max-w-none">
         <h2>1. Installation</h2>
         <p>Install the Angular Movement library using your preferred package manager.</p>
 
@@ -49,44 +49,37 @@ import { DocsFooterNav } from '../../shared/components/docs-footer-nav/docs-foot
           element will animate automatically when initialized by Angular.
         </p>
       </div>
-
-      <app-docs-footer-nav
-        prevHref="/docs/introduction"
-        prevLabel="Introduction"
-        nextHref="/docs/api"
-        nextLabel="API Guide"
-      />
     </article>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class GetStarted {
-  protected readonly configCode = `<span class="code-comment">// app.config.ts</span>
-<span class="code-keyword">import</span> { ApplicationConfig } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { provideMovement } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
+  protected readonly configCode = `// app.config.ts
+import { ApplicationConfig } from '@angular/core';
+import { provideMovement } from 'angular-movement';
 
-<span class="code-keyword">export const</span> appConfig: ApplicationConfig = {
+export const appConfig: ApplicationConfig = {
   providers: [
-    <span class="code-keyword">provideMovement</span>({
-      duration: <span class="code-string">'300ms'</span>, <span class="code-comment">// or 300 — numbers are milliseconds</span>
-      easing: <span class="code-string">'ease-out'</span>,
+    provideMovement({
+      duration: '300ms', // or 300 — numbers are milliseconds
+      easing: 'ease-out',
     }),
-    <span class="code-comment">// prefers-reduced-motion is honoured automatically — no config needed.</span>
+    // prefers-reduced-motion is honoured automatically — no config needed.
   ]
 };`;
 
-  protected readonly componentCode = `<span class="code-comment">// my.component.ts</span>
-<span class="code-keyword">import</span> { Component } <span class="code-keyword">from</span> <span class="code-string">'@angular/core'</span>;
-<span class="code-keyword">import</span> { MoveEnterDirective } <span class="code-keyword">from</span> <span class="code-string">'angular-movement'</span>;
+  protected readonly componentCode = `// my.component.ts
+import { Component } from '@angular/core';
+import { MoveEnterDirective } from 'angular-movement';
 
-<span class="code-attr">@Component</span>({
-  selector: <span class="code-string">'my-component'</span>,
+@Component({
+  selector: 'my-component',
   imports: [MoveEnterDirective],
-  template: <span class="code-string">\`
-    &lt;div moveEnter="fade-up"&gt;
+  template: \`
+    <div moveEnter="fade-up">
       I animate on enter!
-    &lt;/div&gt;
-  \`</span>
+    </div>
+  \`
 })
-<span class="code-keyword">export class</span> MyComponent {}`;
+export class MyComponent {}`;
 }

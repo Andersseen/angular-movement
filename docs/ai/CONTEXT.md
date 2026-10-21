@@ -19,10 +19,9 @@ React developers have Framer Motion; Angular developers have nothing comparable 
 ## What the project wants to achieve (goals)
 
 1. **Become the go-to animation library for modern Angular** (v21+, standalone, signals, zoneless, SSR).
-2. **Reach a stable 1.0** — the current priority is **predictability over new features** (see `ROADMAP.md`):
-   - 0.6: API hardening (stable vs experimental APIs, transform composition, dynamic inputs, more tests).
-   - 0.7: validation in real apps, richer e2e coverage, better docs.
-   - 1.0: frozen public API, stable per-directive docs.
+2. **Keep 1.x predictable and make it easy to adopt** — 1.0 froze the public API and 1.1/1.2 shipped on top
+   of it. The current milestone is 1.3 (adoption, DX, website); later 1.x minors are planned in
+   `docs/v2/`. Predictability over new features still applies (see `ROADMAP.md`).
 3. **Match Framer Motion ergonomics** where it makes sense: `[moveAnimation]="{ initial, animate, exit }"`, `moveWhileHover`, `moveWhileTap`, variants, presence.
 4. **Ship excellent documentation** via the demo site (deployed on Cloudflare Pages) with a live demo page per directive.
 
@@ -37,7 +36,7 @@ React developers have Framer Motion; Angular developers have nothing comparable 
 
 | Project                              | Path                 | Purpose                                                  | Published?                   |
 | ------------------------------------ | -------------------- | -------------------------------------------------------- | ---------------------------- |
-| `movement` (npm: `angular-movement`) | `projects/movement/` | The animation library                                    | Yes — npm, currently 0.5.x   |
+| `movement` (npm: `angular-movement`) | `projects/movement/` | The animation library                                    | Yes — npm, currently 1.2.x   |
 | Demo/docs site                       | `src/`               | AnalogJS (Vite + SSR) documentation site with live demos | Deployed to Cloudflare Pages |
 
 The demo site imports the library **source directly** via a Vite alias

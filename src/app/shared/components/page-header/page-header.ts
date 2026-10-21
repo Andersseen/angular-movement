@@ -8,7 +8,7 @@ import { ChangeDetectionStrategy, Component, input } from '@angular/core';
         class="font-display text-text relative mb-4 inline-block text-4xl font-bold tracking-tight md:text-5xl"
       >
         {{ title() }}
-        <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
+        <span class="bg-accent absolute -bottom-2 left-0 block h-1 w-1/3 rounded-full"></span>
       </h1>
       <p class="text-text-muted mt-6 text-xl">{{ description() }}</p>
     </div>
