@@ -26,6 +26,7 @@
     "lint": "ng lint",
     "docs:check": "node scripts/check-docs-drift.mjs",
     "validate:consumer": "node scripts/validate-consumer.mjs",
+    "validate:consumer:runtime": "node scripts/validate-consumer-runtime.mjs",
     "api:snapshot": "ng build movement && node scripts/update-api-snapshot.mjs",
     "api:check": "ng build movement && node scripts/check-api-snapshot.mjs",
     "mcp:install": "pnpm --dir projects/movement-mcp install",

@@ -151,6 +151,33 @@ describe('MovePresenceDirective', () => {
     expect(fixture.nativeElement.textContent).toContain('Child');
   });
 
+  it('does not touch the view or throw when the host is destroyed while a leave is pending', async () => {
+    const engine = TestBed.inject(AnimationEngine);
+    let resolveLeave: () => void = () => undefined;
+    const leavePlayer: AnimationControls = {
+      play: vi.fn(),
+      pause: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: 0,
+      finished: new Promise<void>((resolve) => (resolveLeave = resolve)),
+    };
+    vi.spyOn(engine, 'play').mockReturnValue(leavePlayer);
+
+    fixture.componentInstance.show.set(true);
+    fixture.detectChanges();
+    await Promise.resolve();
+    fixture.componentInstance.show.set(false);
+    fixture.detectChanges();
+    await Promise.resolve();
+
+    fixture.destroy();
+    expect(() => resolveLeave()).not.toThrow();
+    await new Promise((r) => setTimeout(r, 20));
+
+    // Vitest fails the run on an unhandled rejection/error raised by the late leave callback.
+    expect(fixture.nativeElement.querySelector('div')).toBeNull();
+  });
+
   it('should play moveLeave before removing the view', async () => {
     const leaveFixture = TestBed.createComponent(LeaveHostComponent);
     const engine = TestBed.inject(AnimationEngine);

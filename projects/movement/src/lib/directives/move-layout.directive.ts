@@ -84,6 +84,8 @@ export class MoveLayoutDirective implements OnDestroy {
   #isBrowser = isPlatformBrowser(this.#platformId);
   #isReducedMotion = false;
   #isAnimating = false;
+  /** Identifies the FLIP that owns `#isAnimating`; a settled stale player must not clear a newer one. */
+  #flipId = 0;
   /** A shared-layout handover is an entrance: it may only be claimed on this element's first read. */
   #hasClaimedSharedLayout = false;
 
@@ -198,6 +200,7 @@ export class MoveLayoutDirective implements OnDestroy {
 
   private playFlip(flipData: FlipDelta) {
     this.#isAnimating = true;
+    const flipId = ++this.#flipId;
 
     // The host is currently visually at its NEW position (unpainted).
     // We apply the inverse transform to make it LOOK like it's at the OLD position.
@@ -231,17 +234,26 @@ export class MoveLayoutDirective implements OnDestroy {
         // silently ignore `MOVEMENT_CONFIG.disabled` (the app-wide kill switch).
         disabled: config.disabled,
         onDone: () => {
-          this.#finishLayoutAnimation(transformOrigin);
+          this.#finishLayoutAnimation(transformOrigin, flipId);
         },
       },
     );
 
-    if (!this.#currentPlayer) {
-      this.#finishLayoutAnimation(transformOrigin);
+    const player = this.#currentPlayer;
+    if (!player) {
+      this.#finishLayoutAnimation(transformOrigin, flipId);
+    } else {
+      // `onDone` only fires on a natural finish. A cancelled FLIP (a drag, `MoveAnimator.set/clear`
+      // or a newer play preempting it) still settles `finished`, and must release the render
+      // suppression and the transform origin too — otherwise the host never measures again.
+      void player.finished.then(() => this.#finishLayoutAnimation(transformOrigin, flipId));
     }
   }
 
-  #finishLayoutAnimation(transformOrigin: string): void {
+  #finishLayoutAnimation(transformOrigin: string, flipId: number): void {
+    if (flipId !== this.#flipId || !this.#isAnimating) {
+      return;
+    }
     this.#isAnimating = false;
     this.#host.nativeElement.style.transformOrigin = transformOrigin;
     this.#snapshot = this.#readRect();

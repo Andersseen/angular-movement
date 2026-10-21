@@ -162,7 +162,10 @@ for (const directive of surface) {
 const apiReport = readFileSync('projects/movement/api-report.txt', 'utf8');
 for (const match of apiReport.matchAll(/\bmove[A-Z]\w*/g)) knownIdentifiers.add(match[0]);
 // Identifiers that are documented as concepts or inputs of a *template-level* config object.
-const CONCEPT_IDENTIFIERS = new Set(['moveMigrate', 'moveFadeIn' /* deliberate invented name in mcp.page.ts */]);
+const CONCEPT_IDENTIFIERS = new Set([
+  'moveMigrate',
+  'moveFadeIn' /* deliberate invented name in mcp.page.ts */,
+]);
 for (const id of CONCEPT_IDENTIFIERS) knownIdentifiers.add(id);
 
 for (const page of EDITORIAL_PAGES) {
@@ -189,7 +192,10 @@ const ANTI_PATTERNS = [
   },
   {
     name: 'claims per-property easing falls back to the global easing (only transform channels share one)',
-    test: (source) => /per-property\s+(<code>|`)?easing(<\/code>|`)?\s+values\s+currently\s+fall\s+back/i.test(source),
+    test: (source) =>
+      /per-property\s+(<code>|`)?easing(<\/code>|`)?\s+values\s+currently\s+fall\s+back/i.test(
+        source,
+      ),
   },
   {
     name: 'documents an npx/pnpm dlx command for the unpublished movement-migrate package',

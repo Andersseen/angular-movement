@@ -53,7 +53,8 @@ describe('MoveLayoutDirective', () => {
       pause: vi.fn(),
       cancel: vi.fn(),
       currentTime: 0,
-      finished: Promise.resolve(),
+      // A *running* player: `finished` only settles on finish or cancel.
+      finished: new Promise<void>(() => undefined),
     };
 
     const engine = TestBed.inject(AnimationEngine);
@@ -124,6 +125,84 @@ describe('MoveLayoutDirective', () => {
 
     expect(playSpy).toHaveBeenCalled();
     expect(host.style.transformOrigin).toBe('50% 50%');
+  });
+
+  describe('interrupted (cancelled) layout animations', () => {
+    /**
+     * Mirrors the real `BasePlayer` contract: `cancel()` settles `finished` but never calls
+     * `onDone`, so cleanup that only lives in `onDone` is skipped when something else (drag,
+     * `MoveAnimator.set/clear`, a newer play) preempts the FLIP.
+     */
+    function cancellablePlayer(): { player: AnimationControls; cancel: () => void } {
+      let settle!: () => void;
+      const finished = new Promise<void>((resolve) => (settle = resolve));
+      const player: AnimationControls = {
+        play: vi.fn(),
+        pause: vi.fn(),
+        cancel: vi.fn(() => settle()),
+        currentTime: 0,
+        finished,
+      };
+      return { player, cancel: () => player.cancel() };
+    }
+
+    it('restores transform origin when the FLIP is cancelled before finishing', async () => {
+      const { player, cancel } = cancellablePlayer();
+      playSpy.mockReturnValue(player);
+      host.style.transformOrigin = '50% 50%';
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      expect(host.style.transformOrigin).not.toBe('50% 50%');
+
+      cancel();
+      await player.finished;
+      await Promise.resolve();
+
+      expect(host.style.transformOrigin).toBe('50% 50%');
+    });
+
+    it('measures and animates again after a cancelled FLIP (measurement is not suppressed)', async () => {
+      const first = cancellablePlayer();
+      playSpy.mockReturnValueOnce(first.player);
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).toHaveBeenCalledTimes(1);
+
+      first.cancel();
+      await first.player.finished;
+      await Promise.resolve();
+
+      currentRect = rect({ left: 90, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).toHaveBeenCalledTimes(2);
+    });
+
+    it('a stale cancelled player cannot clear the state of a newer animation', async () => {
+      const first = cancellablePlayer();
+      const second = cancellablePlayer();
+      playSpy.mockReturnValueOnce(first.player).mockReturnValueOnce(second.player);
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      first.cancel();
+      await first.player.finished;
+      await Promise.resolve();
+
+      currentRect = rect({ left: 90, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).toHaveBeenCalledTimes(2);
+
+      // The first player settling again (e.g. a late microtask) must not interfere.
+      currentRect = rect({ left: 120, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).toHaveBeenCalledTimes(2); // still animating: second FLIP owns the host
+      second.cancel();
+    });
   });
 
   it('should not animate when only the host inline transform changed', async () => {

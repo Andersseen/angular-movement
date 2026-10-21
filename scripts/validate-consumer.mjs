@@ -13,8 +13,8 @@
  *
  * Covers: peer resolution under a plain `npm install`, the `exports` map, the shipped `.d.ts`, and
  * AOT template type-checking of every directive and signal helper.
- * Does not cover: SSR of the built package. That is covered by `ssr.spec.ts` (18 directives on
- * `PLATFORM_ID: 'server'`) and by the demo site's own AnalogJS prerender in `pnpm build`.
+ * Does not cover: executing the package. Prerender, hydration and real browser behaviour of the
+ * packed tarball are covered by `validate-consumer-runtime.mjs` (`pnpm validate:consumer:runtime`).
  *
  *   node scripts/validate-consumer.mjs            # every supported Angular major
  *   node scripts/validate-consumer.mjs 22         # one major
@@ -49,7 +49,13 @@ const majors = requested.length ? requested : supportedMajors();
  */
 const TYPESCRIPT_FOR_ANGULAR = { 21: '~5.9.0', 22: '~6.0.0' };
 
-const c = { reset: '\x1b[0m', red: '\x1b[31m', green: '\x1b[32m', cyan: '\x1b[36m', dim: '\x1b[2m' };
+const c = {
+  reset: '\x1b[0m',
+  red: '\x1b[31m',
+  green: '\x1b[32m',
+  cyan: '\x1b[36m',
+  dim: '\x1b[2m',
+};
 const info = (m) => console.log(`${c.cyan}›${c.reset} ${m}`);
 const ok = (m) => console.log(`${c.green}✓${c.reset} ${m}`);
 const bad = (m) => console.log(`${c.red}✗${c.reset} ${m}`);

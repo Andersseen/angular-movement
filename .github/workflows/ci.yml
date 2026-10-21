@@ -60,6 +60,11 @@ jobs:
       - name: Check npm package
         run: pnpm run pack:check
 
+      - name: Test and build the migration assessment tool
+        run: |
+          pnpm run migrate:test
+          pnpm run migrate:build
+
       - name: Build app
         run: pnpm run build:prod
 
@@ -90,3 +95,31 @@ jobs:
 
       - name: Validate against every supported Angular major
         run: pnpm run validate:consumer
+
+  # Executes the packed tarball: server prerender, hydration, event replay, real animations,
+  # presence, reduced motion, teardown and no-JS rendering in Chromium, once per Angular major.
+  # validate:consumer (above) only proves install + AOT compilation.
+  consumer-runtime:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Run packed-package runtime validation
+        run: pnpm run validate:consumer:runtime
