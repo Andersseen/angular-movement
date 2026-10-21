@@ -62,6 +62,7 @@ jobs:
 
       - name: Test and build the migration assessment tool
         run: |
+          pnpm run test:scripts
           pnpm run migrate:test
           pnpm run migrate:build
 

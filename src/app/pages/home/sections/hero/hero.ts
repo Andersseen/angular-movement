@@ -113,7 +113,7 @@ export class Tasks {
               <app-showcase />
             } @placeholder {
               <div class="min-h-[22rem]" data-testid="showcase-placeholder">
-                <h3 class="font-display text-text m-0 text-base font-semibold">Today</h3>
+                <p class="font-display text-text m-0 text-base font-semibold">Today</p>
                 <p class="text-text-muted mt-3 text-sm">
                   An interactive task list: add, complete, expand and remove tasks.
                 </p>

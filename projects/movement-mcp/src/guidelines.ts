@@ -49,6 +49,16 @@ export const GUIDELINES: Guideline[] = [
     rule: 'Keyframes are value arrays ({ opacity: [0, 1] }), except [moveAnimation] states which are single values. Any CSS property WAAPI can animate passes through (clipPath, filter, borderRadius, …).',
   },
   {
+    topic: 'one-shot vs reactive',
+    rule: 'moveAnimate / [move], moveEnter, moveLeave and moveInView play once and ignore later input changes. To animate when a signal changes use [moveAnimation] (animate follows its value), moveVariants + moveVariant, or MoveAnimator. On a host that has moveVariants set the state with moveVariant (or the alias moveActiveVariant) — moveAnimate is ignored there.',
+    example: `<div [moveAnimation]="{ initial: { opacity: 0.6 }, animate: { opacity: open() ? 1 : 0.6 } }">…</div>`,
+  },
+  {
+    topic: 'leave and presence',
+    rule: 'moveLeave on an element that @if / @for destroys never plays — the view is gone before the directive runs. Wrap it in *movePresence (a view) or use *movePresenceFor with a stable trackBy (a keyed list).',
+    example: `<ng-container *movePresence="open()"><aside moveEnter="fade-up" moveLeave="fade-down">…</aside></ng-container>`,
+  },
+  {
     topic: 'first paint',
     rule: 'The library runs after hydration. An above-the-fold entrance that must animate at first paint belongs in CSS; do not hide content in CSS expecting a directive to reveal it.',
   },

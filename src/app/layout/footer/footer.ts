@@ -30,7 +30,7 @@ import { RouterLink } from '@angular/router';
 
           <!-- Col 2: Links -->
           <div class="flex flex-col gap-3">
-            <h4 class="font-display text-text font-semibold">Resources</h4>
+            <h2 class="font-display text-text font-semibold">Resources</h2>
             <a
               routerLink="/docs"
               class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
@@ -59,7 +59,7 @@ import { RouterLink } from '@angular/router';
 
           <!-- Col 3: Tech -->
           <div class="flex flex-col gap-3">
-            <h4 class="font-display text-text font-semibold">Tech Stack</h4>
+            <h2 class="font-display text-text font-semibold">Tech Stack</h2>
             <div class="flex flex-col gap-2">
               <span class="text-text-muted flex items-center gap-2 text-sm">
                 <svg class="h-4 w-4 text-[#DD0031]" viewBox="0 0 256 256" fill="currentColor">

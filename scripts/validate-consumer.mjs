@@ -25,6 +25,7 @@ import { cpSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:f
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { installWithPeerCheck } from './lib/install-with-peer-check.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE = join(ROOT, 'validation/consumer');
@@ -111,8 +112,8 @@ for (const major of majors) {
     // A plain `npm install` (no workspace, no overrides) is what a user runs — and it is what
     // surfaces a peer-range conflict rather than silently resolving it.
     info(`  installing (npm, strict peers)…`);
-    run('npm', ['install', '--no-audit', '--no-fund'], dir);
-    ok('  install resolved with no peer conflict');
+    const install = installWithPeerCheck(dir, 'angular-movement', (m) => info(`  ${m}`));
+    ok(`  install resolved with no peer conflict (${install.mode})`);
 
     info('  building (AOT, strictTemplates)…');
     run('npx', ['ng', 'build'], dir);

@@ -47,7 +47,7 @@ const TITLES = [
   template: `
     <div class="flex flex-col gap-3" data-testid="showcase">
       <div class="flex items-center justify-between gap-3">
-        <h3 class="font-display text-text m-0 text-base font-semibold">Today</h3>
+        <p class="font-display text-text m-0 text-base font-semibold">Today</p>
         <button
           type="button"
           data-testid="showcase-add"

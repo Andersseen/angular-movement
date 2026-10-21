@@ -24,6 +24,7 @@ import { dirname, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
 import { chromium } from '@playwright/test';
+import { installWithPeerCheck } from './lib/install-with-peer-check.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const FIXTURE = join(ROOT, 'validation/consumer-runtime');
@@ -382,11 +383,8 @@ for (const major of majors) {
   );
 
   try {
-    // npm 10's arborist can crash resolving the @angular/ssr peer set with a `file:` dependency;
-    // strict peer resolution is already enforced by validate-consumer.mjs, so this fixture only
-    // needs a working install.
-    info('  installing (npm --legacy-peer-deps)…');
-    run('npm', ['install', '--no-audit', '--no-fund', '--legacy-peer-deps'], dir);
+    info('  installing (npm; strict peers, explicit peer check if npm itself crashes)…');
+    installWithPeerCheck(dir, 'angular-movement', (m) => info(`  ${m}`));
     info('  building + prerendering (AOT, production)…');
     run('npx', ['ng', 'build'], dir);
 

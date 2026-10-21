@@ -25,6 +25,7 @@
     "release": "node scripts/release.mjs",
     "lint": "ng lint",
     "docs:check": "node scripts/check-docs-drift.mjs",
+    "test:scripts": "node --test scripts/lib/*.test.mjs",
     "validate:consumer": "node scripts/validate-consumer.mjs",
     "validate:consumer:runtime": "node scripts/validate-consumer-runtime.mjs",
     "api:snapshot": "ng build movement && node scripts/update-api-snapshot.mjs",
