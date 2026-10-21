@@ -28,7 +28,7 @@ export const routeMeta: RouteMeta = { title: 'moveVariants demo — Angular Move
               [attr.data-testid]="'variant-button-' + variant"
               (click)="currentVariant.set(variant)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-accent]="currentVariant() === variant"
+              [class.bg-accent-solid]="currentVariant() === variant"
               [class.text-white]="currentVariant() === variant"
               [class.bg-surface]="currentVariant() !== variant"
               [class.text-text-muted]="currentVariant() !== variant"

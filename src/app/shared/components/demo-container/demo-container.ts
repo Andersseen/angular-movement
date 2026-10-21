@@ -53,7 +53,9 @@ export interface DemoState {
           class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
         >
           {{ title() }}
-          <span class="bg-accent absolute -bottom-2 left-0 block h-1 w-1/3 rounded-full"></span>
+          <span
+            class="bg-accent-solid absolute -bottom-2 left-0 block h-1 w-1/3 rounded-full"
+          ></span>
         </h1>
         <p class="text-text-muted mt-6 max-w-2xl text-lg">
           {{ description() }}
@@ -167,7 +169,7 @@ export interface DemoState {
                       (click)="updateEasing(ease)"
                       [class]="
                         easing() === ease
-                          ? 'bg-accent border-accent text-white'
+                          ? 'bg-accent-solid border-accent-solid text-white'
                           : 'bg-bg text-text-muted border-border hover:border-accent/50'
                       "
                       class="rounded-lg border py-2 text-center text-sm transition-all"
@@ -237,7 +239,7 @@ export interface DemoState {
                         (click)="updateCustomValue(control.id, !customValues()[control.id])"
                         [class]="
                           customValues()[control.id]
-                            ? 'bg-accent border-accent'
+                            ? 'bg-accent-solid border-accent'
                             : 'bg-bg border-border'
                         "
                         class="w-full rounded-lg border py-2 text-sm transition-all"

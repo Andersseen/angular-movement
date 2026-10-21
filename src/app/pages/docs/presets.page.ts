@@ -67,7 +67,7 @@ export const routeMeta: RouteMeta = { title: 'Presets — Angular Movement' };
                           type="button"
                           moveWhileHover="lift"
                           moveWhileTap="press"
-                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           Hover me
                         </button>
@@ -75,7 +75,7 @@ export const routeMeta: RouteMeta = { title: 'Presets — Angular Movement' };
                         <button
                           type="button"
                           moveWhileTap="press"
-                          class="bg-accent rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid rounded-lg px-5 py-3 text-sm font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           Press me
                         </button>
@@ -113,7 +113,7 @@ export const routeMeta: RouteMeta = { title: 'Presets — Angular Movement' };
                         <div
                           [moveEnter]="example.preset"
                           moveDuration="550ms"
-                          class="bg-accent text-text flex h-16 w-16 items-center justify-center rounded-lg font-mono text-sm font-bold shadow-[0_0_24px_var(--color-accent-glow)]"
+                          class="bg-accent-solid text-text flex h-16 w-16 items-center justify-center rounded-lg font-mono text-sm font-bold shadow-[0_0_24px_var(--color-accent-glow)]"
                         >
                           UI
                         </div>

@@ -27,7 +27,7 @@ export const routeMeta: RouteMeta = { title: 'movePresence demo — Angular Move
               [attr.data-testid]="'presence-tab-' + tab.id"
               (click)="activeTab.set(tab.id)"
               class="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-              [class.bg-accent]="activeTab() === tab.id"
+              [class.bg-accent-solid]="activeTab() === tab.id"
               [class.text-white]="activeTab() === tab.id"
               [class.bg-surface]="activeTab() !== tab.id"
               [class.text-text-muted]="activeTab() !== tab.id"

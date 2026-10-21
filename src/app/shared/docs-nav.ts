@@ -62,7 +62,7 @@ export const DOCS_NAV: readonly DocsNavGroup[] = [
       {
         path: '/docs/migration',
         title: 'Migrate from @angular/animations',
-        keywords: 'legacy trigger transition assessment recipes',
+        keywords: 'legacy trigger transition assessment recipes animate.enter animate.leave',
       },
       {
         path: '/docs/accessibility',

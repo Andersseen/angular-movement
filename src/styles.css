@@ -5,7 +5,10 @@
   'block w-full inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer select-none bg-primary text-primary-foreground shadow-sm data-[hover]:bg-primary/90 data-[press]:scale-[0.98] border border-input bg-background data-[hover]:bg-accent data-[hover]:text-accent-foreground h-8 h-9 h-10 h-11 w-9 rounded-md rounded-lg rounded-xl rounded-full px-2.5 px-3 px-4 px-8 py-0.5 py-2 text-xs text-sm text-base border-transparent bg-muted text-foreground border-border bg-surface text-surface-foreground text-muted-foreground flex flex-col gap-1.5 p-6 pt-0 leading-none tracking-tight text-lg font-semibold file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 shrink-0 h-px'
 );
 
+@custom-variant dark (&:where(:root:not([data-theme='light']) *));
+
 @theme {
+  --color-accent-solid: var(--color-accent-solid);
   --color-accent: var(--color-accent);
   --color-accent-light: var(--color-accent-light);
   --color-accent-glow: var(--color-accent-glow);
@@ -48,6 +51,8 @@
   /* Brand */
   --color-accent: oklch(0.62 0.24 268); /* electric indigo */
   --color-accent-light: oklch(0.72 0.18 268);
+  /* Filled controls with white text: darker than --color-accent so it meets 4.5:1 */
+  --color-accent-solid: oklch(0.52 0.23 268);
   --color-accent-glow: oklch(0.62 0.24 268 / 0.15);
 
   /* Surface */
@@ -84,6 +89,7 @@
   /* Brand */
   --color-accent: oklch(0.5 0.22 268);
   --color-accent-light: oklch(0.42 0.2 268);
+  --color-accent-solid: oklch(0.5 0.22 268);
   --color-accent-glow: oklch(0.5 0.22 268 / 0.12);
 
   /* Surface */

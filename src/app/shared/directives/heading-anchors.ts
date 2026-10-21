@@ -97,7 +97,8 @@ export class HeadingAnchors {
     event.preventDefault();
     const id = anchor.getAttribute('data-heading-anchor')!;
     const win = this.#doc.defaultView!;
-    win.history.replaceState(null, '', `#${id}`);
+    // A bare '#id' would resolve against <base href>, i.e. the site root, not this page.
+    win.history.replaceState(null, '', `${win.location.pathname}${win.location.search}#${id}`);
     const url = `${win.location.origin}${win.location.pathname}#${id}`;
     const ok = await copyToClipboard(this.#doc, url);
     this.message.set(ok ? 'Link copied to clipboard' : 'Could not copy the link');

@@ -35,7 +35,7 @@ export const routeMeta: RouteMeta = { title: 'movePresenceFor demo — Angular M
           <button
             data-testid="presence-list-add"
             (click)="add()"
-            class="bg-accent rounded-lg px-4 py-2 text-sm font-medium text-white"
+            class="bg-accent-solid rounded-lg px-4 py-2 text-sm font-medium text-white"
           >
             Add item
           </button>

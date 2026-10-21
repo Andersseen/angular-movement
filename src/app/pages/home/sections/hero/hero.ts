@@ -32,8 +32,8 @@ import {
       >
         <div
           [moveAnimation]="{
-            initial: { opacity: 1 },
-            animate: { opacity: task.done ? 0.55 : 1 },
+            initial: { scale: 1 },
+            animate: { scale: task.done ? 0.985 : 1 },
             duration: 200
           }"
         >
@@ -85,7 +85,7 @@ export class Tasks {
           <div class="mb-8 flex flex-col gap-3 sm:flex-row">
             <a
               routerLink="/docs/get-started"
-              class="bg-accent hover:bg-accent-light focus-visible:outline-accent inline-flex min-h-12 items-center justify-center rounded-xl px-7 text-base font-semibold text-white transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
+              class="bg-accent-solid focus-visible:outline-accent inline-flex min-h-12 items-center justify-center rounded-xl px-7 text-base font-semibold text-white transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2"
             >
               Get started
             </a>

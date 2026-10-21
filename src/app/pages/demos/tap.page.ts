@@ -30,7 +30,7 @@ export const routeMeta: RouteMeta = { title: 'moveWhileTap demo — Angular Move
           [moveWhileTap]="tapKeyframes()"
           [moveDuration]="duration()"
           [moveEasing]="easing()"
-          class="bg-accent hover:bg-accent-light active:bg-accent/80 font-display flex items-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white transition-colors"
+          class="bg-accent-solid active:bg-accent/80 font-display flex items-center gap-2 rounded-xl px-8 py-4 text-lg font-semibold text-white transition-colors hover:brightness-110"
         >
           <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path

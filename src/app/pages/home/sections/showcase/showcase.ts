@@ -51,7 +51,7 @@ const TITLES = [
         <button
           type="button"
           data-testid="showcase-add"
-          class="bg-accent focus-visible:outline-accent min-h-11 rounded-lg px-4 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
+          class="bg-accent-solid focus-visible:outline-accent min-h-11 rounded-lg px-4 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
           [moveWhileTap]="{ scale: [1, 0.96] }"
           (click)="add()"
         >
@@ -71,8 +71,8 @@ const TITLES = [
           <div
             class="flex items-center gap-3 px-4 py-3"
             [moveAnimation]="{
-              initial: { opacity: 1 },
-              animate: { opacity: task.done ? 0.55 : 1 },
+              initial: { scale: 1 },
+              animate: { scale: task.done ? 0.985 : 1 },
               duration: 200,
             }"
           >
@@ -80,7 +80,7 @@ const TITLES = [
               type="button"
               role="checkbox"
               class="border-border focus-visible:outline-accent flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
-              [class.bg-accent]="task.done"
+              [class.bg-accent-solid]="task.done"
               [class.text-white]="task.done"
               [attr.aria-checked]="task.done"
               [attr.aria-label]="'Mark ' + task.title + ' as done'"
@@ -94,6 +94,7 @@ const TITLES = [
               type="button"
               class="text-text focus-visible:outline-accent min-h-8 flex-1 text-left text-sm font-medium focus-visible:outline-2"
               [class.line-through]="task.done"
+              [class.text-text-muted]="task.done"
               [attr.aria-expanded]="task.open"
               [attr.aria-controls]="'showcase-detail-' + task.id"
               (click)="toggleOpen(task.id)"

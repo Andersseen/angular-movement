@@ -65,6 +65,7 @@
     "@angular/build": "^21.2.1",
     "@angular/cli": "^21.2.1",
     "@angular/compiler-cli": "^21.2.0",
+    "@axe-core/playwright": "^4.14.0",
     "@commitlint/cli": "^20.5.0",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",

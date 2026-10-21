@@ -38,7 +38,7 @@ export const routeMeta: RouteMeta = { title: 'SVG Icons demo — Angular Movemen
         <div class="absolute top-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
           <button
             type="button"
-            class="bg-accent hover:bg-accent-light rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors"
+            class="bg-accent-solid rounded-lg px-4 py-2 text-sm font-semibold text-white transition-colors hover:brightness-110"
             (click)="animated.update((v) => !v)"
           >
             {{ animated() ? 'Reset' : 'Animate' }}

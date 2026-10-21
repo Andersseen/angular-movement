@@ -12,7 +12,8 @@
  *   node scripts/check-docs-drift.mjs
  */
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { join } from 'node:path';
 
 const REFERENCE = 'src/app/shared/api/directive-reference.ts';
 
@@ -123,11 +124,29 @@ for (const entry of documented) {
 }
 
 /**
- * The two docs pages are editorial: their groupings and prose cannot be generated from the source.
- * What *can* be checked is that every `moveSomething` identifier they mention still exists — that is
- * the failure mode that actually bites (a renamed selector or input silently outliving the rename).
+ * Editorial pages cannot be generated from the source, so they are checked for the failure modes
+ * that actually bite:
+ *   1. every `moveSomething` identifier they mention still exists (renamed inputs silently
+ *      outliving the rename);
+ *   2. known-wrong *patterns* in code samples (see ANTI_PATTERNS) do not reappear.
  */
-const EDITORIAL_PAGES = ['src/app/pages/docs/api.page.ts', 'src/app/pages/docs/reference.page.ts'];
+function listFiles(dir, test, out = []) {
+  if (!existsSync(dir)) return out;
+  for (const entry of readdirSync(dir)) {
+    const full = join(dir, entry);
+    if (statSync(full).isDirectory()) listFiles(full, test, out);
+    else if (test(full)) out.push(full);
+  }
+  return out;
+}
+
+const EDITORIAL_PAGES = [
+  ...listFiles('src/app/pages/docs', (f) => f.endsWith('.page.ts')),
+  ...listFiles('src/app/pages/home', (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts')),
+  'README.md',
+  'MIGRATION.md',
+  'projects/movement/README.md',
+].filter((f) => existsSync(f));
 
 const knownIdentifiers = new Set();
 for (const directive of surface) {
@@ -139,18 +158,49 @@ for (const directive of surface) {
   for (const output of directive.outputs) knownIdentifiers.add(output);
   for (const signal of directive.signals) knownIdentifiers.add(signal);
 }
-// Exported helpers live outside the directive surface.
-for (const helper of ['moveValue', 'moveTransform', 'moveSpringValue']) {
-  knownIdentifiers.add(helper);
-}
+// Everything the package exports (functions, constants, types) is a legitimate identifier too.
+const apiReport = readFileSync('projects/movement/api-report.txt', 'utf8');
+for (const match of apiReport.matchAll(/\bmove[A-Z]\w*/g)) knownIdentifiers.add(match[0]);
+// Identifiers that are documented as concepts or inputs of a *template-level* config object.
+const CONCEPT_IDENTIFIERS = new Set(['moveMigrate', 'moveFadeIn' /* deliberate invented name in mcp.page.ts */]);
+for (const id of CONCEPT_IDENTIFIERS) knownIdentifiers.add(id);
 
 for (const page of EDITORIAL_PAGES) {
   const source = readFileSync(page, 'utf8');
   const mentioned = new Set(source.match(/\bmove[A-Z]\w*/g) ?? []);
   for (const identifier of mentioned) {
     if (!knownIdentifiers.has(identifier)) {
-      errors.push(`${page}: mentions "${identifier}", which no longer exists in the library`);
+      errors.push(`${page}: mentions "${identifier}", which does not exist in the library`);
     }
+  }
+}
+
+/**
+ * Patterns that were once published and are semantically wrong. Each is matched per element-ish
+ * chunk (a tag, or a JS object), so unrelated examples on the same page do not trigger it.
+ */
+const ANTI_PATTERNS = [
+  {
+    name: '[moveAnimate] on a host that also has [moveVariants] (moveAnimate is ignored there; use moveVariant)',
+    test: (source) =>
+      [...source.matchAll(/<[a-zA-Z][^<>]*?>/gs)].some(
+        ([tag]) => /\[?moveVariants\]?\s*=/.test(tag) && /\[moveAnimate\]\s*=\s*"[^"]*\?/.test(tag),
+      ),
+  },
+  {
+    name: 'claims per-property easing falls back to the global easing (only transform channels share one)',
+    test: (source) => /per-property\s+(<code>|`)?easing(<\/code>|`)?\s+values\s+currently\s+fall\s+back/i.test(source),
+  },
+  {
+    name: 'documents an npx/pnpm dlx command for the unpublished movement-migrate package',
+    test: (source) => /(npx|pnpm dlx|yarn dlx)\s+(angular-)?movement-migrate/.test(source),
+  },
+];
+
+for (const page of EDITORIAL_PAGES) {
+  const source = readFileSync(page, 'utf8');
+  for (const pattern of ANTI_PATTERNS) {
+    if (pattern.test(source)) errors.push(`${page}: ${pattern.name}`);
   }
 }
 
@@ -163,6 +213,6 @@ if (errors.length) {
 
 console.log(
   `✓ no docs drift — ${documented.length} documented directives match the library source ` +
-    `(${surface.length} in the API surface), and ${EDITORIAL_PAGES.length} docs pages mention ` +
-    `only identifiers that still exist`,
+    `(${surface.length} in the API surface); ${EDITORIAL_PAGES.length} editorial files mention ` +
+    `only existing identifiers and contain no known-wrong patterns`,
 );

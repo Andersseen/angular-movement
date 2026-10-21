@@ -17,7 +17,7 @@ export const routeMeta: RouteMeta = { title: 'moveAnimation demo — Angular Mov
           class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
         >
           moveAnimation
-          <div class="bg-accent absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
+          <div class="bg-accent-solid absolute -bottom-2 left-0 h-1 w-1/3 rounded-full"></div>
         </h1>
         <p class="text-text-muted mt-6 max-w-2xl text-lg">
           Framer Motion-style object API. Pass a single
@@ -113,7 +113,7 @@ export const routeMeta: RouteMeta = { title: 'moveAnimation demo — Angular Mov
                         (click)="easing.set(e)"
                         [class]="
                           easing() === e
-                            ? 'bg-accent border-accent text-white'
+                            ? 'bg-accent-solid border-accent-solid text-white'
                             : 'bg-bg text-text-muted border-border hover:border-accent/50'
                         "
                         class="rounded-lg border py-2 text-center text-sm transition-all"

@@ -43,7 +43,7 @@ interface UseCase {
             </div>
             <p class="text-text-muted mb-4 text-sm leading-relaxed">{{ item.purpose }}</p>
             <code
-              class="bg-code-bg border-border text-text-muted mb-5 block overflow-x-auto rounded-lg border px-3 py-2 font-mono text-xs whitespace-pre"
+              class="bg-code-bg border-border text-text-muted mb-5 block rounded-lg border px-3 py-2 font-mono text-xs break-words whitespace-pre-wrap"
               >{{ item.snippet }}</code
             >
             <div class="mt-auto flex gap-4 text-sm font-semibold">
