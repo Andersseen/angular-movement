@@ -105,7 +105,7 @@ Checked in and shared with the team. Prefer these over re-deriving the same info
 | `node .claude/scripts/api-surface.mjs` | Every directive's selector, inputs, outputs and barrel registration. Add `--json` to diff, `--ref <ref>` to read a past version |
 
 **Skills** (`/name`): `/spec` (start or resume a spec), `/new-directive` (6-step scaffold with
-templates), `/verify` (Phase 5 gate), `/release` (audit + cut a version).
+templates), `/verify` (Phase 5 gate), `/release` (pre-release audit; releases are cut by the automated Release PR).
 
 **Agents**: `public-api-guard` (classifies API changes BREAKING/ADDITIVE/INTERNAL against a base
 ref), `docs-drift-checker` (documented selectors vs real source). Both read-only.
@@ -130,7 +130,11 @@ GitHub work goes through the authenticated `gh` CLI, not an MCP server.
 ## Key Conventions
 
 - **Package manager**: `pnpm` exclusively.
-- **Commit format**: Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.) — enforced by commitlint + husky.
+- **Commit format**: Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.) — enforced by commitlint + husky. Commit types drive releases (see below).
+- **Releases are automated** (release-please → Release PR → merge → gated npm OIDC publish; see
+  `docs/RELEASING.md`). Never bump `projects/movement/package.json`, edit `.release-please-manifest.json`,
+  create `v*` tags or run `npm publish`. `feat:`/`fix:` under `projects/movement/` create releases;
+  other commit types and paths do not. `angular-movement-mcp` (`mcp-v*` tags) is separate and manual.
 - **Formatting**: Prettier (printWidth 100, single quotes, trailing commas). Tailwind class order enforced by `prettier-plugin-tailwindcss`.
 - **Private class fields**: Use `#field` syntax for encapsulation in library directives/services.
 - **Angular signals API**: Use `input()`, `signal()`, `effect()` — no `@Input()` decorators in new code.

@@ -1,94 +1,438 @@
 name: Release
 
-# Publishes the `angular-movement` library to npm and creates a GitHub Release.
+# Automated release pipeline for the `angular-movement` library. See docs/RELEASING.md.
 #
-# How to cut a release:
-#   1. Bump the version in projects/movement/package.json and update CHANGELOG.md.
-#   2. Commit, then tag and push:  git tag v0.6.0 && git push origin v0.6.0
-#   3. This workflow verifies, builds, publishes to npm, and creates the GitHub Release.
+#   push to main ──► prepare ──► resolve ──► package ─┬─► quality ───────┐
+#                    (Release PR   (verify  (build +   ├─► consumer ──────┼─► publish ─► finalize ─► report
+#                     / tag)        target)  SHA-256)  └─► consumer-runtime┘   (OIDC)     (npm + GitHub)
 #
-# Required secret: NPM_TOKEN  (an npm "Automation" access token with publish rights).
+# * Ordinary pushes only create or update the Release PR (nothing is published).
+# * Merging the Release PR makes release-please tag the commit and open a DRAFT GitHub Release.
+#   Everything after that happens in THIS run: tags created with GITHUB_TOKEN do not trigger other
+#   workflows, so there is deliberately no `on: push: tags` workflow.
+# * `workflow_dispatch` is the recovery path: it re-runs validation + publication for an existing
+#   release tag. It cannot publish anything that is not already a merged Release PR on main.
+#
+# The only identity that can publish is the npm trusted publisher for this file (release.yml) and
+# the `npm-publish` environment. There is no long-lived npm token anywhere in this workflow.
 
 on:
   push:
-    tags:
-      - 'v*.*.*'
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing release tag to validate and (re)publish, e.g. v1.3.0'
+        required: true
+        type: string
 
-permissions:
-  contents: write # create the GitHub Release
-  id-token: write # npm provenance (public repo)
+permissions: {}
 
 concurrency:
-  group: release-${{ github.ref }}
+  # One release run at a time. Never cancelled: an interrupted publish is worse than a queued one.
+  group: release-${{ github.event_name == 'workflow_dispatch' && inputs.tag || 'main' }}
   cancel-in-progress: false
 
 env:
   NODE_VERSION: 22
 
 jobs:
-  release:
+  # ── 1. Release PR + tag ─────────────────────────────────────────────────────────────────────────
+  prepare:
+    name: Release PR and tag
+    if: github.event_name == 'push' && github.repository == 'Andersseen/angular-movement'
     runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write # tag + draft release, push the Release PR branch
+      pull-requests: write
+      issues: write # release-please labels its PRs
+    outputs:
+      release_created: ${{ steps.rp.outputs.release_created }}
+      tag_name: ${{ steps.rp.outputs.tag_name }}
+      sha: ${{ steps.rp.outputs.sha }}
+    steps:
+      # Optional. Events caused by GITHUB_TOKEN never start other workflows, so without a GitHub App
+      # the Release PR gets no CI run of its own (the full gate still runs before publishing).
+      - name: Create GitHub App token
+        id: app-token
+        if: ${{ vars.RELEASE_APP_ID != '' }}
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349 # v2.2.2
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+      - name: Release Please
+        id: rp
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          target-branch: main
+
+      - name: Find the open Release PR
+        id: pr
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+        run: |
+          prs=$(gh pr list --repo "$GITHUB_REPOSITORY" --state open --base main \
+            --label 'autorelease: pending' --json number,headRefName)
+          count=$(jq length <<<"$prs")
+          if [ "$count" -gt 1 ]; then
+            echo "::error::Expected at most one open Release PR, found $count."
+            exit 1
+          fi
+          if [ "$count" -eq 1 ]; then
+            echo "number=$(jq -r '.[0].number' <<<"$prs")" >> "$GITHUB_OUTPUT"
+            echo "branch=$(jq -r '.[0].headRefName' <<<"$prs")" >> "$GITHUB_OUTPUT"
+            gh pr view "$(jq -r '.[0].number' <<<"$prs")" --repo "$GITHUB_REPOSITORY" \
+              --json body --jq .body > "$RUNNER_TEMP/pr-body.md"
+          fi
+
+      # Scripts always come from main; only the CHANGELOG.md of the bot-owned branch is edited.
+      - name: Checkout trusted tooling (main)
+        if: steps.pr.outputs.number
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: main
+          path: trusted
+          persist-credentials: false
+
+      - name: Checkout Release PR branch
+        if: steps.pr.outputs.number
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ steps.pr.outputs.branch }}
+          path: release-pr
+          token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
+
+      # release-please cannot address the root CHANGELOG.md from the projects/movement package
+      # path, so this writes the section (folding any hand-written `## Unreleased` notes in).
+      # Idempotent: a branch that already has the section is left alone.
+      - name: Write CHANGELOG.md section
+        if: steps.pr.outputs.number
+        env:
+          BRANCH: ${{ steps.pr.outputs.branch }}
+        run: |
+          version=$(node trusted/scripts/release/cli.mjs fold-changelog \
+            --repo release-pr --pr-body-file "$RUNNER_TEMP/pr-body.md" | sed -n 's/^version=//p')
+          cd release-pr
+          if [ -n "$(git status --porcelain CHANGELOG.md)" ]; then
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add CHANGELOG.md
+            # Same prefix as the squash title, so a rebase-merge still yields a recognisable release commit.
+            git commit -m "chore(release): angular-movement v${version} changelog"
+            git push origin "HEAD:refs/heads/$BRANCH"
+          fi
+
+  # ── 2. What exactly are we releasing? ───────────────────────────────────────────────────────────
+  resolve:
+    name: Verify release target
+    needs: [prepare]
+    # `always()` because `prepare` is skipped on dispatch; its outputs survive a later step failing.
+    if: |
+      always() && github.repository == 'Andersseen/angular-movement' && (
+        (github.event_name == 'push' && needs.prepare.outputs.release_created == 'true') ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      tag: ${{ steps.target.outputs.tag }}
+      version: ${{ steps.target.outputs.version }}
+      sha: ${{ steps.target.outputs.sha }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Validate tag, commit and versions
+        id: target
+        env:
+          TAG: ${{ needs.prepare.outputs.tag_name || inputs.tag }}
+          EXPECTED_SHA: ${{ needs.prepare.outputs.sha }}
+        run: node scripts/release/cli.mjs resolve --tag "$TAG" --sha "$EXPECTED_SHA"
+
+  # ── 3. Build the one artifact that will be published ────────────────────────────────────────────
+  package:
+    name: Build release artifact
+    needs: [resolve]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          registry-url: 'https://registry.npmjs.org'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec ng build movement
 
-      - name: Verify tag matches library version
-        run: |
-          PKG_VERSION=$(node -p "require('./projects/movement/package.json').version")
-          TAG_VERSION=${GITHUB_REF_NAME#v}
-          echo "package.json=$PKG_VERSION  tag=$TAG_VERSION"
-          if [ "$PKG_VERSION" != "$TAG_VERSION" ]; then
-            echo "::error::Tag v$TAG_VERSION does not match projects/movement/package.json version $PKG_VERSION. Bump the package version before tagging."
-            exit 1
-          fi
-
-      - name: Lint
-        run: pnpm run lint
-
-      - name: Test library
-        run: pnpm run test:coverage
-
-      - name: Build library
-        run: pnpm exec ng build movement
-
-      - name: Check public API surface
-        # A tag can point at a commit that never went through PR CI, so the freeze guard runs here
-        # too — reusing the build above rather than rebuilding.
-        run: node scripts/check-api-snapshot.mjs
-
-      - name: Validate package contents
-        run: pnpm --dir dist/movement pack --dry-run
-
-      - name: Validate against every supported Angular major
-        # Last gate before an irreversible publish: installs the packed tarball into a real Angular
-        # app per supported major. 0.7.0 shipped uninstallable on Angular 22 for want of this.
-        run: pnpm run validate:consumer
-
-      - name: Publish to npm
-        run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          pnpm publish ./dist/movement --no-git-checks --access public --provenance
+      - name: Pack and record SHA-256
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: |
+          mkdir artifact
+          node scripts/release/cli.mjs pack --dist dist/movement --out artifact --tag "$TAG" --sha "$SHA"
 
-      - name: Create GitHub Release
+      - name: Upload release artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: release-package
+          path: artifact/
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload built package directory
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: dist-movement
+          path: dist/movement/
+          if-no-files-found: error
+          retention-days: 14
+
+  # ── 4. Gates (unprivileged: no secrets, no id-token) ────────────────────────────────────────────
+  quality:
+    name: Quality gate
+    needs: [resolve]
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium firefox webkit
+      - run: pnpm run lint
+      - run: pnpm run format:check
+      - run: pnpm run docs:check
+      - run: pnpm run test:coverage
+      - run: pnpm run test:site
+      - run: pnpm run test:scripts
+      - run: pnpm run migrate:test
+      - run: pnpm run migrate:build
+      - run: pnpm exec ng build movement
+      - run: pnpm run api:check
+      - run: pnpm run pack:check
+      - run: pnpm run build:prod
+      - run: pnpm run e2e
+
+  consumer:
+    name: Consumer validation (Angular 21 + 22)
+    needs: [resolve, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Download the release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-package
+          path: artifact
+
+      - name: Download the built package
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist-movement
+          path: dist/movement
+
+      - name: Prove the downloaded build is the artifact to be published
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/release/cli.mjs verify-dist --dir artifact --dist dist/movement --tag "$TAG" --sha "$SHA"
+
+      - run: pnpm run validate:consumer
+
+  consumer-runtime:
+    name: Consumer runtime validation (Angular 21 + 22)
+    needs: [resolve, package]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+
+      - name: Download the release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-package
+          path: artifact
+
+      - name: Download the built package
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: dist-movement
+          path: dist/movement
+
+      - name: Prove the downloaded build is the artifact to be published
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/release/cli.mjs verify-dist --dir artifact --dist dist/movement --tag "$TAG" --sha "$SHA"
+
+      - run: pnpm run validate:consumer:runtime
+
+  # ── 5. Publish: the only job with id-token ──────────────────────────────────────────────────────
+  publish:
+    name: Publish to npm (trusted publishing)
+    needs: [resolve, package, quality, consumer, consumer-runtime]
+    runs-on: ubuntu-latest # trusted publishing requires a GitHub-hosted runner
+    timeout-minutes: 15
+    environment: npm-publish
+    concurrency:
+      group: npm-publish-angular-movement
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write # exchanged for a short-lived npm credential; nothing is stored
+    outputs:
+      status: ${{ steps.publish.outputs.status }}
+    steps:
+      # Scripts only, from the already-verified release commit. Nothing is installed or built here.
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ needs.resolve.outputs.sha }}
+          persist-credentials: false
+
+      - name: Setup Node.js
+        # No `registry-url`: it would write an .npmrc with a placeholder NODE_AUTH_TOKEN.
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+
+      - name: Ensure npm >= 11.5.1 (trusted publishing)
+        run: |
+          have=$(npm --version)
+          if [ "$(printf '%s\n' 11.5.1 "$have" | sort -V | head -n1)" != "11.5.1" ]; then
+            npm install --global npm@11.21.1
+          fi
+          echo "npm $(npm --version), node $(node --version)"
+
+      - name: Download the verified release artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-package
+          path: artifact
+
+      - name: Verify artifact and publish
+        id: publish
+        env:
+          TAG: ${{ needs.resolve.outputs.tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+        run: node scripts/release/cli.mjs publish --dir artifact --tag "$TAG" --sha "$SHA"
+
+  # ── 6. Prove npm state, then publish the GitHub Release ─────────────────────────────────────────
+  finalize:
+    name: Verify npm and publish GitHub Release
+    needs: [resolve, publish]
+    if: needs.publish.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write # un-draft the release
+    steps:
+      - name: Checkout release commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Verify registry state and finalize the GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.resolve.outputs.tag }}
+          SHA: ${{ needs.resolve.outputs.sha }}
+          REQUIRE_PROVENANCE: ${{ needs.publish.outputs.status == 'published' }}
         run: |
-          gh release create "${GITHUB_REF_NAME}" \
-            --title "${GITHUB_REF_NAME}" \
-            --generate-notes \
-            --verify-tag
+          node scripts/release/cli.mjs finalize --tag "$TAG" --sha "$SHA" \
+            --require-provenance "$REQUIRE_PROVENANCE"
+
+  report:
+    name: Release report
+    needs: [prepare, resolve, package, quality, consumer, consumer-runtime, publish, finalize]
+    if: always() && (needs.resolve.result != 'skipped' || needs.prepare.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+
+      - name: Summarise outcome
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: node scripts/release/cli.mjs report

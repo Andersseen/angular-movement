@@ -508,6 +508,7 @@ problem statement, any public-API impact, and tests or demo updates for new beha
 - 🔒 [Security policy](SECURITY.md)
 - 🗺️ [Roadmap](ROADMAP.md)
 - ✅ [Release checklist](RELEASE_CHECKLIST.md)
+- 🚀 [How releases work](docs/RELEASING.md) — automated Release PR, npm trusted publishing, recovery
 
 ## 📄 License
 

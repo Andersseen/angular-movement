@@ -97,6 +97,12 @@ beforeEach(() => {
   `prettier-plugin-tailwindcss`. Run `pnpm format` before finishing.
 - Commits: **Conventional Commits** (`feat:`, `fix:`, `refactor:`, `docs:`, `test:`, `chore:`) —
   commitlint + husky will reject anything else.
+- **Never release by hand.** No version bumps in `projects/movement/package.json`, no `v*` tags, no
+  `npm publish`, no edits to `.release-please-manifest.json`. A `feat:`/`fix:` that touches
+  `projects/movement/` is what makes the next Release PR; PR titles must be Conventional Commits because
+  squash merges use them. Anything that changes the release pipeline (`.github/workflows/release*.yml`,
+  `scripts/release/`) needs matching tests in `scripts/release/` — keep `id-token: write` on the publish
+  job only, pin actions to SHAs, and never add a long-lived npm token. See `docs/RELEASING.md`.
 - Don't edit generated dirs: `dist/`, `coverage/`, `playwright-report/`, `test-results/`, `node_modules/`.
 
 ## 7. Common mistakes that WILL happen if you're not careful

@@ -5,7 +5,7 @@
 
 **Last updated:** 2026-10-21
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
-Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
+Motion), cut with the (since removed) `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
 **WebKit touch e2e:** Playwright's Linux WebKit (CI) _does_ send a touch `pointerdown` for `tap()`
 (the 1.2.0 guard assumed it sent none and never fired), but not reliably the matching
@@ -21,6 +21,38 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## Done — Spec 017 (automated release pipeline) — setup PR, nothing published
+
+Branch `chore/automated-release-pipeline`. **Library releases are no longer manual**: no `pnpm release`,
+no hand-made `v*` tags, no `lib:publish`, no `NPM_TOKEN` for `angular-movement` (all removed). Contract and
+recovery live in `docs/RELEASING.md`; decisions in `docs/ai/specs/017-automated-release-pipeline.md`.
+
+- Flow: push to `main` → release-please (pinned action v5.0.0 = release-please 17.6.0) opens/updates one
+  `chore(release): angular-movement vX.Y.Z` PR → merging it tags `vX.Y.Z` + opens a **draft** release →
+  the same run gates (lint, format, docs, all tests, builds, api/pack, e2e, consumer + runtime on
+  Angular 21/22) → `publish` (only job with `id-token`, npm OIDC, tarball SHA-256-verified) → `finalize`
+  verifies npm (version, dist-tag, provenance) and un-drafts the GitHub Release.
+- **Gotchas found while building it (not derivable from code):** release-please rejects
+  `changelog-path: ../../CHANGELOG.md` (`illegal pathing characters`), so the config uses
+  `skip-changelog` and `scripts/release/changelog.mjs` writes the root CHANGELOG section on the Release PR
+  branch, folding `## Unreleased` notes in. A root package path was rejected because `exclude-paths`
+  only matches directories. `GITHUB_TOKEN` events never start workflows, so there is no tag-triggered
+  release workflow and Release PRs get no CI of their own unless the optional GitHub App is configured
+  (`RELEASE_APP_ID` variable + `RELEASE_APP_PRIVATE_KEY` secret). Squash merges use the PR title, so
+  `ci.yml` has a `pr-title` commitlint job.
+- **Pending maintainer actions (unverified from the repo):** allow Actions to create PRs (currently off),
+  create the `npm-publish` environment, register the npm trusted publisher (workflow `release.yml`,
+  environment `npm-publish`), then revoke `NPM_TOKEN`. Until then `publish` fails with setup
+  instructions and publishes nothing. The first Release PR (**1.3.0**, from the real `v1.2.0` baseline)
+  appears on the first push to `main` after this PR merges — it needs the Actions PR permission.
+- `angular-movement-mcp` is untouched and still manual (`mcp-vX.Y.Z`); `release-mcp.yml` was hardened
+  (tag must be on main, verify/publish split) and gained an opt-in `MCP_NPM_AUTH=oidc` mode.
+  `mcp-v0.2.0` is still unpushed.
+- Release tests: `pnpm test:scripts` (includes `scripts/release/*.test.mjs`; simulation runs the real
+  release-please engine on fixture commits). `actionlint` runs in CI (`workflow-lint`).
+- `deploy-cloudflare.yml`: commit message/PR title/branch name now go through `env` (they were interpolated
+  into a script in a job holding Cloudflare secrets).
 
 ## Done — Spec 016 (1.3 Adoption, DX & Website) — implemented, not yet released
 
@@ -456,9 +488,9 @@ so no spec was written for it.
 
 ## Release process (when asked to release)
 
-Follow `RELEASE_CHECKLIST.md`. Key commands: `pnpm test:coverage` → `ng build movement` →
-`pnpm pack:check` → `pnpm lib:publish`. Version bumps in `projects/movement/package.json`,
-changelog entry moves from Unreleased to a versioned section.
+Releases are automated — read `docs/RELEASING.md`. Review the open `chore(release)` PR and merge it
+(after user confirmation); do not bump versions, tag or publish by hand. `RELEASE_CHECKLIST.md` is the
+review list.
 
 ---
 

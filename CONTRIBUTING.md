@@ -76,5 +76,12 @@ If you cannot run a check locally, mention it in the PR description.
 
 ## Release notes
 
-Public API changes should update `CHANGELOG.md`. Keep unreleased changes under `## Unreleased`
-until a version is prepared.
+Public API changes should update `CHANGELOG.md`. Keep unreleased changes under `## Unreleased`; when
+the maintainer merges the Release PR those notes are folded into the new version section
+automatically.
+
+Releases are automated — do not bump `projects/movement/package.json`, push tags or publish. Your
+commit type decides the next version: `feat:` → minor, `fix:` → patch, `feat!:`/`BREAKING CHANGE:` →
+major; `docs:`/`test:`/`refactor:`/`chore:` and changes outside `projects/movement/` do not release.
+Squash merges use the **PR title** as the commit message, so it must be a Conventional Commit (CI
+checks it). See [docs/RELEASING.md](docs/RELEASING.md).
