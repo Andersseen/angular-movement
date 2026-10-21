@@ -26,8 +26,7 @@ import { cancelActivePlayer } from '../engines/active-player-registry';
  * @experimental
  */
 export type MoveDragConstraints =
-  | { top?: number; right?: number; bottom?: number; left?: number }
-  | HTMLElement;
+  { top?: number; right?: number; bottom?: number; left?: number } | HTMLElement;
 
 /**
  * Experimental API — may change significantly between minor versions.

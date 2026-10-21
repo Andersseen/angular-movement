@@ -42,6 +42,14 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
 
 ### Changed
 
+- **Repo toolchain** (dependabot #76, #80, #81, #82, #84 folded into this PR): Angular 22.2 (site, ng-packagr 22,
+  angular-eslint 22), Analog 2.9, Vite 8, Vitest 5, `@voltui/components` 1.2, commitlint 21, ESLint 10.12.
+  TypeScript is held at 6.0 — #82 proposed 7.0, which ng-packagr and typescript-eslint do not support yet.
+  The published peer range is unchanged (`^21.2.0 || ^22.0.0`); the library built with ng-packagr 22 still
+  compiles and runs on Angular 21 and 22 consumers (`validate:consumer*`). The API snapshot was regenerated
+  because ng-packagr 22 emits a more verbose `.d.ts`: the 73 exports and the source-level API surface
+  (`api-surface.mjs`) are identical to 1.2.0. `zone.js` is a dev dependency only because Angular 22's
+  unit-test builder probes for it.
 - `validate:consumer` survives npm's `edgesOut` arborist crash on the Angular 21.2 toolchain by
   retrying with `--legacy-peer-deps` and verifying the library's peer ranges explicitly.
 - Site: accessible filled-button token, `dark:` utilities follow `data-theme`, higher-contrast muted/

@@ -57,8 +57,9 @@ internal fix: `moveLayout` now cleans up (render suppression, transform-origin) 
   tracks only the _latest_ engine player per element, so a drag/`MoveAnimator.set()` cancels that one
   only; earlier concurrent players on the same element (e.g. hover + tap) keep running and may commit
   stale styles. Independent property channels still layer correctly (e2e composition suite).
-- Open: dependency PRs #76/#80/#81/#82/#84 were **not** applied (majors for Angular 22 / TS 7 / Vite 8 /
-  Vitest 5 are out of scope; #81/#84/#76 minor/major dev bumps need a dedicated validation). The
+- Dependency PRs #76/#80/#81/#82/#84 were folded into the 1.3 PR (repo toolchain on Angular 22.2, Vite 8,
+  Vitest 5, Analog 2.9; **TypeScript stays 6.0** — 7.0 breaks ng-packagr/typescript-eslint). Angular 22
+  makes components OnPush by default: tests must not mutate plain fields (see move-stagger spec). The
   "two reviewed real migration apps (one SSR)" gate from docs/v2/plans/1.3 is **unverified** — needs
   maintainer-selected checkouts.
 
@@ -174,7 +175,7 @@ Site-only maintenance pass, not on the library's road-to-1.0 track — see
   `angular.json` gained a `test` target for the `angular-movement` project (`pnpm test:site`),
   using the `tsconfig.spec.json` that existed unused since scaffolding. `@testing-library/angular` +
   `@testing-library/dom` added as devDependencies, **scoped to `src/app/**`only** — the library
-keeps its mandatory`TestBed`+`vi` pattern (BEST-PRACTICES.md) untouched.
+  keeps its mandatory`TestBed`+`vi` pattern (BEST-PRACTICES.md) untouched.
 - e2e: added real interaction assertions for the 8 routes that only had a smoke test (`animate`,
   `enter`, `hover`, `icons`, `loop`, `tap`, `target`, `text`) plus a positive (non-reduced-motion)
   assertion for `parallax`. Full suite green (46 passed + the pre-existing flaky-under-parallel-load
@@ -345,7 +346,7 @@ replays with the newly selected preset` still flakes once per repeat even single
   superseded by this.
   **Follow-up same day**: `workers: 1` alone did not make CI green — the very next push (a
   bookkeeping-only merge, no app/library changes) failed CI again on `smooth scroll demo exposes
-  the live service readout`, twice in a row (exhausting `retries: 1`), even single-worker. Root
+the live service readout`, twice in a row (exhausting `retries: 1`), even single-worker. Root
   cause was a genuine test race, not parallelism: the test read `smooth-scroll-active`'s
   `.textContent()` **once**, immediately after `page.goto()`. That testid is SSR-rendered as "no"
   (`isPlatformBrowser` is false on the server) and only flips to the real client value once

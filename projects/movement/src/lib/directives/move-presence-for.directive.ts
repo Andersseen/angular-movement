@@ -139,6 +139,8 @@ export class MovePresenceForDirective<T> implements OnDestroy {
   /** Lets a template use `$implicit` and friends under `strictTemplates`. */
   static ngTemplateContextGuard<T>(
     _directive: MovePresenceForDirective<T>,
+    // Named in the `context is …` type predicate below; newer typescript-eslint misses that use.
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     context: unknown,
   ): context is MovePresenceForContext<T> {
     return true;

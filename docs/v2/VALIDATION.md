@@ -144,6 +144,8 @@ rejection/deprecation decision with migration, not by quietly skipping validatio
 
 ## 1.3 evidence record (spec 016)
 
+_Update:_ after folding the toolchain bumps (Angular 22.2 repo toolchain, Vite 8, Vitest 5), `ng build movement`, `api:check` (regenerated snapshot, identical exports), `validate:consumer` and `validate:consumer:runtime` (18/18 on Angular 21 and 22) and the full e2e were re-run and pass. The Lighthouse and bundle numbers below predate that bump.
+
 Recorded 2026-10-21 on the `feat/1.3-adoption-dx-site` branch. Commands are repository scripts, so the
 results are reproducible. Raw per-check output: [consumer-runtime.json](evidence/1.3/consumer-runtime.json).
 

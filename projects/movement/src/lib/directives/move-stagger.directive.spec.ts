@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -219,7 +219,7 @@ describe('MoveStaggerDirective — integration with child directives', () => {
   @Component({
     template: `
       <ul [moveStagger]="60">
-        @for (item of items; track item) {
+        @for (item of items(); track item) {
           <li [moveEnter]="{ opacity: [0, 1] }">{{ item }}</li>
         }
       </ul>
@@ -227,7 +227,8 @@ describe('MoveStaggerDirective — integration with child directives', () => {
     imports: [MoveStaggerDirective, MoveEnterDirective],
   })
   class StaggeredListComponent {
-    items = ['a', 'b', 'c'];
+    // A signal: Angular 22 components default to OnPush, so a plain field mutation is not detected.
+    items = signal(['a', 'b', 'c']);
   }
 
   afterEach(() => {
@@ -276,7 +277,7 @@ describe('MoveStaggerDirective — integration with child directives', () => {
     const items = fixture.nativeElement.querySelectorAll('li') as NodeListOf<HTMLElement>;
     const last = items[2];
 
-    fixture.componentInstance.items = ['a', 'b'];
+    fixture.componentInstance.items.set(['a', 'b']);
     fixture.detectChanges();
     await fixture.whenStable();
 
