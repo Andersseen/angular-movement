@@ -12,9 +12,14 @@ test('App loads and renders the Hero and Presets correctly', async ({ page }) =>
   const presetsSection = page.locator('app-presets-showcase');
   await expect(presetsSection).toBeVisible();
 
-  // Test code block integration in Showcase
-  const codeBlock = page.locator('app-code-block');
+  // The presets showcase renders its snippet through the shared code block.
+  const codeBlock = page.locator('app-presets-showcase app-code-block');
   await expect(codeBlock.first()).toBeVisible();
+
+  // The hero showcase's source sits behind a disclosure and opens on demand.
+  const hero = page.locator('app-hero details');
+  await hero.locator('summary').click();
+  await expect(hero.locator('app-code-block')).toBeVisible();
 });
 
 test('Templates page renders the landing example', async ({ page }) => {

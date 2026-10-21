@@ -8,6 +8,19 @@ Every entry states whether it is **breaking** (your build or behaviour changes w
 
 ---
 
+## 1.2.x → 1.3.0
+
+**Advisory — nothing to change.** 1.3 adds no runtime API, input or selector. Notes:
+
+- Docs now state the easing rule precisely: only the transform channels (`x`, `y`, `scale`, `rotate`, …)
+  share one easing; independent properties keep their own per-property easing.
+- On a host with `moveVariants`, set the state with `moveVariant` (or the alias `moveActiveVariant`).
+  `moveAnimate` is ignored there; an example that bound it has been corrected.
+- Moving off `@angular/animations`? See the [migration guide](https://angular-movement.andersseen.dev/docs/migration)
+  and the read-only assessment in [`projects/movement-migrate`](projects/movement-migrate).
+
+---
+
 ## 1.1.x → 1.2.0
 
 Nothing here is required for a stable-API consumer to keep compiling and running. Each entry says

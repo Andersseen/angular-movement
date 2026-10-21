@@ -22,11 +22,12 @@ test.describe('code block', () => {
     const shown = await block.locator('pre code').innerText();
 
     await block.getByTestId('copy-code').click();
+    // The copy is asynchronous: wait for the announcement before reading the clipboard.
+    await expect(block.getByTestId('copy-status')).toContainText('copied');
 
     const clipboard = await page.evaluate(() => navigator.clipboard.readText());
     expect(clipboard).toBe(shown.replace(new RegExp(String.fromCharCode(160), 'g'), ' '));
     expect(clipboard).not.toContain('<span');
-    await expect(block.getByTestId('copy-status')).toContainText('copied');
   });
 
   test('the code region is keyboard-reachable', async ({ page }) => {
@@ -52,8 +53,15 @@ test.describe('docs navigation', () => {
   test('quick find filters and Enter opens the first match', async ({ page }) => {
     await open(page, '/docs/introduction');
     const search = page.getByLabel('Search the documentation');
-    await search.fill('animate.leave');
-    await expect(page.getByTestId('docs-search-results').getByRole('link')).toHaveCount(2);
+    // Hydration publishes `ng` slightly before every listener is attached, so a fill that lands in
+    // that window is dropped; retry the whole interaction instead of sleeping.
+    await expect(async () => {
+      await search.fill('');
+      await search.fill('animate.leave');
+      await expect(page.getByTestId('docs-search-results').getByRole('link')).toHaveCount(2, {
+        timeout: 1000,
+      });
+    }).toPass({ timeout: 8000 });
     await search.press('Enter');
     await expect(page).toHaveURL(/\/docs\/(choose-a-tool|migration)$/);
 

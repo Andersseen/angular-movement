@@ -2,6 +2,7 @@ import type { RouteMeta } from '@analogjs/router';
 import {
   ChangeDetectionStrategy,
   Component,
+  DestroyRef,
   computed,
   inject,
   PLATFORM_ID,
@@ -55,9 +56,11 @@ export const routeMeta: RouteMeta = { title: 'moveSmoothScroll demo — Angular 
           <code class="text-accent">scrollY</code> signal.
         </p>
         <p class="text-text-muted max-w-3xl text-sm">
-          This documentation site already calls
-          <code class="text-accent">init()</code> at the app root, so the readout below is the live
-          service driving the page you are scrolling right now.
+          This page calls <code class="text-accent">init()</code> when it opens and
+          <code class="text-accent">destroy()</code> when you leave, so the readout below is the
+          live service driving the page you are scrolling right now. The rest of this site uses
+          native scrolling: smooth scrolling is experimental and changes how wheel and touch input
+          feel.
         </p>
       </header>
 
@@ -154,6 +157,13 @@ export default class DemoSmoothScroll {
   readonly #scroll = inject(SmoothScrollService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
+  constructor() {
+    this.#scroll.init({ lerp: 0.1 });
+    // Read after init(): field initialisers run before this constructor body.
+    this.isActive.set(this.#isBrowser && this.#scroll.isActive);
+    inject(DestroyRef).onDestroy(() => this.#scroll.destroy());
+  }
+
   protected readonly serviceCode = SERVICE_CODE;
   protected readonly consumeCode = CONSUME_CODE;
   protected readonly directiveCode = DIRECTIVE_CODE;
@@ -167,7 +177,7 @@ export default class DemoSmoothScroll {
     return max > 0 ? Math.min(100, (this.#scroll.scrollY() / max) * 100) : 0;
   });
 
-  protected readonly isActive = signal(this.#isBrowser && this.#scroll.isActive);
+  protected readonly isActive = signal(false);
 
   protected scrollToTop(): void {
     this.#scroll.scrollTo(0);

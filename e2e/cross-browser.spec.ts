@@ -219,16 +219,16 @@ test('reduced motion: content that animates in is still readable', async ({ page
 test('smooth scroll: keyboard and programmatic page scrolls are not snapped back', async ({
   page,
 }) => {
-  // The site runs SmoothScrollService app-wide. Its resync listener used to sit on
-  // documentElement, where page scroll events never fire, so every non-wheel scroll was reverted.
-  await page.goto('/demos/hover');
+  // The smooth-scroll demo runs SmoothScrollService for the page. Its resync listener used to sit
+  // on documentElement, where page scroll events never fire, so every non-wheel scroll was reverted.
+  await page.goto('/demos/smooth-scroll');
   await page.waitForFunction(
     () =>
       typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
       'function',
   );
 
-  await page.evaluate(() => document.querySelector('[data-testid="hover-link"]')?.scrollIntoView());
+  await page.evaluate(() => window.scrollTo(0, 600));
   await page.waitForTimeout(400);
   expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
 

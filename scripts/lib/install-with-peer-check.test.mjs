@@ -5,7 +5,8 @@ import { satisfies } from './install-with-peer-check.mjs';
 const PEER = '^21.2.0 || ^22.0.0';
 
 test('accepts every version the library claims to support', () => {
-  for (const v of ['21.2.0', '21.2.25', '21.9.0', '22.0.0', '22.2.3']) assert.ok(satisfies(v, PEER), v);
+  for (const v of ['21.2.0', '21.2.25', '21.9.0', '22.0.0', '22.2.3'])
+    assert.ok(satisfies(v, PEER), v);
 });
 
 test('rejects versions outside the peer range', () => {

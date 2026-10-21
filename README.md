@@ -470,12 +470,14 @@ in the template does not replay the animation on every change detection pass.
 
 ## 🏗️ Repository structure
 
-This is a **pnpm monorepo** with two parts:
+This is a **pnpm monorepo**:
 
-| Path                                     | What                                                                                 |
-| ---------------------------------------- | ------------------------------------------------------------------------------------ |
-| [`projects/movement`](projects/movement) | The publishable npm library (`angular-movement`)                                     |
-| [`src`](src)                             | Demo & documentation site — [AnalogJS](https://analogjs.org/) (Vite + SSR, zoneless) |
+| Path                                                     | What                                                                                 |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| [`projects/movement`](projects/movement)                 | The publishable npm library (`angular-movement`)                                     |
+| [`src`](src)                                             | Demo & documentation site — [AnalogJS](https://analogjs.org/) (Vite + SSR, zoneless) |
+| [`projects/movement-mcp`](projects/movement-mcp)         | MCP server + skill for coding agents                                                 |
+| [`projects/movement-migrate`](projects/movement-migrate) | Read-only legacy-animation assessment (1.3 prototype, unpublished)                   |
 
 The demo site imports the library via a Vite path alias, so library changes are reflected live
 without a build step.

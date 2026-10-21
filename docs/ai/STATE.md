@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-07
+**Last updated:** 2026-10-21
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
 Motion), cut with `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
@@ -21,6 +21,46 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## Done — Spec 016 (1.3 Adoption, DX & Website) — implemented, not yet released
+
+Branch `feat/1.3-adoption-dx-site`; one PR. **No public API change** (`api:check` unchanged); one
+internal fix: `moveLayout` now cleans up (render suppression, transform-origin) when its FLIP is
+**cancelled**, not only when it finishes naturally (it used to leave the host unmeasurable).
+
+- Site: new homepage (hero showcase from stable APIs only, mounted via `@defer (on idle)`), honest
+  positioning vs CSS / native `animate.enter|leave`, use-case grid; docs nav is one model
+  (`src/app/shared/docs-nav.ts`) driving sidebar, quick find and prev/next; heading anchors
+  (`HeadingAnchors` directive); four new pages (`choose-a-tool`, `api-selection`, `migration`,
+  `accessibility`). Existing URLs unchanged.
+- `CodeBlock` takes **plain source** and tokenizes it (`shared/utils/highlight.ts`) — never pass HTML to
+  it, never reintroduce `innerHTML`/`bypassSecurityTrustHtml`. Copy goes through
+  `shared/utils/clipboard.ts` (async API → textarea fallback, never throws).
+- **Tailwind Typography is not installed.** `prose` classes do nothing; docs article text is styled by
+  `.docs-prose` in `src/styles.css` (zero-specificity `:where` rules).
+- Filled buttons with white text use `bg-accent-solid` (the plain accent fails 4.5:1 in dark). `dark:`
+  utilities follow `data-theme` (custom variant), not the OS preference. `index.html` now sets
+  `data-theme` for both themes.
+- `projects/movement-migrate`: read-only assessment (TS compiler API + `@angular/compiler`). Private,
+  unpublished, no CLI advertised. Build/test with `pnpm migrate:build` / `pnpm migrate:test`; its tsconfig
+  reads `@types/node` from `node_modules/.pnpm/node_modules/@types` (not a direct dependency).
+- `pnpm validate:consumer:runtime` executes the packed tarball (prerender, hydrate, Chromium) per
+  Angular major; evidence in `docs/v2/VALIDATION.md` and `docs/v2/evidence/1.3/`.
+- **npm `edgesOut` crash:** npm 10 crashes resolving the Angular 21.2 toolchain graph (reproducible
+  without our package); `scripts/lib/install-with-peer-check.mjs` retries with `--legacy-peer-deps` and
+  checks our peers itself. This had been failing `validate:consumer` on every PR since mid-October.
+- **Local port gotcha:** another app can own `5173`; Playwright's `reuseExistingServer` would then test
+  the wrong app. Run e2e with `E2E_PORT=<free port> pnpm e2e`.
+- `SmoothScrollService` is no longer initialised app-wide (it kept a 60/s idle rAF loop on every page);
+  only `/demos/smooth-scroll` calls `init()`/`destroy()`.
+- **Deferred, documented limitations (not fixed — 1.4 ownership):** the active-player registry still
+  tracks only the _latest_ engine player per element, so a drag/`MoveAnimator.set()` cancels that one
+  only; earlier concurrent players on the same element (e.g. hover + tap) keep running and may commit
+  stale styles. Independent property channels still layer correctly (e2e composition suite).
+- Open: dependency PRs #76/#80/#81/#82/#84 were **not** applied (majors for Angular 22 / TS 7 / Vite 8 /
+  Vitest 5 are out of scope; #81/#84/#76 minor/major dev bumps need a dedicated validation). The
+  "two reviewed real migration apps (one SSR)" gate from docs/v2/plans/1.3 is **unverified** — needs
+  maintainer-selected checkouts.
 
 ## Done — Agentyx harness (tooling only)
 
