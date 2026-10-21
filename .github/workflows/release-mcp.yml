@@ -1,25 +1,27 @@
 name: Release MCP server
 
 # Publishes `angular-movement-mcp` (projects/movement-mcp/) to npm and creates a GitHub Release.
-# Fully independent from release.yml (which publishes `angular-movement` itself) — this package
-# has its own version line, own lockfile, and is not part of any pnpm workspace.
+# Fully independent from release.yml (which releases `angular-movement` itself): own version line,
+# own `mcp-vX.Y.Z` tags, own lockfile, not part of the pnpm workspace, and NOT managed by
+# release-please. Releasing the library never bumps or publishes this package.
 #
-# How to cut a release:
+# How to cut a release (unchanged by the library's automated pipeline):
 #   1. Bump the version in projects/movement-mcp/package.json (and CHANGELOG.md if relevant).
-#   2. Commit, then tag and push:  git tag mcp-v0.1.0 && git push origin mcp-v0.1.0
-#   3. This workflow verifies, builds, publishes to npm, and creates the GitHub Release.
+#   2. Merge that to main, then tag the merged commit:  git tag mcp-v0.2.0 && git push origin mcp-v0.2.0
+#   3. This workflow verifies, builds, publishes to npm and creates the GitHub Release.
 #
-# Required secret: NPM_TOKEN (the same one release.yml uses — an npm "Automation" token with
-# publish rights covers both packages).
+# npm authentication (see docs/RELEASING.md > "MCP package"):
+#   * default / legacy: the NPM_TOKEN repository secret (unchanged behaviour);
+#   * OIDC: set the repository variable MCP_NPM_AUTH=oidc after configuring the npm trusted
+#     publisher for angular-movement-mcp (workflow release-mcp.yml, environment npm-publish-mcp).
+#     In that mode no token is read or written, and a failure never falls back to the token.
 
 on:
   push:
     tags:
       - 'mcp-v*.*.*'
 
-permissions:
-  contents: write # create the GitHub Release
-  id-token: write # npm provenance (public repo)
+permissions: {}
 
 concurrency:
   group: release-mcp-${{ github.ref }}
@@ -29,23 +31,31 @@ env:
   NODE_VERSION: 22
 
 jobs:
-  release:
+  verify:
+    name: Verify and build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
     defaults:
       run:
         working-directory: projects/movement-mcp
     steps:
       - name: Checkout
-        uses: actions/checkout@v5
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          registry-url: 'https://registry.npmjs.org'
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Tag must be on main
+        # A pushed tag can point anywhere; only commits that went through main may be published.
+        working-directory: .
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME does not point at a commit on main; refusing to publish."
+            exit 1
+          fi
 
       - name: Verify tag matches package version
         run: |
@@ -57,32 +67,76 @@ jobs:
             exit 1
           fi
 
+      - name: Setup pnpm
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Install dependencies
-        # Standalone package (its own lockfile, not a pnpm workspace member) — installed here,
-        # not at the repo root.
+        # Standalone package (its own lockfile, not a pnpm workspace member).
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm run build
+      - run: pnpm run build
+      - run: pnpm run test
 
-      - name: Test
-        run: pnpm run test
+      - name: Pack
+        run: pnpm pack --pack-destination "$RUNNER_TEMP/mcp"
 
-      - name: Validate package contents
-        run: pnpm pack --dry-run
+      - name: Upload tarball
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: mcp-package
+          path: ${{ runner.temp }}/mcp/*.tgz
+          if-no-files-found: error
+          retention-days: 14
 
-      - name: Publish to npm
+  publish:
+    name: Publish to npm
+    needs: [verify]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Referencing the environment is harmless in token mode and required for the OIDC trust.
+    environment: npm-publish-mcp
+    permissions:
+      contents: write # create the GitHub Release
+      id-token: write # npm provenance / trusted publishing
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: 24
+
+      - name: Download tarball
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: mcp-package
+          path: mcp
+
+      - name: Publish with OIDC (trusted publishing)
+        if: ${{ vars.MCP_NPM_AUTH == 'oidc' }}
         run: |
-          echo "//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}" > .npmrc
-          pnpm publish --no-git-checks --access public --provenance
+          if [ "$(printf '%s\n' 11.5.1 "$(npm --version)" | sort -V | head -n1)" != "11.5.1" ]; then
+            npm install --global npm@11.21.1
+          fi
+          npm publish mcp/*.tgz --access public --provenance
+
+      - name: Publish with NPM_TOKEN (legacy)
+        if: ${{ vars.MCP_NPM_AUTH != 'oidc' }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          npm config set "//registry.npmjs.org/:_authToken" "$NODE_AUTH_TOKEN"
+          npm publish mcp/*.tgz --access public --provenance
 
       - name: Create GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release create "${GITHUB_REF_NAME}" \
+            --repo "$GITHUB_REPOSITORY" \
             --title "angular-movement-mcp ${GITHUB_REF_NAME#mcp-v}" \
             --generate-notes \
             --verify-tag

@@ -1,16 +1,17 @@
 ---
 name: release
-description: Runs the pre-release audit and cuts a version of the movement library — verification gate, API surface check, docs drift check, changelog roll, and the tag push that triggers the npm publish workflow. Use when preparing or publishing any library version.
+description: Runs the pre-release audit for the movement library and reviews the automated Release PR — API surface check, docs drift check, verification gate, changelog review. Releases are cut by merging the Release PR, never by hand. Use when preparing or reviewing a library release.
 disable-model-invocation: true
 ---
 
 # Release
 
-Publishing is irreversible: pushing a `v*.*.*` tag triggers `.github/workflows/release.yml`, which
-publishes to npm with provenance and creates the GitHub Release. **Never push a tag without explicit
-user confirmation.**
+Releases are automated (see `docs/RELEASING.md`): release-please keeps one **`chore(release):
+angular-movement vX.Y.Z`** PR open; merging it tags the commit, runs every gate and publishes to npm
+through OIDC. **There is no version bump, tag push or `npm publish` to run. Never merge the Release PR
+without explicit user confirmation — merging it publishes.**
 
-The full manual list lives in `RELEASE_CHECKLIST.md`. This skill is the order to work it in.
+The full list lives in `RELEASE_CHECKLIST.md`. This skill is the order to work it in.
 
 ## 1. Audit before touching versions
 
@@ -47,30 +48,26 @@ directly; otherwise ask the user to confirm them.
 
 - `projects/movement/package.json` version and `peerDependencies` range are correct.
 - `projects/movement/README.md` matches the root README's positioning.
-- `CHANGELOG.md` Unreleased lists everything in this release, matching the agent's classification.
+- The Release PR's `CHANGELOG.md` section lists everything in this release, matching the agent's classification.
 - Packed output excludes demo-site files (`pnpm pack:check` output).
 
-## 5. Cut it
-
-The script does the bump, the changelog roll, the commit and the tag — do not do these by hand:
+## 5. Review the Release PR
 
 ```bash
-pnpm release minor --dry-run    # preview first, writes nothing
-pnpm release minor              # or: patch | major | an explicit 0.7.0
+gh pr list --label "autorelease: pending"       # the open Release PR, if any
+gh pr view <n>                                   # proposed version + notes
 ```
 
-Bump choice follows the audit: BREAKING → major (or minor while `0.x`, but say so explicitly),
-ADDITIVE → minor, fixes only → patch.
+The proposed version must match the audit: BREAKING → major, ADDITIVE → minor, fixes only → patch.
+If it does not, do not edit versions — add a `Release-As: X.Y.Z` footer to a commit via PR, or fix the
+commit types. Check the `CHANGELOG.md` section on the PR branch.
 
 ## 6. Publish — confirm first
 
-```bash
-git push origin main
-git push origin vX.Y.Z          # ← this publishes to npm. Confirm with the user first.
-```
-
-Then watch the workflow: `gh run watch`. The tag-vs-package-version guard in the workflow fails the
-run if they disagree.
+Merging the Release PR (**Squash and merge**) is the publish action. Confirm with the user first, then
+watch `gh run watch` on the `Release` workflow. It is done when the run summary says
+"Release fully completed". Failures and recovery: `docs/RELEASING.md` (re-run failed jobs, or
+`gh workflow run release.yml --ref main -f tag=vX.Y.Z`).
 
 ## 7. Record
 

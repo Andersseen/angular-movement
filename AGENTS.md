@@ -92,7 +92,11 @@ Built with AnalogJS (file-based routing + SSR). App config uses `provideZoneless
 ## Key Conventions
 
 - **Package manager**: `pnpm` exclusively.
-- **Commit format**: Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.) — enforced by commitlint + husky.
+- **Commit format**: Conventional Commits (`feat:`, `fix:`, `refactor:`, etc.) — enforced by commitlint + husky. Commit types drive releases (see below). Commit types drive releases (see below).
+- **Releases are automated** (release-please → Release PR → merge → gated npm OIDC publish; see
+  `docs/RELEASING.md`). Never bump `projects/movement/package.json`, edit `.release-please-manifest.json`,
+  create `v*` tags or run `npm publish`. `feat:`/`fix:` under `projects/movement/` create releases;
+  other commit types and paths do not. `angular-movement-mcp` (`mcp-v*` tags) is separate and manual.
 - **Formatting**: Prettier (printWidth 100, single quotes, trailing commas). Tailwind class order enforced by `prettier-plugin-tailwindcss`.
 - **Private class fields**: Use `#field` syntax for encapsulation in library directives/services.
 - **Angular signals API**: Use `input()`, `signal()`, `effect()` — no `@Input()` decorators in new code.
