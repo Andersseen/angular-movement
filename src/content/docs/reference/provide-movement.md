@@ -29,12 +29,12 @@ Stable API — covered by semantic-versioning guarantees.
 ## Signature
 
 ```ts
-function provideMovement(config?: MovementConfigInput): EnvironmentProviders;
+function provideMovement(config?: MovementConfigInput): EnvironmentProviders
 ```
 
-| Parameter | Type                                                           | Optional | Description |
-| --------- | -------------------------------------------------------------- | -------- | ----------- |
-| `config`  | [`MovementConfigInput`](/docs/reference/movement-config-input) | Yes      |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `config` | [`MovementConfigInput`](/docs/reference/movement-config-input) | Yes |  |
 
 **Returns** `EnvironmentProviders`
 

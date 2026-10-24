@@ -39,10 +39,10 @@ interface AnimationControls
 
 ## Properties
 
-| Name                | Type            | Description |
-| ------------------- | --------------- | ----------- |
-| `currentTime`       | `number`        |             |
-| `readonly finished` | `Promise<void>` |             |
+| Name | Type | Description |
+| --- | --- | --- |
+| `currentTime` | `number` |  |
+| `readonly finished` | `Promise<void>` |  |
 
 ## Public methods
 

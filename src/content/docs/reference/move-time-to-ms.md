@@ -25,12 +25,12 @@ Stable API — covered by semantic-versioning guarantees.
 ## Signature
 
 ```ts
-function moveTimeToMs(value: MoveTime): number;
+function moveTimeToMs(value: MoveTime): number
 ```
 
-| Parameter | Type                                    | Optional | Description |
-| --------- | --------------------------------------- | -------- | ----------- |
-| `value`   | [`MoveTime`](/docs/reference/move-time) |          |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `value` | [`MoveTime`](/docs/reference/move-time) |  |  |
 
 **Returns** `number`
 

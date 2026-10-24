@@ -20,12 +20,12 @@ Stable API — covered by semantic-versioning guarantees.
 ## Signature
 
 ```ts
-function moveIconBounce(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+function moveIconBounce(overrides?: Partial<MoveKeyframes>): MoveKeyframes
 ```
 
-| Parameter   | Type                     | Optional | Description |
-| ----------- | ------------------------ | -------- | ----------- |
-| `overrides` | `Partial<MoveKeyframes>` | Yes      |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `overrides` | `Partial<MoveKeyframes>` | Yes |  |
 
 **Returns** [`MoveKeyframes`](/docs/reference/move-keyframes)
 

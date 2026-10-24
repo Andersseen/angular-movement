@@ -36,16 +36,16 @@ Stable API — covered by semantic-versioning guarantees.
 
 ## Inputs
 
-| Input                 | Type                          | Default     | Required | Description                                                                               |
-| --------------------- | ----------------------------- | ----------- | -------- | ----------------------------------------------------------------------------------------- |
-| `moveWhileHover`      | `MovePreset \| MoveKeyframes` |             | Yes      |                                                                                           |
-| `moveDuration`        | `unknown`                     | `undefined` |          | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`.        |
-| `moveEasing`          | `string \| undefined`         | `undefined` |          |                                                                                           |
-| `moveDelay`           | `unknown`                     | `undefined` |          | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`.           |
-| `moveDisabled`        | `unknown`                     | `undefined` |          | Transform `optionalBooleanAttribute`; reads as `boolean \| undefined`.                    |
-| `moveSpring`          | `MoveSpring \| undefined`     | `undefined` |          |                                                                                           |
-| `moveReverseDuration` | `unknown`                     | `undefined` |          | Transform `optionalTimeAttribute('moveReverseDuration')`; reads as `number \| undefined`. |
-| `moveReverseEasing`   | `string \| undefined`         | `undefined` |          |                                                                                           |
+| Input | Type | Default | Required | Description |
+| --- | --- | --- | --- | --- |
+| `moveWhileHover` | `MovePreset \| MoveKeyframes` |  | Yes |  |
+| `moveDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
+| `moveEasing` | `string \| undefined` | `undefined` |  |  |
+| `moveDelay` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`. |
+| `moveDisabled` | `unknown` | `undefined` |  | Transform `optionalBooleanAttribute`; reads as `boolean \| undefined`. |
+| `moveSpring` | `MoveSpring \| undefined` | `undefined` |  |  |
+| `moveReverseDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveReverseDuration')`; reads as `number \| undefined`. |
+| `moveReverseEasing` | `string \| undefined` | `undefined` |  |  |
 
 ## Public methods
 
@@ -67,9 +67,9 @@ onPointerEnter(event?: Pick<PointerEvent, "pointerType">): void
 
 Starts the hover animation for any pointer except touch.
 
-| Parameter | Type                                | Optional | Description |
-| --------- | ----------------------------------- | -------- | ----------- |
-| `event`   | `Pick<PointerEvent, 'pointerType'>` | Yes      |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `event` | `Pick<PointerEvent, 'pointerType'>` | Yes |  |
 
 ### onPointerLeave
 
@@ -104,9 +104,9 @@ onTouchStart(_event?: TouchEvent): void
 > [!WARNING]
 > **Deprecated.** No longer bound to any event and does nothing: touch does not emulate hover as of 1.2 (use `moveWhileTap` for touch feedback). Kept so the class shape stays compatible within 1.x.
 
-| Parameter | Type         | Optional | Description |
-| --------- | ------------ | -------- | ----------- |
-| `_event`  | `TouchEvent` | Yes      |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `_event` | `TouchEvent` | Yes |  |
 
 ### onTouchEnd
 

@@ -19,12 +19,12 @@ Ideal for SVG `<path>`, `<circle>`, `<line>`, etc.
 ## Signature
 
 ```ts
-function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
+function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes
 ```
 
-| Parameter   | Type                     | Optional | Description |
-| ----------- | ------------------------ | -------- | ----------- |
-| `overrides` | `Partial<MoveKeyframes>` | Yes      |             |
+| Parameter | Type | Optional | Description |
+| --- | --- | --- | --- |
+| `overrides` | `Partial<MoveKeyframes>` | Yes |  |
 
 **Returns** [`MoveKeyframes`](/docs/reference/move-keyframes)
 
@@ -35,11 +35,7 @@ function movePathDraw(overrides?: Partial<MoveKeyframes>): MoveKeyframes;
 ## Examples
 
 ```html
-<path
-  [moveTarget]="animate()"
-  [moveFrames]="movePathDraw({ opacity: [0, 1] })"
-  moveDuration="700"
-/>
+<path [moveTarget]="animate()" [moveFrames]="movePathDraw({ opacity: [0, 1] })" moveDuration="700" />
 ```
 
 Stable API — covered by semantic-versioning guarantees.

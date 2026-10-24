@@ -2,3 +2,6 @@ dist/
 coverage/
 node_modules/
 .angular/
+src/content/docs/
+src/authoring/docs/.doq-content.json
+src/.playwright-mcp

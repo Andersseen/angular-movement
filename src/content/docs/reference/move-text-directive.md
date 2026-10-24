@@ -28,16 +28,16 @@ Stable API — covered by semantic-versioning guarantees.
 
 ## Inputs
 
-| Input             | Type                          | Default     | Required | Description                                                                        |
-| ----------------- | ----------------------------- | ----------- | -------- | ---------------------------------------------------------------------------------- |
-| `moveText`        | `MovePreset \| MoveKeyframes` | `'fade-up'` |          |                                                                                    |
-| `moveTextSplit`   | `"chars" \| "words"`          | `'chars'`   |          |                                                                                    |
-| `moveTextStagger` | `unknown`                     | `30`        |          | Transform `timeAttribute('moveTextStagger', 30)`; reads as `number`.               |
-| `moveDuration`    | `unknown`                     | `undefined` |          | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
-| `moveEasing`      | `string \| undefined`         | `undefined` |          |                                                                                    |
-| `moveDelay`       | `unknown`                     | `undefined` |          | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`.    |
-| `moveDisabled`    | `unknown`                     | `undefined` |          | Transform `optionalBooleanAttribute`; reads as `boolean \| undefined`.             |
-| `moveSpring`      | `MoveSpring \| undefined`     | `undefined` |          |                                                                                    |
+| Input | Type | Default | Required | Description |
+| --- | --- | --- | --- | --- |
+| `moveText` | `MovePreset \| MoveKeyframes` | `'fade-up'` |  |  |
+| `moveTextSplit` | `"chars" \| "words"` | `'chars'` |  |  |
+| `moveTextStagger` | `unknown` | `30` |  | Transform `timeAttribute('moveTextStagger', 30)`; reads as `number`. |
+| `moveDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
+| `moveEasing` | `string \| undefined` | `undefined` |  |  |
+| `moveDelay` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`. |
+| `moveDisabled` | `unknown` | `undefined` |  | Transform `optionalBooleanAttribute`; reads as `boolean \| undefined`. |
+| `moveSpring` | `MoveSpring \| undefined` | `undefined` |  |  |
 
 ## Related types
 

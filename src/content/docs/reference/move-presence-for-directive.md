@@ -29,11 +29,11 @@ Stable API — covered by semantic-versioning guarantees.
 
 ## Inputs
 
-| Input                    | Type                                                            | Default          | Required | Description |
-| ------------------------ | --------------------------------------------------------------- | ---------------- | -------- | ----------- |
-| `movePresenceForOf`      | `readonly T[] \| null \| undefined`                             |                  | Yes      |             |
-| `movePresenceForTrackBy` | `MovePresenceForTrackBy<T>`                                     | `defaultTrackBy` |          |             |
-| `movePresenceForMode`    | [`MovePresenceForMode`](/docs/reference/move-presence-for-mode) | `'sync'`         |          |             |
+| Input | Type | Default | Required | Description |
+| --- | --- | --- | --- | --- |
+| `movePresenceForOf` | `readonly T[] \| null \| undefined` |  | Yes |  |
+| `movePresenceForTrackBy` | `MovePresenceForTrackBy<T>` | `defaultTrackBy` |  |  |
+| `movePresenceForMode` | [`MovePresenceForMode`](/docs/reference/move-presence-for-mode) | `'sync'` |  |  |
 
 ## Related types
 

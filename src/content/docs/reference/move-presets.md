@@ -15,7 +15,7 @@ category: constant
 ## Type
 
 ```ts
-const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition>;
+const MOVE_PRESETS: Record<MovePreset, MovePresetDefinition>
 ```
 
 ## Related types
