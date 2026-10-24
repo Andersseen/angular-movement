@@ -12,7 +12,9 @@ test.describe('demo pages', () => {
       await page.goto(`/demos/${route}`);
 
       await expect(page.locator('h1').first()).toBeVisible();
-      await expect(page.locator('app-demos-layout main')).toBeVisible();
+      // The shell owns the single main landmark; the gallery layout must not nest a second one.
+      await expect(page.locator('main')).toHaveCount(1);
+      await expect(page.getByTestId('demo-links')).toBeVisible();
       expect(errors).toEqual([]);
     });
   }

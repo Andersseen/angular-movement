@@ -1,12 +1,42 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
+import {
+  VoltBadge,
+  VoltCard,
+  VoltCardContent,
+  VoltCardDescription,
+  VoltCardHeader,
+  VoltCardTitle,
+  VoltNativeButton,
+} from '@voltui/components';
+import { LmnCheckIcon } from 'lumen-icons/check';
+
+interface Tool {
+  name: string;
+  when: string;
+  points: string[];
+  highlight: boolean;
+}
 
 @Component({
   selector: 'app-choose-tool',
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    MoveInViewDirective,
+    MoveStaggerDirective,
+    VoltBadge,
+    VoltCard,
+    VoltCardHeader,
+    VoltCardTitle,
+    VoltCardDescription,
+    VoltCardContent,
+    VoltNativeButton,
+    LmnCheckIcon,
+  ],
   template: `
-    <section class="border-border mx-auto max-w-7xl border-t px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mb-12 max-w-2xl">
+    <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <div class="mb-12 max-w-2xl" moveInView="fade-up">
         <h2 class="font-display text-text mb-4 text-3xl font-bold tracking-tight md:text-4xl">
           Use the simplest tool that works
         </h2>
@@ -17,27 +47,45 @@ import { RouterLink } from '@angular/router';
         </p>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+      <div
+        moveStagger
+        moveStaggerStep="90ms"
+        class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4"
+      >
         @for (tool of tools; track tool.name) {
-          <article
-            class="border-border flex flex-col rounded-2xl border p-6"
-            [class.bg-accent/5]="tool.highlight"
-            [class.border-accent/40]="tool.highlight"
-            [class.bg-surface]="!tool.highlight"
+          <volt-card
+            moveInView="fade-up"
+            class="landing-card h-full"
+            [class.border-accent]="tool.highlight"
+            [style.box-shadow]="
+              tool.highlight ? '0 20px 60px -28px var(--color-accent-glow)' : null
+            "
           >
-            <h3 class="font-display text-text mb-1 text-lg font-bold">{{ tool.name }}</h3>
-            <p class="text-text-subtle mb-4 text-sm">{{ tool.when }}</p>
-            <ul class="text-text-muted m-0 list-disc space-y-2 pl-5 text-sm">
-              @for (point of tool.points; track point) {
-                <li>{{ point }}</li>
-              }
-            </ul>
-          </article>
+            <volt-card-header>
+              <div class="flex items-start justify-between gap-2">
+                <volt-card-title>{{ tool.name }}</volt-card-title>
+                @if (tool.highlight) {
+                  <volt-badge class="shrink-0 whitespace-nowrap">State-driven</volt-badge>
+                }
+              </div>
+              <volt-card-description>{{ tool.when }}</volt-card-description>
+            </volt-card-header>
+            <volt-card-content>
+              <ul class="text-text-muted m-0 flex list-none flex-col gap-2 p-0 text-sm">
+                @for (point of tool.points; track point) {
+                  <li class="flex gap-2">
+                    <lmn-check class="text-accent mt-0.5 shrink-0" [size]="16" ariaLabel="" />
+                    <span>{{ point }}</span>
+                  </li>
+                }
+              </ul>
+            </volt-card-content>
+          </volt-card>
         }
       </div>
 
-      <p class="mt-8">
-        <a routerLink="/docs/choose-a-tool" class="text-accent font-semibold underline"
+      <p class="mt-8" moveInView="fade-up">
+        <a voltButton variant="link" class="text-accent" routerLink="/docs/choose-a-tool"
           >Full comparison and decision guide →</a
         >
       </p>
@@ -46,7 +94,7 @@ import { RouterLink } from '@angular/router';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChooseTool {
-  protected readonly tools = [
+  protected readonly tools: Tool[] = [
     {
       name: 'CSS',
       when: 'Hover colours, simple transitions, loaders',

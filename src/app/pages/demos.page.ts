@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
+import { DemoLinksStrip } from '../motion-examples/demo-links.component';
 
 interface DemoGroup {
   title: string;
@@ -84,7 +85,7 @@ const DEMO_GROUPS: DemoGroup[] = [
 
 @Component({
   selector: 'app-demos-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, DemoLinksStrip],
   template: `
     <div
       class="mx-auto min-h-[calc(100vh-theme('spacing.64'))] max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
@@ -98,7 +99,6 @@ const DEMO_GROUPS: DemoGroup[] = [
                 [routerLink]="[item.path]"
                 routerLinkActive="bg-accent/10 text-accent font-medium"
                 class="text-text-muted hover:text-text rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors"
-                [attr.aria-label]="item.description"
               >
                 {{ item.label }}
               </a>
@@ -115,11 +115,11 @@ const DEMO_GROUPS: DemoGroup[] = [
           <nav class="space-y-8">
             @for (group of demoGroups; track group.title) {
               <div>
-                <h4
+                <p
                   class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
                 >
                   {{ group.title }}
-                </h4>
+                </p>
                 <ul class="space-y-1">
                   @for (item of group.items; track item.path) {
                     <li>
@@ -127,7 +127,6 @@ const DEMO_GROUPS: DemoGroup[] = [
                         [routerLink]="[item.path]"
                         routerLinkActive="bg-accent/10 text-accent font-medium"
                         class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
-                        [attr.aria-label]="item.description"
                       >
                         {{ item.label }}
                       </a>
@@ -140,9 +139,10 @@ const DEMO_GROUPS: DemoGroup[] = [
         </aside>
 
         <!-- Main Content Area -->
-        <main class="min-w-0 flex-1">
+        <div class="min-w-0 flex-1">
+          <app-demo-links />
           <router-outlet />
-        </main>
+        </div>
       </div>
     </div>
   `,

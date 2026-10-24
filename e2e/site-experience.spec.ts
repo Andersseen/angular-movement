@@ -17,7 +17,7 @@ test.describe('code block', () => {
   test.use({ permissions: ['clipboard-read', 'clipboard-write'] });
 
   test('copies raw source, not highlighted markup, and announces it', async ({ page }) => {
-    await open(page, '/docs/get-started');
+    await open(page, '/demos/enter');
     const block = page.locator('app-code-block').first();
     const shown = await block.locator('pre code').innerText();
 
@@ -31,74 +31,10 @@ test.describe('code block', () => {
   });
 
   test('the code region is keyboard-reachable', async ({ page }) => {
-    await open(page, '/docs/get-started');
+    await open(page, '/demos/enter');
     const region = page.locator('app-code-block [role="region"]').first();
     await region.focus();
     await expect(region).toBeFocused();
-  });
-});
-
-test.describe('docs navigation', () => {
-  test('marks the current page and links previous/next from one nav model', async ({ page }) => {
-    await open(page, '/docs/api-selection');
-    await expect(page.locator('#docs-nav a[aria-current="page"]')).toHaveText('Choose an API');
-
-    const pager = page.getByRole('navigation', { name: 'Previous and next pages' });
-    await expect(pager.getByRole('link', { name: /API guide/ })).toBeVisible();
-    await pager.getByRole('link', { name: /API reference/ }).click();
-    await expect(page).toHaveURL(/\/docs\/reference$/);
-    await expect(page.locator('#docs-nav a[aria-current="page"]')).toHaveText('API reference');
-  });
-
-  test('quick find filters and Enter opens the first match', async ({ page }) => {
-    await open(page, '/docs/introduction');
-    const search = page.getByLabel('Search the documentation');
-    // Hydration publishes `ng` slightly before every listener is attached, so a fill that lands in
-    // that window is dropped; retry the whole interaction instead of sleeping.
-    await expect(async () => {
-      await search.fill('');
-      await search.fill('animate.leave');
-      await expect(page.getByTestId('docs-search-results').getByRole('link')).toHaveCount(2, {
-        timeout: 1000,
-      });
-    }).toPass({ timeout: 8000 });
-    await search.press('Enter');
-    await expect(page).toHaveURL(/\/docs\/(choose-a-tool|migration)$/);
-
-    await search.fill('zzzzzz');
-    await expect(page.getByRole('status').filter({ hasText: 'No matching pages' })).toBeVisible();
-  });
-
-  test('headings get anchors that copy a deep link', async ({ page, context }) => {
-    await context.grantPermissions(['clipboard-read', 'clipboard-write']);
-    await open(page, '/docs/accessibility');
-    const anchor = page.locator('a[data-heading-anchor="reduced-motion"]');
-    await anchor.focus();
-    await expect(anchor).toBeFocused();
-    await anchor.press('Enter');
-
-    await expect(page.getByTestId('anchor-status')).toContainText('Link copied');
-    const copied = await page.evaluate(() => navigator.clipboard.readText());
-    expect(copied).toMatch(/\/docs\/accessibility#reduced-motion$/);
-  });
-
-  test('mobile: menu toggles, navigates, and closes on Escape', async ({ page }) => {
-    await page.setViewportSize({ width: 390, height: 800 });
-    await open(page, '/docs/introduction');
-    const toggle = page.getByTestId('docs-menu-toggle');
-    const nav = page.locator('#docs-nav');
-
-    await expect(nav).toBeHidden();
-    await toggle.click();
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true');
-    await expect(nav).toBeVisible();
-    await page.keyboard.press('Escape');
-    await expect(nav).toBeHidden();
-
-    await toggle.click();
-    await nav.getByRole('link', { name: 'Choose the right tool' }).click();
-    await expect(page).toHaveURL(/choose-a-tool$/);
-    await expect(nav).toBeHidden();
   });
 });
 
@@ -142,12 +78,21 @@ test.describe('homepage showcase', () => {
     const html = await (await request.get('/')).text();
     expect(html).toContain('Motion for Angular');
     expect(html).toContain('showcase-placeholder');
+    expect(html).toContain('rel="canonical" href="https://angular-movement.andersseen.dev/"');
   });
 });
 
 test.describe('layout robustness', () => {
-  for (const width of [360, 768, 1280]) {
-    for (const path of ['/', '/docs/api-selection', '/docs/migration', '/demos/hover']) {
+  for (const width of [320, 375, 768, 1024, 1440]) {
+    for (const path of [
+      '/',
+      '/docs/api-selection',
+      '/docs/reference/move-enter-directive',
+      '/docs/guides/presence',
+      '/docs/presets',
+      '/demos/hover',
+      '/templates',
+    ]) {
       test(`no horizontal page scroll at ${width}px on ${path}`, async ({ page }) => {
         await page.setViewportSize({ width, height: 800 });
         await open(page, path);
@@ -168,6 +113,8 @@ test.describe('accessibility (axe)', () => {
       '/docs/api-selection',
       '/docs/migration',
       '/docs/accessibility',
+      '/docs/guides/enter',
+      '/docs/reference',
       '/demos/hover',
     ]) {
       test(`${path} has no serious violations (${theme})`, async ({ page }) => {

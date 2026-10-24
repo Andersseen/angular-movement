@@ -52,6 +52,15 @@ pnpm deploy           # build + Cloudflare Pages deploy
 
 Run a single spec file: `ng test movement --include='**/move-hover.directive.spec.ts'`
 
+### Documentation (Doqs, Markdown)
+
+`/docs` is rendered by `@doqs/analog`. Write **`src/authoring/docs/**/*.md`** (never `src/content/docs`, which is generated and
+committed), take code from compiled snippets in `src/docs-snippets` with `::source{file region}`, and link API symbols with
+`[[api:Name]]`. After a library API change or a docs edit run `pnpm docs:sync`; `pnpm docs:verify` (snippets compile,
+API reference and content not stale, docs drift, `doq doctor`) runs in CI. Cloudflare serves the static build, so
+`pnpm build:prod && pnpm e2e:static` is the check that matches production. Doqs feedback lives in
+`docs/integrations/doqs-feedback.md`.
+
 ## Architecture
 
 ### Library (`projects/movement/src/lib/`)

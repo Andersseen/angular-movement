@@ -22,15 +22,25 @@ validation/consumer/         ← AOT-compile fixture for the packed tarball (scr
 validation/consumer-runtime/ ← prerender + hydrate + browser fixture (scripts/validate-consumer-runtime.mjs)
 
 src/                         ← THE DEMO SITE (AnalogJS: Vite + SSR + file-based routing)
-  app/shared/docs-nav.ts     ← single docs navigation model (sidebar, quick find, prev/next)
+  authoring/docs/            ← DOCUMENTATION SOURCE (Markdown, Doqs): guides, concepts, migration
+  content/docs/              ← GENERATED, committed: resolved Markdown + `reference/` (doq-api) — never edit
+  docs-snippets/             ← compiled examples the guides pull in with ::source (ngc strict templates)
+  doq.paths.ts               ← contentDirectory/basePath shared by the app and vite.config.ts
+  site-routes.ts             ← build-time route inventory (host routes; Doqs adds the docs routes)
+  app/app.config.ts          ← Doqs is scoped to a LAZY `/docs` route (keeps it out of the home/demo bundle)
+  app/doq/doq.config.ts      ← Doqs config: playground + demo registry, presentation
+  app/motion-examples/       ← host-owned example wrappers (Doqs playgrounds), registry.ts (identities),
+                               demo-links.ts (demo → guide/API/related; drives the strip above every demo)
+  app/shared/seo.service.ts  ← canonical/OG/Twitter tags for every route; site.ts holds origin/GitHub/npm
   app/shared/utils/          ← highlight.ts (tokenizer), clipboard.ts (copy with fallback)
-  app/shared/directives/     ← heading-anchors.ts (ids + copy-link anchors on docs headings)
-  app/pages/                 ← routes: (home).page.ts, demos/, docs/, templates.page.ts
+  app/pages/                 ← routes: (home).page.ts, demos/, templates.page.ts, [...404].page.ts
+                               (`/docs/**` is Doqs — there are no docs pages here any more)
   app/pages/demos/<name>/    ← one demo folder per directive
-  app/shared/components/     ← CodeBlock, DemoContainer, etc.
+  app/shared/components/     ← CodeBlock, DemoContainer, etc. (CodeBlock/DemoContainer serve /demos and home)
   server/routes/api/         ← Nitro API routes (.get.ts / .post.ts)
 
-e2e/                         ← Playwright tests (demo site)
+e2e/                         ← Playwright tests against the dev server
+e2e-static/                  ← Playwright tests against the production build (`wrangler pages dev`, = Cloudflare Pages)
 vite.config.ts               ← alias: movement → projects/movement/src/public-api.ts
 ```
 
@@ -403,5 +413,6 @@ site components used it. All now import narrowly, and MCP `get_example` returns 
 2. Create colocated `move-<name>.directive.spec.ts` (copy test pattern from `move-hover.directive.spec.ts`).
 3. Add the class to the `MOVEMENT_DIRECTIVES` array **and** add an `export * from` line in `lib/movement.ts`.
 4. Add a demo page: `src/app/pages/demos/<name>/` (+ register in the demos navigation if applicable).
-5. Update docs pages if the API Reference lists directives.
+5. Run `pnpm docs:sync` (regenerates the API reference), add the demo to `app/motion-examples/demo-links.ts`
+   (a unit test fails otherwise) and link it from the matching guide in `src/authoring/docs`.
 6. Run the full verification suite (see SDD-WORKFLOW.md step 5).

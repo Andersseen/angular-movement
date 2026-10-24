@@ -1,0 +1,53 @@
+---
+title: AI agent setup
+description: Give Claude Code (or any MCP-compatible agent) ground-truth access to every directive, input and preset — no more guessed selectors.
+group: Adopt
+order: 31
+---
+
+## Why
+
+An agent working in a repo that has `angular-movement` installed has almost nothing to ground its guesses in — it will happily invent `[moveFadeIn]` or an `easing` input that doesn't exist. A wrong selector or input name fails silently or throws at runtime instead of producing a type error, so it's worth eliminating the guesswork entirely. [`angular-movement-mcp`](https://www.npmjs.com/package/angular-movement-mcp) is a real MCP server that exposes the library's actual directive, input and preset metadata as tools, plus a Claude Code skill that teaches an agent to reach for them.
+
+## 1. Install
+
+Run this once from the root of the app that consumes `angular-movement` (not from this library's own repo):
+
+```bash title=Terminal
+# from your app's repo root
+npx angular-movement-mcp init
+```
+
+This single command adds a `movement` entry to `.mcp.json` in the current repo — creating the file if it doesn't exist, and merging into it (never overwriting an existing `movement` entry) if it does — and copies the `movement-usage` skill to `.claude/skills/movement-usage/`.
+
+```json title=.mcp.json
+{
+  "mcpServers": {
+    "movement": {
+      "command": "npx",
+      "args": ["-y", "angular-movement-mcp"]
+    }
+  }
+}
+```
+
+Restart Claude Code (or reload the window) after running `init` so it picks up the new server and skill.
+
+## 2. What the server exposes
+
+All five tools are backed by a committed JSON snapshot regenerated from the library's actual source — not hand-written documentation that can silently drift.
+
+| Tool              | Returns                                                                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_directives` | Every directive wired into `MOVEMENT_DIRECTIVES` (selector, inputs, outputs, signals), optionally filtered by a substring.                                                       |
+| `get_directive`   | Full detail for one directive, by class name or selector.                                                                                                                        |
+| `list_presets`    | Every valid `MovePreset` string.                                                                                                                                                 |
+| `get_example`     | A minimal usage skeleton for a directive: the narrow import line, a template binding generated from its own selector and inputs, and usage notes.                                |
+| `get_guidelines`  | Conventions the API surface does not reveal: timing units, lift/press, touch vs hover, automatic reduced motion, `MoveAnimator`, cancellation, View Transitions, narrow imports. |
+
+## 3. What the skill does
+
+`movement-usage` tells the agent to call `list_directives` / `get_directive` / `get_example` before writing any `[move*]` binding, gives it the `move`-prefixed selector convention, and flags directive-specific gotchas (for example, that `[moveAnimation]` takes a single-value state object, not arrays of keyframes). It activates automatically once installed — nothing to reference by name in your prompts.
+
+> [!NOTE]
+> The MCP server speaks plain stdio MCP, so any MCP-compatible client can run it directly (`npx -y angular-movement-mcp`) — the `init` command's `.mcp.json` output and bundled skill are specifically the Claude Code integration.

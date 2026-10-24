@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-21
+**Last updated:** 2026-10-24
 **Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
 Motion), cut with the (since removed) `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
 `0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
@@ -21,6 +21,53 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## Done — Spec 018 (Website 2.0: Doqs docs, dedicated demos, new product page) — site only
+
+Branch `feat/website-doqs-adoption`, one PR, **no library change** (no API, version, tag, MCP or npm action). Spec:
+`docs/ai/specs/018-website-doqs-adoption.md`; Doqs findings: `docs/integrations/doqs-feedback.md`; localization note:
+`docs/integrations/doqs-i18n-follow-up.md`.
+
+- **`/docs` is Doqs 0.11.0** (`@doqs/analog`, exact pin). Edit **`src/authoring/docs/**/*.md`**; `src/content/docs/**` is
+  generated and committed (`pnpm docs:sync` = `doq-api generate` + `doq content generate`). Examples come from
+  **compiled snippets** (`src/docs-snippets`, `pnpm docs:snippets` = `ngc` strict templates against the real library under its
+  published name) via `::source`. `pnpm docs:verify` (snippets, API-reference + content staleness, docs drift incl. internal
+  links, `doq doctor`) runs in CI; the release workflow runs the same pieces with `docs:check` kept literal for its test.
+- **Old docs infrastructure is gone:** `pages/docs/*`, the docs layout, `docs-nav`, quick-find, pager, heading anchors, the
+  hand-written API reference/stability table, `PageHeader`, the home presets showcase. `CodeBlock`/`DemoContainer`/`InstallCommand`
+  stay (home + `/demos`). `directive-reference.ts` stays (MCP snapshot + `/api/directives`).
+- **URLs:** all 11 previous `/docs/*` URLs kept; `/docs` is now the Doqs index (was the introduction); `/docs/reference` is the
+  generated API index with one page per public symbol below it; seven new guides under `/docs/guides/*`.
+- **Doqs is scoped to a lazy route** in `app.config.ts` (entry chunk 20 kB gz baseline → 133 kB with Doqs global → 24 kB lazy).
+  The matcher consumes no segments, so Doqs keeps full `/docs/...` paths. Do not add `withEnabledBlockingInitialNavigation()`
+  (Angular raises NG05001 next to hydration — tried).
+- **Static deploy facts (found, not derivable from code):** production used to prerender only `/`; every other URL worked through
+  Cloudflare Pages' SPA fallback and unknown URLs answered 200. Now every route is prerendered flat (`docs/x.html`, via
+  `nitro.prerender.autoSubfolderIndex: false`, so the canonical slash-less URL is served directly instead of a 308 to `/x/`), a
+  real `404.html` exists (Pages answers 404), `scripts/finalize-site.mjs` writes `sitemap.xml` from the produced HTML and
+  `doq-search index` builds Pagefind. `vite.config.ts` lists host routes in `src/site-routes.ts` (demos derived from the pages
+  folder) + `doqPrerenderRoutes`. Dev server needs `optimizeDeps.include: ['@analogjs/content > front-matter']`.
+- **Tests:** `e2e/` (dev server) docs/home/demos/site-experience rewritten for Doqs; **`e2e-static/` + `playwright.static.config.ts`**
+  test the built output through `wrangler pages dev` (status codes, 404, sitemap, canonical/h1/main on all 118 pages, Pagefind,
+  deep-link refresh, event replay of host controls, five widths, Chromium/Firefox/WebKit). Unit: `demo-links.spec.ts` (every
+  demo has links; every linked doc/API page exists), `seo.service.spec.ts`, `scripts/finalize-site.test.mjs`.
+- **Known behaviours:** Doqs controls do not replay a click that lands before hydration (host controls do) — e2e waits for
+  `networkidle` on docs pages; a few pre-existing timing e2e (firefox hover, drag, `animate demo`) flake under parallel load and
+  pass on retry/`CI=1`.
+- **Performance (Lighthouse 12, mobile, median of 3, same Cloudflare-Pages emulation, base `4e71e2f` vs this branch):** home 95/95
+  (LCP 2.17→2.52 s, 226→238 KiB), `/demos/enter` 95/95; `/docs/get-started` 96 (the baseline URL served the home shell, so it has no
+  like-for-like figure). Preloading Geist 400/700 fixed a 3.8 s LCP caused by a late font swap on docs text. The earlier headline
+  (68 / LCP 5.4 s) was the un-prerendered node-server build and is not comparable.
+- `SmoothScrollService` is not enabled globally; native scrolling everywhere.
+- **Landing rework (same PR):** the home page, navbar, footer and install command use **Volt UI atoms only** (`volt-button`/`a voltButton`,
+  card, badge, tabs, accordion, toggle-group, slider, native select, checkbox, separator). Hero entrance and orbs are CSS
+  (`.landing-*` in `styles.css`, off under reduced motion); sections reveal with `moveInView`/`moveStagger`; a `moveScroll` progress bar
+  and `moveParallax` orbs dogfood the library. **Tailwind skips node_modules**: `@source '../node_modules/@voltui/components/fesm2022'`
+  generates Volt's state classes; `--color-primary` is the solid accent with white foreground. Avoid horizontal reveals
+  (`fade-left/right`) on landing sections (transient overflow on mobile). Volt keeps inactive tab panels hidden in the DOM, so
+  create only the active example (see `docs/integrations/library-findings.md`: `commitStyles` on a hidden host throws).
+  Volt buttons take `[aria-label]`/`[aria-expanded]` (aliases), `class="text-accent"` on link variants for dark-theme contrast.
+  `/demos` and `/docs` still use hand-written controls (demo rework planned).
 
 ## Done — Spec 017 (automated release pipeline) — setup PR, nothing published
 

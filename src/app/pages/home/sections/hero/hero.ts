@@ -1,7 +1,22 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MoveParallaxDirective } from 'movement';
+import {
+  VoltAccordion,
+  VoltAccordionContent,
+  VoltAccordionItem,
+  VoltAccordionTrigger,
+  VoltBadge,
+  VoltCard,
+  VoltCardContent,
+  VoltNativeButton,
+} from '@voltui/components';
+import { LmnArrowRightIcon } from 'lumen-icons/arrow-right';
+import { LmnSparklesIcon } from 'lumen-icons/sparkles';
 import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
+import { SITE } from '../../../../shared/site';
+import { MOVEMENT_VERSION_LABEL } from '../../../../shared/version';
 import { Showcase } from '../showcase/showcase';
 
 const SHOWCASE_SOURCE = `import { Component, signal } from '@angular/core';
@@ -54,89 +69,141 @@ export class Tasks {
 
 @Component({
   selector: 'app-hero',
-  imports: [RouterLink, InstallCommand, CodeBlock, Showcase],
+  imports: [
+    RouterLink,
+    MoveParallaxDirective,
+    InstallCommand,
+    CodeBlock,
+    Showcase,
+    VoltBadge,
+    VoltCard,
+    VoltCardContent,
+    VoltNativeButton,
+    VoltAccordion,
+    VoltAccordionItem,
+    VoltAccordionTrigger,
+    VoltAccordionContent,
+    LmnArrowRightIcon,
+    LmnSparklesIcon,
+  ],
   template: `
-    <section class="relative overflow-hidden pt-28 pb-20 lg:pt-36">
+    <section class="relative overflow-hidden pt-28 pb-24 lg:pt-36">
+      <div class="landing-grid pointer-events-none absolute inset-0 z-0" aria-hidden="true"></div>
       <div
-        class="pointer-events-none absolute inset-0 z-0 opacity-20"
-        style="background: radial-gradient(ellipse at 20% 0%, var(--color-accent) 0%, transparent 55%);"
+        class="pointer-events-none absolute -top-24 -left-24 z-0 h-[28rem] w-[28rem]"
         aria-hidden="true"
-      ></div>
+        [moveParallax]="0.25"
+      >
+        <div
+          class="landing-orb bg-accent/25 h-full w-full rounded-full blur-3xl"
+          style="--i: 0"
+        ></div>
+      </div>
+      <div
+        class="pointer-events-none absolute top-10 -right-24 z-0 h-[24rem] w-[24rem]"
+        aria-hidden="true"
+        [moveParallax]="-0.15"
+      >
+        <div
+          class="landing-orb h-full w-full rounded-full blur-3xl"
+          style="background: oklch(0.7 0.2 320 / 0.18); animation-delay: -5s"
+        ></div>
+      </div>
 
       <div
         class="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8"
       >
         <div class="min-w-0">
-          <p class="text-accent mb-4 font-mono text-sm font-semibold tracking-wide">
-            Angular Movement · v1.x
-          </p>
+          <volt-badge variant="secondary" class="landing-rise mb-6 gap-2" style="--i: 0">
+            <lmn-sparkles [size]="14" [animate]="true" ariaLabel="New" />
+            {{ version ? version + ' · ' : '' }}Angular 21 and 22
+          </volt-badge>
           <h1
-            class="font-display text-text mb-6 text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
+            class="landing-rise font-display text-text mb-6 text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl lg:text-6xl"
+            style="--i: 1"
           >
             Motion for Angular that follows your
-            <span class="text-accent">state</span>.
+            <span class="landing-sheen">state</span>.
           </h1>
-          <p class="text-text-muted mb-8 max-w-xl text-lg leading-relaxed">
+          <p
+            class="landing-rise text-text-muted mb-8 max-w-xl text-lg leading-relaxed"
+            style="--i: 2"
+          >
             Declarative directives on top of the Web Animations API. Start with one attribute; reach
             for presence, variants, scroll, springs and signals when the interface needs coordinated
             motion. Built for standalone, zoneless and SSR Angular.
           </p>
 
-          <div class="mb-8 flex flex-col gap-3 sm:flex-row">
-            <a
-              routerLink="/docs/get-started"
-              class="bg-accent-solid focus-visible:outline-accent inline-flex min-h-12 items-center justify-center rounded-xl px-7 text-base font-semibold text-white transition-colors hover:brightness-110 focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
+          <div class="landing-rise mb-8 flex flex-col gap-3 sm:flex-row" style="--i: 3">
+            <a voltButton size="lg" routerLink="/docs/get-started">
               Get started
+              <lmn-arrow-right [size]="16" ariaLabel="" />
             </a>
-            <a
-              routerLink="/demos"
-              class="text-text border-border bg-surface hover:bg-surface-raised focus-visible:outline-accent inline-flex min-h-12 items-center justify-center rounded-xl border px-7 text-base font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2"
-            >
-              Explore demos
-            </a>
+            <a voltButton variant="outline" size="lg" routerLink="/demos">Explore demos</a>
           </div>
 
-          <div class="max-w-md">
+          <div class="landing-rise max-w-md" style="--i: 4">
             <app-install-command [interactiveScale]="false" />
           </div>
+
+          <p
+            class="landing-rise text-text-muted mt-5 mb-0 flex flex-wrap items-center gap-x-2 text-sm"
+            style="--i: 5"
+          >
+            <a
+              voltButton
+              variant="link"
+              class="text-accent"
+              size="sm"
+              [href]="github"
+              rel="noopener noreferrer"
+              >GitHub</a
+            >
+            <a
+              voltButton
+              variant="link"
+              class="text-accent"
+              size="sm"
+              [href]="npm"
+              rel="noopener noreferrer"
+              >npm</a
+            >
+            <span>MIT licensed</span>
+          </p>
         </div>
 
         <!-- Interactive showcase: mounted after idle so the initial render/hydration stays cheap -->
-        <div class="min-w-0">
-          <div
-            class="bg-surface border-border rounded-2xl border p-5 shadow-lg sm:p-6"
-            role="group"
-            aria-label="Interactive example"
-          >
-            @defer (on idle) {
-              <app-showcase />
-            } @placeholder {
-              <div class="min-h-[22rem]" data-testid="showcase-placeholder">
-                <p class="font-display text-text m-0 text-base font-semibold">Today</p>
-                <p class="text-text-muted mt-3 text-sm">
-                  An interactive task list: add, complete, expand and remove tasks.
-                </p>
-              </div>
-            }
-            <p class="text-text-subtle mt-4 mb-0 text-xs">
-              Built only from stable APIs:
-              <code>*movePresenceFor</code>, <code>*movePresence</code>,
-              <code>[moveAnimation]</code>, <code>moveWhileHover</code>, <code>moveWhileTap</code>.
-              Honours <code>prefers-reduced-motion</code>.
-            </p>
-          </div>
+        <div class="landing-rise min-w-0" style="--i: 3">
+          <volt-card class="landing-card shadow-[0_20px_60px_-24px_var(--color-accent-glow)]">
+            <volt-card-content class="p-5 sm:p-6" role="group" aria-label="Interactive example">
+              @defer (on idle) {
+                <app-showcase />
+              } @placeholder {
+                <div class="min-h-[22rem]" data-testid="showcase-placeholder">
+                  <p class="font-display text-text m-0 text-base font-semibold">Today</p>
+                  <p class="text-text-muted mt-3 text-sm">
+                    An interactive task list: add, complete, expand and remove tasks.
+                  </p>
+                </div>
+              }
+              <p class="text-text-subtle mt-4 mb-0 text-xs">
+                Built only from stable APIs: <code>*movePresenceFor</code>,
+                <code>*movePresence</code>, <code>[moveAnimation]</code>,
+                <code>moveWhileHover</code>. Honours <code>prefers-reduced-motion</code>.
+              </p>
+            </volt-card-content>
+          </volt-card>
 
-          <details class="mt-4">
-            <summary
-              class="text-accent focus-visible:outline-accent cursor-pointer rounded text-sm font-semibold focus-visible:outline-2"
-            >
-              Show the code
-            </summary>
-            <div class="mt-3 max-h-96">
-              <app-code-block title="tasks.component.ts" [code]="source" />
-            </div>
-          </details>
+          <volt-accordion type="single" [collapsible]="true" class="mt-3">
+            <volt-accordion-item value="code">
+              <volt-accordion-trigger>Show the code</volt-accordion-trigger>
+              <volt-accordion-content>
+                <div class="max-h-96">
+                  <app-code-block title="tasks.component.ts" [code]="source" />
+                </div>
+              </volt-accordion-content>
+            </volt-accordion-item>
+          </volt-accordion>
         </div>
       </div>
     </section>
@@ -145,4 +212,7 @@ export class Tasks {
 })
 export class Hero {
   protected readonly source = SHOWCASE_SOURCE;
+  protected readonly github = SITE.github;
+  protected readonly npm = SITE.npm;
+  protected readonly version = MOVEMENT_VERSION_LABEL;
 }

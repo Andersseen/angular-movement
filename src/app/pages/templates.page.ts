@@ -8,12 +8,12 @@ import { TemplateCta } from './templates/sections/cta/cta';
   selector: 'app-templates',
   imports: [TemplateHero, TemplateFeatureGrid, TemplateSteps, TemplateCta],
   template: `
-    <main class="bg-bg text-text overflow-hidden pt-20">
+    <div class="bg-bg text-text overflow-hidden pt-20">
       <app-template-hero />
       <app-template-feature-grid />
       <app-template-steps />
       <app-template-cta />
-    </main>
+    </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

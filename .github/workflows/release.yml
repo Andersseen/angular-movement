@@ -239,6 +239,9 @@ jobs:
       - run: pnpm run lint
       - run: pnpm run format:check
       - run: pnpm run docs:check
+      - run: pnpm run docs:snippets
+      - run: pnpm run docs:api:check
+      - run: pnpm run docs:content:check
       - run: pnpm run test:coverage
       - run: pnpm run test:site
       - run: pnpm run test:scripts
@@ -249,6 +252,7 @@ jobs:
       - run: pnpm run pack:check
       - run: pnpm run build:prod
       - run: pnpm run e2e
+      - run: pnpm run e2e:static
 
   consumer:
     name: Consumer validation (Angular 21 + 22)

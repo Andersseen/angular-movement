@@ -1,0 +1,22 @@
+{
+  "generator": "doq content",
+  "files": {
+    "accessibility.md": "8145e363555fc3be97ac42b30bde3ffefed853d4787075be4f0e9884c2e73e8e",
+    "api-selection.md": "e6c47879416bf5ec2c2719343f1c148a7d7b511e7da416bfc876f903c8d52ff5",
+    "api.md": "398415b336b38ce91908a6880d67bacef74ab4f19d71209efa028abb0f814d46",
+    "choose-a-tool.md": "b37d6e233b8d54db938d3516245babf81e322abf9e7f614b164f4c3d1500d90e",
+    "get-started.md": "7e004db4f38691f7eb699be0b63870113547fbd2069e5e4a238b84ea3518d3f5",
+    "guides/enter.md": "53199cd349c8ed8e31940aee63842dedabefb43432c3318b8abe918226382bf5",
+    "guides/experimental.md": "84cbe2d0b6af776e7c8c0e27b10d926f7af8a7dc29795a4cb72105e367ef9694",
+    "guides/interactions.md": "96c9dca7c8f5c38675a4d7779db4ceed395f3550ff53bd68d524c2edea11dafe",
+    "guides/presence.md": "06083abc3ff1c5901331126965f3b548528d098a5b90defb77cc4abb8fe9ed7a",
+    "guides/signals.md": "eee5ba2c8690bf784f54debdd092986389cbffd6831afccb44acc3a9f4c10e62",
+    "guides/stagger-and-scroll.md": "b38ff380d6a80b1a912d2baddf7190f4965bded5361de4644f84a70fabd316e6",
+    "guides/variants.md": "f4110bf4f571d639e84b9b2f1e2630ac2440d604ac2add41999580cfd7ba8a93",
+    "introduction.md": "ad0bb93c056357f8478d8f413f4ab1fc3315e7ba1c419f553581debe29c69f2e",
+    "mcp.md": "60b67d62f4ee6b05179953a2cf9b120326cc4869a673d8aa3696fcc8f04de6dd",
+    "migration.md": "9c776a1c760264502412b8e72f351b7d597a641dc95ba1c06cfe303354597848",
+    "patterns.md": "d4f5c1e7286f5e2a3f8c32da488927f77e5bd2dc1907c45b948b4a11184e448b",
+    "presets.md": "21020a0e4c60d369ef5439fa259a3712ecd2cdf6d3875b051158ca41a09d0391"
+  }
+}

@@ -141,7 +141,9 @@ function listFiles(dir, test, out = []) {
 }
 
 const EDITORIAL_PAGES = [
-  ...listFiles('src/app/pages/docs', (f) => f.endsWith('.page.ts')),
+  // Markdown is the documentation's source of truth (Doqs); the generated copies and the generated
+  // API reference are derived from these and from the library, so only the authored files are checked.
+  ...listFiles('src/authoring/docs', (f) => f.endsWith('.md')),
   ...listFiles('src/app/pages/home', (f) => f.endsWith('.ts') && !f.endsWith('.spec.ts')),
   'README.md',
   'MIGRATION.md',
@@ -207,6 +209,33 @@ for (const page of EDITORIAL_PAGES) {
   const source = readFileSync(page, 'utf8');
   for (const pattern of ANTI_PATTERNS) {
     if (pattern.test(source)) errors.push(`${page}: ${pattern.name}`);
+  }
+}
+
+/**
+ * Internal links in the authored Markdown must resolve: a guide that links `/docs/guides/enterr`
+ * or a demo that was renamed fails here rather than 404ing for a reader. Doqs resolves `[[api:X]]`
+ * itself (`doq content check`); this covers the plain `/docs/…` and `/demos/…` links.
+ */
+const docsRoot = 'src/content/docs';
+const demoSlugs = new Set(
+  listFiles('src/app/pages/demos', (f) => f.endsWith('.page.ts') && !f.endsWith('.spec.ts')).map(
+    (f) => f.replace(/^.*\//, '').replace(/\.page\.ts$/, ''),
+  ),
+);
+const docRoutes = new Set(['/docs']);
+for (const file of listFiles(docsRoot, (f) => f.endsWith('.md'))) {
+  const route = '/docs/' + file.slice(docsRoot.length + 1).replace(/\.md$/, '');
+  docRoutes.add(route.replace(/\/index$/, ''));
+}
+for (const page of EDITORIAL_PAGES.filter((f) => f.endsWith('.md') && f.startsWith('src/'))) {
+  const source = readFileSync(page, 'utf8');
+  for (const [, target] of source.matchAll(/\]\((\/(?:docs|demos)[^)\s#]*)(?:#[^)\s]*)?\)/g)) {
+    const path = target.replace(/\/$/, '');
+    const ok = path.startsWith('/demos')
+      ? path === '/demos' || demoSlugs.has(path.slice('/demos/'.length))
+      : docRoutes.has(path);
+    if (!ok) errors.push(`${page}: links to ${target}, which is not a documentation page or demo`);
   }
 }
 

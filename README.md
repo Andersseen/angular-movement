@@ -25,6 +25,8 @@ SVG path-drawing. SSR-safe, zoneless-ready. Zero `@angular/animations`.
   &nbsp;·&nbsp;
   <a href="https://angular-movement.andersseen.dev/docs"><b>📚 Docs</b></a>
   &nbsp;·&nbsp;
+  <a href="https://angular-movement.andersseen.dev/docs/reference"><b>🧩 API reference</b></a>
+  &nbsp;·&nbsp;
   <a href="https://www.npmjs.com/package/angular-movement"><b>📦 npm</b></a>
   &nbsp;·&nbsp;
   <a href="ROADMAP.md"><b>🗺️ Roadmap</b></a>
