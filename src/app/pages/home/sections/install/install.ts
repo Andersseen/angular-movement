@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 
 @Component({
   selector: 'app-install',
-  imports: [InstallCommand],
+  imports: [InstallCommand, RouterLink],
   template: `
     <section
       class="group relative mx-auto mb-16 max-w-7xl overflow-hidden rounded-3xl px-4 py-32 sm:px-6 lg:px-8"
@@ -22,8 +23,8 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
           Ready to move?
         </h2>
         <p class="text-text-muted mb-10 max-w-2xl text-xl font-light">
-          Drop the boilerplate. Start animating your Angular 21 applications in minutes with a
-          single import.
+          Drop the boilerplate. Install the package, import one directive, and animate your Angular
+          21 or 22 application.
         </p>
 
         <!-- Install block -->
@@ -33,10 +34,10 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
 
         <div class="mt-8 flex gap-4">
           <a
-            href="/docs"
+            routerLink="/docs/get-started"
             class="text-text hover:text-accent flex items-center gap-1 text-sm font-semibold transition-colors"
           >
-            Read the docs <span aria-hidden="true">&rarr;</span>
+            Read the guide <span aria-hidden="true">&rarr;</span>
           </a>
         </div>
       </div>

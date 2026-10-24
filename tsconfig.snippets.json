@@ -1,0 +1,13 @@
+/* Compiles the documentation snippets (src/docs-snippets) against the real library source, imported by its
+   published name. Strict templates make a renamed selector or input fail here, not in a reader's app. */
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "types": [],
+    "paths": {
+      "angular-movement": ["./projects/movement/src/public-api.ts"]
+    }
+  },
+  "include": ["src/docs-snippets/**/*.ts"]
+}

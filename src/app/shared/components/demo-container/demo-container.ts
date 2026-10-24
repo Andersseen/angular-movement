@@ -68,7 +68,7 @@ export interface DemoState {
           class="bg-surface border-border w-full shrink-0 rounded-2xl border p-6 shadow-sm md:p-8 lg:w-[40%]"
         >
           <div class="mb-8 flex items-center justify-between">
-            <h3 class="font-display text-text text-xl font-semibold">Configuration</h3>
+            <h2 class="font-display text-text text-xl font-semibold">Configuration</h2>
             @if (showReplay()) {
               <button
                 class="text-accent hover:text-accent-light bg-accent/10 flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors"

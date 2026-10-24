@@ -48,8 +48,11 @@ jobs:
       - name: Check formatting
         run: pnpm run format:check
 
-      - name: Check docs against the library API
-        run: pnpm run docs:check
+      # Compiles the documentation snippets against the library, fails when the generated API
+      # reference or the resolved Markdown is stale, checks the docs against the library source and
+      # runs `doq doctor` over the Doqs integration.
+      - name: Verify documentation (snippets, API reference, content, drift, Doqs doctor)
+        run: pnpm run docs:verify
 
       - name: Test library
         run: pnpm run test:coverage
@@ -74,6 +77,11 @@ jobs:
 
       - name: Run e2e
         run: pnpm run e2e
+
+      # The build above is what Cloudflare Pages serves: prerendered Markdown, the Pagefind index,
+      # real 404s, the sitemap, hydration in the production bundle (Chromium, Firefox, WebKit).
+      - name: Run e2e against the production build (Cloudflare Pages emulation)
+        run: pnpm run e2e:static
 
   # Compiles the *packed* library inside a real Angular app, once per supported major. The demo site
   # imports the library through a Vite source alias, so nothing else here exercises the published

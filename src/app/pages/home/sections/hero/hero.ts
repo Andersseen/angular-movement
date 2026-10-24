@@ -3,6 +3,8 @@ import { RouterLink } from '@angular/router';
 import { InstallCommand } from '../../../../shared/components/install-command/install-command';
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
 import { Showcase } from '../showcase/showcase';
+import { SITE } from '../../../../shared/site';
+import { MOVEMENT_VERSION_LABEL } from '../../../../shared/version';
 
 const SHOWCASE_SOURCE = `import { Component, signal } from '@angular/core';
 import {
@@ -68,7 +70,7 @@ export class Tasks {
       >
         <div class="min-w-0">
           <p class="text-accent mb-4 font-mono text-sm font-semibold tracking-wide">
-            Angular Movement · v1.x
+            Angular Movement{{ version ? ' · ' + version : '' }}
           </p>
           <h1
             class="font-display text-text mb-6 text-4xl leading-[1.05] font-extrabold tracking-tight sm:text-5xl lg:text-6xl"
@@ -100,6 +102,24 @@ export class Tasks {
           <div class="max-w-md">
             <app-install-command [interactiveScale]="false" />
           </div>
+
+          <p class="text-text-muted mt-5 mb-0 flex flex-wrap gap-x-5 gap-y-1 text-sm">
+            <a
+              [href]="github"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-accent focus-visible:outline-accent min-h-6 font-medium underline underline-offset-4 focus-visible:outline-2"
+              >GitHub</a
+            >
+            <a
+              [href]="npm"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-accent focus-visible:outline-accent min-h-6 font-medium underline underline-offset-4 focus-visible:outline-2"
+              >npm</a
+            >
+            <span>Angular 21 and 22 · MIT</span>
+          </p>
         </div>
 
         <!-- Interactive showcase: mounted after idle so the initial render/hydration stays cheap -->
@@ -145,4 +165,7 @@ export class Tasks {
 })
 export class Hero {
   protected readonly source = SHOWCASE_SOURCE;
+  protected readonly github = SITE.github;
+  protected readonly npm = SITE.npm;
+  protected readonly version = MOVEMENT_VERSION_LABEL;
 }

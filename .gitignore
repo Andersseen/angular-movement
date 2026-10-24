@@ -58,3 +58,6 @@ __screenshots__/
 .DS_Store
 Thumbs.db
 /projects/movement-migrate/dist
+
+# Cloudflare Pages emulator state (wrangler pages dev, used by e2e:static)
+/.wrangler

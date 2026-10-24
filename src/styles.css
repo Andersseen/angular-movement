@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@doqs/analog/styles.css';
 
 @source inline(
   'block w-full inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer select-none bg-primary text-primary-foreground shadow-sm data-[hover]:bg-primary/90 data-[press]:scale-[0.98] border border-input bg-background data-[hover]:bg-accent data-[hover]:text-accent-foreground h-8 h-9 h-10 h-11 w-9 rounded-md rounded-lg rounded-xl rounded-full px-2.5 px-3 px-4 px-8 py-0.5 py-2 text-xs text-sm text-base border-transparent bg-muted text-foreground border-border bg-surface text-surface-foreground text-muted-foreground flex flex-col gap-1.5 p-6 pt-0 leading-none tracking-tight text-lg font-semibold file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 shrink-0 h-px'
@@ -110,6 +111,27 @@
   --color-code-comment: oklch(0.48 0.014 268);
 }
 
+/*
+ * Doqs documentation tokens. Doqs sets no global html/body styles; it reads --host-docs-* and these
+ * point at the site's own tokens, so the light/dark theme switch reaches the documentation for free.
+ */
+:root {
+  --host-docs-background: var(--color-bg);
+  --host-docs-foreground: var(--color-text);
+  --host-docs-primary: var(--color-accent);
+  --host-docs-secondary: var(--color-text-muted);
+  --host-docs-muted: var(--color-text-muted);
+  --host-docs-border: var(--color-border);
+  --host-docs-surface: var(--color-surface);
+  --host-docs-focus: var(--color-accent);
+  --host-docs-code-background: var(--color-code-bg);
+  --host-docs-code-foreground: var(--color-text);
+  --host-docs-playground-surface: var(--color-surface);
+  --host-docs-playground-preview: var(--color-bg);
+  /* The fixed navbar is 4rem tall; fragment links and focus must land below it. */
+  --host-docs-scroll-offset: 5rem;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
@@ -219,4 +241,33 @@ code {
   color: inherit;
   background: transparent;
   padding: 0;
+}
+
+/* Syntax colours for Markdown code (Prism tokens, rendered by Analog/Doqs) — same palette as CodeBlock. */
+:where(pre) .token.comment,
+:where(pre) .token.prolog,
+:where(pre) .token.doctype {
+  color: var(--color-code-comment);
+  font-style: italic;
+}
+:where(pre) .token.string,
+:where(pre) .token.attr-value,
+:where(pre) .token.template-string,
+:where(pre) .token.char {
+  color: var(--color-code-string);
+}
+:where(pre) .token.keyword,
+:where(pre) .token.decorator,
+:where(pre) .token.atrule,
+:where(pre) .token.boolean,
+:where(pre) .token.important {
+  color: var(--color-code-keyword);
+}
+:where(pre) .token.attr-name,
+:where(pre) .token.property,
+:where(pre) .token.class-name,
+:where(pre) .token.function,
+:where(pre) .token.tag,
+:where(pre) .token.number {
+  color: var(--color-code-attr);
 }
