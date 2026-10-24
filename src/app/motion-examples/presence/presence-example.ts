@@ -1,3 +1,4 @@
+import { VoltNativeButton } from '@voltui/components';
 import { ChangeDetectionStrategy, Component, input, linkedSignal } from '@angular/core';
 import {
   MoveEnterDirective,
@@ -13,7 +14,7 @@ import {
  */
 @Component({
   selector: 'app-presence-example',
-  imports: [MovePresenceDirective, MoveEnterDirective, MoveLeaveDirective],
+  imports: [MovePresenceDirective, MoveEnterDirective, MoveLeaveDirective, VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -34,8 +35,9 @@ import {
         </ng-container>
       </div>
       <button
+        voltButton
+        variant="outline"
         type="button"
-        class="border-border bg-surface text-text hover:bg-surface-raised focus-visible:outline-accent min-h-11 rounded-lg border px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
         [attr.aria-pressed]="shown()"
         (click)="shown.set(!shown())"
       >

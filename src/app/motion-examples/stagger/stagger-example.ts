@@ -1,3 +1,4 @@
+import { VoltNativeButton } from '@voltui/components';
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { MoveEnterDirective, MoveStaggerDirective } from 'movement';
 
@@ -9,7 +10,7 @@ type StaggerDirection = 'first' | 'last' | 'center';
  */
 @Component({
   selector: 'app-stagger-example',
-  imports: [MoveStaggerDirective, MoveEnterDirective],
+  imports: [MoveStaggerDirective, MoveEnterDirective, VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -34,11 +35,7 @@ type StaggerDirection = 'first' | 'last' | 'center';
           </ul>
         }
       </div>
-      <button
-        type="button"
-        class="border-border bg-surface text-text hover:bg-surface-raised focus-visible:outline-accent min-h-11 rounded-lg border px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
-        (click)="replays.set(replays() + 1)"
-      >
+      <button voltButton variant="outline" type="button" (click)="replays.set(replays() + 1)">
         Replay
       </button>
     </div>

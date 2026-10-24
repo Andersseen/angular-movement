@@ -1,5 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
-import { MovePreset } from 'movement';
+import { MoveInViewDirective } from 'movement';
+import type { MovePreset } from 'movement';
+import {
+  VoltCard,
+  VoltCardContent,
+  VoltNativeSelect,
+  VoltSlider,
+  VoltToggleGroup,
+  VoltToggleGroupItem,
+} from '@voltui/components';
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
 import { EnterExample } from '../../../../motion-examples/enter/enter-example';
 
@@ -13,11 +22,21 @@ const EASINGS = ['ease-out', 'ease-in-out', 'linear'] as const;
  */
 @Component({
   selector: 'app-live-code',
-  imports: [CodeBlock, EnterExample],
+  imports: [
+    MoveInViewDirective,
+    CodeBlock,
+    EnterExample,
+    VoltCard,
+    VoltCardContent,
+    VoltNativeSelect,
+    VoltSlider,
+    VoltToggleGroup,
+    VoltToggleGroupItem,
+  ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <section class="border-border mx-auto max-w-7xl border-t px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mb-10 max-w-2xl">
+    <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <div class="mb-10 max-w-2xl" moveInView="fade-up">
         <h2 class="font-display text-text mb-4 text-3xl font-bold tracking-tight md:text-4xl">
           Change a setting, see the motion, copy the code
         </h2>
@@ -27,13 +46,13 @@ const EASINGS = ['ease-out', 'ease-in-out', 'linear'] as const;
         </p>
       </div>
 
-      <div class="grid gap-6 lg:grid-cols-2">
-        <div class="bg-surface border-border rounded-2xl border p-6">
-          <form class="mb-6 grid gap-4 sm:grid-cols-3" (submit)="$event.preventDefault()">
-            <label class="text-text-muted flex flex-col gap-1 text-sm font-medium">
-              Preset
+      <div class="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <volt-card moveInView="fade-up" class="landing-card min-w-0">
+          <volt-card-content class="space-y-5 p-6">
+            <label class="grid gap-2">
+              <span class="text-text-muted text-sm font-medium">Preset</span>
               <select
-                class="bg-bg border-border text-text min-h-11 rounded-lg border px-3 text-sm"
+                voltNativeSelect
                 [value]="preset()"
                 (change)="preset.set($any($event.target).value)"
               >
@@ -42,35 +61,39 @@ const EASINGS = ['ease-out', 'ease-in-out', 'linear'] as const;
                 }
               </select>
             </label>
-            <label class="text-text-muted flex flex-col gap-1 text-sm font-medium">
-              Easing
-              <select
-                class="bg-bg border-border text-text min-h-11 rounded-lg border px-3 text-sm"
-                [value]="easing()"
-                (change)="easing.set($any($event.target).value)"
+
+            <div class="grid gap-2">
+              <span id="live-easing" class="text-text-muted text-sm font-medium">Easing</span>
+              <volt-toggle-group
+                type="single"
+                class="flex-wrap"
+                aria-labelledby="live-easing"
+                [value]="[easing()]"
+                (valueChange)="setEasing($event)"
               >
                 @for (e of easings; track e) {
-                  <option [value]="e">{{ e }}</option>
+                  <volt-toggle-group-item [value]="e">{{ e }}</volt-toggle-group-item>
                 }
-              </select>
-            </label>
-            <label class="text-text-muted flex flex-col gap-1 text-sm font-medium">
-              Duration: {{ duration() }}ms
-              <input
-                type="range"
-                min="100"
-                max="1500"
-                step="50"
-                class="accent-accent min-h-11"
-                [value]="duration()"
-                (input)="duration.set(+$any($event.target).value)"
-              />
-            </label>
-          </form>
-          <app-enter-example [preset]="preset()" [duration]="duration()" [easing]="easing()" />
-        </div>
+              </volt-toggle-group>
+            </div>
 
-        <div class="min-w-0">
+            <div class="grid gap-2">
+              <span class="text-text-muted text-sm font-medium">Duration: {{ duration() }}ms</span>
+              <volt-slider
+                ariaLabel="Duration"
+                [min]="100"
+                [max]="1500"
+                [step]="50"
+                [value]="duration()"
+                (valueChange)="duration.set($event)"
+              />
+            </div>
+
+            <app-enter-example [preset]="preset()" [duration]="duration()" [easing]="easing()" />
+          </volt-card-content>
+        </volt-card>
+
+        <div class="min-w-0" moveInView="fade-up">
           <app-code-block title="card.html" language="html" [code]="code()" />
         </div>
       </div>
@@ -88,4 +111,9 @@ export class LiveCode {
     () =>
       `<div\n  moveEnter="${this.preset()}"\n  moveDuration="${this.duration()}ms"\n  moveEasing="${this.easing()}"\n>\n  Billing summary\n</div>`,
   );
+
+  protected setEasing(value: string[]): void {
+    // A single-choice group may be emptied by clicking the pressed item; keep the last choice.
+    if (value[0]) this.easing.set(value[0]);
+  }
 }

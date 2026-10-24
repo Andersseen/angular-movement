@@ -21,8 +21,8 @@ test('the home page presents the product: one h1, CTAs, install command and real
     'https://github.com/Andersseen/angular-movement',
   );
 
-  // The hero showcase's source sits behind a disclosure and opens on demand.
-  await hero.locator('summary').click();
+  // The hero showcase's source sits behind a Volt accordion and opens on demand.
+  await hero.getByRole('button', { name: 'Show the code' }).click();
   await expect(hero.locator('app-code-block')).toBeVisible();
 });
 
@@ -60,8 +60,12 @@ test('code-to-result: the controls drive the real directive and the code beside 
   }).toPass({ timeout: 10_000 });
   await expect(section.getByTestId('enter-target')).toContainText('zoom-in');
 
-  await section.getByLabel(/Duration/).fill('900');
-  await expect(section.locator('app-code-block')).toContainText('moveDuration="900ms"');
+  await section.getByText('linear', { exact: true }).click();
+  await expect(section.locator('app-code-block')).toContainText('moveEasing="linear"');
+
+  // The Volt slider is keyboard-operable: End jumps to the maximum.
+  await section.getByRole('slider', { name: 'Duration' }).press('End');
+  await expect(section.locator('app-code-block')).toContainText('moveDuration="1500ms"');
 
   await section.getByRole('button', { name: 'Replay' }).click();
   await expect(section.getByTestId('enter-target')).toContainText('entered');
@@ -84,4 +88,62 @@ test('Templates page renders the landing example', async ({ page }) => {
   await expect(page.getByText('Standard landing blocks, Angular-native motion.')).toBeVisible();
   await expect(page.getByText('Get the starter')).toBeVisible();
   await expect(page.locator('main')).toHaveCount(1);
+});
+
+test('the explore tabs run real directives and switch with the keyboard', async ({ page }) => {
+  await page.goto('/');
+  await waitForHydration(page);
+  const section = page.locator('app-explore');
+  await section.scrollIntoViewIfNeeded();
+  await expect(section.getByTestId('interaction-target')).toBeVisible();
+
+  await expect(async () => {
+    await section.getByRole('tab', { name: 'Presence' }).click();
+    await expect(section.getByTestId('presence-target')).toBeVisible({ timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+  await section.getByRole('button', { name: 'Hide panel' }).click();
+  await expect(section.getByTestId('presence-target')).toBeHidden();
+
+  await section.getByRole('tab', { name: 'Stagger' }).click();
+  await expect(section.getByTestId('stagger-list').locator('li')).toHaveCount(6);
+  await expect(section.getByRole('link', { name: 'Read the guide' })).toHaveAttribute(
+    'href',
+    '/docs/guides/stagger-and-scroll',
+  );
+});
+
+test('the FAQ is a Volt accordion with answers that link to the docs', async ({ page }) => {
+  await page.goto('/');
+  await waitForHydration(page);
+  await page.waitForLoadState('networkidle');
+  const trigger = page.getByRole('button', { name: 'Does it work with SSR and zoneless apps?' });
+  await trigger.scrollIntoViewIfNeeded();
+  await expect(async () => {
+    if ((await trigger.getAttribute('aria-expanded')) !== 'true') await trigger.click();
+    await expect(trigger).toHaveAttribute('aria-expanded', 'true', { timeout: 1000 });
+  }).toPass({ timeout: 10_000 });
+  await expect(
+    page
+      .locator('volt-accordion-item', { hasText: 'SSR and zoneless' })
+      .locator('a[href="/docs/accessibility"]'),
+  ).toBeVisible();
+});
+
+test('every landing control is a Volt UI atom (no hand-rolled buttons)', async ({ page }) => {
+  await page.goto('/');
+  await waitForHydration(page);
+  await page.waitForLoadState('networkidle');
+  // Every button is either Volt's own element (voltButton) or lives inside a Volt component.
+  const rogue = await page.evaluate(() =>
+    [...document.querySelectorAll('main button, nav button, footer button')]
+      .filter((el) => !el.hasAttribute('voltbutton'))
+      .filter(
+        (el) =>
+          !el.closest(
+            'volt-button, volt-tabs, volt-accordion, volt-toggle-group, volt-checkbox, volt-slider, app-code-block',
+          ),
+      )
+      .map((el) => el.outerHTML.slice(0, 120)),
+  );
+  expect(rogue).toEqual([]);
 });

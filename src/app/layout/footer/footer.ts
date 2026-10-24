@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { VoltNativeButton, VoltSeparator } from '@voltui/components';
 import { SITE } from '../../shared/site';
 
 @Component({
   selector: 'app-footer',
-  imports: [RouterLink],
+  imports: [RouterLink, VoltNativeButton, VoltSeparator],
   template: `
     <footer class="border-border bg-surface mt-24 border-t">
       <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -34,31 +35,46 @@ import { SITE } from '../../shared/site';
             <h2 class="font-display text-text font-semibold">Resources</h2>
             <a
               routerLink="/docs"
-              class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
               >Documentation</a
             >
             <a
               routerLink="/docs/reference"
-              class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
               >API reference</a
             >
             <a
               routerLink="/demos"
-              class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
               >Interactive Demos</a
             >
             <a
               [href]="github"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
               >GitHub Repository</a
             >
             <a
               [href]="npm"
               target="_blank"
               rel="noopener noreferrer"
-              class="text-text-muted hover:text-accent w-fit text-sm transition-colors"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
               >npm Package</a
             >
           </div>
@@ -82,9 +98,8 @@ import { SITE } from '../../shared/site';
           </div>
         </div>
 
-        <div
-          class="border-border mt-12 flex flex-col items-center justify-between gap-4 border-t pt-8 md:flex-row"
-        >
+        <volt-separator class="mt-12" />
+        <div class="mt-8 flex flex-col items-center justify-between gap-4 md:flex-row">
           <p class="text-text-subtle text-xs">&copy; {{ year }} Angular Movement · MIT License</p>
         </div>
       </div>

@@ -1,5 +1,15 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
+import {
+  VoltBadge,
+  VoltCard,
+  VoltCardContent,
+  VoltCardDescription,
+  VoltCardHeader,
+  VoltCardTitle,
+  VoltNativeButton,
+} from '@voltui/components';
 
 interface UseCase {
   title: string;
@@ -7,16 +17,26 @@ interface UseCase {
   api: string;
   demo: string;
   docs: string;
-  status: 'Stable' | 'Experimental';
   snippet: string;
 }
 
 @Component({
   selector: 'app-use-cases',
-  imports: [RouterLink],
+  imports: [
+    RouterLink,
+    MoveInViewDirective,
+    MoveStaggerDirective,
+    VoltBadge,
+    VoltCard,
+    VoltCardHeader,
+    VoltCardTitle,
+    VoltCardDescription,
+    VoltCardContent,
+    VoltNativeButton,
+  ],
   template: `
-    <section class="border-border mx-auto max-w-7xl border-t px-4 py-20 sm:px-6 lg:px-8">
-      <div class="mb-12 max-w-2xl">
+    <section class="mx-auto max-w-7xl px-4 py-24 sm:px-6 lg:px-8">
+      <div class="mb-12 max-w-2xl" moveInView="fade-up">
         <h2 class="font-display text-text mb-4 text-3xl font-bold tracking-tight md:text-4xl">
           What you can build
         </h2>
@@ -26,32 +46,32 @@ interface UseCase {
         </p>
       </div>
 
-      <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <div
+        moveStagger
+        moveStaggerStep="80ms"
+        class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
+      >
         @for (item of cases; track item.title) {
-          <article class="bg-surface border-border flex flex-col rounded-2xl border p-6">
-            <div class="mb-3 flex items-start justify-between gap-3">
-              <h3 class="font-display text-text m-0 text-lg font-bold">{{ item.title }}</h3>
-              <span
-                class="shrink-0 rounded-full border px-2 py-0.5 text-xs font-medium"
-                [class]="
-                  item.status === 'Stable'
-                    ? 'border-emerald-600/40 text-emerald-700 dark:text-emerald-400'
-                    : 'border-amber-600/40 text-amber-700 dark:text-amber-400'
-                "
-                >{{ item.status }}</span
+          <volt-card moveInView="fade-up" class="landing-card flex h-full flex-col">
+            <volt-card-header>
+              <div class="flex items-start justify-between gap-3">
+                <volt-card-title>{{ item.title }}</volt-card-title>
+                <volt-badge variant="success">Stable</volt-badge>
+              </div>
+              <volt-card-description>{{ item.purpose }}</volt-card-description>
+            </volt-card-header>
+            <volt-card-content class="mt-auto space-y-4">
+              <code
+                class="bg-code-bg border-border text-text-muted block rounded-lg border px-3 py-2 font-mono text-xs break-words whitespace-pre-wrap"
+                >{{ item.snippet }}</code
               >
-            </div>
-            <p class="text-text-muted mb-4 text-sm leading-relaxed">{{ item.purpose }}</p>
-            <code
-              class="bg-code-bg border-border text-text-muted mb-5 block rounded-lg border px-3 py-2 font-mono text-xs break-words whitespace-pre-wrap"
-              >{{ item.snippet }}</code
-            >
-            <div class="mt-auto flex gap-4 text-sm font-semibold">
-              <a [routerLink]="item.demo" class="text-accent underline">Live demo</a>
-              <a [routerLink]="item.docs" class="text-accent underline">Docs</a>
-            </div>
-            <span class="sr-only">Uses {{ item.api }}</span>
-          </article>
+              <div class="flex gap-2">
+                <a voltButton size="sm" variant="outline" [routerLink]="item.demo">Live demo</a>
+                <a voltButton size="sm" variant="ghost" [routerLink]="item.docs">Docs</a>
+              </div>
+              <span class="sr-only">Uses {{ item.api }}</span>
+            </volt-card-content>
+          </volt-card>
         }
       </div>
     </section>
@@ -66,7 +86,6 @@ export class UseCases {
       api: 'moveWhileHover, moveWhileTap, moveWhileFocus',
       demo: '/demos/hover',
       docs: '/docs/guides/interactions',
-      status: 'Stable',
       snippet: '<div [moveWhileHover]="{ y: [0, -4] }">',
     },
     {
@@ -75,7 +94,6 @@ export class UseCases {
       api: 'movePresence',
       demo: '/demos/presence',
       docs: '/docs/guides/presence',
-      status: 'Stable',
       snippet: '<aside *movePresence="open" moveLeave="fade-down">',
     },
     {
@@ -84,7 +102,6 @@ export class UseCases {
       api: 'movePresenceFor',
       demo: '/demos/presence-list',
       docs: '/docs/guides/presence',
-      status: 'Stable',
       snippet: '<li *movePresenceFor="let r of rows(); trackBy: byId">',
     },
     {
@@ -93,7 +110,6 @@ export class UseCases {
       api: 'moveVariants, moveAnimation',
       demo: '/demos/variants',
       docs: '/docs/guides/variants',
-      status: 'Stable',
       snippet: '<div [moveVariants]="v" [moveVariant]="state()">',
     },
     {
@@ -102,7 +118,6 @@ export class UseCases {
       api: 'moveInView, moveScroll',
       demo: '/demos/scroll',
       docs: '/docs/guides/stagger-and-scroll',
-      status: 'Stable',
       snippet: '<section moveInView="fade-up">',
     },
     {
@@ -111,8 +126,7 @@ export class UseCases {
       api: 'movePathDraw, moveIconPulse',
       demo: '/demos/icons',
       docs: '/docs/presets',
-      status: 'Stable',
-      snippet: '<path [moveAnimate]="draw" />',
+      snippet: '<path moveEnter="icon-draw" d="…" />',
     },
   ];
 }

@@ -59,6 +59,15 @@ Branch `feat/website-doqs-adoption`, one PR, **no library change** (no API, vers
   like-for-like figure). Preloading Geist 400/700 fixed a 3.8 s LCP caused by a late font swap on docs text. The earlier headline
   (68 / LCP 5.4 s) was the un-prerendered node-server build and is not comparable.
 - `SmoothScrollService` is not enabled globally; native scrolling everywhere.
+- **Landing rework (same PR):** the home page, navbar, footer and install command use **Volt UI atoms only** (`volt-button`/`a voltButton`,
+  card, badge, tabs, accordion, toggle-group, slider, native select, checkbox, separator). Hero entrance and orbs are CSS
+  (`.landing-*` in `styles.css`, off under reduced motion); sections reveal with `moveInView`/`moveStagger`; a `moveScroll` progress bar
+  and `moveParallax` orbs dogfood the library. **Tailwind skips node_modules**: `@source '../node_modules/@voltui/components/fesm2022'`
+  generates Volt's state classes; `--color-primary` is the solid accent with white foreground. Avoid horizontal reveals
+  (`fade-left/right`) on landing sections (transient overflow on mobile). Volt keeps inactive tab panels hidden in the DOM, so
+  create only the active example (see `docs/integrations/library-findings.md`: `commitStyles` on a hidden host throws).
+  Volt buttons take `[aria-label]`/`[aria-expanded]` (aliases), `class="text-accent"` on link variants for dark-theme contrast.
+  `/demos` and `/docs` still use hand-written controls (demo rework planned).
 
 ## Done — Spec 017 (automated release pipeline) — setup PR, nothing published
 

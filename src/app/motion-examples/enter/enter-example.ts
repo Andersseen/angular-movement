@@ -1,3 +1,4 @@
+import { VoltNativeButton } from '@voltui/components';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -20,7 +21,7 @@ import { MoveEnterDirective, MovePreset } from 'movement';
  */
 @Component({
   selector: 'app-enter-example',
-  imports: [MoveEnterDirective],
+  imports: [MoveEnterDirective, VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -41,13 +42,7 @@ import { MoveEnterDirective, MovePreset } from 'movement';
           </div>
         }
       </div>
-      <button
-        type="button"
-        class="border-border bg-surface text-text hover:bg-surface-raised focus-visible:outline-accent min-h-11 rounded-lg border px-4 text-sm font-medium focus-visible:outline-2 focus-visible:outline-offset-2"
-        (click)="replay()"
-      >
-        Replay
-      </button>
+      <button voltButton variant="outline" type="button" (click)="replay()">Replay</button>
     </div>
   `,
 })

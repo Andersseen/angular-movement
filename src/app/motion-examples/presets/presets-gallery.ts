@@ -1,3 +1,4 @@
+import { VoltNativeButton } from '@voltui/components';
 import { isPlatformBrowser } from '@angular/common';
 import {
   afterNextRender,
@@ -52,7 +53,7 @@ const TILES: readonly PresetTile[] = [
  */
 @Component({
   selector: 'app-presets-gallery',
-  imports: [MoveEnterDirective, MoveHoverDirective, MoveTapDirective],
+  imports: [MoveEnterDirective, MoveHoverDirective, MoveTapDirective, VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
@@ -67,8 +68,8 @@ const TILES: readonly PresetTile[] = [
               @switch (tile.kind) {
                 @case ('interaction') {
                   <button
+                    voltButton
                     type="button"
-                    class="bg-accent-solid focus-visible:outline-accent min-h-11 rounded-lg px-5 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
                     [moveWhileHover]="tile.preset === 'lift' ? 'lift' : 'none'"
                     [moveWhileTap]="tile.preset === 'press' ? 'press' : 'none'"
                   >
@@ -131,8 +132,10 @@ const TILES: readonly PresetTile[] = [
               <code class="text-text text-sm">{{ tile.preset }}</code>
               @if (tile.kind !== 'interaction') {
                 <button
+                  voltButton
+                  variant="ghost"
+                  size="sm"
                   type="button"
-                  class="text-accent focus-visible:outline-accent min-h-11 rounded px-2 text-sm font-medium hover:underline focus-visible:outline-2"
                   [attr.aria-label]="'Replay ' + tile.preset"
                   (click)="replay(tile.preset)"
                 >

@@ -1,6 +1,10 @@
 @import 'tailwindcss';
 @import '@doqs/analog/styles.css';
 
+/* Tailwind skips node_modules: scan Volt UI's compiled templates so every state variant it uses
+   (data-selected, data-open, hover, focus-visible…) is generated, not just the ones listed below. */
+@source '../node_modules/@voltui/components/fesm2022';
+
 @source inline(
   'block w-full inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 data-[disabled]:pointer-events-none data-[disabled]:opacity-50 cursor-pointer select-none bg-primary text-primary-foreground shadow-sm data-[hover]:bg-primary/90 data-[press]:scale-[0.98] border border-input bg-background data-[hover]:bg-accent data-[hover]:text-accent-foreground h-8 h-9 h-10 h-11 w-9 rounded-md rounded-lg rounded-xl rounded-full px-2.5 px-3 px-4 px-8 py-0.5 py-2 text-xs text-sm text-base border-transparent bg-muted text-foreground border-border bg-surface text-surface-foreground text-muted-foreground flex flex-col gap-1.5 p-6 pt-0 leading-none tracking-tight text-lg font-semibold file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 shrink-0 h-px'
 );
@@ -27,8 +31,9 @@
   --color-border: var(--color-border);
   --color-ring: var(--color-accent);
   --color-input: var(--color-border);
-  --color-primary: var(--color-accent);
-  --color-primary-foreground: var(--color-text);
+  /* Volt UI's filled controls: the solid accent (4.5:1 against white in both themes). */
+  --color-primary: var(--color-accent-solid);
+  --color-primary-foreground: oklch(1 0 0);
   --color-secondary: var(--color-surface-raised);
   --color-secondary-foreground: var(--color-text);
   --color-destructive: oklch(0.63 0.22 25);
@@ -270,4 +275,75 @@ code {
 :where(pre) .token.tag,
 :where(pre) .token.number {
   color: var(--color-code-attr);
+}
+
+/*
+ * Landing effects. Everything here is CSS so it plays before hydration (nothing waits on the app to
+ * boot) and every animation is switched off for users who ask for reduced motion.
+ */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@keyframes landing-drift {
+  50% {
+    transform: translate3d(0, -18px, 0) scale(1.05);
+  }
+}
+@keyframes landing-sheen {
+  to {
+    background-position: 200% center;
+  }
+}
+.landing-rise {
+  animation: landing-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 90ms);
+}
+.landing-orb {
+  animation: landing-drift 11s ease-in-out infinite;
+  will-change: transform;
+}
+.landing-sheen {
+  /* background-image, not the shorthand: a wide-gamut override of the shorthand would reset the clip. */
+  background-image: linear-gradient(
+    100deg,
+    var(--color-accent) 20%,
+    var(--color-accent-light) 40%,
+    oklch(0.75 0.17 320) 55%,
+    var(--color-accent) 80%
+  );
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: landing-sheen 6s linear infinite;
+}
+.landing-grid {
+  background-image:
+    linear-gradient(var(--color-border) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-border) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
+  opacity: 0.45;
+}
+.landing-card {
+  transition:
+    border-color 200ms ease,
+    box-shadow 200ms ease;
+}
+.landing-card:hover {
+  border-color: color-mix(in oklch, var(--color-accent) 55%, var(--color-border));
+  box-shadow: 0 12px 40px -16px var(--color-accent-glow);
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-rise,
+  .landing-orb,
+  .landing-sheen {
+    animation: none;
+  }
+  .landing-sheen {
+    background-position: 0 center;
+  }
 }

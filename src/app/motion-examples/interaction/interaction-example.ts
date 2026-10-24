@@ -1,3 +1,4 @@
+import { VoltNativeButton } from '@voltui/components';
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
 import { MoveHoverDirective, MovePreset, MoveTapDirective } from 'movement';
 
@@ -10,14 +11,15 @@ import { MoveHoverDirective, MovePreset, MoveTapDirective } from 'movement';
  */
 @Component({
   selector: 'app-interaction-example',
-  imports: [MoveHoverDirective, MoveTapDirective],
+  imports: [MoveHoverDirective, MoveTapDirective, VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'block' },
   template: `
     <div class="flex min-h-32 flex-col items-center justify-center gap-3">
       <button
+        voltButton
+        size="lg"
         type="button"
-        class="bg-accent-solid focus-visible:outline-accent min-h-12 rounded-xl px-8 text-base font-semibold text-white shadow-[0_0_24px_var(--color-accent-glow)] focus-visible:outline-2 focus-visible:outline-offset-2"
         data-testid="interaction-target"
         [moveWhileHover]="hover()"
         [moveWhileTap]="tap()"

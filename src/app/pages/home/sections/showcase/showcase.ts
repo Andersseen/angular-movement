@@ -1,14 +1,15 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import {
-  MoveAnimateDirective,
   MoveAnimationDirective,
   MoveEnterDirective,
   MoveHoverDirective,
   MoveLeaveDirective,
   MovePresenceDirective,
   MovePresenceForDirective,
-  MoveTapDirective,
 } from 'movement';
+import { VoltBadge, VoltButton, VoltCheckbox } from '@voltui/components';
+import { LmnPlusIcon } from 'lumen-icons/plus';
+import { LmnXMarkIcon } from 'lumen-icons/x-mark';
 
 interface Task {
   id: number;
@@ -26,37 +27,38 @@ const TITLES = [
 ];
 
 /**
- * The homepage's interactive showcase: one small, coherent UI (a task list) built only from
- * stable directives — `*movePresenceFor` (keyed enter/leave), `[moveAnimation]` (reactive state),
- * `*movePresence` (conditional detail), `moveWhileHover` / `moveWhileTap` (feedback).
+ * The hero's interactive showcase: one small, coherent UI (a task list) built from stable
+ * directives — `*movePresenceFor` (keyed enter/leave), `[moveAnimation]` (reactive state),
+ * `*movePresence` (conditional detail), `moveWhileHover` — and Volt UI atoms only.
  *
- * It is mounted behind `@defer`, so it adds no animation work to the initial render or hydration.
+ * Mounted behind `@defer`, so it adds no animation work to the initial render or hydration.
  */
 @Component({
   selector: 'app-showcase',
   imports: [
-    MoveAnimateDirective,
     MoveEnterDirective,
     MoveLeaveDirective,
     MovePresenceForDirective,
     MovePresenceDirective,
     MoveAnimationDirective,
     MoveHoverDirective,
-    MoveTapDirective,
+    VoltBadge,
+    VoltButton,
+    VoltCheckbox,
+    LmnPlusIcon,
+    LmnXMarkIcon,
   ],
   template: `
     <div class="flex flex-col gap-3" data-testid="showcase">
       <div class="flex items-center justify-between gap-3">
-        <p class="font-display text-text m-0 text-base font-semibold">Today</p>
-        <button
-          type="button"
-          data-testid="showcase-add"
-          class="bg-accent-solid focus-visible:outline-accent min-h-11 rounded-lg px-4 text-sm font-semibold text-white focus-visible:outline-2 focus-visible:outline-offset-2"
-          [moveWhileTap]="{ scale: [1, 0.96] }"
-          (click)="add()"
-        >
+        <p class="font-display text-text m-0 flex items-center gap-2 text-base font-semibold">
+          Today
+          <volt-badge variant="secondary">{{ remaining() }}</volt-badge>
+        </p>
+        <volt-button size="sm" data-testid="showcase-add" (click)="add()">
+          <lmn-plus slot="leading" [size]="14" ariaLabel="Add" />
           Add task
-        </button>
+        </volt-button>
       </div>
 
       <ul class="m-0 flex list-none flex-col gap-2 p-0" data-testid="showcase-list">
@@ -64,51 +66,43 @@ const TITLES = [
           *movePresenceFor="let task of tasks(); trackBy: trackById"
           move="fade-up"
           moveDuration="300ms"
-          class="bg-surface border-border rounded-xl border"
+          class="landing-card bg-surface border-border rounded-xl border"
           [moveWhileHover]="{ y: [0, -2] }"
           [attr.data-testid]="'showcase-task-' + task.id"
         >
           <div
-            class="flex items-center gap-3 px-4 py-3"
+            class="flex items-center gap-3 px-3 py-2"
             [moveAnimation]="{
               initial: { scale: 1 },
               animate: { scale: task.done ? 0.985 : 1 },
               duration: 200,
             }"
           >
-            <button
-              type="button"
-              role="checkbox"
-              class="border-border focus-visible:outline-accent flex h-6 w-6 shrink-0 items-center justify-center rounded-md border text-xs focus-visible:outline-2 focus-visible:outline-offset-2"
-              [class.bg-accent-solid]="task.done"
-              [class.text-white]="task.done"
-              [attr.aria-checked]="task.done"
-              [attr.aria-label]="'Mark ' + task.title + ' as done'"
-              (click)="toggle(task.id)"
-            >
-              @if (task.done) {
-                <span aria-hidden="true">✓</span>
-              }
-            </button>
-            <button
-              type="button"
-              class="text-text focus-visible:outline-accent min-h-8 flex-1 text-left text-sm font-medium focus-visible:outline-2"
+            <volt-checkbox
+              [checked]="task.done"
+              [ariaLabel]="'Mark ' + task.title + ' as done'"
+              (checkedChange)="toggle(task.id)"
+            />
+            <volt-button
+              variant="ghost"
+              size="sm"
+              class="flex-1 justify-start"
               [class.line-through]="task.done"
-              [class.text-text-muted]="task.done"
-              [attr.aria-expanded]="task.open"
-              [attr.aria-controls]="'showcase-detail-' + task.id"
+              [class.opacity-60]="task.done"
+              [aria-expanded]="task.open"
+              [aria-controls]="'showcase-detail-' + task.id"
               (click)="toggleOpen(task.id)"
             >
               {{ task.title }}
-            </button>
-            <button
-              type="button"
-              class="text-text-muted hover:text-text focus-visible:outline-accent min-h-8 min-w-8 rounded-md text-xs focus-visible:outline-2"
-              [attr.aria-label]="'Remove ' + task.title"
+            </volt-button>
+            <volt-button
+              variant="ghost"
+              size="icon"
+              [aria-label]="'Remove ' + task.title"
               (click)="remove(task.id)"
             >
-              ✕
-            </button>
+              <lmn-x-mark [size]="16" ariaLabel="Remove" />
+            </volt-button>
           </div>
           <ng-container *movePresence="task.open">
             <p
@@ -135,6 +129,10 @@ export class Showcase {
     { id: 2, title: TITLES[1], done: true, open: false },
     { id: 3, title: TITLES[2], done: false, open: false },
   ]);
+
+  protected remaining(): number {
+    return this.tasks().filter((task) => !task.done).length;
+  }
 
   protected readonly trackById = (_: number, task: Task) => task.id;
 
