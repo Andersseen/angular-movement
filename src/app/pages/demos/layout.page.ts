@@ -1,5 +1,5 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveLayoutDirective } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
@@ -10,6 +10,7 @@ export const routeMeta: RouteMeta = { title: 'moveLayout demo — Angular Moveme
   imports: [DemoContainer, MoveLayoutDirective],
   template: `
     <app-demo-container
+      [experimental]="true"
       title="moveLayout"
       description="Animate layout changes smoothly. Elements automatically animate to their new positions when the layout changes."
       directive="moveLayout"
@@ -19,6 +20,9 @@ export const routeMeta: RouteMeta = { title: 'moveLayout demo — Angular Moveme
       initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
       [showReplay]="false"
+      [customCode]="layoutCode()"
+      [supportCode]="layoutSupport"
+      (resetDemo)="resetLayout()"
       [directiveBinding]="''"
     >
       <!-- Preview -->
@@ -94,6 +98,21 @@ export default class DemoLayout {
     showEasing: true,
   };
 
+  protected readonly layoutSupport = `readonly list = signal(false);
+  readonly items = signal([{ id: 1, label: 'A' }, { id: 2, label: 'B' }, { id: 3, label: 'C' }]);`;
+  protected readonly layoutCode = computed(
+    () => `<button (click)="list.set(!list())">Grid / list</button>
+<div moveLayout moveDuration="${this.duration()}ms" moveEasing="${this.easing()}"
+  [style.display]="list() ? 'flex' : 'grid'" style="gap: 8px; grid-template-columns: repeat(3, 64px); flex-direction: column">
+  @for (item of items(); track item.id) {
+    <div style="height: 44px; padding: 12px; background: slateblue">{{ item.label }}</div>
+  }
+</div>`,
+  );
+  protected resetLayout(): void {
+    this.layout.set('grid');
+    this.items.update((items) => [...items].sort((a, b) => a.id - b.id));
+  }
   protected layout = signal<'grid' | 'list'>('grid');
   protected duration = signal(400);
   protected easing = signal('ease-out');

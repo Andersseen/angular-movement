@@ -1,5 +1,12 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import {
   MoveDragDirective,
   MoveHoverDirective,
@@ -22,6 +29,7 @@ export const routeMeta: RouteMeta = { title: 'moveDrag demo — Angular Movement
   imports: [DemoContainer, MoveDragDirective, MoveHoverDirective, MoveTapDirective],
   template: `
     <app-demo-container
+      [experimental]="true"
       title="moveDrag"
       description="Make elements draggable with smooth physics. Supports constraints, momentum, and snap points."
       directive="moveDrag"
@@ -92,6 +100,11 @@ export const routeMeta: RouteMeta = { title: 'moveDrag demo — Angular Movement
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoDrag {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly controlsConfig = {
     showPreset: false,
     showDuration: false,
@@ -186,6 +199,7 @@ export default class DemoDrag {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 50);
   }
 }

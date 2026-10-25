@@ -57,6 +57,9 @@ jobs:
       - name: Test library
         run: pnpm run test:coverage
 
+      - name: Test website
+        run: pnpm run test:site
+
       - name: Build library
         run: pnpm exec ng build movement
 

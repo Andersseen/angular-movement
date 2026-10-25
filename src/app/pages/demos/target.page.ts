@@ -10,6 +10,9 @@ export const routeMeta: RouteMeta = { title: 'moveTarget demo — Angular Moveme
   imports: [DemoContainer, MoveTargetDirective],
   template: `
     <app-demo-container
+      [sourceImports]="['MoveTargetDirective']"
+      supportCode="readonly animated = signal(true);"
+      [experimental]="true"
       title="moveTarget"
       description="Animate individual child elements with a boolean trigger. Useful for SVG icons, staged micro-interactions, and stroke draw effects without CSS keyframes."
       directive="moveTarget"
@@ -95,17 +98,18 @@ export default class DemoTarget {
   protected readonly reverseDuration = signal(200);
 
   protected readonly targetCode = computed(() => {
-    return `<svg viewBox="0 0 96 96">
+    return `<button (click)="animated.set(!animated())">Draw / reset</button>
+<svg viewBox="0 0 96 96">
   <circle
     [moveTarget]="animated()"
     [moveFrames]="{ pathLength: [0, 1], opacity: [0.18, 0.42] }"
-    moveDuration="${this.duration()}ms"
+    moveDuration="${this.duration()}ms" moveEasing="${this.easing()}"
     moveReverseDuration="${this.reverseDuration()}ms" />
 
   <path
     [moveTarget]="animated()"
     [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-    moveDuration="${this.duration()}ms"
+    moveDuration="${this.duration()}ms" moveEasing="${this.easing()}"
     moveDelay="90ms"
     d="M28 51l13 13 28-32" />
 </svg>`;

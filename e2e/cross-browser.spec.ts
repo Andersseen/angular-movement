@@ -167,7 +167,10 @@ test('SVG: an icon helper animates path drawing when toggled', async ({ page }) 
   await expect(path).toBeVisible();
 
   const before = await settledMotionState(path);
-  await page.getByRole('button', { name: /Animate|Reset/ }).click();
+  await page
+    .getByTestId('demo-stage')
+    .getByRole('button', { name: /Animate|Reset/ })
+    .click();
 
   await expect.poll(async () => motionState(path), { timeout: 3000 }).not.toBe(before);
 });
@@ -216,24 +219,25 @@ test('reduced motion: content that animates in is still readable', async ({ page
     .toBe(true);
 });
 
-test('smooth scroll: keyboard and programmatic page scrolls are not snapped back', async ({
+test('smooth scroll: keyboard and programmatic container scrolls are not snapped back', async ({
   page,
 }) => {
-  // The smooth-scroll demo runs SmoothScrollService for the page. Its resync listener used to sit
-  // on documentElement, where page scroll events never fire, so every non-wheel scroll was reverted.
   await page.goto('/demos/smooth-scroll');
+  const region = page.getByTestId('smooth-scroll-container');
   await page.waitForFunction(
     () =>
       typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
       'function',
   );
-
-  await page.evaluate(() => window.scrollTo(0, 600));
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.locator('body').press('End');
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  await region.evaluate((el) => {
+    el.scrollTop = 600;
+  });
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(500);
+  await region.evaluate((el) => {
+    el.scrollTop = 0;
+  });
+  await region.focus();
+  await region.press('End');
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(500);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });

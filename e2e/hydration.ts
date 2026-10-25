@@ -1,18 +1,6 @@
 import { type Page } from '@playwright/test';
 
-/**
- * Host listeners only exist after hydration; interacting before it drives the SSR markup, so a
- * click or `selectOption` is silently dropped. Dev builds publish the `ng` debugging global when
- * the client app bootstraps.
- *
- * Compare with `=== 'function'` — a bare `typeof` is a non-empty string and always truthy.
- */
+/** Wait for the host's first completed client render, rather than the early ng debug global. */
 export async function waitForHydration(page: Page): Promise<void> {
-  await page.waitForFunction(
-    () =>
-      typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
-      'function',
-    undefined,
-    { timeout: 15_000 },
-  );
+  await page.locator('app-root[data-hydrated="true"]').waitFor({ timeout: 15_000 });
 }

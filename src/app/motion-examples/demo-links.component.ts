@@ -65,6 +65,6 @@ export class DemoLinksStrip {
 
   protected readonly links = computed(() => {
     const slug = this.#url().split(/[?#]/)[0].replace(/\/$/, '').split('/').pop() ?? '';
-    return DEMO_LINKS[slug];
+    return DEMO_LINKS[slug === 'demos' ? 'enter' : slug];
   });
 }

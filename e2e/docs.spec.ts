@@ -109,6 +109,7 @@ test.describe('cross-linking', () => {
       await expect(page.locator(`article a[href="${guide.demo}"]`).first()).toBeVisible();
 
       await open(page, guide.demo);
+      await page.getByText('Learn more', { exact: true }).click();
       const strip = page.getByTestId('demo-links');
       await expect(strip).toBeVisible();
       await expect(strip.locator(`a[href="${guide.path}"]`)).toBeVisible();

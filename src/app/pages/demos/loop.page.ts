@@ -1,5 +1,12 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { MoveLoopDirective, MoveKeyframes, MoveRepeatType } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { keyframesToString } from '../../shared/utils/demo.utils';
@@ -123,6 +130,11 @@ export const routeMeta: RouteMeta = { title: 'moveLoop demo — Angular Movement
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoLoop {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly controlsConfig = {
     showPreset: false,
     showDuration: true,
@@ -200,6 +212,7 @@ export default class DemoLoop {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 50);
   }
 }

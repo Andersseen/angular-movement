@@ -1,5 +1,12 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { MoveInViewDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
@@ -19,11 +26,18 @@ export const routeMeta: RouteMeta = { title: 'moveInView demo — Angular Moveme
       [initialDuration]="800"
       initialEasing="ease-out"
       (stateChange)="onStateChange($event)"
+      [customCode]="inViewCode()"
       [showReplay]="false"
     >
       <!-- Preview -->
       <div preview class="relative h-full w-full overflow-hidden">
-        <div #scrollContainer class="h-full w-full overflow-y-auto scroll-smooth">
+        <div
+          #scrollContainer
+          tabindex="0"
+          role="region"
+          aria-label="in-view scroll preview"
+          class="h-full w-full overflow-y-auto scroll-smooth"
+        >
           <!-- Spacer to push element below viewport -->
           <div class="flex h-[400px] items-center justify-center">
             <div class="text-text-subtle text-center">
@@ -79,6 +93,11 @@ export const routeMeta: RouteMeta = { title: 'moveInView demo — Angular Moveme
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoInView {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = {
     ...DEFAULT_CONTROLS.full,
@@ -96,6 +115,16 @@ export default class DemoInView {
   protected duration = signal(800);
   protected delay = signal(0);
   protected easing = signal('ease-out');
+  protected readonly inViewCode = computed(
+    () => `<div style="height: 360px; overflow-y: auto">
+  <div style="height: 400px">Scroll down</div>
+  <div moveInView="${this.preset()}" [moveInViewOnce]="${this.once()}"
+    moveDuration="${this.duration()}ms" moveDelay="${this.delay()}ms" moveEasing="${this.easing()}">
+    I animate when visible
+  </div>
+  <div style="height: 400px"></div>
+</div>`,
+  );
   protected once = signal(true);
   protected showDemo = signal(true);
 
@@ -109,6 +138,7 @@ export default class DemoInView {
     this.once.set((state['once'] as boolean) ?? true);
     // Reset and show element again to trigger new animation
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 100);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 100);
   }
 }

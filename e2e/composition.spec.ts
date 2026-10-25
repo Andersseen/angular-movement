@@ -183,7 +183,7 @@ test.describe('composition scenarios', () => {
   }) => {
     await page.goto('/demos/icons');
 
-    const toggle = page.getByRole('button', { name: /Animate|Reset/ });
+    const toggle = page.getByTestId('demo-stage').getByRole('button', { name: /Animate|Reset/ });
     await expect(toggle).toBeVisible();
 
     // Flip the toggle four times with no settling in between.

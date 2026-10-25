@@ -14,6 +14,7 @@ test.describe('demo pages', () => {
       await expect(page.locator('h1').first()).toBeVisible();
       // The shell owns the single main landmark; the gallery layout must not nest a second one.
       await expect(page.locator('main')).toHaveCount(1);
+      await page.getByText('Learn more', { exact: true }).click();
       await expect(page.getByTestId('demo-links')).toBeVisible();
       expect(errors).toEqual([]);
     });
@@ -376,33 +377,12 @@ test.describe('demo pages', () => {
     await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
     await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
 
-    // `scrollTo` clamps to the document's scrollable range, which depends on the rendered page
-    // height — asserting a bare 400 made this test fail whenever the page was shorter than that.
-    const expected = await page.evaluate(() => {
-      const doc = document.documentElement;
-      return Math.min(400, Math.max(0, doc.scrollHeight - doc.clientHeight));
-    });
-
-    // The button's handler only exists after hydration; the page now also starts the service in its
-    // constructor, so wait for the client app before driving it.
     await waitForHydration(page);
+    const region = page.getByTestId('smooth-scroll-container');
     await page.getByTestId('smooth-scroll-instant').click();
-
-    // `smooth-scroll-active` is SSR-rendered as "no" (isPlatformBrowser is false on the server)
-    // and only flips to its real client value once hydration runs. Reading it once right after
-    // goto() can catch that stale pre-hydration "no" on a slow runner even though the client is
-    // genuinely active — so re-read it on every poll tick instead of locking it in up front.
-    // scrollTo(_, instant) writes scrollTop synchronously and publishes it on the scrollY signal.
-    // Under reduced motion the service never starts, so the readout legitimately stays at 0.
-    await expect
-      .poll(async () => {
-        const activeText = (await page.getByTestId('smooth-scroll-active').textContent()) ?? '';
-        const active = activeText.trim() === 'yes';
-        const valueText = (await page.getByTestId('smooth-scroll-value').textContent()) ?? '';
-        const value = Number.parseInt(valueText.trim(), 10);
-        return active ? value === expected : value === 0;
-      })
-      .toBe(true);
+    await expect.poll(() => region.evaluate((el) => Math.round(el.scrollTop))).toBe(400);
+    await expect(page.getByTestId('smooth-scroll-value')).toContainText('400');
+    expect(await page.evaluate(() => window.scrollY)).toBe(0);
   });
 
   test('animate demo reflects slider changes in the preview and generated code', async ({
@@ -527,7 +507,10 @@ test.describe('demo pages', () => {
 
     const before = await settledMotionState(path);
 
-    await page.getByRole('button', { name: /Animate|Reset/ }).click();
+    await page
+      .getByTestId('demo-stage')
+      .getByRole('button', { name: /Animate|Reset/ })
+      .click();
 
     await expect.poll(async () => motionState(path), { timeout: 3000 }).not.toBe(before);
   });

@@ -1,5 +1,5 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { DestroyRef, inject, ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { MoveLeaveDirective, MovePresenceDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/utils/demo.utils';
@@ -11,6 +11,8 @@ export const routeMeta: RouteMeta = { title: 'moveLeave demo — Angular Movemen
   imports: [DemoContainer, MovePresenceDirective, MoveLeaveDirective],
   template: `
     <app-demo-container
+      supportCode="readonly showCard = signal(true);"
+      [sourceImports]="['MovePresenceDirective', 'MoveLeaveDirective']"
       title="moveLeave"
       description="Animate elements before Angular removes them. Wrap conditional content in movePresence so moveLeave can play while the view is still in the DOM."
       directive="moveLeave"
@@ -89,6 +91,11 @@ export const routeMeta: RouteMeta = { title: 'moveLeave demo — Angular Movemen
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoLeave {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly availablePresets = ALL_PRESETS;
 
   protected preset = signal<MovePreset>('fade-up');
@@ -126,6 +133,10 @@ export default class DemoLeave {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), this.duration() + this.delay() + 80);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(
+      () => this.showDemo.set(true),
+      this.duration() + this.delay() + 80,
+    );
   }
 }

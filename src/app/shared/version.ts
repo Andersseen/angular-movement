@@ -1,9 +1,9 @@
 /**
- * The published library version, injected by Vite from `projects/movement/package.json`
+ * The checked-out library source version, injected by Vite from `projects/movement/package.json`
  * (see `define` in `vite.config.ts`).
  *
  * Import this instead of writing a version literal in a template — a hardcoded one silently goes
- * stale on the next release and the site keeps advertising an old version.
+ * stale on the next release. This value alone does not establish npm publication.
  */
 declare const __MOVEMENT_VERSION__: string;
 

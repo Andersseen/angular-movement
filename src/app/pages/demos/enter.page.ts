@@ -1,5 +1,5 @@
 import type { RouteMeta } from '@analogjs/router';
-import { Component, signal } from '@angular/core';
+import { DestroyRef, inject, Component, signal } from '@angular/core';
 import { MoveEnterDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, getPresetDescription } from '../../shared/utils/demo.utils';
@@ -47,6 +47,11 @@ export const routeMeta: RouteMeta = { title: 'moveEnter demo — Angular Movemen
   `,
 })
 export default class DemoEnter {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly availablePresets = ALL_PRESETS;
 
   protected preset = signal<MovePreset>('fade-up');
@@ -68,6 +73,7 @@ export default class DemoEnter {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 50);
   }
 }

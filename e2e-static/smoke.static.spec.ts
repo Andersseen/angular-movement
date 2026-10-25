@@ -21,6 +21,7 @@ test('docs render, search opens and the playground works in the production build
 
   await page.goto('/demos/hover');
   await page.waitForLoadState('networkidle');
+  await page.getByText('Learn more', { exact: true }).click();
   await expect(page.getByTestId('demo-links')).toBeVisible();
   expect(errors).toEqual([]);
 });

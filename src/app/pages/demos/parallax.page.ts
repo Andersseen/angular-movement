@@ -10,6 +10,7 @@ export const routeMeta: RouteMeta = { title: 'Parallax Effect demo — Angular M
   imports: [DemoContainer, MoveParallaxDirective],
   template: `
     <app-demo-container
+      [sourceImports]="['MoveParallaxDirective']"
       title="Parallax Effect"
       description="Create depth with multiple layers moving at different speeds. Scroll down to see the effect."
       directive="moveParallax"
@@ -21,7 +22,13 @@ export const routeMeta: RouteMeta = { title: 'Parallax Effect demo — Angular M
     >
       <!-- Preview - Full height for scroll -->
       <div preview class="relative h-full w-full overflow-hidden">
-        <div id="parallax-demo-container" class="h-full w-full overflow-y-auto pr-2">
+        <div
+          id="parallax-demo-container"
+          tabindex="0"
+          role="region"
+          aria-label="parallax scroll preview"
+          class="h-full w-full overflow-y-auto pr-2"
+        >
           <!-- Top spacer — must be taller than the container to push content below the fold -->
           <div class="flex h-[400px] items-center justify-center">
             <div class="text-text-subtle text-center">
@@ -148,10 +155,10 @@ export default class DemoParallax {
 
   protected readonly parallaxCode = computed(() => {
     const speed = this.fgSpeed();
-    return `<div
-  [moveParallax]="${speed}"
-  moveParallaxContainer="'#parallax-demo-container'">
-  Parallax Element
+    return `<div id="parallax-preview" style="height: 360px; overflow-y: auto">
+  <div style="height: 900px; padding-top: 200px">
+    <div [moveParallax]="${speed}" moveParallaxContainer="#parallax-preview">Parallax Element</div>
+  </div>
 </div>`;
   });
 
