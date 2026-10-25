@@ -1,3 +1,4 @@
+import { waitForHydration } from './hydration';
 import { expect, test, type Locator } from '@playwright/test';
 import { settledMotionState } from './motion-state';
 
@@ -19,6 +20,7 @@ test.describe('lift + press composition (mouse)', () => {
     page,
   }) => {
     await page.goto('/demos/hover');
+    await waitForHydration(page);
     const card = page.getByTestId('hover-card');
     await expect(card).toBeVisible();
 
@@ -52,6 +54,7 @@ test.describe('MoveAnimator demo', () => {
     page,
   }) => {
     await page.goto('/demos/imperative');
+    await waitForHydration(page);
     const card = page.getByTestId('animator-card');
     await expect(card).toBeVisible();
 
@@ -69,6 +72,7 @@ test.describe('MoveAnimator demo', () => {
     page,
   }) => {
     await page.goto('/demos/imperative');
+    await waitForHydration(page);
     const card = page.getByTestId('animator-card');
     await expect(card).toBeVisible();
 
@@ -83,6 +87,7 @@ test.describe('MoveAnimator demo', () => {
     page,
   }) => {
     await page.goto('/demos/imperative');
+    await waitForHydration(page);
     const overlay = page.getByTestId('trigger-overlay');
 
     await expect(overlay).toBeAttached();
@@ -113,6 +118,7 @@ test.describe('MoveAnimator demo', () => {
     page,
   }) => {
     await page.goto('/demos/imperative');
+    await waitForHydration(page);
     const toggle = page.getByTestId('reveal-toggle');
     await expect(toggle).toBeVisible();
 
@@ -167,6 +173,7 @@ test.describe('MoveAnimator demo', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/demos/imperative');
+    await waitForHydration(page);
     const supported = await page.evaluate(
       () =>
         typeof (document as { startViewTransition?: unknown }).startViewTransition === 'function',

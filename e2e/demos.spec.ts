@@ -22,6 +22,7 @@ test.describe('demo pages', () => {
 
   test('layout demo animates grid/list and reorder changes', async ({ page }) => {
     await page.goto('/demos/layout');
+    await waitForHydration(page);
 
     const items = page.getByTestId('layout-demo-item');
     const layoutContainer = page.getByTestId('layout-demo-items');
@@ -62,6 +63,7 @@ test.describe('demo pages', () => {
     page,
   }) => {
     await page.goto('/demos/leave');
+    await waitForHydration(page);
 
     const card = page.getByTestId('leave-demo-card');
     await expect(card).toBeVisible();
@@ -77,6 +79,7 @@ test.describe('demo pages', () => {
 
   test('animation demo plays enter and exit through movePresence', async ({ page }) => {
     await page.goto('/demos/animation');
+    await waitForHydration(page);
 
     const card = page.locator('.font-display', { hasText: 'Object Animation' }).locator('..');
     const toggle = page.locator('button', { hasText: /Hide|Show/ });
@@ -94,6 +97,7 @@ test.describe('demo pages', () => {
 
   test('focus demo keeps the focusable element visible after focus', async ({ page }) => {
     await page.goto('/demos/focus');
+    await waitForHydration(page);
 
     const button = page.locator('button', { hasText: 'Focus me' });
     await expect(button).toBeVisible();
@@ -105,6 +109,7 @@ test.describe('demo pages', () => {
 
   test('values demo maps the driver signal onto transform outputs', async ({ page }) => {
     await page.goto('/demos/values');
+    await waitForHydration(page);
 
     const slider = page.getByTestId('values-slider');
     const linear = page.getByTestId('values-linear-box');
@@ -134,6 +139,7 @@ test.describe('demo pages', () => {
 
   test('drag demo moves the card with the pointer and keeps it in bounds', async ({ page }) => {
     await page.goto('/demos/drag');
+    await waitForHydration(page);
 
     const card = page.getByTestId('drag-card');
     await expect(card).toBeVisible();
@@ -168,6 +174,7 @@ test.describe('demo pages', () => {
 
   test('presence demo waits for the exit animation before swapping panels', async ({ page }) => {
     await page.goto('/demos/presence');
+    await waitForHydration(page);
 
     const first = page.getByTestId('presence-panel-1');
     await expect(first).toBeVisible();
@@ -183,6 +190,7 @@ test.describe('demo pages', () => {
 
   test('variants demo animates between named states', async ({ page }) => {
     await page.goto('/demos/variants');
+    await waitForHydration(page);
 
     const target = page.getByTestId('variants-target');
     await expect(target).toBeVisible();
@@ -203,6 +211,7 @@ test.describe('demo pages', () => {
 
   test('stagger demo reveals every child', async ({ page }) => {
     await page.goto('/demos/stagger');
+    await waitForHydration(page);
 
     const items = page.getByTestId('stagger-item');
     await expect(items.first()).toBeVisible();
@@ -222,6 +231,7 @@ test.describe('demo pages', () => {
 
   test('presence-list demo animates a removed row out before dropping it', async ({ page }) => {
     await page.goto('/demos/presence-list');
+    await waitForHydration(page);
 
     const row = page.getByTestId('presence-list-item-1');
     await expect(row).toBeVisible();
@@ -264,6 +274,7 @@ test.describe('demo pages', () => {
 
   test('presence-list demo reuses row nodes when the list reorders', async ({ page }) => {
     await page.goto('/demos/presence-list');
+    await waitForHydration(page);
 
     const row = page.getByTestId('presence-list-item-2');
     await expect(row).toBeVisible();
@@ -284,6 +295,7 @@ test.describe('demo pages', () => {
     page,
   }) => {
     await page.goto('/demos/presence-list');
+    await waitForHydration(page);
 
     await page.getByTestId('presence-list-mode').click();
     await expect(page.getByTestId('presence-list-mode')).toContainText('mode: wait');
@@ -332,6 +344,7 @@ test.describe('demo pages', () => {
 
   test('in-view demo animates the target once it is scrolled into view', async ({ page }) => {
     await page.goto('/demos/in-view');
+    await waitForHydration(page);
 
     const target = page.getByTestId('in-view-target');
     await target.scrollIntoViewIfNeeded();
@@ -346,6 +359,7 @@ test.describe('demo pages', () => {
 
   test('scroll demo maps container scroll onto the element transform', async ({ page }) => {
     await page.goto('/demos/scroll');
+    await waitForHydration(page);
 
     const container = page.getByTestId('scroll-container');
     const foreground = page.getByTestId('scroll-foreground');
@@ -373,6 +387,7 @@ test.describe('demo pages', () => {
 
   test('smooth scroll demo exposes the live service readout', async ({ page }) => {
     await page.goto('/demos/smooth-scroll');
+    await waitForHydration(page);
 
     await expect(page.getByTestId('smooth-scroll-readout')).toBeVisible();
     await expect(page.getByTestId('smooth-scroll-value')).toBeVisible();
@@ -389,6 +404,7 @@ test.describe('demo pages', () => {
     page,
   }) => {
     await page.goto('/demos/animate');
+    await waitForHydration(page);
 
     // The generated snippet is a plain CodeBlock bound to the same signals as the controls, so it
     // updates synchronously with the slider; the control is SSR-rendered, so wait for hydration.
@@ -403,6 +419,7 @@ test.describe('demo pages', () => {
 
   test('enter demo replays with the newly selected preset', async ({ page }) => {
     await page.goto('/demos/enter');
+    await waitForHydration(page);
 
     const label = page.locator('.font-display', { hasText: /^Fade Up$/i });
     await expect(label).toBeVisible();
@@ -414,21 +431,27 @@ test.describe('demo pages', () => {
     await expect(page.locator('.font-display', { hasText: /^Zoom In$/i })).toBeVisible();
   });
 
-  test('hover demo plays a WAAPI animation on mouse enter', async ({ page }) => {
+  test('hover demo holds its animated state while hovered', async ({ page }) => {
     await page.goto('/demos/hover');
+    await waitForHydration(page);
 
     const card = page.locator('.cursor-pointer', { hasText: 'Hover over this card' });
     await expect(card).toBeVisible();
 
     await card.hover();
 
+    await expect.poll(() => card.evaluate((el) => getComputedStyle(el).translate)).toBe('0px -4px');
+    await page.mouse.move(0, 0);
     await expect
-      .poll(async () => card.evaluate((el) => el.getAnimations().length))
-      .toBeGreaterThan(0);
+      .poll(() =>
+        card.evaluate((el) => ['none', '0px', '0px 0px'].includes(getComputedStyle(el).translate)),
+      )
+      .toBe(true);
   });
 
-  test('tap demo plays a WAAPI animation on press', async ({ page }) => {
+  test('tap demo holds its animated state while pressed', async ({ page }) => {
     await page.goto('/demos/tap');
+    await waitForHydration(page);
 
     const button = page.locator('button', { hasText: /Press|Shrink/ });
     await expect(button).toBeVisible();
@@ -439,15 +462,15 @@ test.describe('demo pages', () => {
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
     await page.mouse.down();
 
-    await expect
-      .poll(async () => button.evaluate((el) => el.getAnimations().length))
-      .toBeGreaterThan(0);
+    await expect.poll(() => button.evaluate((el) => getComputedStyle(el).scale)).toBe('0.97');
 
     await page.mouse.up();
+    await expect.poll(() => button.evaluate((el) => getComputedStyle(el).scale)).toBe('1');
   });
 
   test('target demo toggles the SVG draw state on click', async ({ page }) => {
     await page.goto('/demos/target');
+    await waitForHydration(page);
 
     const toggle = page.getByRole('button', { name: /Draw icon|Reset icon/ });
     const path = page.locator('path[stroke-width="7"]');
@@ -467,6 +490,7 @@ test.describe('demo pages', () => {
     page,
   }) => {
     await page.goto('/demos/loop');
+    await waitForHydration(page);
 
     const spinner = page.locator('[preview] svg').first();
     await expect(spinner).toBeVisible();
@@ -489,6 +513,7 @@ test.describe('demo pages', () => {
 
   test('text demo splits text into animated character spans', async ({ page }) => {
     await page.goto('/demos/text');
+    await waitForHydration(page);
 
     const heading = page.locator('h2', { hasText: 'Animate Text' });
     await expect(heading).toBeVisible();
@@ -501,6 +526,7 @@ test.describe('demo pages', () => {
 
   test('icons demo animates SVG path drawing when toggled', async ({ page }) => {
     await page.goto('/demos/icons');
+    await waitForHydration(page);
 
     const path = page.getByTestId('icons-paperclip');
     await expect(path).toBeVisible();
@@ -517,6 +543,7 @@ test.describe('demo pages', () => {
 
   test('parallax demo moves layers by different amounts on scroll', async ({ page }) => {
     await page.goto('/demos/parallax');
+    await waitForHydration(page);
 
     const fg = page.getByTestId('parallax-fg-layer');
     await expect(fg).toBeVisible();
@@ -555,6 +582,7 @@ test.describe('prefers-reduced-motion', () => {
 
   test('scroll-linked motion does not run', async ({ page }) => {
     await page.goto('/demos/scroll');
+    await waitForHydration(page);
 
     const foreground = page.getByTestId('scroll-foreground');
     await foreground.scrollIntoViewIfNeeded();
@@ -576,6 +604,7 @@ test.describe('prefers-reduced-motion', () => {
 
   test('parallax does not run', async ({ page }) => {
     await page.goto('/demos/parallax');
+    await waitForHydration(page);
     await page.mouse.wheel(0, 600);
     await page.waitForTimeout(SETTLE_MS);
 
@@ -584,6 +613,7 @@ test.describe('prefers-reduced-motion', () => {
 
   test('content that animates in is still readable', async ({ page }) => {
     await page.goto('/demos/stagger');
+    await waitForHydration(page);
 
     // Suppressing motion must never leave content stuck at an invisible initial keyframe.
     const items = page.getByTestId('stagger-item');
