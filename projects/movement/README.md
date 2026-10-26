@@ -4,6 +4,11 @@
 [![npm version](https://img.shields.io/npm/v/angular-movement.svg)](https://www.npmjs.com/package/angular-movement)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/Andersseen/angular-movement/blob/main/LICENSE)
 
+**[Documentation](https://angular-movement.andersseen.dev/docs)** ·
+**[Motion lab (23 live demos)](https://angular-movement.andersseen.dev/demos)** ·
+**[API reference](https://angular-movement.andersseen.dev/docs/reference)** ·
+**[GitHub](https://github.com/Andersseen/angular-movement)**
+
 Angular-native motion library powered by the browser Web Animations API and Angular signals. It
 provides declarative directives for motion-style states, presets, variants, gestures, spring
 physics, SVG path drawing, drag, scroll-driven and layout animation, presence/stagger
