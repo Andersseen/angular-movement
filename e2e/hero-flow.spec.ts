@@ -139,7 +139,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
     .toBeGreaterThan(12);
   const sample = await metrics(page);
   expect(sample.requestedPerformanceGuard).toBe(true);
-  expect(Math.max(...sample.points)).toBeLessThanOrEqual(10000);
+  expect(Math.max(...sample.points)).toBeLessThanOrEqual(60000);
   const canvasSize = await field
     .locator('canvas')
     .evaluate((canvas) => ({ width: canvas.width, height: canvas.height }));
@@ -260,7 +260,7 @@ test('compact screens use the smaller particle budget', async ({ page }) => {
   const field = await openField(page);
   await expect(field).toHaveAttribute('data-motion-state', 'running');
   await expect.poll(async () => (await metrics(page)).times.length).toBeGreaterThan(3);
-  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(4000);
+  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(24000);
 });
 
 for (const theme of ['dark', 'light']) {

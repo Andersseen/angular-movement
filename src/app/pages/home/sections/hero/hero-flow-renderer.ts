@@ -1,105 +1,9 @@
 /**
- * Depth-of-field particle sphere for the hero: a curl-noise shell folded by fractal octaves,
- * fine steady dust on the focal rim, with everything out of focus fading away. A faithful, dependency-free take on the reference
- * portfolio's Three.js scene — one draw call, no render targets, no simulation state (the flow
- * is a pure function of seed + time, so positions are computed per vertex).
+ * Ghost fibres for the hero: a few layered ribbons of fine glowing fibres that twist, fold and
+ * drift through a shallow depth of field. In focus a fibre is a row of crisp dots; out of focus it
+ * blooms into soft, dim bokeh. Everything is a closed-form function of seed and time (sines, no
+ * noise, no simulation state), so it is one cheap draw call.
  */
-
-// Ashima / Ian McEwan simplex noise, public domain reference implementation.
-const SNOISE = `
-vec3 mod289(vec3 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 mod289(vec4 x) { return x - floor(x * (1.0 / 289.0)) * 289.0; }
-vec4 permute(vec4 x) { return mod289(((x * 34.0) + 1.0) * x); }
-vec4 taylorInvSqrt(vec4 r) { return 1.79284291400159 - 0.85373472095314 * r; }
-
-float snoise(vec3 v) {
-  const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
-  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
-
-  vec3 i = floor(v + dot(v, C.yyy));
-  vec3 x0 = v - i + dot(i, C.xxx);
-
-  vec3 g = step(x0.yzx, x0.xyz);
-  vec3 l = 1.0 - g;
-  vec3 i1 = min(g.xyz, l.zxy);
-  vec3 i2 = max(g.xyz, l.zxy);
-
-  vec3 x1 = x0 - i1 + C.xxx;
-  vec3 x2 = x0 - i2 + C.yyy;
-  vec3 x3 = x0 - D.yyy;
-
-  i = mod289(i);
-  vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0))
-                                 + i.y + vec4(0.0, i1.y, i2.y, 1.0))
-                                 + i.x + vec4(0.0, i1.x, i2.x, 1.0));
-
-  float n_ = 0.142857142857;
-  vec3 ns = n_ * D.wyz - D.xzx;
-
-  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
-
-  vec4 x_ = floor(j * ns.z);
-  vec4 y_ = floor(j - 7.0 * x_);
-
-  vec4 x = x_ * ns.x + ns.yyyy;
-  vec4 y = y_ * ns.x + ns.yyyy;
-  vec4 h = 1.0 - abs(x) - abs(y);
-
-  vec4 b0 = vec4(x.xy, y.xy);
-  vec4 b1 = vec4(x.zw, y.zw);
-
-  vec4 s0 = floor(b0) * 2.0 + 1.0;
-  vec4 s1 = floor(b1) * 2.0 + 1.0;
-  vec4 sh = -step(h, vec4(0.0));
-
-  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
-  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
-
-  vec3 p0 = vec3(a0.xy, h.x);
-  vec3 p1 = vec3(a0.zw, h.y);
-  vec3 p2 = vec3(a1.xy, h.z);
-  vec3 p3 = vec3(a1.zw, h.w);
-
-  vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
-  p0 *= norm.x;
-  p1 *= norm.y;
-  p2 *= norm.z;
-  p3 *= norm.w;
-
-  vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
-  m = m * m;
-  return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
-}
-
-vec3 snoiseVec3(vec3 x) {
-  return vec3(
-    snoise(x),
-    snoise(vec3(x.y + 31.3169, x.z - 17.9055, x.x + 9.5332)),
-    snoise(vec3(x.z + 34.8975, x.x + 11.2364, x.y - 23.7953))
-  );
-}
-
-// Divergence-free flow field: epsilon-difference curl of vector simplex noise.
-vec3 curlNoise(vec3 p) {
-  const float e = 0.1;
-  vec3 dx = vec3(e, 0.0, 0.0);
-  vec3 dy = vec3(0.0, e, 0.0);
-  vec3 dz = vec3(0.0, 0.0, e);
-
-  vec3 p_x0 = snoiseVec3(p - dx);
-  vec3 p_x1 = snoiseVec3(p + dx);
-  vec3 p_y0 = snoiseVec3(p - dy);
-  vec3 p_y1 = snoiseVec3(p + dy);
-  vec3 p_z0 = snoiseVec3(p - dz);
-  vec3 p_z1 = snoiseVec3(p + dz);
-
-  float x = p_y1.z - p_y0.z - p_z1.y + p_z0.y;
-  float y = p_z1.x - p_z0.x - p_x1.z + p_x0.z;
-  float z = p_x1.y - p_x0.y - p_y1.x + p_y0.x;
-
-  return normalize(vec3(x, y, z));
-}
-`;
 
 const VERTEX = `
 precision highp float;
@@ -107,66 +11,63 @@ attribute vec4 aSeed;
 uniform float uTime;
 uniform float uAspect;
 uniform vec2 uPointer;
+uniform float uPointSize;
 varying float vAlpha;
 varying float vTint;
 varying float vSoft;
 
-const float CAM_DIST = 3.4;
-const float FOCUS = 3.4;
-const float RADIUS = 1.45;
-const float CURL_FREQ = 0.62;
-
-mat3 rotateY(float a) {
-  float c = cos(a), s = sin(a);
-  return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c);
-}
-
-mat3 rotateX(float a) {
-  float c = cos(a), s = sin(a);
-  return mat3(1.0, 0.0, 0.0, 0.0, c, s, 0.0, -s, c);
-}
+const float CAM_DIST = 3.2;
+const float FOCUS = 3.0;
+const float LENS = 1.55;
+const float FIBRES = 18.0;
 
 void main() {
-  float t = uTime * 0.05;
-  vec3 seed = aSeed.xyz;
-  float rnd = aSeed.w;
+  float t = uTime;
+  float u = aSeed.x;            // along the ribbon, -1..1
+  float across = aSeed.y;       // across the ribbon, 0..1
+  float jitter = aSeed.z;       // 0..1
+  float r = floor(aSeed.w * 3.0);
+  float dust = step(0.92, fract(aSeed.w * 9.7));
 
-  // The reference sphere: curl noise of a point is a unit direction, so particles live on a
-  // shell; a fractal octave stack folds that shell into filaments, and a slow noise blend
-  // breathes between the two so the surface drifts instead of settling.
-  vec3 shell = curlNoise(seed * CURL_FREQ + t);
-  vec3 folded = shell;
-  folded += curlNoise(folded * CURL_FREQ * 2.0) * 0.5;
-  folded += curlNoise(folded * CURL_FREQ * 4.0) * 0.25;
-  folded += curlNoise(folded * CURL_FREQ * 8.0) * 0.125;
-  vec3 p = mix(shell, folded, snoise(shell + t)) * RADIUS;
+  // Each ribbon is a slow travelling wave that rises left to right, each on its own phase.
+  float phase = r * 2.1;
+  float x = u * 2.6;
+  float y = 0.42 * sin(u * 1.7 + t * 0.22 + phase)
+          + 0.16 * sin(u * 3.3 - t * 0.17 + phase * 1.7)
+          + u * 0.75 + (r - 1.0) * 0.42;
+  float z = 1.1 * sin(u * 1.25 + t * 0.15 + phase * 0.6) + 0.35;
 
-  // A slow turntable plus a pointer tilt: the volume reads as 3D, the hero copy never moves.
-  p = rotateX(-uPointer.y * 0.22) * rotateY(uTime * 0.02 + uPointer.x * 0.32) * p;
+  // Fibres: the width is split into evenly spaced strands, each a dotted line along the ribbon.
+  float strand = (floor(across * FIBRES) + 0.5) / FIBRES * 2.0 - 1.0;
+  float width = 0.2 + 0.1 * sin(u * 2.3 + phase + t * 0.1);
+  // The twist folds the ribbon edge-on to the camera, which is where it reads as a bright streak.
+  float twist = u * 2.6 + t * 0.2 + phase;
+  vec3 p = vec3(x, y, z) + vec3(0.0, cos(twist), sin(twist)) * strand * width;
+  p += vec3(0.0, 0.004, 0.004) * (jitter - 0.5);
 
-  vec3 view = vec3(p.x, p.y, p.z - CAM_DIST);
-  float dist = max(-view.z, 0.4);
-  float dof = abs(dist - FOCUS);
+  // A loose haze of free-floating dust around the ribbons for depth.
+  p = mix(p, vec3(u * 2.8, (across * 2.0 - 1.0) * 1.6, (jitter * 2.0 - 1.0) * 1.8), dust);
 
-  // fov ~46°: the sphere fills most of the hero height and its rim exits the short edges.
-  vec2 ndc = (view.xy / dist) * 2.35;
+  // Gentle pointer parallax: a small yaw and pitch of the whole volume.
+  float yaw = uPointer.x * 0.12;
+  float pitch = -uPointer.y * 0.08;
+  p.xz = mat2(cos(yaw), -sin(yaw), sin(yaw), cos(yaw)) * p.xz;
+  p.yz = mat2(cos(pitch), -sin(pitch), sin(pitch), cos(pitch)) * p.yz;
+
+  float depth = CAM_DIST - p.z;
+  vec2 ndc = p.xy / max(depth, 0.1) * LENS;
   ndc.x /= uAspect;
-  gl_Position = vec4(ndc, 0.0, 1.0);
+  gl_Position = vec4(ndc, depth > 0.1 ? 0.0 : 2.0, 1.0);
 
-  // Calm by design: fine, steady dust (no twinkle) and a rare, very faint out-of-focus orb.
-  float bokeh = step(0.985, fract(rnd * 7.13));
-  float base = mix(1.1 + rnd * 1.1, 10.0 + rnd * 12.0, bokeh);
-  float size = base * (1.0 + dof * mix(0.35, 0.5, bokeh));
-  gl_PointSize = clamp(size * (FOCUS / dist), 1.0, 36.0);
-
-  // Only the focal rim is bright; everything in front of or behind it falls away quickly,
-  // which is what keeps the field soft instead of grainy.
-  float band = exp(-dof * dof * mix(2.2, 0.35, bokeh));
-  float alpha = mix(mix(0.0, 0.85, band), mix(0.0, 0.05, band), bokeh);
-
-  vAlpha = alpha;
-  vSoft = max(bokeh, smoothstep(0.25, 1.0, dof));
-  vTint = fract(rnd * 13.73);
+  // Depth of field: the circle of confusion grows with distance from the focal plane, and the
+  // same light spread over a bigger disc gets dimmer, so bokeh stays soft instead of loud.
+  float coc = abs(depth - FOCUS);
+  float size = uPointSize * (1.4 + coc * 9.0 + dust * 3.0);
+  gl_PointSize = min(size, 48.0);
+  float spread = (uPointSize * 1.4) / gl_PointSize;
+  vAlpha = mix(0.9, 0.35, dust) * spread * spread * 1.6 * smoothstep(1.0, 0.75, abs(u));
+  vSoft = smoothstep(0.05, 0.4, coc);
+  vTint = jitter;
 }
 `;
 
@@ -183,18 +84,19 @@ void main() {
   vec2 q = gl_PointCoord * 2.0 - 1.0;
   float d2 = dot(q, q);
   if (d2 > 1.0) discard;
-  float disc = 1.0 - d2;
-  float a = pow(disc, mix(1.6, 0.7, vSoft)) * vAlpha * uGain;
-  vec3 color = mix(uColorA, uColorB, smoothstep(0.55, 0.92, vTint));
+  // Crisp dots in focus, flat soft discs (with a faint rim) out of it.
+  float core = mix(pow(1.0 - d2, 1.5), 0.55 + 0.45 * smoothstep(0.55, 1.0, d2), vSoft);
+  float a = min(vAlpha, 1.0) * core * uGain;
+  vec3 color = mix(uColorA, uColorB, vTint);
   gl_FragColor = vec4(color * a, a);
 }
 `;
 
-// Few, fine particles drawn every frame read as smooth; many coarse ones read as noise.
-export const HERO_PARTICLE_LIMIT = 10000;
+// Enough points for the fibres to read as continuous strands; each vertex is a handful of sines.
+export const HERO_PARTICLE_LIMIT = 60000;
 
 export function heroParticleCount(width: number): number {
-  return width < 768 ? 4000 : HERO_PARTICLE_LIMIT;
+  return width < 768 ? 24000 : HERO_PARTICLE_LIMIT;
 }
 
 export function heroBackingSize(width: number, height: number, deviceRatio: number) {
@@ -215,27 +117,19 @@ function seeds(): Float32Array {
     state ^= state << 5;
     return (state >>> 0) / 4294967296;
   };
-  // Uniform in a unit ball: the curl field turns nearby seeds into shared filaments.
+  // x: position along a ribbon, y: across it, z: jitter, w: ribbon / dust selector.
   for (let i = 0; i < data.length; i += 4) {
-    let x: number;
-    let y: number;
-    let z: number;
-    do {
-      x = random() * 2 - 1;
-      y = random() * 2 - 1;
-      z = random() * 2 - 1;
-    } while (x * x + y * y + z * z > 1);
-    data[i] = x * 2.2;
-    data[i + 1] = y * 2.2;
-    data[i + 2] = z * 2.2;
+    data[i] = random() * 2 - 1;
+    data[i + 1] = random();
+    data[i + 2] = random();
     data[i + 3] = random();
   }
   return data;
 }
 
-// Silver-blue dust with a violet minority; light theme uses saturated inks at lower gain.
-const DUST_DARK: [number, number, number] = [0.8, 0.84, 1.0];
-const ACCENT_DARK: [number, number, number] = [0.58, 0.5, 1.0];
+// Violet fibres warming to lilac highlights; light theme uses saturated inks at lower gain.
+const DUST_DARK: [number, number, number] = [0.5, 0.42, 1.0];
+const ACCENT_DARK: [number, number, number] = [0.86, 0.74, 1.0];
 const DUST_LIGHT: [number, number, number] = [0.24, 0.26, 0.62];
 const ACCENT_LIGHT: [number, number, number] = [0.42, 0.24, 0.8];
 
@@ -280,7 +174,7 @@ export function createHeroFlowRenderer(
     }
     return shader;
   };
-  const vertex = compile(gl.VERTEX_SHADER, SNOISE + VERTEX);
+  const vertex = compile(gl.VERTEX_SHADER, VERTEX);
   const fragment = compile(gl.FRAGMENT_SHADER, FRAGMENT);
   const program = gl.createProgram();
   const buffer = gl.createBuffer();
@@ -316,6 +210,7 @@ export function createHeroFlowRenderer(
   const colorAUniform = gl.getUniformLocation(program, 'uColorA');
   const colorBUniform = gl.getUniformLocation(program, 'uColorB');
   const gainUniform = gl.getUniformLocation(program, 'uGain');
+  const pointSizeUniform = gl.getUniformLocation(program, 'uPointSize');
   let count = HERO_PARTICLE_LIMIT;
 
   return {
@@ -328,6 +223,8 @@ export function createHeroFlowRenderer(
       }
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.uniform1f(aspectUniform, width / height);
+      // One CSS pixel per point, whatever the backing-store ratio.
+      gl.uniform1f(pointSizeUniform, Math.max(1, size.ratio));
     },
     draw(time, dark, pointerX, pointerY) {
       gl.uniform1f(timeUniform, time);
@@ -338,7 +235,8 @@ export function createHeroFlowRenderer(
       gl.uniform3f(colorBUniform, accent[0], accent[1], accent[2]);
       // On light surfaces the field is a faint ink wash: half the particles, a fraction of the gain.
       gl.uniform1f(gainUniform, dark ? 0.9 : 0.26);
-      // Dark theme glows additively; light theme composites premultiplied ink over white.
+      // Dark theme glows additively, so overlapping fibres bloom; light theme composites
+      // premultiplied ink over white.
       if (dark) {
         gl.blendFunc(gl.ONE, gl.ONE);
       } else {
