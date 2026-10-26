@@ -19,6 +19,9 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 import { MOVE_VARIANTS_PARENT } from '../tokens/variants.tokens';
 
 /**
+ * Plays an entrance when the element is created and, inside `*movePresence`, a leave before it is
+ * removed — the one-attribute `[move]` / `[moveAnimate]` shorthand.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

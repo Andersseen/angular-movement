@@ -16,6 +16,9 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 /**
+ * Plays while the element is pressed with a pointer and reverses on release — press feedback that
+ * also works on touch, where there is no hover.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

@@ -14,6 +14,8 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 
 /**
+ * Plays a preset or keyframes once, when the element is created.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

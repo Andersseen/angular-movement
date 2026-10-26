@@ -30,6 +30,8 @@ export interface MovementConfig {
 }
 
 /**
+ * The built-in timing defaults (duration, easing, delay) used when nothing is configured.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -43,6 +45,9 @@ export const MOVEMENT_DEFAULTS: MovementConfig = {
 };
 
 /**
+ * Injection token for the resolved library-wide defaults; override them with
+ * `provideMovement(config)`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

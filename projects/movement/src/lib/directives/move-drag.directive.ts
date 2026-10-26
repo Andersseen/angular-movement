@@ -71,6 +71,9 @@ export interface MoveDragEvent {
 }
 
 /**
+ * Makes the element draggable with pointer events, with optional axis lock, constraints, snap
+ * points and momentum.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental

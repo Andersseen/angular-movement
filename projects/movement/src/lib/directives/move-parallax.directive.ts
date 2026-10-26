@@ -17,6 +17,9 @@ import { MoveKeyframes } from '../presets/presets.types';
 import { numberAttribute, prefersReducedMotion } from './move-animation.utils';
 
 /**
+ * Moves the element at a different speed from the scroll, deriving the travel from its size and
+ * the viewport.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

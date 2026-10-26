@@ -51,6 +51,9 @@ export interface MoveSpringValueConfig extends MoveSpring {
 }
 
 /**
+ * Creates a writable signal meant to drive motion, to bind into animation inputs or derive with
+ * `moveTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -60,6 +63,9 @@ export function moveValue<T>(initial: T): WritableSignal<T> {
 }
 
 /**
+ * Derives a signal by mapping another signal's value from one range onto another (clamped by
+ * default), like Framer Motion's `useTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -71,6 +77,9 @@ export function moveTransform(
   options?: MoveTransformOptions,
 ): Signal<number>;
 /**
+ * Derives a signal by mapping another signal's value from one range onto another (clamped by
+ * default), like Framer Motion's `useTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -82,6 +91,9 @@ export function moveTransform(
   options?: MoveTransformOptions,
 ): Signal<string>;
 /**
+ * Derives a signal by mapping another signal's value from one range onto another (clamped by
+ * default), like Framer Motion's `useTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -111,6 +123,9 @@ export function moveTransform(
 }
 
 /**
+ * Creates a signal that follows a source signal with spring physics, for values that should settle
+ * instead of jump.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

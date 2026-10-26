@@ -23,9 +23,19 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
   preview, independent desktop panels, grouped mobile selection, source tabs, replay/reset feedback
   and strict compilation of generated examples. Scoped smooth-scroll preview and refined homepage
   surfaces preserve Doqs and the library API. Website unit tests now run in regular CI.
-- Hero background: a lazy native WebGL depth-of-field particle field (fractal curl-noise flow,
-  fine dust plus soft bokeh orbs) with bounded density/resolution, subtle pointer parallax, static
-  reduced motion, offscreen suspension and complete resource cleanup; no new dependency.
+- Website hero background: lazy native WebGL "ghost fibres" — layered ribbons of dotted strands
+  through a shallow depth of field, a cursor lens, an unfurling intro, bounded density/resolution,
+  static reduced motion, offscreen suspension and complete resource cleanup; no new dependency.
+- Website: full-viewport landing (scroll story, "why" carousel, `moveLoop` marquee, bento use
+  cases, templates section), the "aubergine & ember" palette, a sticky documentation TOC and an
+  "edit this page / report an issue" footer on every documentation page.
+
+### Documentation
+
+- Every directive, `moveValue` / `moveTransform` / `moveSpringValue`, `MOVEMENT_CONFIG` and
+  `MOVEMENT_DEFAULTS` now open their JSDoc with a one-line summary, so the generated API reference
+  says what each symbol does instead of repeating the stability sentence. Comments only: the API
+  surface is unchanged (`api-report.txt` gains doc comments, no declarations).
 
 - `movement-migrate` (`projects/movement-migrate`, private, not published): read-only assessment of
   legacy `@angular/animations` usage using the TypeScript compiler API and Angular's template parser.

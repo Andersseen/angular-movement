@@ -21,6 +21,9 @@ import { optionalTimeAttribute } from '../move-time';
 import { movementWarn } from '../dev-warn';
 
 /**
+ * Plays keyframes or a preset on its host when the bound boolean turns true, and plays them in
+ * reverse when it turns false.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental

@@ -14,6 +14,9 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 /**
+ * Plays a preset or keyframes before the element is removed; inside `*movePresence` the view waits
+ * for it to finish.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

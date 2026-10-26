@@ -16,6 +16,8 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 
 /**
+ * Plays while the element has keyboard focus and reverses when focus leaves.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

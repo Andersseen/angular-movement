@@ -32,6 +32,9 @@ import { MOVE_VARIANTS_PARENT, MoveVariantsProvider } from '../tokens/variants.t
 import { optionalTimeAttribute, resolveTime } from '../move-time';
 
 /**
+ * Animates between named states: bind `moveVariant` to a signal and the element animates whenever
+ * the name changes.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
