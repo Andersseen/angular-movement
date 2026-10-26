@@ -116,37 +116,37 @@ npx angular-movement-mcp init
 ## Implementation plan
 
 - [x] 1. `projects/movement-mcp/` is a **fully standalone** pnpm package: its own `package.json`,
-     its own `pnpm install` (own `node_modules` + lockfile, committed), not a pnpm workspace
-     member. No `pnpm-workspace.yaml` added — `pnpm --dir projects/movement-mcp <script>` works
-     without one, keeping the root install/lockfile for the existing two projects untouched.
+      its own `pnpm install` (own `node_modules` + lockfile, committed), not a pnpm workspace
+      member. No `pnpm-workspace.yaml` added — `pnpm --dir projects/movement-mcp <script>` works
+      without one, keeping the root install/lockfile for the existing two projects untouched.
 - [x] 2. Scaffolded `projects/movement-mcp/`: `package.json` (name `angular-movement-mcp`,
-     `type: module`, single `bin: { "movement-mcp": "dist/cli.js" }` — both the server and the
-     `init` subcommand dispatch through this one file, not `dist/index.js` as originally sketched
-     — `files: ["dist", "skill", "README.md"]`, `dependencies: {"@modelcontextprotocol/sdk":
+      `type: module`, single `bin: { "movement-mcp": "dist/cli.js" }` — both the server and the
+      `init` subcommand dispatch through this one file, not `dist/index.js` as originally sketched
+      — `files: ["dist", "skill", "README.md"]`, `dependencies: {"@modelcontextprotocol/sdk":
 "^1.26.0", "zod": "^4.3.0"}`), `tsconfig.json`, own `vitest.config.ts`.
 - [x] 3. `projects/movement-mcp/scripts/generate-snapshot.mjs` (plain `.mjs`, matching this repo's
-     existing dependency-free tooling convention rather than a TS script — see the file's own
-     header comment): shells out to `.claude/scripts/api-surface.mjs --json` for
-     selector/exportAs/inputs/outputs/signals, reads `directive-reference.ts`'s
-     `DIRECTIVE_REFERENCE` (type-stripped and dynamically imported — it turned out to have no
-     `example` field, see Proposed solution's `get_example` note) for descriptions, reads
-     `presets.types.ts`'s `MovePreset` union, and writes
-     `projects/movement-mcp/src/data/api-snapshot.json` (21 directives, 29 presets as of this
-     run). The one-shot/reactive flag is a small hardcoded allowlist sourced from this file's own
-     "one-shot by design" gotcha, with a comment pointing back here.
+      existing dependency-free tooling convention rather than a TS script — see the file's own
+      header comment): shells out to `.claude/scripts/api-surface.mjs --json` for
+      selector/exportAs/inputs/outputs/signals, reads `directive-reference.ts`'s
+      `DIRECTIVE_REFERENCE` (type-stripped and dynamically imported — it turned out to have no
+      `example` field, see Proposed solution's `get_example` note) for descriptions, reads
+      `presets.types.ts`'s `MovePreset` union, and writes
+      `projects/movement-mcp/src/data/api-snapshot.json` (21 directives, 29 presets as of this
+      run). The one-shot/reactive flag is a small hardcoded allowlist sourced from this file's own
+      "one-shot by design" gotcha, with a comment pointing back here.
 - [x] 4. `projects/movement-mcp/src/index.ts` — exports `createServer()`/`startServer()`,
-     registering the four tools over stdio transport, reading the snapshot via `src/snapshot.ts`.
+      registering the four tools over stdio transport, reading the snapshot via `src/snapshot.ts`.
 - [x] 5. `projects/movement-mcp/src/cli.ts` — the actual bin entry: dispatches `init` (via
-     `src/init.ts` + `src/mcp-config.ts`) vs. default (`startServer()`).
+      `src/init.ts` + `src/mcp-config.ts`) vs. default (`startServer()`).
 - [x] 6. `projects/movement-mcp/skill/movement-usage/SKILL.md` — written, and corrected mid-review:
-     the first draft's own example guessed `[moveHover]` as the hover directive's selector — the
-     real one is `[moveWhileHover]`. Left the mistake in as a worked example of exactly the
-     failure mode `get_directive` exists to catch, instead of just quietly fixing it.
+      the first draft's own example guessed `[moveHover]` as the hover directive's selector — the
+      real one is `[moveWhileHover]`. Left the mistake in as a worked example of exactly the
+      failure mode `get_directive` exists to catch, instead of just quietly fixing it.
 - [x] 7. `projects/movement-mcp/README.md` — written.
 - [x] 8. Root `package.json` scripts added: `mcp:install`, `mcp:snapshot`, `mcp:build`, `mcp:test`,
-     `mcp:pack:check`, `mcp:publish` (defined but never invoked here).
+      `mcp:pack:check`, `mcp:publish` (defined but never invoked here).
 - [x] 9. Tests: `tools.spec.ts` (11 tests, fixture-based), `mcp-config.spec.ts` (3 tests),
-     `init.spec.ts` (3 tests, real temp-dir I/O) — 15/15 passing.
+      `init.spec.ts` (3 tests, real temp-dir I/O) — 15/15 passing.
 - [x] 10. Phase 6 bookkeeping done: `CHANGELOG.md` Unreleased, `docs/ai/STATE.md` (new gotcha +
       "Next up" item #7).
 

@@ -103,13 +103,13 @@ plus a positive (non-reduced-motion) assertion for `parallax`.
 - [x] 1. `src/app/pages/docs.page.ts` — remove the 6 `/demos/*` sidebar links (phase A).
 - [x] 2. `package.json` — bump `@voltui/components` to `^1.0.1`, `lumen-icons` to `^0.2.0`; `pnpm install`.
 - [x] 3. `src/app/pages/templates.page.ts` — extracted `TemplateHero` (+ nested
-     `TemplateLivePreview`), `TemplateFeatureGrid`, `TemplateSteps`, `TemplateCta` under
-     `src/app/pages/templates/sections/**` (mirrors the existing `home/sections/` pattern). Page
-     shell is now 19 lines composing the four sections.
+      `TemplateLivePreview`), `TemplateFeatureGrid`, `TemplateSteps`, `TemplateCta` under
+      `src/app/pages/templates/sections/**` (mirrors the existing `home/sections/` pattern). Page
+      shell is now 19 lines composing the four sections.
 - [x] 4. `src/app/pages/demos/drag.page.ts` — added `showDemo` signal + `@if`, dropped
-     `[showReplay]="false"`, wired `(replay)="replay()"`, calls `replay()` from `onStateChange()`.
-     Verified live via Playwright: drag-out-of-bounds + Replay returns the card to the exact
-     origin coordinates; changing any control also resets it.
+      `[showReplay]="false"`, wired `(replay)="replay()"`, calls `replay()` from `onStateChange()`.
+      Verified live via Playwright: drag-out-of-bounds + Replay returns the card to the exact
+      origin coordinates; changing any control also resets it.
 - [x] 5a. `src/app/shared/components/page-header/`, `docs-footer-nav/`,
       `api-stability-table/` added; wired into `docs/api.page.ts`, `docs/reference.page.ts`,
       `docs/presets.page.ts`, `docs/get-started.page.ts`, `docs/introduction.page.ts`. Also fixed
@@ -130,14 +130,14 @@ plus a positive (non-reduced-motion) assertion for `parallax`.
 - [ ] 5c. `InfoCard` — deferred (lower value: three separate small `@for` blocks, mostly styling
       repetition, not a functional risk). Left for a future pass.
 - [ ] 6. `src/app/shared/components/code-block/code-block.ts` — optional `showCopy` input.
-     Deferred alongside 5c/7 for the same reason — the bigger, higher-value wins (dependency bump,
-     drag fix, docs cleanup, RangeSlider, test infra) are prioritized first in this pass.
+      Deferred alongside 5c/7 for the same reason — the bigger, higher-value wins (dependency bump,
+      drag fix, docs cleanup, RangeSlider, test infra) are prioritized first in this pass.
 - [ ] 7. `src/app/pages/demos/animate.page.ts` — rework to use `DemoContainer`'s `customControls`
-     instead of a hand-built panel is a bigger architectural change with more risk than the
-     RangeSlider extraction alone delivered; deferred as a follow-up rather than bundled in here.
+      instead of a hand-built panel is a bigger architectural change with more risk than the
+      RangeSlider extraction alone delivered; deferred as a follow-up rather than bundled in here.
 - [x] 8. `angular.json` — added `test` architect target to the `angular-movement` project
-     (`@angular/build:unit-test`, `tsConfig: tsconfig.spec.json`, which already existed unused).
-     `package.json` — added `test:site` script.
+      (`@angular/build:unit-test`, `tsConfig: tsconfig.spec.json`, which already existed unused).
+      `package.json` — added `test:site` script.
 - [ ] 9. Add `@testing-library/angular`, `@testing-library/dom` as devDependencies.
 - [ ] 10. Add `.spec.ts` next to every component from steps 3, 5, 6.
 - [ ] 11. `e2e/demos.spec.ts` — add interaction assertions for `animate`, `enter`, `hover`, `icons`,

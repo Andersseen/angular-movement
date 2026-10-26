@@ -244,10 +244,10 @@ convenience. Revisit if a consumer needs whole-chain cancellation.
 - [x] 1. `engines/move-time.ts` (+ spec) — type, parser, attribute transforms, warning.
 - [x] 2. Directive timing inputs → time transforms (all directives in §2).
 - [x] 3. `presets.types.ts` — widen timing fields; `transition-composer.ts`, `easing-groups.ts`,
-     `animation-engine.service.ts`, `waapi-player.ts`, `move-variants.directive.ts`,
-     `move-animation.directive.ts` — normalize at read.
+      `animation-engine.service.ts`, `waapi-player.ts`, `move-variants.directive.ts`,
+      `move-animation.directive.ts` — normalize at read.
 - [x] 4. `providers/provide-movement.ts`, `tokens/movement.tokens.ts` — `MoveTime` input,
-     JSDoc for reduced-motion layering.
+      JSDoc for reduced-motion layering.
 - [x] 5. `move-animation.utils.ts` — dedupe the reduced-motion warning.
 - [x] 6. `move-hover.directive.ts` (+ spec) — pointer events.
 - [x] 7. `base-player.ts` (+ spec) — resolve on external cancel; optional no-commit mode.

@@ -130,12 +130,12 @@ rows close the gap immediately while the exit animation plays.
 Ordered by value against risk. Each step is its own commit.
 
 - [x] 1. Repeat controls — `presets.types.ts`, `engines/waapi-player.ts`,
-     `engines/animation-engine.service.ts`, `directives/move-loop.directive.ts` + specs.
+      `engines/animation-engine.service.ts`, `directives/move-loop.directive.ts` + specs.
 - [x] 2. `moveWhileDrag` — `directives/move-drag.directive.ts`, `engines/transform-state.ts` + specs.
 - [x] 3. `mode: 'popLayout'` — `directives/move-presence-for.directive.ts` + spec.
 - [x] 4. Variant orchestration — `directives/move-variants.directive.ts`, `tokens/` + specs.
 - [x] 5. `times` + per-property easing — `engines/keyframe-composer.ts`,
-     `engines/transition-composer.ts`, `engines/animation-engine.service.ts` + specs.
+      `engines/transition-composer.ts`, `engines/animation-engine.service.ts` + specs.
 - [x] 6. Demos for each, directive reference entries, docs, CHANGELOG, STATE.md.
 
 ## Verification notes
