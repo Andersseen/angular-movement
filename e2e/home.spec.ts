@@ -143,10 +143,43 @@ test('the explore tabs run real directives and switch with the keyboard', async 
 
   await section.getByRole('tab', { name: 'Stagger' }).click();
   await expect(section.getByTestId('stagger-list').locator('li')).toHaveCount(6);
-  await expect(section.getByRole('link', { name: 'Read the guide' })).toHaveAttribute(
-    'href',
-    '/docs/guides/stagger-and-scroll',
+  await expect(
+    section.locator('[data-step="stagger"]').getByRole('link', { name: 'Read the guide' }),
+  ).toHaveAttribute('href', '/docs/guides/stagger-and-scroll');
+});
+
+test('scrolling the story swaps the sticky window to the matching example', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await waitForHydration(page);
+  const section = page.locator('app-explore');
+  for (const [step, tab] of [
+    ['variants', 'State'],
+    ['presence', 'Presence'],
+  ]) {
+    await section
+      .locator(`[data-step="${step}"]`)
+      .evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await expect(section.getByRole('tab', { name: tab })).toHaveAttribute('aria-selected', 'true');
+  }
+  await expect(section.getByTestId('presence-target')).toBeVisible();
+});
+
+test('the "why" carousel moves between reasons with Volt buttons', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  await waitForHydration(page);
+  const section = page.locator('app-features');
+  const previous = section.getByRole('button', { name: 'Previous reason' });
+  const next = section.getByRole('button', { name: 'Next reason' });
+  await next.scrollIntoViewIfNeeded();
+  await expect(previous).toBeDisabled();
+  await expect(section.locator('.feature-card.is-active h3')).toHaveText('Signals in, motion out');
+  await next.click();
+  await expect(section.locator('.feature-card.is-active h3')).toHaveText(
+    'Native browser animation',
   );
+  await expect(previous).toBeEnabled();
 });
 
 test('the FAQ is a Volt accordion with answers that link to the docs', async ({ page }) => {

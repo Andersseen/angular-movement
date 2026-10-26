@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
+import { MoveHoverDirective, MoveInViewDirective, MoveStaggerDirective } from 'movement';
 import {
   VoltBadge,
   VoltCard,
@@ -24,6 +24,7 @@ interface UseCase {
   selector: 'app-use-cases',
   imports: [
     RouterLink,
+    MoveHoverDirective,
     MoveInViewDirective,
     MoveStaggerDirective,
     VoltBadge,
@@ -52,26 +53,29 @@ interface UseCase {
         class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3"
       >
         @for (item of cases; track item.title) {
-          <volt-card moveInView="fade-up" class="landing-card flex h-full flex-col">
-            <volt-card-header>
-              <div class="flex items-start justify-between gap-3">
-                <volt-card-title>{{ item.title }}</volt-card-title>
-                <volt-badge variant="success">Stable</volt-badge>
-              </div>
-              <volt-card-description>{{ item.purpose }}</volt-card-description>
-            </volt-card-header>
-            <volt-card-content class="mt-auto space-y-4">
-              <code
-                class="bg-code-bg border-border text-text-muted block rounded-lg border px-3 py-2 font-mono text-xs break-words whitespace-pre-wrap"
-                >{{ item.snippet }}</code
-              >
-              <div class="flex gap-2">
-                <a voltButton size="sm" variant="outline" [routerLink]="item.demo">Live demo</a>
-                <a voltButton size="sm" variant="ghost" [routerLink]="item.docs">Docs</a>
-              </div>
-              <span class="sr-only">Uses {{ item.api }}</span>
-            </volt-card-content>
-          </volt-card>
+          <!-- Reveal on the wrapper, lift on the card: two directives, two elements, no transform fight. -->
+          <div moveInView="fade-up">
+            <volt-card class="landing-card flex h-full flex-col" [moveWhileHover]="{ y: [0, -6] }">
+              <volt-card-header>
+                <div class="flex items-start justify-between gap-3">
+                  <volt-card-title>{{ item.title }}</volt-card-title>
+                  <volt-badge variant="success">Stable</volt-badge>
+                </div>
+                <volt-card-description>{{ item.purpose }}</volt-card-description>
+              </volt-card-header>
+              <volt-card-content class="mt-auto space-y-4">
+                <code
+                  class="bg-code-bg border-border text-text-muted block rounded-lg border px-3 py-2 font-mono text-xs break-words whitespace-pre-wrap"
+                  >{{ item.snippet }}</code
+                >
+                <div class="flex gap-2">
+                  <a voltButton size="sm" variant="outline" [routerLink]="item.demo">Live demo</a>
+                  <a voltButton size="sm" variant="ghost" [routerLink]="item.docs">Docs</a>
+                </div>
+                <span class="sr-only">Uses {{ item.api }}</span>
+              </volt-card-content>
+            </volt-card>
+          </div>
         }
       </div>
     </section>

@@ -38,11 +38,11 @@ import { Install } from './home/sections/install/install';
       [moveScroll]="{ scaleX: [0, 1] }"
     ></div>
     <app-hero />
-    <app-state-demo />
     <app-capabilities />
+    <app-state-demo />
+    <app-explore />
     <app-features />
     <app-live-code />
-    <app-explore />
     <app-use-cases />
     <app-choose-tool />
     <app-home-templates />

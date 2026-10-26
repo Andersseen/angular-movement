@@ -43,17 +43,26 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
   No publication/recovery was triggered. Source badges explicitly say “source”. Historical release
   status below predates this audit; use the registry, not package.json, to infer publication.
 - The hero is a full-viewport, centred landing (2026-10-26, user request "closer to hr.andriipap.dev",
-  with voltui.dev / forgecms.dev as tone references). Its lazy native WebGL field now renders the
-  reference portfolio's **sphere**: curl noise of a seed is a unit direction, so particles sit on a
-  shell that fractal octaves fold into filaments; the rim is in focus, front/back blur out. Slow
-  turntable + pointer tilt. Light-theme gain is 0.26 (was 0.16). Budgets unchanged: 22,000 desktop /
-  7,500 compact points, backing ≤1600×1000, 24 draws/s, no dependency. The copy fades on scroll via
-  the library's own `moveScroll`. Reduced motion, visibility and route cleanup own the lifecycle;
-  unsupported/software WebGL keeps the static CSS fallback. Evidence: `hero-sphere-*.png`.
-- The interactive task showcase moved out of the hero into `app-state-demo` (`#state-demo`, the
-  scroll cue's target). **Templates left the navbar** (now Docs · API · Demos + version, theme,
-  GitHub); they are promoted by the home section `app-home-templates` (live preview, deferred on
-  viewport) and linked from the footer. `/templates` itself is unchanged.
+  background effect only; voltui.dev / forgecms.dev / hover.dev as tone references). Its lazy native
+  WebGL field renders the reference portfolio's **sphere**: curl noise of a seed is a unit direction,
+  so particles sit on a shell that fractal octaves fold into filaments; only the focal rim is bright.
+  **User found the first version too noisy**: it is now 10,000 desktop / 4,000 compact fine points,
+  no twinkle, a rare faint orb, slower flow, drawn at up to **60 draws/s** (was 24, which stepped).
+  Backing ≤1600×1000, no dependency. Light-theme gain 0.26. The copy fades on scroll via
+  `moveScroll`. No scroll-cue icon (user removed it). Evidence: `hero-sphere-*.png`.
+- Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
+  runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
+  `app-explore` (**scroll story**: tall steps beside a sticky Volt-tabs window; the active step comes
+  from an IntersectionObserver, tab clicks scroll the step into view; the rail reads
+  `moveScroll`'s exported `progress` because measuring a scaled element breaks the offsets) →
+  `app-features` (**carousel**, track slid by `[moveAnimation]` x, active card inverted) →
+  live-code → use-cases (`moveWhileHover` on the card, `moveInView` on a wrapper) → choose-tool →
+  `app-home-templates` → paths → FAQ → install. Do not dim inactive story steps with opacity: axe
+  fails colour contrast.
+- **Templates left the navbar** (now Docs · API · Demos + version, theme, GitHub); exactly one link
+  is `aria-current` (Docs excludes `/docs/reference`). `/templates` itself is unchanged.
+- `e2e-static` "event replay" (theme click before hydration) is intermittent on `main` too (2/8
+  locally); "deep link hydrates without errors" fails only in sandboxes that block Google Fonts.
 - Local tooling gotcha: the container's Node 22.22.0 is below the Angular CLI minimum (22.22.3), and
   the repo's Playwright expects chromium build 1208 while `/opt/pw-browsers` ships 1243. Run with a
   Node 24 on PATH and `PLAYWRIGHT_BROWSERS_PATH` pointing at symlinks named `*-1208` → `*-1243`.

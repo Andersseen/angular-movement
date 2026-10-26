@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
+import { MoveLoopDirective } from 'movement';
 import { VoltBadge } from '@voltui/components';
 
 interface Capability {
@@ -11,7 +11,7 @@ interface Capability {
 /** The stable surface at a glance: each chip links to the guide that teaches it. */
 @Component({
   selector: 'app-capabilities',
-  imports: [RouterLink, MoveInViewDirective, MoveStaggerDirective, VoltBadge],
+  imports: [RouterLink, MoveLoopDirective, VoltBadge],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section
@@ -21,27 +21,44 @@ interface Capability {
       <p id="capabilities-title" class="text-text-subtle mb-5 text-center text-sm font-medium">
         Stable APIs, one attribute away
       </p>
-      <ul
-        moveStagger
-        moveStaggerStep="40ms"
-        class="m-0 flex list-none flex-wrap justify-center gap-2 p-0"
-      >
-        @for (item of items; track item.api) {
-          <li moveInView="fade-up">
-            <a [routerLink]="item.guide" class="rounded-full focus-visible:outline-2">
-              <volt-badge
-                variant="outline"
-                class="hover:border-accent hover:text-accent font-mono transition-colors"
-                >{{ item.api }}</volt-badge
-              >
-            </a>
-          </li>
-        }
-      </ul>
+      <!-- An endless marquee built with the library's own moveLoop: two identical runs, slid by
+           exactly one run's width. The copy is hidden from assistive tech and the tab order. -->
+      <div class="api-marquee">
+        <div
+          class="api-marquee-track"
+          [moveLoop]="{ x: ['0%', '-50%'] }"
+          [moveDuration]="40000"
+          moveEasing="linear"
+        >
+          @for (run of runs; track run) {
+            <ul
+              class="m-0 flex shrink-0 list-none gap-2.5 p-0 pr-2.5"
+              [attr.aria-hidden]="run === 1 ? 'true' : null"
+            >
+              @for (item of items; track item.api) {
+                <li>
+                  <a
+                    [routerLink]="item.guide"
+                    class="rounded-full focus-visible:outline-2"
+                    [attr.tabindex]="run === 1 ? -1 : null"
+                  >
+                    <volt-badge
+                      variant="outline"
+                      class="hover:border-accent hover:text-accent font-mono whitespace-nowrap transition-colors"
+                      >{{ item.api }}</volt-badge
+                    >
+                  </a>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
     </section>
   `,
 })
 export class Capabilities {
+  protected readonly runs = [0, 1] as const;
   protected readonly items: readonly Capability[] = [
     { api: 'moveEnter', guide: '/docs/guides/enter' },
     { api: 'moveLeave', guide: '/docs/guides/enter' },

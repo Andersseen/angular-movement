@@ -837,55 +837,6 @@ app-demo-workbench {
   color: var(--color-text-muted);
   font-size: 12px;
 }
-.hero-scroll-cue {
-  position: absolute;
-  bottom: 28px;
-  left: 50%;
-  z-index: 10;
-  display: flex;
-  justify-content: center;
-  width: 26px;
-  height: 42px;
-  padding-top: 7px;
-  border: 2px solid color-mix(in oklch, var(--color-text-muted) 45%, transparent);
-  border-radius: 999px;
-  transform: translateX(-50%);
-  transition: border-color 200ms ease;
-}
-.hero-scroll-cue:hover,
-.hero-scroll-cue:focus-visible {
-  border-color: var(--color-accent);
-}
-.hero-scroll-wheel {
-  width: 6px;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--color-accent);
-  animation: hero-scroll-wheel 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
-@keyframes hero-scroll-wheel {
-  0% {
-    opacity: 0;
-    transform: translateY(0);
-  }
-  30% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-}
-@media (max-height: 640px) {
-  .hero-scroll-cue {
-    display: none;
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .hero-scroll-wheel {
-    animation: none;
-  }
-}
 .template-feature {
   border: 1px solid var(--color-border);
   border-radius: 24px;
@@ -948,11 +899,184 @@ app-demo-workbench {
   color: var(--color-accent);
   letter-spacing: 0;
 }
-app-explore > section {
-  background: var(--color-surface);
+/* "Built for state" carousel: the track slides, the active card inverts to the accent. */
+.feature-viewport {
+  overflow: visible;
+}
+.feature-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+}
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(380px, 82vw);
+  min-height: 300px;
+  padding: 28px;
   border: 1px solid var(--color-border);
   border-radius: 20px;
-  margin-block: 24px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease;
+}
+.feature-card.is-active {
+  border-color: transparent;
+  background:
+    radial-gradient(120% 90% at 100% 0%, oklch(0.62 0.2 310 / 0.35), transparent 60%),
+    var(--color-accent-solid);
+  color: oklch(1 0 0);
+  box-shadow: 0 30px 70px -35px var(--color-accent-glow);
+}
+.feature-icon {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+.feature-card.is-active .feature-icon {
+  color: oklch(1 0 0 / 0.75);
+}
+.feature-body {
+  margin-top: auto;
+  color: var(--color-text-muted);
+}
+.feature-card.is-active .feature-body {
+  color: oklch(1 0 0 / 0.88);
+}
+.feature-link {
+  width: fit-content;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+.feature-card.is-active .feature-link {
+  color: oklch(1 0 0);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Directive marquee: driven by moveLoop; the reduced-motion fallback is a wrapped list. */
+.api-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.api-marquee-track {
+  display: flex;
+  width: max-content;
+}
+@media (prefers-reduced-motion: reduce) {
+  .api-marquee {
+    mask-image: none;
+  }
+  .api-marquee-track {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .api-marquee-track [aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* "See it move" scroll story: tall steps scroll past a sticky window. */
+.story-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 72vh;
+  padding-left: 32px;
+}
+/* A marker on the rail beside the active step. */
+.story-step::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  transform: translateY(-50%);
+  transition:
+    border-color 300ms ease,
+    background-color 300ms ease,
+    box-shadow 300ms ease;
+}
+.story-step.is-active::before {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 5px var(--color-accent-glow);
+}
+.story-rail {
+  position: absolute;
+  top: 12vh;
+  bottom: 12vh;
+  left: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.story-rail-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(var(--color-accent), oklch(0.75 0.17 320));
+  transform: scaleY(0);
+  transform-origin: top;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* moveScroll does not track progress under reduced motion; keep the rail plain. */
+  .story-rail-fill {
+    display: none;
+  }
+}
+.story-window {
+  overflow: hidden;
+  border-color: color-mix(in oklch, var(--color-accent) 30%, var(--color-border));
+  box-shadow: 0 30px 80px -40px var(--color-accent-glow);
+}
+.story-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+.story-dots {
+  display: none;
+  gap: 6px;
+}
+.story-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+@media (min-width: 640px) {
+  .story-dots {
+    display: flex;
+  }
+}
+.story-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 15rem;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background-color: var(--color-bg);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-text-muted) 18%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-size: 20px 20px;
 }
 app-home > app-features,
 app-home > app-choose-tool {
