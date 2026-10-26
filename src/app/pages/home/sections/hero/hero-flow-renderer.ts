@@ -11,6 +11,9 @@ attribute vec4 aSeed;
 uniform float uTime;
 uniform float uAspect;
 uniform vec2 uPointer;
+uniform vec2 uCursor;
+uniform float uPull;
+uniform float uIntro;
 uniform float uPointSize;
 varying float vAlpha;
 varying float vTint;
@@ -20,6 +23,7 @@ const float CAM_DIST = 3.2;
 const float FOCUS = 3.0;
 const float LENS = 1.55;
 const float FIBRES = 18.0;
+const float LENS_RADIUS = 0.26;
 
 void main() {
   float t = uTime;
@@ -29,12 +33,16 @@ void main() {
   float r = floor(aSeed.w * 3.0);
   float dust = step(0.92, fract(aSeed.w * 9.7));
 
-  // Each ribbon is a slow travelling wave that rises left to right, each on its own phase.
+  // Each ribbon is a slow travelling wave that rises left to right, each on its own phase. A
+  // second, slower swell keeps the fold positions from ever repeating exactly.
   float phase = r * 2.1;
-  float x = u * 2.6;
-  float y = 0.42 * sin(u * 1.7 + t * 0.22 + phase)
+  // Narrow (portrait) canvases get a shorter span so the ribbons still cross the frame.
+  float span = clamp(uAspect / 1.6, 0.55, 1.0);
+  float x = u * 2.6 * span;
+  float swell = sin(t * 0.07 + phase) * 0.12;
+  float y = (0.42 + swell) * sin(u * 1.7 + t * 0.22 + phase)
           + 0.16 * sin(u * 3.3 - t * 0.17 + phase * 1.7)
-          + u * 0.75 + (r - 1.0) * 0.42;
+          + u * 0.75 * span + (r - 1.0) * 0.42;
   float z = 1.1 * sin(u * 1.25 + t * 0.15 + phase * 0.6) + 0.35;
 
   // Fibres: the width is split into evenly spaced strands, each a dotted line along the ribbon.
@@ -45,29 +53,43 @@ void main() {
   vec3 p = vec3(x, y, z) + vec3(0.0, cos(twist), sin(twist)) * strand * width;
   p += vec3(0.0, 0.004, 0.004) * (jitter - 0.5);
 
-  // A loose haze of free-floating dust around the ribbons for depth.
-  p = mix(p, vec3(u * 2.8, (across * 2.0 - 1.0) * 1.6, (jitter * 2.0 - 1.0) * 1.8), dust);
+  // A loose haze of free-floating dust around the ribbons for depth, drifting very slowly.
+  vec3 haze = vec3(u * 2.8, (across * 2.0 - 1.0) * 1.6, (jitter * 2.0 - 1.0) * 1.8);
+  haze.y += sin(t * 0.05 + u * 3.0 + jitter * 6.28) * 0.08;
+  p = mix(p, haze, dust);
 
-  // Gentle pointer parallax: a small yaw and pitch of the whole volume.
-  float yaw = uPointer.x * 0.12;
-  float pitch = -uPointer.y * 0.08;
+  // Weighted parallax: a small yaw and pitch of the whole volume toward the pointer.
+  float yaw = uPointer.x * 0.16;
+  float pitch = -uPointer.y * 0.1;
   p.xz = mat2(cos(yaw), -sin(yaw), sin(yaw), cos(yaw)) * p.xz;
   p.yz = mat2(cos(pitch), -sin(pitch), sin(pitch), cos(pitch)) * p.yz;
 
   float depth = CAM_DIST - p.z;
   vec2 ndc = p.xy / max(depth, 0.1) * LENS;
   ndc.x /= uAspect;
+
+  // The cursor is a lens: fibres near it part a little, pull into focus and brighten. Measured
+  // in aspect-corrected space so the lens is round; uPull fades it in on movement and out at rest.
+  vec2 toPoint = (ndc - uCursor) * vec2(uAspect, 1.0);
+  float reach = length(toPoint);
+  float lens = uPull * exp(-(reach * reach) / (2.0 * LENS_RADIUS * LENS_RADIUS));
+  ndc += (toPoint / (reach + 0.04)) * vec2(1.0 / uAspect, 1.0) * lens * 0.09;
+
+  // The intro unfurls each ribbon from left to right instead of popping the whole field in.
+  float sweep = uIntro * 2.6 - 1.3;
+  float reveal = smoothstep(0.0, 0.3, sweep - u);
   gl_Position = vec4(ndc, depth > 0.1 ? 0.0 : 2.0, 1.0);
 
   // Depth of field: the circle of confusion grows with distance from the focal plane, and the
   // same light spread over a bigger disc gets dimmer, so bokeh stays soft instead of loud.
-  float coc = abs(depth - FOCUS);
+  float coc = abs(depth - FOCUS) * (1.0 - 0.85 * lens);
   float size = uPointSize * (1.4 + coc * 9.0 + dust * 3.0);
   gl_PointSize = min(size, 48.0);
   float spread = (uPointSize * 1.4) / gl_PointSize;
-  vAlpha = mix(0.9, 0.35, dust) * spread * spread * 1.6 * smoothstep(1.0, 0.75, abs(u));
+  vAlpha = mix(0.9, 0.35, dust) * spread * spread * 1.6 * smoothstep(1.0, 0.75, abs(u))
+         * reveal * (1.0 + lens * 2.6);
   vSoft = smoothstep(0.05, 0.4, coc);
-  vTint = jitter;
+  vTint = clamp(jitter + lens * 0.6, 0.0, 1.0);
 }
 `;
 
@@ -130,12 +152,27 @@ function seeds(): Float32Array {
 // Violet fibres warming to lilac highlights; light theme uses saturated inks at lower gain.
 const DUST_DARK: [number, number, number] = [0.5, 0.42, 1.0];
 const ACCENT_DARK: [number, number, number] = [0.86, 0.74, 1.0];
-const DUST_LIGHT: [number, number, number] = [0.24, 0.26, 0.62];
-const ACCENT_LIGHT: [number, number, number] = [0.42, 0.24, 0.8];
+const DUST_LIGHT: [number, number, number] = [0.33, 0.24, 0.86];
+const ACCENT_LIGHT: [number, number, number] = [0.6, 0.28, 0.92];
+
+/** Everything a frame depends on; positions are canvas NDC (-1..1, y up). */
+export interface HeroFlowFrame {
+  readonly time: number;
+  readonly dark: boolean;
+  /** Slow, weighted pointer for the whole-volume parallax. */
+  readonly pointerX: number;
+  readonly pointerY: number;
+  /** Fast pointer for the local lens, and how strongly the lens is on (0..1). */
+  readonly cursorX: number;
+  readonly cursorY: number;
+  readonly pull: number;
+  /** 0 → 1 over the entrance; 1 when motion is reduced. */
+  readonly intro: number;
+}
 
 export interface HeroFlowRenderer {
   resize(width: number, height: number, deviceRatio: number): void;
-  draw(time: number, dark: boolean, pointerX: number, pointerY: number): void;
+  draw(frame: HeroFlowFrame): void;
   dispose(loseContext?: boolean): void;
 }
 
@@ -211,6 +248,9 @@ export function createHeroFlowRenderer(
   const colorBUniform = gl.getUniformLocation(program, 'uColorB');
   const gainUniform = gl.getUniformLocation(program, 'uGain');
   const pointSizeUniform = gl.getUniformLocation(program, 'uPointSize');
+  const cursorUniform = gl.getUniformLocation(program, 'uCursor');
+  const pullUniform = gl.getUniformLocation(program, 'uPull');
+  const introUniform = gl.getUniformLocation(program, 'uIntro');
   let count = HERO_PARTICLE_LIMIT;
 
   return {
@@ -226,15 +266,18 @@ export function createHeroFlowRenderer(
       // One CSS pixel per point, whatever the backing-store ratio.
       gl.uniform1f(pointSizeUniform, Math.max(1, size.ratio));
     },
-    draw(time, dark, pointerX, pointerY) {
+    draw({ time, dark, pointerX, pointerY, cursorX, cursorY, pull, intro }) {
       gl.uniform1f(timeUniform, time);
       gl.uniform2f(pointerUniform, pointerX, pointerY);
+      gl.uniform2f(cursorUniform, cursorX, cursorY);
+      gl.uniform1f(pullUniform, pull);
+      gl.uniform1f(introUniform, intro);
       const dust = dark ? DUST_DARK : DUST_LIGHT;
       const accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
       gl.uniform3f(colorAUniform, dust[0], dust[1], dust[2]);
       gl.uniform3f(colorBUniform, accent[0], accent[1], accent[2]);
-      // On light surfaces the field is a faint ink wash: half the particles, a fraction of the gain.
-      gl.uniform1f(gainUniform, dark ? 0.9 : 0.26);
+      // On light surfaces the field is a violet ink wash: half the particles at about half the gain.
+      gl.uniform1f(gainUniform, dark ? 0.9 : 0.5);
       // Dark theme glows additively, so overlapping fibres bloom; light theme composites
       // premultiplied ink over white.
       if (dark) {

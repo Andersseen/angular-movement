@@ -166,7 +166,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   const theme = page.getByRole('button', { name: /Switch to (dark|light) theme/ }).first();
   await theme.click();
   const expectedGain =
-    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.26;
+    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.5;
   await expect
     .poll(() => fieldUniform(page, 'uGain'), { timeout: 10_000 })
     .toBeCloseTo(expectedGain, 1);

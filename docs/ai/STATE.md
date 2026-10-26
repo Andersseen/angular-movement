@@ -47,7 +47,11 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
   noise): three layered ribbons of 18 dotted strands each, travelling sine waves that twist edge-on
   into bright folds, with a depth of field (circle of confusion ∝ distance from focus, alpha ∝
   1/size² so bokeh stays dim). Closed-form sines, no noise: 60,000 desktop / 24,000 compact points
-  at up to 60 draws/s, additive in dark, premultiplied ink in light (gain 0.26). Backing ≤1600×1000,
+  at up to 60 draws/s, additive in dark, violet premultiplied ink in light (gain 0.5). The cursor
+  is a **lens** (`uCursor`, `uPull`): fibres near it part, pull into focus and brighten; it fades in
+  on movement and out ~1.2s after rest/leave, and is off under reduced motion. Ribbons **unfurl**
+  left→right over 2.4s (`uIntro`, 1 when reduced). Smoothing is frame-rate independent
+  (`1 - exp(-rate·dt)`); `draw()` takes a `HeroFlowFrame`. Backing ≤1600×1000,
   no dependency. The copy fades on scroll via `moveScroll`. No scroll-cue icon.
 - Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
   runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
