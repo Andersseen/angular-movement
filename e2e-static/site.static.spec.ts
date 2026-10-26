@@ -101,6 +101,106 @@ test.describe('prerendered HTML', () => {
     expect(problems).toEqual([]);
   });
 
+  // The social card is what a link preview shows. Doqs writes the title and description after the
+  // Markdown loads, so these must be derived at serialization time, not at navigation time.
+  test('every page in the sitemap has its own title and a social card that matches it', async ({
+    page,
+  }) => {
+    const routes = await sitemapRoutes(page);
+    const problems: string[] = [];
+    const titles = new Map<string, string>();
+    for (const route of routes) {
+      const html = await (await page.request.get(route)).text();
+      const head = html.slice(0, html.indexOf('</head>'));
+      const all = (key: string) =>
+        [
+          ...head.matchAll(new RegExp(`<meta (?:name|property)="${key}" content="([^"]*)"`, 'g')),
+        ].map((match) => match[1]);
+      const one = (key: string) => {
+        const values = all(key);
+        if (values.length !== 1) problems.push(`${route}: ${values.length} × ${key}`);
+        return values[0];
+      };
+      const title = head.match(/<title>([^<]*)<\/title>/)?.[1] ?? '';
+      const description = one('description');
+      if (titles.has(title)) problems.push(`${route}: title duplicates ${titles.get(title)}`);
+      titles.set(title, route);
+      if (one('og:title') !== title) problems.push(`${route}: og:title differs from <title>`);
+      if (one('twitter:title') !== title) problems.push(`${route}: twitter:title differs`);
+      if (one('og:description') !== description) problems.push(`${route}: og:description differs`);
+      if (one('twitter:description') !== description)
+        problems.push(`${route}: twitter:description differs`);
+      if (one('og:url') !== `${ORIGIN}${route}`) problems.push(`${route}: og:url differs`);
+      if (one('og:image') !== `${ORIGIN}/og-image.png`) problems.push(`${route}: og:image`);
+      one('og:image:alt');
+      one('twitter:card');
+      if ((head.match(/rel="canonical"/g) ?? []).length !== 1)
+        problems.push(`${route}: canonical is not unique`);
+      if (/<meta name="robots"/.test(head)) problems.push(`${route}: indexable page has robots`);
+    }
+    expect(problems).toEqual([]);
+  });
+
+  test('structured data: the site and library on home, breadcrumbs inside sections', async ({
+    request,
+  }) => {
+    const jsonLd = async (route: string) => {
+      const html = await (await request.get(route)).text();
+      const scripts = [
+        ...html.matchAll(/<script type="application\/ld\+json"[^>]*>([^<]*)<\/script>/g),
+      ];
+      expect(scripts, route).toHaveLength(1);
+      const data = JSON.parse(scripts[0][1]);
+      return (Array.isArray(data) ? data : [data]) as Record<string, unknown>[];
+    };
+
+    const home = await jsonLd('/');
+    expect(home.map((item) => item['@type'])).toEqual(['WebSite', 'SoftwareSourceCode']);
+    expect(home[1]['codeRepository']).toBe('https://github.com/Andersseen/angular-movement');
+
+    const [crumbs] = await jsonLd('/docs/guides/presence');
+    expect(crumbs['@type']).toBe('BreadcrumbList');
+    const items = crumbs['itemListElement'] as { name: string; item: string }[];
+    expect(items.map((item) => item.item)).toEqual([
+      `${ORIGIN}/`,
+      `${ORIGIN}/docs`,
+      `${ORIGIN}/docs/guides/presence`,
+    ]);
+    expect(items[2].name).toBe('Presence: animate things leaving');
+
+    const [demo] = await jsonLd('/demos/hover');
+    expect((demo['itemListElement'] as unknown[]).length).toBe(3);
+  });
+
+  test('llms.txt indexes the docs, demos and reference for agents', async ({ request }) => {
+    const response = await request.get('/llms.txt');
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('text/plain');
+    const text = await response.text();
+    expect(text.startsWith('# Angular Movement\n')).toBe(true);
+    for (const wanted of [
+      'https://github.com/Andersseen/angular-movement',
+      `${ORIGIN}/docs/get-started`,
+      `${ORIGIN}/demos/hover`,
+      '## Optional',
+    ])
+      expect(text).toContain(wanted);
+  });
+
+  test('responses carry the security headers; hashed assets are cached for good', async ({
+    request,
+  }) => {
+    const home = await request.get('/');
+    expect(home.headers()['x-content-type-options']).toBe('nosniff');
+    expect(home.headers()['referrer-policy']).toBe('strict-origin-when-cross-origin');
+    expect(home.headers()['x-frame-options']).toBe('SAMEORIGIN');
+    expect(home.headers()['permissions-policy']).toContain('camera=()');
+    const asset = (await home.text()).match(/\/assets\/[^"']+\.js/)?.[0];
+    expect(asset).toBeTruthy();
+    const cached = await request.get(asset!);
+    expect(cached.headers()['cache-control']).toContain('immutable');
+  });
+
   test('sitemap lists docs, demos and the reference; robots points at it; 404 is excluded', async ({
     page,
   }) => {

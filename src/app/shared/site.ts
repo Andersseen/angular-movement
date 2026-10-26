@@ -11,4 +11,9 @@ export const SITE = {
   defaultDescription:
     'Motion for Angular that follows your state: declarative directives on the Web Animations API, with presence, variants, scroll and signals.',
   ogImage: '/og-image.png',
+  ogImageWidth: 1200,
+  ogImageHeight: 630,
+  ogImageAlt: 'Angular Movement — declarative, signals-native motion for Angular',
+  locale: 'en_US',
+  author: { name: 'Andersseen', url: 'https://github.com/Andersseen' },
 } as const;

@@ -1,3 +1,5 @@
+# Angular Movement is an open-source library: its documentation and demos are meant to be found.
+# Every crawler is welcome, search and AI-search bots included. llms.txt indexes the docs for agents.
 User-agent: *
 Allow: /
 
