@@ -22,6 +22,27 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
 
+## Done — CI parallelisation and website SEO (follow-up to spec 019, site/tooling only)
+
+- `ci.yml` is parallel: `static`, `unit`, `library`, `site-build` (uploads `dist/analog/public`),
+  `e2e` (Chromium, `--shard=N/3`, still one worker per runner), `e2e-browsers` (firefox, webkit),
+  `e2e-static` (downloads the build), `consumer-validation` / `consumer-runtime` per Angular major
+  (`consumer-majors` reads the peer range), `workflow-lint`, `pr-title`. **`build-and-test` is now an
+  aggregator job that keeps the old required-check name** — do not rename it, and add every new job
+  to its `needs`. Shared setup lives in `.github/actions/setup` and `.github/actions/setup-playwright`
+  (browser download cached per Playwright version; apt deps are always installed).
+  `scripts/release/workflow.test.mjs` checks SHA pins inside those composite actions too.
+- Baseline before the split (run 40347766692): build-and-test 9m42s, e2e alone 6m49s;
+  consumer-runtime 11m, of which 9m51s was `playwright install --with-deps chromium`.
+- **SEO gotcha:** Doqs sets title/description after its Markdown loads. Anything derived from them
+  must run at `BEFORE_APP_SERIALIZED` (server, `app.config.server.ts`) or after `whenStable()`
+  (browser) — `SeoService` does both. Before this, every docs page's `og:title` was the site default.
+- `finalize-site.mjs` now also writes `llms.txt` from the built HTML heads. `public/_headers` sets
+  security headers and `immutable` on `/assets/*`; `wrangler pages dev` applies it, so e2e-static
+  tests it. No CSP yet (inline theme bootstrap script).
+- In this sandbox the two e2e-static hydration tests ("deep link…", "event replay") fail on `main`
+  too: external fonts are unreachable through the proxy. Not a regression.
+
 ## In progress — Spec 019 (website workbench and CI)
 
 Branch `feat/site-demo-workbench-ci`, based on `ad1d3ef` (current origin/main at bootstrap).
