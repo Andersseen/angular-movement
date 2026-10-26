@@ -95,3 +95,38 @@ test('reduced motion keeps enter target usable', async ({ page }) => {
   await page.getByRole('button', { name: /Replay/ }).click();
   await expect(page.getByText('Fade Up', { exact: true })).toBeVisible();
 });
+
+test('leaving smooth scroll destroys its animation-frame loop', async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await page.addInitScript(() => {
+    const pending = new Set<number>();
+    const request = window.requestAnimationFrame.bind(window);
+    const cancel = window.cancelAnimationFrame.bind(window);
+    Object.defineProperty(window, '__pendingMotionLabFrames', { value: pending });
+    window.requestAnimationFrame = (callback) => {
+      const id = request((time) => {
+        pending.delete(id);
+        callback(time);
+      });
+      pending.add(id);
+      return id;
+    };
+    window.cancelAnimationFrame = (id) => {
+      pending.delete(id);
+      cancel(id);
+    };
+  });
+  const pendingFrames = () =>
+    page.evaluate(
+      () =>
+        (window as unknown as { __pendingMotionLabFrames: Set<number> }).__pendingMotionLabFrames
+          .size,
+    );
+  await page.goto('/demos/smooth-scroll');
+  await waitForHydration(page);
+  await expect.poll(pendingFrames).toBeGreaterThan(0);
+  await page.locator('.demo-sidebar a[href="/demos/enter"]').click();
+  await expect(page.locator('h1')).toHaveText('moveEnter');
+  await expect.poll(pendingFrames).toBe(0);
+  await expect.poll(() => page.evaluate(() => document.getAnimations().length)).toBe(0);
+});

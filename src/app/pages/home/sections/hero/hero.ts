@@ -16,6 +16,7 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
 import { SITE } from '../../../../shared/site';
 import { MOVEMENT_VERSION_LABEL } from '../../../../shared/version';
+import { HeroFlow } from './hero-flow';
 import { Showcase } from '../showcase/showcase';
 
 const SHOWCASE_SOURCE = `import { Component, signal } from '@angular/core';
@@ -70,6 +71,7 @@ export class Tasks {
   selector: 'app-hero',
   imports: [
     RouterLink,
+    HeroFlow,
     InstallCommand,
     CodeBlock,
     Showcase,
@@ -86,7 +88,13 @@ export class Tasks {
   ],
   template: `
     <section class="home-hero relative overflow-hidden pt-16 pb-16 lg:pt-24 lg:pb-20">
-      <div class="landing-grid pointer-events-none absolute inset-0 z-0" aria-hidden="true"></div>
+      <div
+        class="hero-flow-fallback pointer-events-none absolute inset-0 z-0"
+        aria-hidden="true"
+      ></div>
+      @defer (on idle) {
+        <app-hero-flow />
+      }
 
       <div
         class="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8"
@@ -109,8 +117,8 @@ export class Tasks {
             style="--i: 2"
           >
             Start with one attribute. Coordinate enter, exit and state changes when your interface
-            needs more. Native browser animations, Angular signals, and no animation runtime to
-            ship. Built for standalone, zoneless and server-rendered Angular.
+            needs more. Native browser animations, Angular signals, with zero runtime dependencies.
+            Built for standalone, zoneless and server-rendered Angular.
           </p>
 
           <div class="landing-rise mb-8 flex flex-col gap-3 sm:flex-row" style="--i: 3">
@@ -180,7 +188,7 @@ export class Tasks {
           <volt-accordion type="single" [collapsible]="true" class="mt-3">
             <volt-accordion-item value="code">
               <volt-accordion-trigger>Show the code</volt-accordion-trigger>
-              <volt-accordion-content>
+              <volt-accordion-content class="grid">
                 <div class="max-h-96">
                   <app-code-block title="tasks.component.ts" [code]="source" />
                 </div>

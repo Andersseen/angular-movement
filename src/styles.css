@@ -808,3 +808,13 @@ app-home > app-choose-tool {
     transparent 0.8px
   );
 }
+
+.hero-flow-fallback {
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-accent) 25%, transparent) 0.6px,
+    transparent 0.6px
+  );
+  background-size: 28px 28px;
+  mask-image: linear-gradient(transparent, #000 20%, transparent);
+  opacity: 0.35;
+}
