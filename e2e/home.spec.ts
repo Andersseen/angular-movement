@@ -43,6 +43,19 @@ test('the navbar lists only the project essentials; templates live on the home p
   }
   await expect(nav.locator('a[href="/templates"]')).toHaveCount(0);
 
+  // Exactly one link reads as current, even where the API section nests inside the docs.
+  for (const [path, current] of [
+    ['/docs/get-started', 'Docs'],
+    ['/docs/reference', 'API'],
+    ['/demos/hover', 'Demos'],
+  ]) {
+    await page.goto(path);
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+    await expect(nav.locator('[aria-current="page"]')).toHaveText(current);
+  }
+  await page.goto('/');
+  await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
+
   const templates = page.locator('app-home-templates');
   await expect(templates.getByRole('heading', { name: 'Start from a template' })).toBeVisible();
   await waitForHydration(page);

@@ -1,5 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
+import { filter, map } from 'rxjs';
 import { MoveEnterDirective } from 'movement';
 import { VoltBadge, VoltNativeButton, VoltSeparator } from '@voltui/components';
 import { LmnSunIcon } from 'lumen-icons/sun';
@@ -13,20 +15,23 @@ import { ThemeService } from '../../shared/theme.service';
 interface NavLink {
   readonly href: string;
   readonly label: string;
-  readonly exact: boolean;
+  /** Sections under `href` that another link owns, so only one link reads as current. */
+  readonly excludes?: readonly string[];
 }
 
 const LINKS: readonly NavLink[] = [
-  { href: '/docs', label: 'Docs', exact: false },
-  { href: '/docs/reference', label: 'API', exact: false },
-  { href: '/demos', label: 'Demos', exact: false },
+  { href: '/docs', label: 'Docs', excludes: ['/docs/reference'] },
+  { href: '/docs/reference', label: 'API' },
+  { href: '/demos', label: 'Demos' },
 ];
+
+const within = (path: string, section: string) =>
+  path === section || path.startsWith(section + '/');
 
 @Component({
   selector: 'app-navbar',
   imports: [
     RouterLink,
-    RouterLinkActive,
     LmnSunIcon,
     LmnMoonIcon,
     LmnBars3Icon,
@@ -74,8 +79,8 @@ const LINKS: readonly NavLink[] = [
                 variant="ghost"
                 size="sm"
                 [routerLink]="link.href"
-                routerLinkActive="text-accent"
-                [routerLinkActiveOptions]="{ exact: link.exact }"
+                [class.text-accent]="isActive(link)"
+                [attr.aria-current]="isActive(link) ? 'page' : null"
                 >{{ link.label }}</a
               >
             }
@@ -156,8 +161,8 @@ const LINKS: readonly NavLink[] = [
                 variant="ghost"
                 class="justify-start"
                 [routerLink]="link.href"
-                routerLinkActive="text-accent"
-                [routerLinkActiveOptions]="{ exact: link.exact }"
+                [class.text-accent]="isActive(link)"
+                [attr.aria-current]="isActive(link) ? 'page' : null"
                 (click)="closeMobileMenu()"
                 >{{ link.label }}</a
               >
@@ -182,6 +187,14 @@ const LINKS: readonly NavLink[] = [
 })
 export class Navbar {
   readonly #themeService = inject(ThemeService);
+  readonly #router = inject(Router);
+  readonly #path = toSignal(
+    this.#router.events.pipe(
+      filter((event) => event instanceof NavigationEnd),
+      map(() => this.#currentPath()),
+    ),
+    { initialValue: this.#currentPath() },
+  );
 
   protected readonly links = LINKS;
   protected readonly github = SITE.github;
@@ -189,6 +202,15 @@ export class Navbar {
   protected readonly scrolled = signal(false);
   protected readonly mobileMenuOpen = signal(false);
   protected readonly theme = this.#themeService.theme;
+
+  protected isActive(link: NavLink): boolean {
+    const path = this.#path();
+    return within(path, link.href) && !link.excludes?.some((section) => within(path, section));
+  }
+
+  #currentPath(): string {
+    return this.#router.url.split(/[?#]/)[0];
+  }
 
   protected themeLabel(): string {
     return this.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme';
