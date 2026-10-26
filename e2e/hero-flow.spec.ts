@@ -147,8 +147,9 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   expect(canvasSize.height).toBeLessThanOrEqual(1000);
   const cadence = sample.times.slice(3);
   const seconds = (cadence.at(-1)! - cadence[0]) / 1000;
-  // Capped at 60 draws/s (a 120 Hz display draws every other frame).
-  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(64);
+  // The renderer caps itself at 62 draws/s. Draw timestamps are taken inside drawArrays, so a
+  // short sample carries callback jitter at both ends: allow the same ~12% the old 24/s cap had.
+  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(70);
   await info.attach('hero-draw-submission-sample', {
     body: JSON.stringify(sample),
     contentType: 'application/json',
@@ -166,7 +167,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   const theme = page.getByRole('button', { name: /Switch to (dark|light) theme/ }).first();
   await theme.click();
   const expectedGain =
-    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.5;
+    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.85;
   await expect
     .poll(() => fieldUniform(page, 'uGain'), { timeout: 10_000 })
     .toBeCloseTo(expectedGain, 1);

@@ -21,9 +21,10 @@ import {
 } from './hero-flow-renderer';
 import { warmHeroGpu } from './hero-flow-warmup';
 
-// 60 draws/s at most: slow motion only looks fluid when it is not sampled in steps. The
-// slack keeps a 60 Hz display on every frame and halves a 120 Hz one.
-const FRAME_INTERVAL = 1000 / 60 - 2;
+// About 60 draws/s at most: slow motion only looks fluid when it is not sampled in steps. 1000/62
+// still draws every frame of a 60 Hz display (with jitter) and every other frame at 120 Hz, and
+// because draws never carry a remainder, no frame clock can push the rate past 62.
+const FRAME_INTERVAL = 1000 / 62;
 const INTRO_SECONDS = 2.4;
 // The lens stays on while the pointer is moving and for this long after it stops.
 const LENS_LINGER = 1200;
@@ -226,7 +227,9 @@ export class HeroFlow {
       const engaged = this.#inside && now - this.#lastMove < LENS_LINGER;
       this.#pull += ((engaged ? 1 : 0) - this.#pull) * approach(engaged ? 5 : 1.6, dt);
       this.#renderer.draw(this.#frameState());
-      this.#lastDraw = now - (delta % FRAME_INTERVAL);
+      // No remainder carry-over: draws are always a full interval apart, so a jittery frame
+      // clock can never push the rate past the cap.
+      this.#lastDraw = now;
     }
     this.#frame = requestAnimationFrame(this.#tick);
   };

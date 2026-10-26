@@ -109,7 +109,8 @@ void main() {
   // Crisp dots in focus, flat soft discs (with a faint rim) out of it.
   float core = mix(pow(1.0 - d2, 1.5), 0.55 + 0.45 * smoothstep(0.55, 1.0, d2), vSoft);
   float a = min(vAlpha, 1.0) * core * uGain;
-  vec3 color = mix(uColorA, uColorB, vTint);
+  // Mostly iris; only the top of the tint range (and the cursor lens) warms to ember.
+  vec3 color = mix(uColorA, uColorB, smoothstep(0.82, 1.0, vTint));
   gl_FragColor = vec4(color * a, a);
 }
 `;
@@ -149,11 +150,12 @@ function seeds(): Float32Array {
   return data;
 }
 
-// Violet fibres warming to lilac highlights; light theme uses saturated inks at lower gain.
-const DUST_DARK: [number, number, number] = [0.5, 0.42, 1.0];
-const ACCENT_DARK: [number, number, number] = [0.86, 0.74, 1.0];
-const DUST_LIGHT: [number, number, number] = [0.33, 0.24, 0.86];
-const ACCENT_LIGHT: [number, number, number] = [0.6, 0.28, 0.92];
+// Iris fibres with a few ember highlights (more under the cursor lens), matching the site
+// palette; light theme draws the same in denser inks.
+const DUST_DARK: [number, number, number] = [0.56, 0.44, 1.0];
+const ACCENT_DARK: [number, number, number] = [1.0, 0.72, 0.52];
+const DUST_LIGHT: [number, number, number] = [0.34, 0.17, 0.74];
+const ACCENT_LIGHT: [number, number, number] = [0.8, 0.36, 0.18];
 
 /** Everything a frame depends on; positions are canvas NDC (-1..1, y up). */
 export interface HeroFlowFrame {
@@ -276,8 +278,8 @@ export function createHeroFlowRenderer(
       const accent = dark ? ACCENT_DARK : ACCENT_LIGHT;
       gl.uniform3f(colorAUniform, dust[0], dust[1], dust[2]);
       gl.uniform3f(colorBUniform, accent[0], accent[1], accent[2]);
-      // On light surfaces the field is a violet ink wash: half the particles at about half the gain.
-      gl.uniform1f(gainUniform, dark ? 0.9 : 0.5);
+      // On light surfaces the same field is drawn as ink, at a slightly lower gain.
+      gl.uniform1f(gainUniform, dark ? 0.9 : 0.85);
       // Dark theme glows additively, so overlapping fibres bloom; light theme composites
       // premultiplied ink over white.
       if (dark) {
@@ -286,7 +288,7 @@ export function createHeroFlowRenderer(
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
       }
       gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.POINTS, 0, dark ? count : Math.floor(count / 2));
+      gl.drawArrays(gl.POINTS, 0, count);
     },
     dispose(loseContext = false) {
       gl.deleteBuffer(buffer);
