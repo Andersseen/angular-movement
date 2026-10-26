@@ -64,6 +64,18 @@ host code. Items are marked **reproduced** only when the reproduction below was 
 
 None of Angular Movement's playgrounds append overlays to `<body>`, so the documented top-layer limitation does not apply. The presets gallery and every playground were opened in the inline preview only.
 
+### 8. Sidebar page links inherit the group title's eyebrow style (reproduced, 0.11.0)
+
+- **Reproduction:** open any `/docs/*` page with grouped navigation.
+- **Expected:** the group title (`.doq-nav-group`) is a small-caps eyebrow; the page links inside it use the host's normal type.
+- **Actual:** `.doq-nav-group` sets `text-transform: uppercase`, `letter-spacing: .1em`, `font-weight: 750` and `font-size: .68rem` on the container, so every `.doq-nav-link` inside inherits them and the sidebar reads as a different typeface from the rest of the site.
+- **Workaround:** the host resets `.doq-nav-group .doq-nav-link` in `src/styles.css`.
+- **Suggestion:** move the eyebrow declarations to the group's title element only.
+
+### 9. The sticky TOC fix is on `main` but not published (blocking a visible bug)
+
+`0aeda62` (sticky documentation TOC) is unreleased; npm `latest` is still 0.11.0, where `.doq-toc` is absolutely positioned inside the article and scrolls away with it (and below 1450px is static). The host cannot fix this without re-implementing the layout, so it waits for the next release.
+
 ## What worked well
 
 Source-backed `::source` regions plus a compiled snippets folder (`ngc` strict templates) caught a real documentation bug on day one (the old patterns page showed a `viewChild` on an ES-private field). `::playground` with a host wrapper per directive, deterministic Markdown, Pagefind (91 pages, API symbols searchable), `doq-api check` as a CI gate and per-page `title`/`description` metadata needed no workaround.

@@ -53,30 +53,37 @@
 }
 
 :root {
+  /*
+   * Palette: "aubergine & ember". Neutrals carry a violet tint (hue 300) instead of the usual
+   * blue-black, the brand is an iris violet that matches the logo, and a warm ember is the one
+   * secondary colour — used sparingly (the hero word, the motion fibres' highlights, code
+   * attributes) so it stays a signature rather than a second theme.
+   */
   /* Brand */
-  --color-accent: oklch(0.67 0.21 268); /* electric indigo */
-  --color-accent-light: oklch(0.72 0.18 268);
+  --color-accent: oklch(0.7 0.19 293); /* iris */
+  --color-accent-light: oklch(0.78 0.14 298);
   /* Filled controls with white text: darker than --color-accent so it meets 4.5:1 */
-  --color-accent-solid: oklch(0.52 0.23 268);
-  --color-accent-glow: oklch(0.62 0.24 268 / 0.15);
+  --color-accent-solid: oklch(0.53 0.22 292);
+  --color-accent-glow: oklch(0.62 0.22 293 / 0.18);
+  --color-ember: oklch(0.8 0.13 52); /* warm signature */
 
   /* Surface */
-  --color-bg: oklch(0.16 0.014 268); /* near-black with blue tint */
-  --color-surface: oklch(0.2 0.018 268);
-  --color-surface-raised: oklch(0.25 0.02 268);
-  --color-border: oklch(0.22 0.02 268);
+  --color-bg: oklch(0.155 0.014 300); /* aubergine black */
+  --color-surface: oklch(0.195 0.018 300);
+  --color-surface-raised: oklch(0.245 0.022 300);
+  --color-border: oklch(0.26 0.022 300);
 
   /* Text */
-  --color-text: oklch(0.96 0.005 268);
-  --color-text-muted: oklch(0.74 0.01 268);
-  --color-text-subtle: oklch(0.64 0.01 268);
+  --color-text: oklch(0.96 0.008 85); /* warm white */
+  --color-text-muted: oklch(0.76 0.014 300);
+  --color-text-subtle: oklch(0.66 0.014 300);
 
   /* Code */
-  --color-code-bg: oklch(0.09 0.015 268);
-  --color-code-string: oklch(0.75 0.18 155); /* green */
-  --color-code-keyword: oklch(0.72 0.18 268); /* indigo */
-  --color-code-attr: oklch(0.78 0.15 55); /* amber */
-  --color-code-comment: oklch(0.64 0.01 268);
+  --color-code-bg: oklch(0.11 0.014 300);
+  --color-code-string: oklch(0.8 0.13 165); /* mint */
+  --color-code-keyword: oklch(0.76 0.15 293); /* iris */
+  --color-code-attr: oklch(0.8 0.13 52); /* ember */
+  --color-code-comment: oklch(0.64 0.014 300);
 
   /* Typography */
   --font-display: 'Geist', 'Inter', system-ui; /* headings */
@@ -87,33 +94,34 @@
  * Light theme. Dark stays the default (bare :root above) so SSR output and no-JS clients keep
  * today's look — the blocking script in index.html sets `data-theme="light"` before first paint
  * when that's the resolved preference, so this never has to fight a flash of the wrong theme.
- * Same hue angles as dark (268 for brand/surface, 155/268/55 for code) — only lightness/chroma
- * shift, so accent, code colors, and brand identity read as the same system in both themes.
+ * Light is warm paper with aubergine ink rather than cold white: same brand and code hues as dark,
+ * only lightness/chroma shift, so both themes read as one system.
  */
 :root[data-theme='light'] {
   /* Brand */
-  --color-accent: oklch(0.5 0.22 268);
-  --color-accent-light: oklch(0.42 0.2 268);
-  --color-accent-solid: oklch(0.5 0.22 268);
-  --color-accent-glow: oklch(0.5 0.22 268 / 0.12);
+  --color-accent: oklch(0.5 0.21 292);
+  --color-accent-light: oklch(0.42 0.19 292);
+  --color-accent-solid: oklch(0.5 0.21 292);
+  --color-accent-glow: oklch(0.5 0.21 292 / 0.14);
+  --color-ember: oklch(0.6 0.15 45);
 
   /* Surface */
-  --color-bg: oklch(0.99 0.003 268);
-  --color-surface: oklch(0.965 0.006 268);
-  --color-surface-raised: oklch(0.93 0.008 268);
-  --color-border: oklch(0.85 0.012 268);
+  --color-bg: oklch(0.985 0.008 85); /* warm paper */
+  --color-surface: oklch(0.963 0.011 85);
+  --color-surface-raised: oklch(0.93 0.013 82);
+  --color-border: oklch(0.87 0.015 80);
 
   /* Text */
-  --color-text: oklch(0.17 0.015 268);
-  --color-text-muted: oklch(0.4 0.015 268);
-  --color-text-subtle: oklch(0.48 0.014 268);
+  --color-text: oklch(0.2 0.025 300); /* aubergine ink */
+  --color-text-muted: oklch(0.42 0.022 300);
+  --color-text-subtle: oklch(0.5 0.02 300);
 
   /* Code */
-  --color-code-bg: oklch(0.96 0.006 268);
-  --color-code-string: oklch(0.48 0.15 155);
-  --color-code-keyword: oklch(0.5 0.2 268);
-  --color-code-attr: oklch(0.52 0.16 55);
-  --color-code-comment: oklch(0.48 0.014 268);
+  --color-code-bg: oklch(0.955 0.012 85);
+  --color-code-string: oklch(0.46 0.12 165);
+  --color-code-keyword: oklch(0.48 0.2 292);
+  --color-code-attr: oklch(0.5 0.15 45);
+  --color-code-comment: oklch(0.5 0.02 300);
 }
 
 /*
@@ -135,6 +143,22 @@
   --host-docs-playground-preview: var(--color-bg);
   /* The fixed navbar is 4rem tall; fragment links and focus must land below it. */
   --host-docs-scroll-offset: 5rem;
+}
+
+/*
+ * Doqs 0.11 styles each sidebar group title in small caps (uppercase, wide tracking, weight 750)
+ * on the group container, so every page link inside inherits it and the docs stop looking like the
+ * rest of the site. Links are reset to the site's own type; only the group title keeps the eyebrow
+ * style. Reported in docs/integrations/doqs-feedback.md.
+ */
+.doq-nav-group .doq-nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.doq-nav-group .doq-nav-link.is-active {
+  font-weight: 600;
 }
 
 body {
@@ -297,7 +321,7 @@ code {
     100deg,
     var(--color-accent) 20%,
     var(--color-accent-light) 40%,
-    oklch(0.75 0.17 320) 55%,
+    var(--color-ember) 55%,
     var(--color-accent) 80%
   );
   background-size: 200% auto;
@@ -319,7 +343,7 @@ code {
     box-shadow 200ms ease;
 }
 .landing-card:hover {
-  border-color: color-mix(in oklch, var(--color-accent) 55%, var(--color-border));
+  border-color: color-mix(in oklab, var(--color-accent) 55%, var(--color-border));
   box-shadow: 0 12px 40px -16px var(--color-accent-glow);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -784,12 +808,12 @@ app-demo-workbench {
   background:
     radial-gradient(
       ellipse 55% 45% at 50% 46%,
-      color-mix(in oklch, var(--color-accent) 22%, transparent),
+      color-mix(in oklab, var(--color-accent) 22%, transparent),
       transparent 70%
     ),
     radial-gradient(
       ellipse 35% 30% at 72% 30%,
-      color-mix(in oklch, oklch(0.62 0.2 310) 14%, transparent),
+      color-mix(in oklab, var(--color-ember) 10%, transparent),
       transparent 70%
     ),
     linear-gradient(to bottom, transparent 70%, var(--color-bg));
@@ -802,9 +826,9 @@ app-demo-workbench {
   align-items: center;
   gap: 8px;
   padding: 6px 14px;
-  border: 1px solid color-mix(in oklch, var(--color-accent) 45%, var(--color-border));
+  border: 1px solid color-mix(in oklab, var(--color-accent) 45%, var(--color-border));
   border-radius: 999px;
-  background: color-mix(in oklch, var(--color-accent) 10%, var(--color-bg));
+  background: color-mix(in oklab, var(--color-accent) 10%, var(--color-bg));
   color: var(--color-text);
   font-size: 13px;
   font-weight: 500;
@@ -814,17 +838,17 @@ app-demo-workbench {
 }
 .hero-pill:hover {
   border-color: var(--color-accent);
-  background: color-mix(in oklch, var(--color-accent) 18%, var(--color-bg));
+  background: color-mix(in oklab, var(--color-accent) 18%, var(--color-bg));
 }
 .hero-pill-dot {
   width: 7px;
   height: 7px;
   border-radius: 999px;
   background: var(--color-success);
-  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-success) 25%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-success) 25%, transparent);
 }
 .hero-ghost {
-  background: color-mix(in oklch, var(--color-bg) 55%, transparent);
+  background: color-mix(in oklab, var(--color-bg) 55%, transparent);
   backdrop-filter: blur(8px);
 }
 .hero-stats {
@@ -867,7 +891,7 @@ app-demo-workbench {
   background:
     radial-gradient(
       ellipse 70% 60% at 60% 40%,
-      color-mix(in oklch, var(--color-accent) 14%, transparent),
+      color-mix(in oklab, var(--color-accent) 14%, transparent),
       transparent 70%
     ),
     radial-gradient(
@@ -932,7 +956,7 @@ app-demo-workbench {
   border-radius: inherit;
   background: radial-gradient(
     420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
-    color-mix(in oklch, var(--color-accent) 16%, transparent),
+    color-mix(in oklab, var(--color-accent) 16%, transparent),
     transparent 60%
   );
   opacity: 0;
@@ -970,7 +994,7 @@ app-demo-workbench {
     box-shadow 300ms ease;
 }
 .bento-tile.is-on {
-  border-color: color-mix(in oklch, var(--color-accent) 50%, var(--color-border));
+  border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
   box-shadow: 0 24px 60px -32px var(--color-accent-glow);
 }
 .bento-stage {
@@ -982,7 +1006,7 @@ app-demo-workbench {
   min-height: 190px;
   overflow: hidden;
   border-bottom: 1px solid var(--color-border);
-  background-color: color-mix(in oklch, var(--color-bg) 70%, var(--color-surface));
+  background-color: color-mix(in oklab, var(--color-bg) 70%, var(--color-surface));
   background-image: radial-gradient(
     color-mix(in srgb, var(--color-text-muted) 16%, transparent) 0.8px,
     transparent 0.8px
@@ -1022,7 +1046,7 @@ app-demo-workbench {
   box-shadow: 0 14px 30px -18px #0008;
 }
 .mini-card:nth-child(2) {
-  border-color: color-mix(in oklch, var(--color-accent) 60%, var(--color-border));
+  border-color: color-mix(in oklab, var(--color-accent) 60%, var(--color-border));
 }
 .mini-card i,
 .mini-window > i,
@@ -1030,7 +1054,7 @@ app-demo-workbench {
   display: block;
   height: 8px;
   border-radius: 4px;
-  background: color-mix(in oklch, var(--color-text-muted) 30%, transparent);
+  background: color-mix(in oklab, var(--color-text-muted) 30%, transparent);
 }
 .mini-card i:first-child {
   width: 60%;
@@ -1061,7 +1085,7 @@ app-demo-workbench {
 .mini-backdrop {
   position: absolute;
   inset: 0;
-  background: color-mix(in oklch, var(--color-bg) 55%, transparent);
+  background: color-mix(in oklab, var(--color-bg) 55%, transparent);
 }
 .mini-drawer {
   position: absolute;
@@ -1073,7 +1097,7 @@ app-demo-workbench {
   gap: 10px;
   width: 52%;
   padding: 18px 14px;
-  border-left: 1px solid color-mix(in oklch, var(--color-accent) 50%, var(--color-border));
+  border-left: 1px solid color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
   background: var(--color-surface);
 }
 .mini-drawer i:first-child {
@@ -1097,7 +1121,7 @@ app-demo-workbench {
 }
 .mini-row.is-new {
   border-color: var(--color-accent);
-  background: color-mix(in oklch, var(--color-accent) 22%, var(--color-surface-raised));
+  background: color-mix(in oklab, var(--color-accent) 22%, var(--color-surface-raised));
 }
 .mini-state {
   display: flex;
@@ -1125,7 +1149,7 @@ app-demo-workbench {
 }
 .mini-badge {
   padding: 10px 18px;
-  border: 1px solid color-mix(in oklch, var(--color-accent) 50%, var(--color-border));
+  border: 1px solid color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
   border-radius: 12px;
   background: var(--color-surface-raised);
   color: var(--color-text);
@@ -1142,7 +1166,7 @@ app-demo-workbench {
   grid-column: 1 / -1;
   height: 6px;
   border-radius: 3px;
-  background: linear-gradient(90deg, var(--color-accent), oklch(0.75 0.17 320));
+  background: linear-gradient(90deg, var(--color-accent), var(--color-ember));
   transform-origin: left;
 }
 .mini-block {
@@ -1182,7 +1206,7 @@ app-demo-workbench {
   background: conic-gradient(
     from var(--tool-angle),
     var(--color-accent),
-    oklch(0.75 0.17 320),
+    var(--color-ember),
     transparent 40%,
     transparent 60%,
     var(--color-accent)
@@ -1232,7 +1256,11 @@ app-demo-workbench {
 .feature-card.is-active {
   border-color: transparent;
   background:
-    radial-gradient(120% 90% at 100% 0%, oklch(0.62 0.2 310 / 0.35), transparent 60%),
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in oklab, var(--color-ember) 40%, transparent),
+      transparent 60%
+    ),
     var(--color-accent-solid);
   color: oklch(1 0 0);
   box-shadow: 0 30px 70px -35px var(--color-accent-glow);
@@ -1330,7 +1358,7 @@ app-demo-workbench {
 .story-rail-fill {
   display: block;
   height: 100%;
-  background: linear-gradient(var(--color-accent), oklch(0.75 0.17 320));
+  background: linear-gradient(var(--color-accent), var(--color-ember));
   transform: scaleY(0);
   transform-origin: top;
 }
@@ -1342,7 +1370,7 @@ app-demo-workbench {
 }
 .story-window {
   overflow: hidden;
-  border-color: color-mix(in oklch, var(--color-accent) 30%, var(--color-border));
+  border-color: color-mix(in oklab, var(--color-accent) 30%, var(--color-border));
   box-shadow: 0 30px 80px -40px var(--color-accent-glow);
 }
 .story-window-bar {

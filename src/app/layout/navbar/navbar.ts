@@ -67,7 +67,23 @@ const within = (path: string, section: string) =>
                 fill="currentColor"
                 fill-opacity="0.8"
               />
-              <path d="M 45 20 L 70 50 L 45 80 L 65 80 L 90 50 L 65 20 Z" fill="currentColor" />
+              <defs>
+                <linearGradient
+                  id="logo-lead-nav"
+                  x1="45"
+                  y1="20"
+                  x2="90"
+                  y2="80"
+                  gradientUnits="userSpaceOnUse"
+                >
+                  <stop offset="0" stop-color="currentColor" />
+                  <stop offset="1" style="stop-color: var(--color-ember)" />
+                </linearGradient>
+              </defs>
+              <path
+                d="M 45 20 L 70 50 L 45 80 L 65 80 L 90 50 L 65 20 Z"
+                fill="url(#logo-lead-nav)"
+              />
             </svg>
             <span class="font-display text-lg font-bold tracking-tight">Angular Movement</span>
           </a>

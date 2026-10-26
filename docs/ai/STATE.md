@@ -53,6 +53,19 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
   left→right over 2.4s (`uIntro`, 1 when reduced). Smoothing is frame-rate independent
   (`1 - exp(-rate·dt)`); `draw()` takes a `HeroFlowFrame`. Backing ≤1600×1000,
   no dependency. The copy fades on scroll via `moveScroll`. No scroll-cue icon.
+- **Palette "aubergine & ember"** (2026-10-26, user asked for something less generic than indigo
+  on blue-black): neutrals tinted hue 300 (dark) / warm paper hue 85 (light), iris accent hue
+  ~292, and one warm `--color-ember` (hue ~50) used sparingly — the hero word gradient, fibre
+  highlights, code attributes, the logo's leading chevron (favicon.svg + inline SVGs). Mix accent
+  with neutrals **`in oklab`, never `in oklch`**: hue interpolation from 292 to 85 passes through
+  red and turns borders pink. Raster icons (`apple-touch-icon.png`, `og-image.png`) still carry the
+  old indigo.
+- Docs type: Doqs 0.11 puts the sidebar group's eyebrow style on the container, so page links
+  inherited uppercase/750/tracking; `src/styles.css` resets `.doq-nav-group .doq-nav-link`. Geist
+  500/600 are now loaded. The sticky-TOC fix exists only on Doqs `main` (unpublished; npm latest
+  0.11.0) — bump `@doqs/analog` when it ships. Both logged in `docs/integrations/doqs-feedback.md`.
+- Hero frame cap is 1000/62 ms with **no remainder carry** (the carried remainder let a jittery
+  clock exceed the cap); the e2e cadence bound is 70 (same ~12% slack the old 24→27 had).
 - Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
   runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
   `app-explore` (**scroll story**: tall steps beside a sticky Volt-tabs window; the active step comes
