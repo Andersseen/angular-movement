@@ -111,11 +111,20 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  # Browser jobs run in Playwright's own image (browsers and their OS packages preinstalled, same
+  # version as the lockfile): installing them with apt on the runner depends on the Ubuntu mirror,
+  # which has served packages at ~45 kB/s and held single jobs for 10 to 20 minutes.
+  #
   # The comprehensive dev-server suite. CI keeps one worker per runner (timing-sensitive assertions,
   # see playwright.config.ts), so it is split across runners instead of across workers.
   e2e:
     name: E2E chromium (${{ matrix.shard }}/3)
+    needs: versions
     runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -126,7 +135,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      - uses: ./.github/actions/setup-playwright
 
       - name: Run e2e
         run: pnpm exec playwright test --project=chromium --shard=${{ matrix.shard }}/3
@@ -144,7 +152,12 @@ jobs:
   # The cross-browser and touch smoke suites (e2e/cross-browser.spec.ts, e2e/touch.spec.ts).
   e2e-browsers:
     name: E2E ${{ matrix.browser }}
+    needs: versions
     runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
     timeout-minutes: 20
     strategy:
       fail-fast: false
@@ -155,10 +168,6 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
-      # global-setup.ts warms the routes with Chromium whatever the project.
-      - uses: ./.github/actions/setup-playwright
-        with:
-          browsers: chromium ${{ matrix.browser }}
 
       - name: Run e2e
         run: pnpm exec playwright test --project=${{ matrix.browser }}
@@ -178,8 +187,12 @@ jobs:
   # bundle (Chromium, Firefox, WebKit). Runs against the exact output of `site-build`.
   e2e-static:
     name: E2E production build (Cloudflare Pages emulation)
-    needs: site-build
+    needs: [versions, site-build]
     runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
@@ -193,21 +206,19 @@ jobs:
           name: site-public
           path: dist/analog/public
 
-      - uses: ./.github/actions/setup-playwright
-        with:
-          browsers: chromium firefox webkit
-
       - name: Run e2e against the production build
         run: pnpm run e2e:static
 
-  # The supported majors come from the library's own peer range, as in the validation scripts, so
-  # widening the range adds a matrix entry without touching this file.
-  consumer-majors:
-    name: Supported Angular majors
+  # Versions the other jobs are parameterised by, read from the repository so nothing here drifts:
+  # the supported Angular majors from the library's own peer range (as in the validation scripts),
+  # and the Playwright image from the version the lockfile resolved.
+  versions:
+    name: Resolve Angular majors and Playwright image
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
       majors: ${{ steps.majors.outputs.majors }}
+      playwright-image: ${{ steps.playwright.outputs.image }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
@@ -217,19 +228,25 @@ jobs:
           majors=$(node -p "JSON.stringify([...require('./projects/movement/package.json').peerDependencies['@angular/core'].matchAll(/\^(\d+)\./g)].map(m => m[1]))")
           echo "majors=$majors" >> "$GITHUB_OUTPUT"
           echo "Supported Angular majors: $majors"
+      - id: playwright
+        run: |
+          version=$(grep -A2 "'@playwright/test':" pnpm-lock.yaml | awk '/version:/ { sub(/\(.*/, "", $2); print $2; exit }')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::cannot read @playwright/test from pnpm-lock.yaml"; exit 1; }
+          echo "image=mcr.microsoft.com/playwright:v${version}-noble" >> "$GITHUB_OUTPUT"
+          echo "Playwright image: mcr.microsoft.com/playwright:v${version}-noble"
 
   # Compiles the *packed* library inside a real Angular app, once per supported major. The demo site
   # imports the library through a Vite source alias, so nothing else here exercises the published
   # package — this is what catches a broken peer range, `exports` map or `.d.ts`.
   consumer-validation:
     name: Packed package compiles on Angular ${{ matrix.angular }}
-    needs: consumer-majors
+    needs: versions
     runs-on: ubuntu-latest
     timeout-minutes: 15
     strategy:
       fail-fast: false
       matrix:
-        angular: ${{ fromJSON(needs.consumer-majors.outputs.majors) }}
+        angular: ${{ fromJSON(needs.versions.outputs.majors) }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
@@ -244,13 +261,13 @@ jobs:
   # consumer-validation (above) only proves install + AOT compilation.
   consumer-runtime:
     name: Packed package runs on Angular ${{ matrix.angular }}
-    needs: consumer-majors
+    needs: versions
     runs-on: ubuntu-latest
     timeout-minutes: 20
     strategy:
       fail-fast: false
       matrix:
-        angular: ${{ fromJSON(needs.consumer-majors.outputs.majors) }}
+        angular: ${{ fromJSON(needs.versions.outputs.majors) }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
@@ -291,7 +308,7 @@ jobs:
       - e2e
       - e2e-browsers
       - e2e-static
-      - consumer-majors
+      - versions
       - consumer-validation
       - consumer-runtime
       - workflow-lint

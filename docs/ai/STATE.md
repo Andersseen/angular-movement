@@ -27,10 +27,14 @@ just stale or the release failed.
 - `ci.yml` is parallel: `static`, `unit`, `library`, `site-build` (uploads `dist/analog/public`),
   `e2e` (Chromium, `--shard=N/3`, still one worker per runner), `e2e-browsers` (firefox, webkit),
   `e2e-static` (downloads the build), `consumer-validation` / `consumer-runtime` per Angular major
-  (`consumer-majors` reads the peer range), `workflow-lint`, `pr-title`. **`build-and-test` is now an
+  (`versions` reads the peer range and the lockfile's Playwright version), `workflow-lint`;
+  `pr-title` is its own workflow so editing a title re-runs it. **The three e2e jobs run in
+  `mcr.microsoft.com/playwright:v<lockfile version>-noble` (`--user 1001`)**: `apt` on the runner
+  stalled single jobs for 10–20 minutes (mirror at ~45 kB/s). `consumer-runtime` stays on the
+  runner and downloads Chromium without OS packages. **`build-and-test` is now an
   aggregator job that keeps the old required-check name** — do not rename it, and add every new job
   to its `needs`. Shared setup lives in `.github/actions/setup` and `.github/actions/setup-playwright`
-  (browser download cached per Playwright version; apt deps are always installed).
+  (browser download cached per Playwright version; `os-deps` input).
   `scripts/release/workflow.test.mjs` checks SHA pins inside those composite actions too.
 - Baseline before the split (run 40347766692): build-and-test 9m42s, e2e alone 6m49s;
   consumer-runtime 11m, of which 9m51s was `playwright install --with-deps chromium`.
