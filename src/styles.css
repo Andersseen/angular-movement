@@ -161,6 +161,102 @@
   font-weight: 600;
 }
 
+/*
+ * Documentation layout (host side, Doqs 0.11). The fixed 4rem navbar sits over the page, so both
+ * rails stick below it. From 1280px the article becomes a two-column grid and the TOC gets its own
+ * column, sticky inside a grid area that spans the article: it follows the reader and stops at the
+ * article's end instead of scrolling away (0.11 positions it absolutely) — the same layout Doqs
+ * main adopted upstream; drop this block when the package ships it.
+ */
+.doq-sidebar {
+  top: 5rem;
+  max-height: calc(100vh - 6rem);
+}
+.doq-toc {
+  gap: 0;
+  font-size: 0.8125rem;
+}
+.doq-toc p {
+  margin-bottom: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+.doq-toc a {
+  display: block;
+  margin-left: -1px;
+  padding: 0.3rem 0 0.3rem 0.9rem;
+  border-left: 2px solid transparent;
+  color: var(--color-text-muted);
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.doq-toc a.level-three {
+  padding-left: 1.7rem;
+}
+.doq-toc a:hover {
+  color: var(--color-text);
+}
+.doq-toc a.is-active {
+  border-left-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+@media (min-width: 1280px) {
+  .doq-article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 13.5rem;
+    column-gap: 3rem;
+    width: min(100%, calc(var(--doq-content-width) + 16.5rem));
+  }
+  .doq-article > * {
+    grid-column: 1;
+  }
+  .doq-article > .doq-toc {
+    position: sticky;
+    top: 6rem;
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: start;
+    width: auto;
+    max-height: calc(100vh - 7.5rem);
+    margin: 0;
+    padding: 0 0 0 0;
+    overflow: auto;
+    border: 0;
+    border-left: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+  .doq-article > .doq-toc p {
+    padding-left: 0.9rem;
+  }
+}
+
+/* Doqs documentAfterContent slot: provenance and a way to improve the page (DocPageFooter). */
+.doc-page-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+.doc-page-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.doc-page-footer a:hover {
+  color: var(--color-accent);
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);

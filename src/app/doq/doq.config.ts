@@ -9,6 +9,7 @@ import { StaggerExample } from '../motion-examples/stagger/stagger-example';
 import { VariantsExample } from '../motion-examples/variants/variants-example';
 import { PresetsGallery } from '../motion-examples/presets/presets-gallery';
 import { MOTION_EXAMPLES } from '../motion-examples/registry';
+import { DocPageFooter } from './doc-page-footer';
 
 const options = (values: readonly string[]) => values.map((value) => ({ label: value, value }));
 
@@ -315,6 +316,7 @@ export const doqConfig = defineDoqConfig({
   landmark: 'host',
   search: { enabled: true },
   demos: { 'presets-gallery': PresetsGallery },
+  slots: { documentAfterContent: DocPageFooter },
   playgrounds: {
     [MOTION_EXAMPLES.enter.id]: enterPlayground,
     [MOTION_EXAMPLES.interaction.id]: interactionPlayground,

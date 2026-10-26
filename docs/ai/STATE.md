@@ -66,6 +66,14 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
   0.11.0) — bump `@doqs/analog` when it ships. Both logged in `docs/integrations/doqs-feedback.md`.
 - Hero frame cap is 1000/62 ms with **no remainder carry** (the carried remainder let a jittery
   clock exceed the cap); the e2e cadence bound is 70 (same ~12% slack the old 24→27 had).
+- **Docs (host side, Doqs 0.11):** from 1280px `.doq-article` is a two-column grid and the TOC is
+  sticky in its own column (angular.dev-style rail, active marker) — mirrors the unpublished Doqs
+  fix; delete the block in `src/styles.css` when `@doqs/analog` ships it. Sidebar sticks below the
+  fixed navbar. `DocPageFooter` (`documentAfterContent` slot) links "Edit this page" to
+  `src/authoring/docs/<slug>.md`, or the library source for `/docs/reference/*`, plus a prefilled
+  issue. Directive/function JSDoc now leads with a summary (API index used to repeat the stability
+  sentence); `api-report.txt` regenerated (comments only).
+- Live-code section: the code column stretches to the controls' height (`flex-1` on the block).
 - Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
   runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
   `app-explore` (**scroll story**: tall steps beside a sticky Volt-tabs window; the active step comes
