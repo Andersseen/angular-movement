@@ -42,12 +42,21 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
 - Release audit: source package is **1.3.0**, GitHub `v1.3.0` is still **draft**, npm latest is **1.2.0**.
   No publication/recovery was triggered. Source badges explicitly say “source”. Historical release
   status below predates this audit; use the registry, not package.json, to infer publication.
-- The hero has a lazy native WebGL depth-of-field particle field — a single-draw port of the
-  reference site's Three.js DoF scene: fractal curl-noise flow, fine in-focus dust plus a few soft
-  bokeh orbs, additive in dark theme / faint ink in light, lerped pointer parallax. Capped at
-  22,000 desktop / 7,500 compact points, backing ≤1600×1000, 24 draws/s. No dependency was added.
-  The pause toggle was removed by user decision (2026-10-26); reduced motion, visibility and route
-  cleanup own its lifecycle; unsupported/software WebGL retains a static CSS fallback.
+- The hero is a full-viewport, centred landing (2026-10-26, user request "closer to hr.andriipap.dev",
+  with voltui.dev / forgecms.dev as tone references). Its lazy native WebGL field now renders the
+  reference portfolio's **sphere**: curl noise of a seed is a unit direction, so particles sit on a
+  shell that fractal octaves fold into filaments; the rim is in focus, front/back blur out. Slow
+  turntable + pointer tilt. Light-theme gain is 0.26 (was 0.16). Budgets unchanged: 22,000 desktop /
+  7,500 compact points, backing ≤1600×1000, 24 draws/s, no dependency. The copy fades on scroll via
+  the library's own `moveScroll`. Reduced motion, visibility and route cleanup own the lifecycle;
+  unsupported/software WebGL keeps the static CSS fallback. Evidence: `hero-sphere-*.png`.
+- The interactive task showcase moved out of the hero into `app-state-demo` (`#state-demo`, the
+  scroll cue's target). **Templates left the navbar** (now Docs · API · Demos + version, theme,
+  GitHub); they are promoted by the home section `app-home-templates` (live preview, deferred on
+  viewport) and linked from the footer. `/templates` itself is unchanged.
+- Local tooling gotcha: the container's Node 22.22.0 is below the Angular CLI minimum (22.22.3), and
+  the repo's Playwright expects chromium build 1208 while `/opt/pw-browsers` ships 1243. Run with a
+  Node 24 on PATH and `PLAYWRIGHT_BROWSERS_PATH` pointing at symlinks named `*-1208` → `*-1243`.
 - Final verification and PR delivery are underway; see spec 019 for acceptance tracking.
 
 ## Done — Spec 018 (Website 2.0: Doqs docs, dedicated demos, new product page) — site only

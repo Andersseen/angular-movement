@@ -759,6 +759,164 @@ app-demo-workbench {
 .home-hero {
   border-bottom: 1px solid var(--color-border);
 }
+/* A deep indigo pool behind the particle sphere; the fallback and the field both sit on it. */
+.hero-glow {
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 50% 46%,
+      color-mix(in oklch, var(--color-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 35% 30% at 72% 30%,
+      color-mix(in oklch, oklch(0.62 0.2 310) 14%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent 70%, var(--color-bg));
+}
+[data-theme='light'] .hero-glow {
+  opacity: 0.55;
+}
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid color-mix(in oklch, var(--color-accent) 45%, var(--color-border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--color-accent) 10%, var(--color-bg));
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.hero-pill:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in oklch, var(--color-accent) 18%, var(--color-bg));
+}
+.hero-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--color-success) 25%, transparent);
+}
+.hero-ghost {
+  background: color-mix(in oklch, var(--color-bg) 55%, transparent);
+  backdrop-filter: blur(8px);
+}
+.hero-stats {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  /* Unlayered CSS beats Tailwind utilities: leave the top margin to the template's mt-*. */
+  margin-inline: 0;
+  margin-bottom: 0;
+}
+.hero-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  padding-inline: clamp(14px, 4vw, 32px);
+}
+.hero-stats > div + div {
+  border-left: 1px solid var(--color-border);
+}
+.hero-stats dd {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.hero-stats dt {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.hero-scroll-cue {
+  position: absolute;
+  bottom: 28px;
+  left: 50%;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  width: 26px;
+  height: 42px;
+  padding-top: 7px;
+  border: 2px solid color-mix(in oklch, var(--color-text-muted) 45%, transparent);
+  border-radius: 999px;
+  transform: translateX(-50%);
+  transition: border-color 200ms ease;
+}
+.hero-scroll-cue:hover,
+.hero-scroll-cue:focus-visible {
+  border-color: var(--color-accent);
+}
+.hero-scroll-wheel {
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--color-accent);
+  animation: hero-scroll-wheel 1.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes hero-scroll-wheel {
+  0% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+}
+@media (max-height: 640px) {
+  .hero-scroll-cue {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-scroll-wheel {
+    animation: none;
+  }
+}
+.template-feature {
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+}
+.template-stage {
+  border-top: 1px solid var(--color-border);
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 60% 40%,
+      color-mix(in oklch, var(--color-accent) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      color-mix(in srgb, var(--color-text-muted) 18%, transparent) 0.8px,
+      transparent 0.8px
+    );
+  background-size:
+    auto,
+    22px 22px;
+}
+@media (min-width: 1024px) {
+  .template-stage {
+    border-top: 0;
+    border-left: 1px solid var(--color-border);
+  }
+  /* The live page is taller than the stage: crop it like a window and fade the overflow. */
+  .template-stage > div {
+    mask-image: linear-gradient(#000 78%, transparent);
+  }
+}
 .home-kicker {
   margin-bottom: 24px;
   color: var(--color-text-muted);
@@ -815,6 +973,6 @@ app-home > app-choose-tool {
     transparent 0.6px
   );
   background-size: 28px 28px;
-  mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 48%, #000 30%, transparent 75%);
   opacity: 0.35;
 }

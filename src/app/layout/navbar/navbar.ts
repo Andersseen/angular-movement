@@ -17,10 +17,9 @@ interface NavLink {
 }
 
 const LINKS: readonly NavLink[] = [
-  { href: '/', label: 'Home', exact: true },
-  { href: '/demos', label: 'Demos', exact: false },
-  { href: '/templates', label: 'Templates', exact: true },
   { href: '/docs', label: 'Docs', exact: false },
+  { href: '/docs/reference', label: 'API', exact: false },
+  { href: '/demos', label: 'Demos', exact: false },
 ];
 
 @Component({

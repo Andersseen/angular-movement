@@ -58,6 +58,14 @@ import { SITE } from '../../shared/site';
               >Interactive Demos</a
             >
             <a
+              routerLink="/templates"
+              voltButton
+              variant="link"
+              size="sm"
+              class="text-accent w-fit justify-start px-0"
+              >Templates</a
+            >
+            <a
               [href]="github"
               target="_blank"
               rel="noopener noreferrer"

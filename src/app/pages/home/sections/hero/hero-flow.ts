@@ -40,14 +40,14 @@ const FRAME_INTERVAL = 1000 / 24;
       width: 100%;
       height: 100%;
       display: block;
-      opacity: 0.95;
-      mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
+      mask-image: linear-gradient(transparent, #000 10%, #000 78%, transparent);
     }
+    /* Centred copy sits on the sphere: a soft pool of background keeps it readable. */
     .hero-flow-scrim {
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, var(--color-bg), transparent 72%);
-      opacity: 0.3;
+      background: radial-gradient(ellipse 38% 30% at 50% 48%, var(--color-bg) 0%, transparent 100%);
+      opacity: 0.72;
     }
   `,
 })

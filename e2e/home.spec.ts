@@ -21,10 +21,33 @@ test('the home page presents the product: one h1, CTAs, install command and real
     'https://github.com/Andersseen/angular-movement',
   );
 
-  // The hero showcase's source sits behind a Volt accordion and opens on demand.
+  // The showcase below the hero keeps its source behind a Volt accordion, opened on demand.
   await waitForHydration(page);
-  await hero.getByRole('button', { name: 'Show the code' }).click();
-  await expect(hero.locator('app-code-block')).toBeVisible();
+  const demo = page.locator('app-state-demo');
+  await demo.getByRole('button', { name: 'Show the code' }).click();
+  await expect(demo.locator('app-code-block')).toBeVisible();
+});
+
+test('the navbar lists only the project essentials; templates live on the home page', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  for (const [name, href] of [
+    ['Docs', '/docs'],
+    ['API', '/docs/reference'],
+    ['Demos', '/demos'],
+  ]) {
+    await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute('href', href);
+  }
+  await expect(nav.locator('a[href="/templates"]')).toHaveCount(0);
+
+  const templates = page.locator('app-home-templates');
+  await expect(templates.getByRole('heading', { name: 'Start from a template' })).toBeVisible();
+  await waitForHydration(page);
+  await templates.getByRole('link', { name: 'Preview template' }).click();
+  await expect(page).toHaveURL(/\/templates$/);
 });
 
 test('the call-to-action links go where they say', async ({ page }) => {

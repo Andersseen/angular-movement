@@ -1,6 +1,6 @@
 /**
- * Depth-of-field particle field for the hero: fine in-focus dust plus large soft bokeh orbs,
- * advected by a fractal curl-noise flow. A faithful, dependency-free take on the reference
+ * Depth-of-field particle sphere for the hero: a curl-noise shell folded by fractal octaves,
+ * sharp sparkling dust on the focal rim and a few soft bokeh orbs in front. A faithful, dependency-free take on the reference
  * portfolio's Three.js scene — one draw call, no render targets, no simulation state (the flow
  * is a pure function of seed + time, so positions are computed per vertex).
  */
@@ -111,50 +111,62 @@ varying float vAlpha;
 varying float vTint;
 varying float vSoft;
 
-const float CAM_DIST = 3.2;
-const float FOCUS = 3.2;
-const float CURL_FREQ = 0.85;
+const float CAM_DIST = 3.4;
+const float FOCUS = 3.4;
+const float RADIUS = 1.45;
+const float CURL_FREQ = 0.62;
+
+mat3 rotateY(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(c, 0.0, -s, 0.0, 1.0, 0.0, s, 0.0, c);
+}
+
+mat3 rotateX(float a) {
+  float c = cos(a), s = sin(a);
+  return mat3(1.0, 0.0, 0.0, 0.0, c, s, 0.0, -s, c);
+}
 
 void main() {
-  float t = uTime * 0.5;
+  float t = uTime * 0.11;
   vec3 seed = aSeed.xyz;
   float rnd = aSeed.w;
 
-  // Fractal curl flow: each octave drifts at its own rate so folds emerge over time.
-  vec3 flow = curlNoise(seed * CURL_FREQ + vec3(0.0, t * 0.55, t * 0.35));
-  flow += curlNoise(seed * CURL_FREQ * 2.0 + vec3(t * 0.45, 0.0, -t * 0.3)) * 0.5;
-  flow += curlNoise(seed * CURL_FREQ * 4.0 + vec3(-t * 0.35, t * 0.5, 0.0)) * 0.25;
-  flow += curlNoise(seed * CURL_FREQ * 8.0) * 0.125;
+  // The reference sphere: curl noise of a point is a unit direction, so particles live on a
+  // shell; a fractal octave stack folds that shell into filaments, and a slow noise blend
+  // breathes between the two so the surface never settles.
+  vec3 shell = curlNoise(seed * CURL_FREQ + t);
+  vec3 folded = shell;
+  folded += curlNoise(folded * CURL_FREQ * 2.0) * 0.5;
+  folded += curlNoise(folded * CURL_FREQ * 4.0) * 0.25;
+  folded += curlNoise(folded * CURL_FREQ * 8.0) * 0.125;
+  vec3 p = mix(shell, folded, snoise(shell + t)) * RADIUS;
 
-  // Near particles follow the pointer a little more: quiet parallax, not a magnet.
-  float near = seed.z * 0.5 + 0.5;
-  vec3 p = flow * 1.35;
-  p.xy += uPointer * (0.12 + 0.22 * near);
+  // A slow turntable plus a pointer tilt: the volume reads as 3D, the hero copy never moves.
+  p = rotateX(-uPointer.y * 0.28) * rotateY(uTime * 0.035 + uPointer.x * 0.42) * p;
 
   vec3 view = vec3(p.x, p.y, p.z - CAM_DIST);
   float dist = max(-view.z, 0.4);
   float dof = abs(dist - FOCUS);
 
-  // fov ~48°: wide enough that the cloud fills the viewport with natural rim exit.
-  vec2 ndc = (view.xy / dist) * 2.246;
+  // fov ~46°: the sphere fills most of the hero height and its rim exits the short edges.
+  vec2 ndc = (view.xy / dist) * 2.35;
   ndc.x /= uAspect;
   gl_Position = vec4(ndc, 0.0, 1.0);
 
-  // Two populations in one draw: fine sharp dust (~93%) and a few soft bokeh orbs (~7%).
-  // Sizes are backing-store pixels at the focal plane; perspective scales the rest.
-  float bokeh = step(0.93, fract(rnd * 7.13));
+  // Fine sharp dust (~96%) and a few soft bokeh orbs drifting in front of the copy (~4%).
+  float bokeh = step(0.96, fract(rnd * 7.13));
 
-  float base = mix(1.5 + rnd * 2.0, 6.0 + rnd * 16.0, bokeh);
-  float size = base * (1.0 + dof * mix(0.2, 0.5, bokeh));
-  gl_PointSize = clamp(size * (FOCUS / dist), 1.0, 48.0);
+  float base = mix(1.2 + rnd * 1.6, 7.0 + rnd * 14.0, bokeh);
+  float size = base * (1.0 + dof * mix(1.1, 0.6, bokeh));
+  gl_PointSize = clamp(size * (FOCUS / dist), 1.0, 44.0);
 
-  // Sharp and bright at the focal plane; big orbs fade in and out of focus gently.
-  float band = exp(-dof * dof * mix(2.4, 0.32, bokeh));
-  float alpha = mix(mix(0.05, 0.7, band), mix(0.015, 0.17, band) * (0.6 + 0.4 * rnd), bokeh);
-  alpha *= 1.0 - smoothstep(1.0, 1.9, length(p.xy));
+  // The rim sits in the focal plane and sparkles; front and back fall out of focus.
+  float band = exp(-dof * dof * mix(1.6, 0.3, bokeh));
+  float twinkle = 0.7 + 0.3 * sin(uTime * (1.2 + rnd * 2.4) + rnd * 40.0);
+  float alpha = mix(mix(0.035, 0.95, band) * twinkle, mix(0.012, 0.13, band), bokeh);
 
   vAlpha = alpha;
-  vSoft = max(bokeh, smoothstep(0.35, 1.4, dof));
+  vSoft = max(bokeh, smoothstep(0.3, 1.2, dof));
   vTint = fract(rnd * 13.73);
 }
 `;
@@ -203,13 +215,19 @@ function seeds(): Float32Array {
     state ^= state << 5;
     return (state >>> 0) / 4294967296;
   };
-  // Gaussian-ish xy (denser core) and full z range so the cloud reads as a volume.
+  // Uniform in a unit ball: the curl field turns nearby seeds into shared filaments.
   for (let i = 0; i < data.length; i += 4) {
-    const gx = random() + random() + random() - 1.5;
-    const gy = random() + random() + random() - 1.5;
-    data[i] = gx * 0.82;
-    data[i + 1] = gy * 0.82;
-    data[i + 2] = (random() * 2 - 1) * 0.7;
+    let x: number;
+    let y: number;
+    let z: number;
+    do {
+      x = random() * 2 - 1;
+      y = random() * 2 - 1;
+      z = random() * 2 - 1;
+    } while (x * x + y * y + z * z > 1);
+    data[i] = x * 2.2;
+    data[i + 1] = y * 2.2;
+    data[i + 2] = z * 2.2;
     data[i + 3] = random();
   }
   return data;
@@ -319,7 +337,7 @@ export function createHeroFlowRenderer(
       gl.uniform3f(colorAUniform, dust[0], dust[1], dust[2]);
       gl.uniform3f(colorBUniform, accent[0], accent[1], accent[2]);
       // On light surfaces the field is a faint ink wash: half the particles, a fraction of the gain.
-      gl.uniform1f(gainUniform, dark ? 0.9 : 0.16);
+      gl.uniform1f(gainUniform, dark ? 0.9 : 0.26);
       // Dark theme glows additively; light theme composites premultiplied ink over white.
       if (dark) {
         gl.blendFunc(gl.ONE, gl.ONE);
