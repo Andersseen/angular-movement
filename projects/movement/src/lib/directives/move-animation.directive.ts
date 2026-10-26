@@ -15,6 +15,9 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
 import { optionalTimeAttribute, resolveTime } from '../move-time';
 
 /**
+ * Framer Motion-style state animation: give it `initial`, `animate` and optional `exit` states,
+ * and it animates to `animate` whenever the bound object changes.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

@@ -139,7 +139,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
     .toBeGreaterThan(12);
   const sample = await metrics(page);
   expect(sample.requestedPerformanceGuard).toBe(true);
-  expect(Math.max(...sample.points)).toBeLessThanOrEqual(22000);
+  expect(Math.max(...sample.points)).toBeLessThanOrEqual(60000);
   const canvasSize = await field
     .locator('canvas')
     .evaluate((canvas) => ({ width: canvas.width, height: canvas.height }));
@@ -147,7 +147,9 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   expect(canvasSize.height).toBeLessThanOrEqual(1000);
   const cadence = sample.times.slice(3);
   const seconds = (cadence.at(-1)! - cadence[0]) / 1000;
-  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(27);
+  // The renderer caps itself at 62 draws/s. Draw timestamps are taken inside drawArrays, so a
+  // short sample carries callback jitter at both ends: allow the same ~12% the old 24/s cap had.
+  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(70);
   await info.attach('hero-draw-submission-sample', {
     body: JSON.stringify(sample),
     contentType: 'application/json',
@@ -165,7 +167,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   const theme = page.getByRole('button', { name: /Switch to (dark|light) theme/ }).first();
   await theme.click();
   const expectedGain =
-    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.16;
+    (await page.locator('html').getAttribute('data-theme')) === 'dark' ? 0.9 : 0.85;
   await expect
     .poll(() => fieldUniform(page, 'uGain'), { timeout: 10_000 })
     .toBeCloseTo(expectedGain, 1);
@@ -259,7 +261,7 @@ test('compact screens use the smaller particle budget', async ({ page }) => {
   const field = await openField(page);
   await expect(field).toHaveAttribute('data-motion-state', 'running');
   await expect.poll(async () => (await metrics(page)).times.length).toBeGreaterThan(3);
-  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(7500);
+  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(24000);
 });
 
 for (const theme of ['dark', 'light']) {

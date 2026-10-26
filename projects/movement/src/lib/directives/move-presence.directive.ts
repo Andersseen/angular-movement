@@ -16,6 +16,9 @@ import {
 } from '../tokens/presence.tokens';
 
 /**
+ * Structural directive that keeps its view mounted until every registered leave animation inside
+ * it has finished.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

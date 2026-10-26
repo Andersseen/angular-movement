@@ -53,30 +53,37 @@
 }
 
 :root {
+  /*
+   * Palette: "aubergine & ember". Neutrals carry a violet tint (hue 300) instead of the usual
+   * blue-black, the brand is an iris violet that matches the logo, and a warm ember is the one
+   * secondary colour — used sparingly (the hero word, the motion fibres' highlights, code
+   * attributes) so it stays a signature rather than a second theme.
+   */
   /* Brand */
-  --color-accent: oklch(0.67 0.21 268); /* electric indigo */
-  --color-accent-light: oklch(0.72 0.18 268);
+  --color-accent: oklch(0.7 0.19 293); /* iris */
+  --color-accent-light: oklch(0.78 0.14 298);
   /* Filled controls with white text: darker than --color-accent so it meets 4.5:1 */
-  --color-accent-solid: oklch(0.52 0.23 268);
-  --color-accent-glow: oklch(0.62 0.24 268 / 0.15);
+  --color-accent-solid: oklch(0.53 0.22 292);
+  --color-accent-glow: oklch(0.62 0.22 293 / 0.18);
+  --color-ember: oklch(0.8 0.13 52); /* warm signature */
 
   /* Surface */
-  --color-bg: oklch(0.16 0.014 268); /* near-black with blue tint */
-  --color-surface: oklch(0.2 0.018 268);
-  --color-surface-raised: oklch(0.25 0.02 268);
-  --color-border: oklch(0.22 0.02 268);
+  --color-bg: oklch(0.155 0.014 300); /* aubergine black */
+  --color-surface: oklch(0.195 0.018 300);
+  --color-surface-raised: oklch(0.245 0.022 300);
+  --color-border: oklch(0.26 0.022 300);
 
   /* Text */
-  --color-text: oklch(0.96 0.005 268);
-  --color-text-muted: oklch(0.74 0.01 268);
-  --color-text-subtle: oklch(0.64 0.01 268);
+  --color-text: oklch(0.96 0.008 85); /* warm white */
+  --color-text-muted: oklch(0.76 0.014 300);
+  --color-text-subtle: oklch(0.66 0.014 300);
 
   /* Code */
-  --color-code-bg: oklch(0.09 0.015 268);
-  --color-code-string: oklch(0.75 0.18 155); /* green */
-  --color-code-keyword: oklch(0.72 0.18 268); /* indigo */
-  --color-code-attr: oklch(0.78 0.15 55); /* amber */
-  --color-code-comment: oklch(0.64 0.01 268);
+  --color-code-bg: oklch(0.11 0.014 300);
+  --color-code-string: oklch(0.8 0.13 165); /* mint */
+  --color-code-keyword: oklch(0.76 0.15 293); /* iris */
+  --color-code-attr: oklch(0.8 0.13 52); /* ember */
+  --color-code-comment: oklch(0.64 0.014 300);
 
   /* Typography */
   --font-display: 'Geist', 'Inter', system-ui; /* headings */
@@ -87,33 +94,34 @@
  * Light theme. Dark stays the default (bare :root above) so SSR output and no-JS clients keep
  * today's look — the blocking script in index.html sets `data-theme="light"` before first paint
  * when that's the resolved preference, so this never has to fight a flash of the wrong theme.
- * Same hue angles as dark (268 for brand/surface, 155/268/55 for code) — only lightness/chroma
- * shift, so accent, code colors, and brand identity read as the same system in both themes.
+ * Light is warm paper with aubergine ink rather than cold white: same brand and code hues as dark,
+ * only lightness/chroma shift, so both themes read as one system.
  */
 :root[data-theme='light'] {
   /* Brand */
-  --color-accent: oklch(0.5 0.22 268);
-  --color-accent-light: oklch(0.42 0.2 268);
-  --color-accent-solid: oklch(0.5 0.22 268);
-  --color-accent-glow: oklch(0.5 0.22 268 / 0.12);
+  --color-accent: oklch(0.5 0.21 292);
+  --color-accent-light: oklch(0.42 0.19 292);
+  --color-accent-solid: oklch(0.5 0.21 292);
+  --color-accent-glow: oklch(0.5 0.21 292 / 0.14);
+  --color-ember: oklch(0.6 0.15 45);
 
   /* Surface */
-  --color-bg: oklch(0.99 0.003 268);
-  --color-surface: oklch(0.965 0.006 268);
-  --color-surface-raised: oklch(0.93 0.008 268);
-  --color-border: oklch(0.85 0.012 268);
+  --color-bg: oklch(0.985 0.008 85); /* warm paper */
+  --color-surface: oklch(0.963 0.011 85);
+  --color-surface-raised: oklch(0.93 0.013 82);
+  --color-border: oklch(0.87 0.015 80);
 
   /* Text */
-  --color-text: oklch(0.17 0.015 268);
-  --color-text-muted: oklch(0.4 0.015 268);
-  --color-text-subtle: oklch(0.48 0.014 268);
+  --color-text: oklch(0.2 0.025 300); /* aubergine ink */
+  --color-text-muted: oklch(0.42 0.022 300);
+  --color-text-subtle: oklch(0.5 0.02 300);
 
   /* Code */
-  --color-code-bg: oklch(0.96 0.006 268);
-  --color-code-string: oklch(0.48 0.15 155);
-  --color-code-keyword: oklch(0.5 0.2 268);
-  --color-code-attr: oklch(0.52 0.16 55);
-  --color-code-comment: oklch(0.48 0.014 268);
+  --color-code-bg: oklch(0.955 0.012 85);
+  --color-code-string: oklch(0.46 0.12 165);
+  --color-code-keyword: oklch(0.48 0.2 292);
+  --color-code-attr: oklch(0.5 0.15 45);
+  --color-code-comment: oklch(0.5 0.02 300);
 }
 
 /*
@@ -135,6 +143,118 @@
   --host-docs-playground-preview: var(--color-bg);
   /* The fixed navbar is 4rem tall; fragment links and focus must land below it. */
   --host-docs-scroll-offset: 5rem;
+}
+
+/*
+ * Doqs 0.11 styles each sidebar group title in small caps (uppercase, wide tracking, weight 750)
+ * on the group container, so every page link inside inherits it and the docs stop looking like the
+ * rest of the site. Links are reset to the site's own type; only the group title keeps the eyebrow
+ * style. Reported in docs/integrations/doqs-feedback.md.
+ */
+.doq-nav-group .doq-nav-link {
+  font-size: 0.875rem;
+  font-weight: 500;
+  letter-spacing: normal;
+  text-transform: none;
+}
+.doq-nav-group .doq-nav-link.is-active {
+  font-weight: 600;
+}
+
+/*
+ * Documentation layout (host side, Doqs 0.11). The fixed 4rem navbar sits over the page, so both
+ * rails stick below it. From 1280px the article becomes a two-column grid and the TOC gets its own
+ * column, sticky inside a grid area that spans the article: it follows the reader and stops at the
+ * article's end instead of scrolling away (0.11 positions it absolutely) — the same layout Doqs
+ * main adopted upstream; drop this block when the package ships it.
+ */
+.doq-sidebar {
+  top: 5rem;
+  max-height: calc(100vh - 6rem);
+}
+.doq-toc {
+  gap: 0;
+  font-size: 0.8125rem;
+}
+.doq-toc p {
+  margin-bottom: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-subtle);
+}
+.doq-toc a {
+  display: block;
+  margin-left: -1px;
+  padding: 0.3rem 0 0.3rem 0.9rem;
+  border-left: 2px solid transparent;
+  color: var(--color-text-muted);
+  transition:
+    color 150ms ease,
+    border-color 150ms ease;
+}
+.doq-toc a.level-three {
+  padding-left: 1.7rem;
+}
+.doq-toc a:hover {
+  color: var(--color-text);
+}
+.doq-toc a.is-active {
+  border-left-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+@media (min-width: 1280px) {
+  .doq-article {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 13.5rem;
+    column-gap: 3rem;
+    width: min(100%, calc(var(--doq-content-width) + 16.5rem));
+  }
+  .doq-article > * {
+    grid-column: 1;
+  }
+  .doq-article > .doq-toc {
+    position: sticky;
+    top: 6rem;
+    grid-column: 2;
+    grid-row: 1 / span 4;
+    align-self: start;
+    width: auto;
+    max-height: calc(100vh - 7.5rem);
+    margin: 0;
+    padding: 0 0 0 0;
+    overflow: auto;
+    border: 0;
+    border-left: 1px solid var(--color-border);
+    border-radius: 0;
+  }
+  .doq-article > .doq-toc p {
+    padding-left: 0.9rem;
+  }
+}
+
+/* Doqs documentAfterContent slot: provenance and a way to improve the page (DocPageFooter). */
+.doc-page-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin-top: 3rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+.doc-page-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--color-text-muted);
+  text-decoration: none;
+  transition: color 150ms ease;
+}
+.doc-page-footer a:hover {
+  color: var(--color-accent);
 }
 
 body {
@@ -297,7 +417,7 @@ code {
     100deg,
     var(--color-accent) 20%,
     var(--color-accent-light) 40%,
-    oklch(0.75 0.17 320) 55%,
+    var(--color-ember) 55%,
     var(--color-accent) 80%
   );
   background-size: 200% auto;
@@ -319,7 +439,7 @@ code {
     box-shadow 200ms ease;
 }
 .landing-card:hover {
-  border-color: color-mix(in oklch, var(--color-accent) 55%, var(--color-border));
+  border-color: color-mix(in oklab, var(--color-accent) 55%, var(--color-border));
   box-shadow: 0 12px 40px -16px var(--color-accent-glow);
 }
 @media (prefers-reduced-motion: reduce) {
@@ -756,8 +876,137 @@ app-demo-workbench {
   }
 }
 
+/* Navbar links: a neutral hover (Volt's ghost hover is the accent, which would swallow an
+   accent-coloured current link) and an accent underline for the current page. */
+.nav-link[data-hover] {
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+}
+.nav-link[aria-current='page'] {
+  position: relative;
+  color: var(--color-accent);
+}
+.nav-link[aria-current='page']::after {
+  content: '';
+  position: absolute;
+  right: 10px;
+  bottom: 2px;
+  left: 10px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-accent);
+}
 .home-hero {
   border-bottom: 1px solid var(--color-border);
+}
+/* A deep indigo pool behind the particle sphere; the fallback and the field both sit on it. */
+.hero-glow {
+  background:
+    radial-gradient(
+      ellipse 55% 45% at 50% 46%,
+      color-mix(in oklab, var(--color-accent) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 35% 30% at 72% 30%,
+      color-mix(in oklab, var(--color-ember) 10%, transparent),
+      transparent 70%
+    ),
+    linear-gradient(to bottom, transparent 70%, var(--color-bg));
+}
+[data-theme='light'] .hero-glow {
+  opacity: 0.55;
+}
+.hero-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 45%, var(--color-border));
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--color-accent) 10%, var(--color-bg));
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: 500;
+  transition:
+    border-color 200ms ease,
+    background-color 200ms ease;
+}
+.hero-pill:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 18%, var(--color-bg));
+}
+.hero-pill-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--color-success);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--color-success) 25%, transparent);
+}
+.hero-ghost {
+  background: color-mix(in oklab, var(--color-bg) 55%, transparent);
+  backdrop-filter: blur(8px);
+}
+.hero-stats {
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  /* Unlayered CSS beats Tailwind utilities: leave the top margin to the template's mt-*. */
+  margin-inline: 0;
+  margin-bottom: 0;
+}
+.hero-stats > div {
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: center;
+  gap: 2px;
+  padding-inline: clamp(14px, 4vw, 32px);
+}
+.hero-stats > div + div {
+  border-left: 1px solid var(--color-border);
+}
+.hero-stats dd {
+  margin: 0;
+  color: var(--color-text);
+  font-family: var(--font-display);
+  font-size: clamp(1.25rem, 3vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.hero-stats dt {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+.template-feature {
+  border: 1px solid var(--color-border);
+  border-radius: 24px;
+  background: var(--color-surface);
+}
+.template-stage {
+  border-top: 1px solid var(--color-border);
+  background:
+    radial-gradient(
+      ellipse 70% 60% at 60% 40%,
+      color-mix(in oklab, var(--color-accent) 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      color-mix(in srgb, var(--color-text-muted) 18%, transparent) 0.8px,
+      transparent 0.8px
+    );
+  background-size:
+    auto,
+    22px 22px;
+}
+@media (min-width: 1024px) {
+  .template-stage {
+    border-top: 0;
+    border-left: 1px solid var(--color-border);
+  }
+  /* The live page is taller than the stage: crop it like a window and fade the overflow. */
+  .template-stage > div {
+    mask-image: linear-gradient(#000 78%, transparent);
+  }
 }
 .home-kicker {
   margin-bottom: 24px;
@@ -790,11 +1039,473 @@ app-demo-workbench {
   color: var(--color-accent);
   letter-spacing: 0;
 }
-app-explore > section {
+/* Pointer spotlight (SpotlightDirective): a soft glow that follows the cursor over a tile. */
+.spotlight {
+  position: relative;
+  isolation: isolate;
+}
+.spotlight::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(
+    420px circle at var(--spot-x, 50%) var(--spot-y, 50%),
+    color-mix(in oklab, var(--color-accent) 16%, transparent),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 300ms ease;
+  pointer-events: none;
+}
+.spotlight:hover::before {
+  opacity: 1;
+}
+
+/* "What you can build" bento. */
+@media (min-width: 768px) {
+  .bento-cards,
+  .bento-svg {
+    grid-column: span 2;
+  }
+}
+@media (min-width: 1024px) {
+  .bento {
+    grid-auto-flow: dense;
+  }
+  .bento-drawer {
+    grid-row: span 2;
+  }
+}
+.bento-tile {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 22px;
   background: var(--color-surface);
+  transition:
+    border-color 300ms ease,
+    box-shadow 300ms ease;
+}
+.bento-tile.is-on {
+  border-color: color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  box-shadow: 0 24px 60px -32px var(--color-accent-glow);
+}
+.bento-stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  min-height: 190px;
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+  background-color: color-mix(in oklab, var(--color-bg) 70%, var(--color-surface));
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-text-muted) 16%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-size: 18px 18px;
+}
+.bento-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px 22px;
+}
+.bento-code {
+  display: block;
+  padding: 8px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-code-bg, var(--color-bg));
+  color: var(--color-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Miniatures share one vocabulary: accent fills, muted lines, no text the reader must parse. */
+.mini-card {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 120px;
+  height: 84px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-raised);
+  box-shadow: 0 14px 30px -18px #0008;
+}
+.mini-card:nth-child(2) {
+  border-color: color-mix(in oklab, var(--color-accent) 60%, var(--color-border));
+}
+.mini-card i,
+.mini-window > i,
+.mini-drawer i {
+  display: block;
+  height: 8px;
+  border-radius: 4px;
+  background: color-mix(in oklab, var(--color-text-muted) 30%, transparent);
+}
+.mini-card i:first-child {
+  width: 60%;
+  background: var(--color-accent);
+}
+.mini-window {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 78%;
+  height: 72%;
+  padding: 18px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background: var(--color-surface-raised);
+}
+.mini-window > i:nth-child(1) {
+  width: 50%;
+}
+.mini-window > i:nth-child(2) {
+  width: 80%;
+}
+.mini-window > i:nth-child(3) {
+  width: 65%;
+}
+.mini-backdrop {
+  position: absolute;
+  inset: 0;
+  background: color-mix(in oklab, var(--color-bg) 55%, transparent);
+}
+.mini-drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 52%;
+  padding: 18px 14px;
+  border-left: 1px solid color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  background: var(--color-surface);
+}
+.mini-drawer i:first-child {
+  width: 70%;
+  background: var(--color-accent);
+}
+.mini-list {
+  position: relative;
+  width: 70%;
+  height: 132px;
+}
+.mini-row {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 26px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface-raised);
+}
+.mini-row.is-new {
+  border-color: var(--color-accent);
+  background: color-mix(in oklab, var(--color-accent) 22%, var(--color-surface-raised));
+}
+.mini-state {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+.mini-toggle {
+  display: flex;
+  align-items: center;
+  width: 56px;
+  height: 30px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--color-border);
+  transition: background-color 300ms ease;
+}
+.mini-toggle.is-on {
+  background: var(--color-accent-solid);
+}
+.mini-knob {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: oklch(1 0 0);
+}
+.mini-badge {
+  padding: 10px 18px;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 50%, var(--color-border));
+  border-radius: 12px;
+  background: var(--color-surface-raised);
+  color: var(--color-text);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 13px;
+}
+.mini-scroll {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  width: 72%;
+}
+.mini-progress {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--color-accent), var(--color-ember));
+  transform-origin: left;
+}
+.mini-block {
+  height: 64px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface-raised);
+}
+.mini-svg {
+  width: 82%;
+  max-width: 420px;
+}
+.mini-svg path {
+  stroke: var(--color-accent);
+  stroke-width: 4;
+  stroke-linecap: round;
+}
+.mini-svg circle {
+  fill: var(--color-accent);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+/* "Use the simplest tool": the state-driven column gets a slowly turning gradient border. */
+@property --tool-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+.tool-card {
+  border-radius: 18px;
+}
+.tool-featured {
+  position: relative;
+  padding: 1px;
+  border-radius: 19px;
+  background: conic-gradient(
+    from var(--tool-angle),
+    var(--color-accent),
+    var(--color-ember),
+    transparent 40%,
+    transparent 60%,
+    var(--color-accent)
+  );
+  box-shadow: 0 24px 70px -34px var(--color-accent-glow);
+  animation: tool-spin 6s linear infinite;
+}
+.tool-featured .tool-card {
+  border-color: transparent;
+}
+@keyframes tool-spin {
+  to {
+    --tool-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tool-featured {
+    animation: none;
+  }
+}
+
+/* "Built for state" carousel: the track slides, the active card inverts to the accent. */
+.feature-viewport {
+  overflow: visible;
+}
+.feature-track {
+  display: flex;
+  gap: 20px;
+  width: max-content;
+}
+.feature-card {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: min(380px, 82vw);
+  min-height: 300px;
+  padding: 28px;
   border: 1px solid var(--color-border);
   border-radius: 20px;
-  margin-block: 24px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  transition:
+    background-color 300ms ease,
+    border-color 300ms ease,
+    color 300ms ease;
+}
+.feature-card.is-active {
+  border-color: transparent;
+  background:
+    radial-gradient(
+      120% 90% at 100% 0%,
+      color-mix(in oklab, var(--color-ember) 40%, transparent),
+      transparent 60%
+    ),
+    var(--color-accent-solid);
+  color: oklch(1 0 0);
+  box-shadow: 0 30px 70px -35px var(--color-accent-glow);
+}
+.feature-icon {
+  flex-shrink: 0;
+  color: var(--color-text-subtle);
+}
+.feature-card.is-active .feature-icon {
+  color: oklch(1 0 0 / 0.75);
+}
+.feature-body {
+  margin-top: auto;
+  color: var(--color-text-muted);
+}
+.feature-card.is-active .feature-body {
+  color: oklch(1 0 0 / 0.88);
+}
+.feature-link {
+  width: fit-content;
+  color: var(--color-accent);
+  font-size: 14px;
+  font-weight: 600;
+}
+.feature-card.is-active .feature-link {
+  color: oklch(1 0 0);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Directive marquee: driven by moveLoop; the reduced-motion fallback is a wrapped list. */
+.api-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+}
+.api-marquee-track {
+  display: flex;
+  width: max-content;
+}
+@media (prefers-reduced-motion: reduce) {
+  .api-marquee {
+    mask-image: none;
+  }
+  .api-marquee-track {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .api-marquee-track [aria-hidden='true'] {
+    display: none;
+  }
+}
+
+/* "See it move" scroll story: tall steps scroll past a sticky window. */
+.story-step {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 72vh;
+  padding-left: 32px;
+}
+/* A marker on the rail beside the active step. */
+.story-step::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -4px;
+  z-index: 1;
+  width: 10px;
+  height: 10px;
+  border: 2px solid var(--color-border);
+  border-radius: 999px;
+  background: var(--color-bg);
+  transform: translateY(-50%);
+  transition:
+    border-color 300ms ease,
+    background-color 300ms ease,
+    box-shadow 300ms ease;
+}
+.story-step.is-active::before {
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  box-shadow: 0 0 0 5px var(--color-accent-glow);
+}
+.story-rail {
+  position: absolute;
+  top: 12vh;
+  bottom: 12vh;
+  left: 0;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--color-border);
+  overflow: hidden;
+}
+.story-rail-fill {
+  display: block;
+  height: 100%;
+  background: linear-gradient(var(--color-accent), var(--color-ember));
+  transform: scaleY(0);
+  transform-origin: top;
+}
+@media (prefers-reduced-motion: reduce) {
+  /* moveScroll does not track progress under reduced motion; keep the rail plain. */
+  .story-rail-fill {
+    display: none;
+  }
+}
+.story-window {
+  overflow: hidden;
+  border-color: color-mix(in oklab, var(--color-accent) 30%, var(--color-border));
+  box-shadow: 0 30px 80px -40px var(--color-accent-glow);
+}
+.story-window-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-raised);
+}
+.story-dots {
+  display: none;
+  gap: 6px;
+}
+.story-dots i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--color-border);
+}
+@media (min-width: 640px) {
+  .story-dots {
+    display: flex;
+  }
+}
+.story-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 15rem;
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  background-color: var(--color-bg);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--color-text-muted) 18%, transparent) 0.8px,
+    transparent 0.8px
+  );
+  background-size: 20px 20px;
 }
 app-home > app-features,
 app-home > app-choose-tool {
@@ -815,6 +1526,6 @@ app-home > app-choose-tool {
     transparent 0.6px
   );
   background-size: 28px 28px;
-  mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
+  mask-image: radial-gradient(ellipse 60% 55% at 50% 48%, #000 30%, transparent 75%);
   opacity: 0.35;
 }

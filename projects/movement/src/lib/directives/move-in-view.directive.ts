@@ -24,6 +24,8 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 /**
+ * Plays when the element scrolls into view, once or every time, using an IntersectionObserver.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

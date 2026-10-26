@@ -49,6 +49,9 @@ function flipDelta(from: DOMRect, to: DOMRect): FlipDelta | null {
 }
 
 /**
+ * Animates the element from its previous position and size to its new layout (FLIP), including
+ * shared-element transitions by `moveLayoutId`.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental

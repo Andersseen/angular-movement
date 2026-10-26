@@ -93,8 +93,15 @@ const EASINGS = ['ease-out', 'ease-in-out', 'linear'] as const;
           </volt-card-content>
         </volt-card>
 
-        <div class="min-w-0" moveInView="fade-up">
-          <app-code-block title="card.html" language="html" [code]="code()" />
+        <!-- Stretches to the controls' height so the two panels read as one editor, not two
+             boxes of unrelated size. -->
+        <div class="flex min-w-0 flex-col" moveInView="fade-up">
+          <app-code-block
+            class="min-h-0 flex-1"
+            title="card.html"
+            language="html"
+            [code]="code()"
+          />
         </div>
       </div>
     </section>

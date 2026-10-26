@@ -14,27 +14,27 @@ category: index
 
 | Name | Summary |
 | --- | --- |
-| [MoveAnimateDirective](/docs/reference/move-animate-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveAnimationDirective](/docs/reference/move-animation-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveDragDirective](/docs/reference/move-drag-directive) | Experimental API — may change significantly between minor versions. |
-| [MoveEnterDirective](/docs/reference/move-enter-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveFocusDirective](/docs/reference/move-focus-directive) | Stable API — covered by semantic-versioning guarantees. |
+| [MoveAnimateDirective](/docs/reference/move-animate-directive) | Plays an entrance when the element is created and, inside movePresence, a leave before it is removed — the one-attribute [move] / [moveAnimate] shorthand. |
+| [MoveAnimationDirective](/docs/reference/move-animation-directive) | Framer Motion-style state animation: give it initial, animate and optional exit states, and it animates to animate whenever the bound object changes. |
+| [MoveDragDirective](/docs/reference/move-drag-directive) | Makes the element draggable with pointer events, with optional axis lock, constraints, snap points and momentum. |
+| [MoveEnterDirective](/docs/reference/move-enter-directive) | Plays a preset or keyframes once, when the element is created. |
+| [MoveFocusDirective](/docs/reference/move-focus-directive) | Plays while the element has keyboard focus and reverses when focus leaves. |
 | [MoveHoverDirective](/docs/reference/move-hover-directive) | Plays while a hover-capable pointer is over the element, and reverses when it leaves. |
-| [MoveInViewDirective](/docs/reference/move-in-view-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveLayoutDirective](/docs/reference/move-layout-directive) | Experimental API — may change significantly between minor versions. |
-| [MoveLeaveDirective](/docs/reference/move-leave-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveLoopDirective](/docs/reference/move-loop-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveParallaxDirective](/docs/reference/move-parallax-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MovePresenceDirective](/docs/reference/move-presence-directive) | Stable API — covered by semantic-versioning guarantees. |
+| [MoveInViewDirective](/docs/reference/move-in-view-directive) | Plays when the element scrolls into view, once or every time, using an IntersectionObserver. |
+| [MoveLayoutDirective](/docs/reference/move-layout-directive) | Animates the element from its previous position and size to its new layout (FLIP), including shared-element transitions by moveLayoutId. |
+| [MoveLeaveDirective](/docs/reference/move-leave-directive) | Plays a preset or keyframes before the element is removed; inside movePresence the view waits for it to finish. |
+| [MoveLoopDirective](/docs/reference/move-loop-directive) | Repeats a preset or keyframes — endlessly or a set number of times, restarting or reversing each cycle. |
+| [MoveParallaxDirective](/docs/reference/move-parallax-directive) | Moves the element at a different speed from the scroll, deriving the travel from its size and the viewport. |
+| [MovePresenceDirective](/docs/reference/move-presence-directive) | Structural directive that keeps its view mounted until every registered leave animation inside it has finished. |
 | [MovePresenceForDirective](/docs/reference/move-presence-for-directive) | Keyed-list counterpart to movePresence. |
-| [MoveScrollDirective](/docs/reference/move-scroll-directive) | Stable API — covered by semantic-versioning guarantees. |
+| [MoveScrollDirective](/docs/reference/move-scroll-directive) | Scrubs keyframes with scroll position between two offsets, and exposes the progress as a signal. |
 | [MoveSmoothScrollDirective](/docs/reference/move-smooth-scroll-directive) | Directive that enables smooth scrolling on a specific scrollable container. |
-| [MoveStaggerDirective](/docs/reference/move-stagger-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveTapDirective](/docs/reference/move-tap-directive) | Stable API — covered by semantic-versioning guarantees. |
-| [MoveTargetDirective](/docs/reference/move-target-directive) | Experimental API — may change significantly between minor versions. |
+| [MoveStaggerDirective](/docs/reference/move-stagger-directive) | Gives each animated child a delay from its DOM order, from the first, last or centre child, so lists cascade without index bookkeeping. |
+| [MoveTapDirective](/docs/reference/move-tap-directive) | Plays while the element is pressed with a pointer and reverses on release — press feedback that also works on touch, where there is no hover. |
+| [MoveTargetDirective](/docs/reference/move-target-directive) | Plays keyframes or a preset on its host when the bound boolean turns true, and plays them in reverse when it turns false. |
 | [MoveTextDirective](/docs/reference/move-text-directive) | Splits the host's text content into animated spans/words. |
 | [MoveTriggerDirective](/docs/reference/move-trigger-directive) | Plays keyframes on its host when a boolean flips to true, and resets when it flips back — the declarative trigger side of moveTarget/moveTrigger. |
-| [MoveVariantsDirective](/docs/reference/move-variants-directive) | Stable API — covered by semantic-versioning guarantees. |
+| [MoveVariantsDirective](/docs/reference/move-variants-directive) | Animates between named states: bind moveVariant to a signal and the element animates whenever the name changes. |
 
 ## Services
 
@@ -52,10 +52,10 @@ category: index
 | [moveIconRotate](/docs/reference/move-icon-rotate) | Returns keyframes for a subtle rotate animation on an icon. |
 | [moveIconShake](/docs/reference/move-icon-shake) | Returns keyframes for a subtle shake animation on an icon. |
 | [movePathDraw](/docs/reference/move-path-draw) | Returns keyframes for a path-drawing animation. |
-| [moveSpringValue](/docs/reference/move-spring-value) | Stable API — covered by semantic-versioning guarantees. |
+| [moveSpringValue](/docs/reference/move-spring-value) | Creates a signal that follows a source signal with spring physics, for values that should settle instead of jump. |
 | [moveTimeToMs](/docs/reference/move-time-to-ms) | Converts a MoveTime to milliseconds: moveTimeToMs('0.08s') === 80, moveTimeToMs(80) === 80. |
-| [moveTransform](/docs/reference/move-transform) | Stable API — covered by semantic-versioning guarantees. |
-| [moveValue](/docs/reference/move-value-function) | Stable API — covered by semantic-versioning guarantees. |
+| [moveTransform](/docs/reference/move-transform) | Derives a signal by mapping another signal's value from one range onto another (clamped by default), like Framer Motion's useTransform. |
+| [moveValue](/docs/reference/move-value-function) | Creates a writable signal meant to drive motion, to bind into animation inputs or derive with moveTransform. |
 | [provideMovement](/docs/reference/provide-movement) | Sets library-wide animation defaults. |
 
 ## Interfaces
@@ -106,8 +106,8 @@ category: index
 
 | Name | Summary |
 | --- | --- |
-| [MOVEMENT_CONFIG](/docs/reference/movement-config) | Stable API — covered by semantic-versioning guarantees. |
-| [MOVEMENT_DEFAULTS](/docs/reference/movement-defaults) | Stable API — covered by semantic-versioning guarantees. |
+| [MOVEMENT_CONFIG](/docs/reference/movement-config) | Injection token for the resolved library-wide defaults; override them with provideMovement(config). |
+| [MOVEMENT_DEFAULTS](/docs/reference/movement-defaults) | The built-in timing defaults (duration, easing, delay) used when nothing is configured. |
 | [MOVEMENT_DIRECTIVES](/docs/reference/movement-directives) | All directives the library ships (every MOVEMENT_STABLE_DIRECTIVES plus every MOVEMENT_EXPERIMENTAL_DIRECTIVES member), ready to spread into a standalone compo… |
 | [MOVEMENT_EXPERIMENTAL_DIRECTIVES](/docs/reference/movement-experimental-directives) | Every experimental directive — may change or be removed in any 1.x minor. |
 | [MOVEMENT_STABLE_DIRECTIVES](/docs/reference/movement-stable-directives) | Every stable directive — none of these change behavior or shape outside a major version. |

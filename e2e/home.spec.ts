@@ -21,10 +21,46 @@ test('the home page presents the product: one h1, CTAs, install command and real
     'https://github.com/Andersseen/angular-movement',
   );
 
-  // The hero showcase's source sits behind a Volt accordion and opens on demand.
+  // The showcase below the hero keeps its source behind a Volt accordion, opened on demand.
   await waitForHydration(page);
-  await hero.getByRole('button', { name: 'Show the code' }).click();
-  await expect(hero.locator('app-code-block')).toBeVisible();
+  const demo = page.locator('app-state-demo');
+  await demo.getByRole('button', { name: 'Show the code' }).click();
+  await expect(demo.locator('app-code-block')).toBeVisible();
+});
+
+test('the navbar lists only the project essentials; templates live on the home page', async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  const nav = page.getByRole('navigation', { name: 'Main' });
+  for (const [name, href] of [
+    ['Docs', '/docs'],
+    ['API', '/docs/reference'],
+    ['Demos', '/demos'],
+  ]) {
+    await expect(nav.getByRole('link', { name, exact: true })).toHaveAttribute('href', href);
+  }
+  await expect(nav.locator('a[href="/templates"]')).toHaveCount(0);
+
+  // Exactly one link reads as current, even where the API section nests inside the docs.
+  for (const [path, current] of [
+    ['/docs/get-started', 'Docs'],
+    ['/docs/reference', 'API'],
+    ['/demos/hover', 'Demos'],
+  ]) {
+    await page.goto(path);
+    await expect(nav.locator('[aria-current="page"]')).toHaveCount(1);
+    await expect(nav.locator('[aria-current="page"]')).toHaveText(current);
+  }
+  await page.goto('/');
+  await expect(nav.locator('[aria-current="page"]')).toHaveCount(0);
+
+  const templates = page.locator('app-home-templates');
+  await expect(templates.getByRole('heading', { name: 'Start from a template' })).toBeVisible();
+  await waitForHydration(page);
+  await templates.getByRole('link', { name: 'Preview template' }).click();
+  await expect(page).toHaveURL(/\/templates$/);
 });
 
 test('the call-to-action links go where they say', async ({ page }) => {
@@ -107,10 +143,43 @@ test('the explore tabs run real directives and switch with the keyboard', async 
 
   await section.getByRole('tab', { name: 'Stagger' }).click();
   await expect(section.getByTestId('stagger-list').locator('li')).toHaveCount(6);
-  await expect(section.getByRole('link', { name: 'Read the guide' })).toHaveAttribute(
-    'href',
-    '/docs/guides/stagger-and-scroll',
+  await expect(
+    section.locator('[data-step="stagger"]').getByRole('link', { name: 'Read the guide' }),
+  ).toHaveAttribute('href', '/docs/guides/stagger-and-scroll');
+});
+
+test('scrolling the story swaps the sticky window to the matching example', async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto('/');
+  await waitForHydration(page);
+  const section = page.locator('app-explore');
+  for (const [step, tab] of [
+    ['variants', 'State'],
+    ['presence', 'Presence'],
+  ]) {
+    await section
+      .locator(`[data-step="${step}"]`)
+      .evaluate((el) => el.scrollIntoView({ block: 'center', behavior: 'instant' }));
+    await expect(section.getByRole('tab', { name: tab })).toHaveAttribute('aria-selected', 'true');
+  }
+  await expect(section.getByTestId('presence-target')).toBeVisible();
+});
+
+test('the "why" carousel moves between reasons with Volt buttons', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.goto('/');
+  await waitForHydration(page);
+  const section = page.locator('app-features');
+  const previous = section.getByRole('button', { name: 'Previous reason' });
+  const next = section.getByRole('button', { name: 'Next reason' });
+  await next.scrollIntoViewIfNeeded();
+  await expect(previous).toBeDisabled();
+  await expect(section.locator('.feature-card.is-active h3')).toHaveText('Signals in, motion out');
+  await next.click();
+  await expect(section.locator('.feature-card.is-active h3')).toHaveText(
+    'Native browser animation',
   );
+  await expect(previous).toBeEnabled();
 });
 
 test('the FAQ is a Volt accordion with answers that link to the docs', async ({ page }) => {

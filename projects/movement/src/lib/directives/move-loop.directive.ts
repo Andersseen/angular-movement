@@ -14,6 +14,9 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 
 /**
+ * Repeats a preset or keyframes — endlessly or a set number of times, restarting or reversing each
+ * cycle.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

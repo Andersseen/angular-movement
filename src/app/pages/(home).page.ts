@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { MoveScrollDirective } from 'movement';
 import { Hero } from './home/sections/hero/hero';
+import { StateDemo } from './home/sections/state-demo/state-demo';
+import { HomeTemplates } from './home/sections/templates/templates';
 import { Capabilities } from './home/sections/capabilities/capabilities';
 import { Features } from './home/sections/features/features';
 import { LiveCode } from './home/sections/live-code/live-code';
@@ -16,6 +18,8 @@ import { Install } from './home/sections/install/install';
   imports: [
     MoveScrollDirective,
     Hero,
+    StateDemo,
+    HomeTemplates,
     Capabilities,
     Features,
     LiveCode,
@@ -35,11 +39,13 @@ import { Install } from './home/sections/install/install';
     ></div>
     <app-hero />
     <app-capabilities />
+    <app-state-demo />
+    <app-explore />
     <app-features />
     <app-live-code />
-    <app-explore />
     <app-use-cases />
     <app-choose-tool />
+    <app-home-templates />
     <app-paths />
     <app-faq />
     <app-install />

@@ -42,12 +42,59 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
 - Release audit: source package is **1.3.0**, GitHub `v1.3.0` is still **draft**, npm latest is **1.2.0**.
   No publication/recovery was triggered. Source badges explicitly say “source”. Historical release
   status below predates this audit; use the registry, not package.json, to infer publication.
-- The hero has a lazy native WebGL depth-of-field particle field — a single-draw port of the
-  reference site's Three.js DoF scene: fractal curl-noise flow, fine in-focus dust plus a few soft
-  bokeh orbs, additive in dark theme / faint ink in light, lerped pointer parallax. Capped at
-  22,000 desktop / 7,500 compact points, backing ≤1600×1000, 24 draws/s. No dependency was added.
-  The pause toggle was removed by user decision (2026-10-26); reduced motion, visibility and route
-  cleanup own its lifecycle; unsupported/software WebGL retains a static CSS fallback.
+- The hero is a full-viewport, centred landing. Its lazy native WebGL field is now **ghost fibres**
+  (user pick, reactbits.dev "Ghost Fibers" as the reference, after the curl-noise sphere read as
+  noise): three layered ribbons of 18 dotted strands each, travelling sine waves that twist edge-on
+  into bright folds, with a depth of field (circle of confusion ∝ distance from focus, alpha ∝
+  1/size² so bokeh stays dim). Closed-form sines, no noise: 60,000 desktop / 24,000 compact points
+  at up to 60 draws/s, additive in dark, violet premultiplied ink in light (gain 0.5). The cursor
+  is a **lens** (`uCursor`, `uPull`): fibres near it part, pull into focus and brighten; it fades in
+  on movement and out ~1.2s after rest/leave, and is off under reduced motion. Ribbons **unfurl**
+  left→right over 2.4s (`uIntro`, 1 when reduced). Smoothing is frame-rate independent
+  (`1 - exp(-rate·dt)`); `draw()` takes a `HeroFlowFrame`. Backing ≤1600×1000,
+  no dependency. The copy fades on scroll via `moveScroll`. No scroll-cue icon.
+- **Palette "aubergine & ember"** (2026-10-26, user asked for something less generic than indigo
+  on blue-black): neutrals tinted hue 300 (dark) / warm paper hue 85 (light), iris accent hue
+  ~292, and one warm `--color-ember` (hue ~50) used sparingly — the hero word gradient, fibre
+  highlights, code attributes, the logo's leading chevron (favicon.svg + inline SVGs). Mix accent
+  with neutrals **`in oklab`, never `in oklch`**: hue interpolation from 292 to 85 passes through
+  red and turns borders pink. Raster icons (`apple-touch-icon.png`, `og-image.png`) still carry the
+  old indigo.
+- Docs type: Doqs 0.11 puts the sidebar group's eyebrow style on the container, so page links
+  inherited uppercase/750/tracking; `src/styles.css` resets `.doq-nav-group .doq-nav-link`. Geist
+  500/600 are now loaded. The sticky-TOC fix exists only on Doqs `main` (unpublished; npm latest
+  0.11.0) — bump `@doqs/analog` when it ships. Both logged in `docs/integrations/doqs-feedback.md`.
+- Hero frame cap is 1000/62 ms with **no remainder carry** (the carried remainder let a jittery
+  clock exceed the cap); the e2e cadence bound is 70 (same ~12% slack the old 24→27 had).
+- **Docs (host side, Doqs 0.11):** from 1280px `.doq-article` is a two-column grid and the TOC is
+  sticky in its own column (angular.dev-style rail, active marker) — mirrors the unpublished Doqs
+  fix; delete the block in `src/styles.css` when `@doqs/analog` ships it. Sidebar sticks below the
+  fixed navbar. `DocPageFooter` (`documentAfterContent` slot) links "Edit this page" to
+  `src/authoring/docs/<slug>.md`, or the library source for `/docs/reference/*`, plus a prefilled
+  issue. Directive/function JSDoc now leads with a summary (API index used to repeat the stability
+  sentence); `api-report.txt` regenerated (comments only).
+- Live-code section: the code column stretches to the controls' height (`flex-1` on the block).
+- Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
+  runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
+  `app-explore` (**scroll story**: tall steps beside a sticky Volt-tabs window; the active step comes
+  from an IntersectionObserver, tab clicks scroll the step into view; the rail reads
+  `moveScroll`'s exported `progress` because measuring a scaled element breaks the offsets) →
+  `app-features` (**carousel**, track slid by `[moveAnimation]` x, active card inverted) →
+  live-code → use-cases (**bento**: each tile has a miniature driven by one hover/focus signal through
+  `[moveAnimation]`; `SpotlightDirective` glow) → choose-tool (spotlight + lift, featured column
+  with a `@property`-animated conic border) →
+  `app-home-templates` → paths → FAQ → install. Do not dim inactive story steps with opacity: axe
+  fails colour contrast.
+- **Templates left the navbar** (now Docs · API · Demos + version, theme, GitHub); exactly one link
+  is `aria-current` (Docs excludes `/docs/reference`). Active = accent text + underline (`.nav-link`);
+  hover is neutral because Volt's ghost hover is `bg-accent`, which hid accent text.
+- SVG `pathLength` via `[moveAnimation]`: do not set the `pathLength` attribute on the path; the
+  engine measures `getTotalLength()` and the attribute rescales dash units. `/templates` itself is unchanged.
+- `e2e-static` "event replay" (theme click before hydration) is intermittent on `main` too (2/8
+  locally); "deep link hydrates without errors" fails only in sandboxes that block Google Fonts.
+- Local tooling gotcha: the container's Node 22.22.0 is below the Angular CLI minimum (22.22.3), and
+  the repo's Playwright expects chromium build 1208 while `/opt/pw-browsers` ships 1243. Run with a
+  Node 24 on PATH and `PLAYWRIGHT_BROWSERS_PATH` pointing at symlinks named `*-1208` → `*-1243`.
 - Final verification and PR delivery are underway; see spec 019 for acceptance tracking.
 
 ## Done — Spec 018 (Website 2.0: Doqs docs, dedicated demos, new product page) — site only

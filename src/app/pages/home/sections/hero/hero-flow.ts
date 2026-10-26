@@ -14,10 +14,23 @@ import {
   viewChild,
 } from '@angular/core';
 import { ThemeService } from '../../../../shared/theme.service';
-import { createHeroFlowRenderer, type HeroFlowRenderer } from './hero-flow-renderer';
+import {
+  createHeroFlowRenderer,
+  type HeroFlowFrame,
+  type HeroFlowRenderer,
+} from './hero-flow-renderer';
 import { warmHeroGpu } from './hero-flow-warmup';
 
-const FRAME_INTERVAL = 1000 / 24;
+// About 60 draws/s at most: slow motion only looks fluid when it is not sampled in steps. 1000/62
+// still draws every frame of a 60 Hz display (with jitter) and every other frame at 120 Hz, and
+// because draws never carry a remainder, no frame clock can push the rate past 62.
+const FRAME_INTERVAL = 1000 / 62;
+const INTRO_SECONDS = 2.4;
+// The lens stays on while the pointer is moving and for this long after it stops.
+const LENS_LINGER = 1200;
+
+/** Frame-rate independent smoothing: the share of the remaining gap to close in `dt` seconds. */
+const approach = (rate: number, dt: number) => 1 - Math.exp(-rate * dt);
 
 @Component({
   selector: 'app-hero-flow',
@@ -40,14 +53,14 @@ const FRAME_INTERVAL = 1000 / 24;
       width: 100%;
       height: 100%;
       display: block;
-      opacity: 0.95;
-      mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
+      mask-image: linear-gradient(transparent, #000 10%, #000 78%, transparent);
     }
+    /* Centred copy sits on the sphere: a soft pool of background keeps it readable. */
     .hero-flow-scrim {
       position: absolute;
       inset: 0;
-      background: linear-gradient(90deg, var(--color-bg), transparent 72%);
-      opacity: 0.3;
+      background: radial-gradient(ellipse 38% 30% at 50% 48%, var(--color-bg) 0%, transparent 100%);
+      opacity: 0.72;
     }
   `,
 })
@@ -77,6 +90,10 @@ export class HeroFlow {
   #dark = true;
   #pointerTarget = { x: 0, y: 0 };
   #pointer = { x: 0, y: 0 };
+  #cursor = { x: 0, y: 0 };
+  #pull = 0;
+  #inside = false;
+  #lastMove = -Infinity;
   #events: AbortController | undefined;
   #resizeObserver: ResizeObserver | undefined;
   #intersectionObserver: IntersectionObserver | undefined;
@@ -126,8 +143,15 @@ export class HeroFlow {
     this.#document.addEventListener(
       'pointermove',
       (event) => {
-        this.#pointerTarget.x = (event.clientX / view.innerWidth) * 2 - 1;
-        this.#pointerTarget.y = -((event.clientY / view.innerHeight) * 2 - 1);
+        // Canvas-relative, so the lens lands under the cursor however far the page scrolled.
+        const rect = canvas.getBoundingClientRect();
+        this.#pointerTarget.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+        this.#pointerTarget.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
+        this.#inside =
+          event.pointerType !== 'touch' &&
+          Math.abs(this.#pointerTarget.x) <= 1 &&
+          Math.abs(this.#pointerTarget.y) <= 1;
+        this.#lastMove = performance.now();
       },
       options,
     );
@@ -166,7 +190,7 @@ export class HeroFlow {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height || !this.#renderer) return;
     this.#renderer.resize(width, height, this.#document.defaultView?.devicePixelRatio ?? 1);
-    this.#renderer.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
+    this.#renderer.draw(this.#frameState());
   }
 
   #sync(active: boolean): void {
@@ -178,7 +202,7 @@ export class HeroFlow {
     } else {
       this.#stop();
       if (this.#visible() && !this.#hidden()) {
-        this.#renderer?.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
+        this.#renderer?.draw(this.#frameState());
       }
     }
   }
@@ -190,15 +214,40 @@ export class HeroFlow {
     }
     const delta = this.#lastDraw ? now - this.#lastDraw : FRAME_INTERVAL;
     if (delta >= FRAME_INTERVAL) {
-      this.#elapsed += Math.min(delta, 100) / 1000;
-      // Glide toward the pointer so the parallax feels weighted, not sticky.
-      this.#pointer.x += (this.#pointerTarget.x - this.#pointer.x) * 0.08;
-      this.#pointer.y += (this.#pointerTarget.y - this.#pointer.y) * 0.08;
-      this.#renderer.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
-      this.#lastDraw = now - (delta % FRAME_INTERVAL);
+      const dt = Math.min(delta, 100) / 1000;
+      this.#elapsed += dt;
+      // The volume leans toward the pointer slowly (weighted parallax); the lens follows it
+      // closely, and fades in while the pointer moves and back out once it rests or leaves.
+      const parallax = approach(2.5, dt);
+      this.#pointer.x += (this.#pointerTarget.x - this.#pointer.x) * parallax;
+      this.#pointer.y += (this.#pointerTarget.y - this.#pointer.y) * parallax;
+      const follow = approach(12, dt);
+      this.#cursor.x += (this.#pointerTarget.x - this.#cursor.x) * follow;
+      this.#cursor.y += (this.#pointerTarget.y - this.#cursor.y) * follow;
+      const engaged = this.#inside && now - this.#lastMove < LENS_LINGER;
+      this.#pull += ((engaged ? 1 : 0) - this.#pull) * approach(engaged ? 5 : 1.6, dt);
+      this.#renderer.draw(this.#frameState());
+      // No remainder carry-over: draws are always a full interval apart, so a jittery frame
+      // clock can never push the rate past the cap.
+      this.#lastDraw = now;
     }
     this.#frame = requestAnimationFrame(this.#tick);
   };
+
+  #frameState(): HeroFlowFrame {
+    // Ease-out cubic entrance; a reduced-motion (static) frame is drawn fully revealed.
+    const progress = Math.min(this.#elapsed / INTRO_SECONDS, 1);
+    return {
+      time: this.#elapsed,
+      dark: this.#dark,
+      pointerX: this.#pointer.x,
+      pointerY: this.#pointer.y,
+      cursorX: this.#cursor.x,
+      cursorY: this.#cursor.y,
+      pull: this.reduced() ? 0 : this.#pull,
+      intro: this.reduced() ? 1 : 1 - Math.pow(1 - progress, 3),
+    };
+  }
 
   #stop(): void {
     if (this.#frame !== null) cancelAnimationFrame(this.#frame);

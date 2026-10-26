@@ -254,6 +254,9 @@ interface MovePresenceProvider {
 }
 declare const MOVE_PRESENCE_PARENT: InjectionToken<MovePresenceProvider>;
 /**
+ * Plays an entrance when the element is created and, inside `*movePresence`, a leave before it is
+ * removed — the one-attribute `[move]` / `[moveAnimate]` shorthand.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -333,6 +336,9 @@ export declare class MoveAnimateDirective implements OnDestroy, OnInit, MovePres
   }, {}, never, never, true, never>;
 }
 /**
+ * Framer Motion-style state animation: give it `initial`, `animate` and optional `exit` states,
+ * and it animates to `animate` whenever the bound object changes.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -385,6 +391,8 @@ export declare class MoveAnimationDirective implements OnInit, OnDestroy, MovePr
   }, {}, never, never, true, never>;
 }
 /**
+ * Plays a preset or keyframes once, when the element is created.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -434,6 +442,9 @@ export declare class MoveEnterDirective implements OnDestroy, OnInit {
   }, {}, never, never, true, never>;
 }
 /**
+ * Plays a preset or keyframes before the element is removed; inside `*movePresence` the view waits
+ * for it to finish.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -586,6 +597,9 @@ export declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresen
   }, {}, never, never, true, never>;
 }
 /**
+ * Plays while the element is pressed with a pointer and reverses on release — press feedback that
+ * also works on touch, where there is no hover.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -672,6 +686,9 @@ interface MoveVariantsProvider {
  */
 declare const MOVE_VARIANTS_PARENT: InjectionToken<MoveVariantsProvider>;
 /**
+ * Animates between named states: bind `moveVariant` to a signal and the element animates whenever
+ * the name changes.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -775,6 +792,9 @@ declare const MOVE_STAGGER_PARENT: InjectionToken<MoveStaggerProvider>;
  */
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
 /**
+ * Gives each animated child a delay from its DOM order, from the first, last or centre child, so
+ * lists cascade without index bookkeeping.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -812,6 +832,9 @@ export declare class MoveStaggerDirective implements MoveStaggerProvider {
   }, {}, never, never, true, never>;
 }
 /**
+ * Animates the element from its previous position and size to its new layout (FLIP), including
+ * shared-element transitions by `moveLayoutId`.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental
@@ -869,6 +892,8 @@ export declare class MoveLayoutDirective implements OnDestroy {
   }, {}, never, never, true, never>;
 }
 /**
+ * Scrubs keyframes with scroll position between two offsets, and exposes the progress as a signal.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -903,6 +928,9 @@ export declare class MoveScrollDirective implements OnInit, OnDestroy {
   }, {}, never, never, true, never>;
 }
 /**
+ * Structural directive that keeps its view mounted until every registered leave animation inside
+ * it has finished.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1037,6 +1065,9 @@ export interface MoveDragEvent {
   pointerEvent: PointerEvent;
 }
 /**
+ * Makes the element draggable with pointer events, with optional axis lock, constraints, snap
+ * points and momentum.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental
@@ -1122,6 +1153,8 @@ export declare class MoveDragDirective implements OnDestroy {
   }, never, never, true, never>;
 }
 /**
+ * Plays when the element scrolls into view, once or every time, using an IntersectionObserver.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1296,6 +1329,8 @@ export declare class MoveSmoothScrollDirective implements OnInit, OnDestroy {
   }, {}, never, never, true, never>;
 }
 /**
+ * Plays while the element has keyboard focus and reverses when focus leaves.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1367,6 +1402,9 @@ export declare class MoveFocusDirective implements OnDestroy, OnInit, MovePresen
   }, {}, never, never, true, never>;
 }
 /**
+ * Moves the element at a different speed from the scroll, deriving the travel from its size and
+ * the viewport.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1401,6 +1439,9 @@ export declare class MoveParallaxDirective implements OnInit, OnDestroy {
   }, {}, never, never, true, never>;
 }
 /**
+ * Repeats a preset or keyframes — endlessly or a set number of times, restarting or reversing each
+ * cycle.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1474,6 +1515,9 @@ export declare class MoveLoopDirective implements OnDestroy {
   }, {}, never, never, true, never>;
 }
 /**
+ * Plays keyframes or a preset on its host when the bound boolean turns true, and plays them in
+ * reverse when it turns false.
+ *
  * Experimental API — may change significantly between minor versions.
  *
  * @stability experimental
@@ -1924,24 +1968,36 @@ export interface MoveSpringValueConfig extends MoveSpring {
   injector?: Injector;
 }
 /**
+ * Creates a writable signal meant to drive motion, to bind into animation inputs or derive with
+ * `moveTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
 export declare function moveValue<T>(initial: T): WritableSignal<T>;
 /**
+ * Derives a signal by mapping another signal's value from one range onto another (clamped by
+ * default), like Framer Motion's `useTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
 export declare function moveTransform(source: Signal<number>, inputRange: readonly number[], outputRange: readonly number[], options?: MoveTransformOptions): Signal<number>;
 /**
+ * Derives a signal by mapping another signal's value from one range onto another (clamped by
+ * default), like Framer Motion's `useTransform`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
 export declare function moveTransform(source: Signal<number>, inputRange: readonly number[], outputRange: readonly string[], options?: MoveTransformOptions): Signal<string>;
 /**
+ * Creates a signal that follows a source signal with spring physics, for values that should settle
+ * instead of jump.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
@@ -1976,12 +2032,17 @@ export interface MovementConfig {
   iterations?: number;
 }
 /**
+ * The built-in timing defaults (duration, easing, delay) used when nothing is configured.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
  */
 export declare const MOVEMENT_DEFAULTS: MovementConfig;
 /**
+ * Injection token for the resolved library-wide defaults; override them with
+ * `provideMovement(config)`.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

@@ -17,6 +17,8 @@ import { isValidScrollOffset, prefersReducedMotion } from './move-animation.util
 import { SmoothScrollService } from '../scroll/smooth-scroll.service';
 
 /**
+ * Scrubs keyframes with scroll position between two offsets, and exposes the progress as a signal.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable

@@ -12,6 +12,9 @@ import { MOVE_STAGGER_PARENT, MoveStaggerProvider } from '../tokens/stagger.toke
 export type MoveStaggerDirection = 'first' | 'last' | 'center';
 
 /**
+ * Gives each animated child a delay from its DOM order, from the first, last or centre child, so
+ * lists cascade without index bookkeeping.
+ *
  * Stable API — covered by semantic-versioning guarantees.
  *
  * @stability stable
