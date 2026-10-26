@@ -7,6 +7,13 @@ inputs:
   browsers:
     description: Space-separated list of chromium, firefox and webkit.
     default: chromium
+  os-deps:
+    description: >-
+      Install the browsers' OS packages too. The ubuntu-latest image already ships every library
+      Chromium links against; `--with-deps` adds fonts (CJK, Unifont) and an xvfb upgrade, and the
+      apt mirror sometimes serves those at a few kB/s (9m32s for 25.9 MB in one run). Jobs that do
+      not depend on font coverage can pass 'false'.
+    default: 'true'
 
 runs:
   using: composite
@@ -27,17 +34,17 @@ runs:
         path: ~/.cache/ms-playwright
         key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.key }}
 
-    - name: Download the browsers and install their OS packages
+    - name: Download the browsers
       if: steps.cache.outputs.cache-hit != 'true'
       shell: bash
       env:
         BROWSERS: ${{ inputs.browsers }}
       # Word splitting is intended: one argument per browser.
-      run: pnpm exec playwright install --with-deps $BROWSERS
+      run: pnpm exec playwright install $BROWSERS
 
     # The browser download is cached; the apt packages it needs are not.
     - name: Install the browsers' OS packages
-      if: steps.cache.outputs.cache-hit == 'true'
+      if: inputs.os-deps == 'true'
       shell: bash
       env:
         BROWSERS: ${{ inputs.browsers }}

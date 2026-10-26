@@ -256,7 +256,10 @@ jobs:
         with:
           persist-credentials: false
       - uses: ./.github/actions/setup
+      # A small fixture app with system fonts only: skips the apt step that can stall for minutes.
       - uses: ./.github/actions/setup-playwright
+        with:
+          os-deps: 'false'
 
       - name: Run packed-package runtime validation on Angular ${{ matrix.angular }}
         run: pnpm run validate:consumer:runtime ${{ matrix.angular }}
