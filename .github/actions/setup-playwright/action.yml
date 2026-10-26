@@ -1,0 +1,44 @@
+name: Setup Playwright browsers
+description: >-
+  Installs Playwright browsers and their OS packages, restoring the browser download from the cache
+  while the Playwright version is unchanged. Run after the setup action.
+
+inputs:
+  browsers:
+    description: Space-separated list of chromium, firefox and webkit.
+    default: chromium
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve the Playwright version
+      id: playwright
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: |
+        echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
+        echo "key=$(tr ' ' '\n' <<< "$BROWSERS" | sort | paste -sd- -)" >> "$GITHUB_OUTPUT"
+
+    - name: Cache the browser download
+      id: cache
+      uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684 # v4.2.3
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-${{ steps.playwright.outputs.key }}
+
+    - name: Download the browsers and install their OS packages
+      if: steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      # Word splitting is intended: one argument per browser.
+      run: pnpm exec playwright install --with-deps $BROWSERS
+
+    # The browser download is cached; the apt packages it needs are not.
+    - name: Install the browsers' OS packages
+      if: steps.cache.outputs.cache-hit == 'true'
+      shell: bash
+      env:
+        BROWSERS: ${{ inputs.browsers }}
+      run: pnpm exec playwright install-deps $BROWSERS

@@ -93,12 +93,23 @@ describe('least privilege', () => {
   });
 
   it('every external action is pinned to a full commit SHA', () => {
+    // Local composite actions (`./.github/actions/*`) live in this repository; what they use is
+    // checked below.
+    const external = (uses) => uses && !uses.startsWith('./');
     for (const file of workflowFiles) {
       const w = workflow(file);
       for (const job of Object.values(w.jobs)) {
         for (const step of job.steps ?? []) {
-          if (step.uses) assert.match(step.uses, /@[0-9a-f]{40}$/, `${file}: ${step.uses}`);
+          if (external(step.uses))
+            assert.match(step.uses, /@[0-9a-f]{40}$/, `${file}: ${step.uses}`);
         }
+      }
+    }
+    const actionsDir = join(ROOT, '.github/actions');
+    for (const name of existsSync(actionsDir) ? readdirSync(actionsDir) : []) {
+      const action = parse(read(`.github/actions/${name}/action.yml`));
+      for (const step of action.runs.steps ?? []) {
+        if (external(step.uses)) assert.match(step.uses, /@[0-9a-f]{40}$/, `${name}: ${step.uses}`);
       }
     }
   });
