@@ -190,7 +190,10 @@ test.describe('hydration and navigation in the production build', () => {
     await page.getByTestId('demo-links').locator('a[href="/docs/guides/enter"]').click();
     await expect(page).toHaveURL(/\/docs\/guides\/enter$/);
     await expect(page.locator('a.doq-nav-link.is-active')).toHaveText('Animate on enter and leave');
-    await expect(page.getByRole('link', { name: 'Docs', exact: true })).toHaveClass(/text-accent/);
+    await expect(page.getByRole('link', { name: 'Docs', exact: true })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
   });
 
   test('the navbar anchor offset: a #fragment lands below the fixed navbar', async ({ page }) => {

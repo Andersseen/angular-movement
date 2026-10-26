@@ -79,7 +79,7 @@ const within = (path: string, section: string) =>
                 variant="ghost"
                 size="sm"
                 [routerLink]="link.href"
-                [class.text-accent]="isActive(link)"
+                class="nav-link"
                 [attr.aria-current]="isActive(link) ? 'page' : null"
                 >{{ link.label }}</a
               >
@@ -159,9 +159,8 @@ const within = (path: string, section: string) =>
               <a
                 voltButton
                 variant="ghost"
-                class="justify-start"
+                class="nav-link justify-start"
                 [routerLink]="link.href"
-                [class.text-accent]="isActive(link)"
                 [attr.aria-current]="isActive(link) ? 'page' : null"
                 (click)="closeMobileMenu()"
                 >{{ link.label }}</a
