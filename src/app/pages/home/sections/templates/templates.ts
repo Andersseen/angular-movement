@@ -89,7 +89,7 @@ const INCLUDED: readonly string[] = [
 
         <div class="template-stage relative p-4 sm:p-6 lg:min-h-[640px]">
           <div class="lg:absolute lg:inset-6">
-            @defer (on viewport) {
+            @defer (on idle) {
               <app-template-live-preview />
             } @placeholder {
               <div class="min-h-[480px]" aria-hidden="true"></div>
