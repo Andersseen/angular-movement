@@ -42,25 +42,29 @@ Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
 - Release audit: source package is **1.3.0**, GitHub `v1.3.0` is still **draft**, npm latest is **1.2.0**.
   No publication/recovery was triggered. Source badges explicitly say “source”. Historical release
   status below predates this audit; use the registry, not package.json, to infer publication.
-- The hero is a full-viewport, centred landing (2026-10-26, user request "closer to hr.andriipap.dev",
-  background effect only; voltui.dev / forgecms.dev / hover.dev as tone references). Its lazy native
-  WebGL field renders the reference portfolio's **sphere**: curl noise of a seed is a unit direction,
-  so particles sit on a shell that fractal octaves fold into filaments; only the focal rim is bright.
-  **User found the first version too noisy**: it is now 10,000 desktop / 4,000 compact fine points,
-  no twinkle, a rare faint orb, slower flow, drawn at up to **60 draws/s** (was 24, which stepped).
-  Backing ≤1600×1000, no dependency. Light-theme gain 0.26. The copy fades on scroll via
-  `moveScroll`. No scroll-cue icon (user removed it). Evidence: `hero-sphere-*.png`.
+- The hero is a full-viewport, centred landing. Its lazy native WebGL field is now **ghost fibres**
+  (user pick, reactbits.dev "Ghost Fibers" as the reference, after the curl-noise sphere read as
+  noise): three layered ribbons of 18 dotted strands each, travelling sine waves that twist edge-on
+  into bright folds, with a depth of field (circle of confusion ∝ distance from focus, alpha ∝
+  1/size² so bokeh stays dim). Closed-form sines, no noise: 60,000 desktop / 24,000 compact points
+  at up to 60 draws/s, additive in dark, premultiplied ink in light (gain 0.26). Backing ≤1600×1000,
+  no dependency. The copy fades on scroll via `moveScroll`. No scroll-cue icon.
 - Landing sections, in order: hero → `app-capabilities` (directive **marquee** on `moveLoop`, two
   runs slid by -50%; wrapped list under reduced motion) → `app-state-demo` (task showcase) →
   `app-explore` (**scroll story**: tall steps beside a sticky Volt-tabs window; the active step comes
   from an IntersectionObserver, tab clicks scroll the step into view; the rail reads
   `moveScroll`'s exported `progress` because measuring a scaled element breaks the offsets) →
   `app-features` (**carousel**, track slid by `[moveAnimation]` x, active card inverted) →
-  live-code → use-cases (`moveWhileHover` on the card, `moveInView` on a wrapper) → choose-tool →
+  live-code → use-cases (**bento**: each tile has a miniature driven by one hover/focus signal through
+  `[moveAnimation]`; `SpotlightDirective` glow) → choose-tool (spotlight + lift, featured column
+  with a `@property`-animated conic border) →
   `app-home-templates` → paths → FAQ → install. Do not dim inactive story steps with opacity: axe
   fails colour contrast.
 - **Templates left the navbar** (now Docs · API · Demos + version, theme, GitHub); exactly one link
-  is `aria-current` (Docs excludes `/docs/reference`). `/templates` itself is unchanged.
+  is `aria-current` (Docs excludes `/docs/reference`). Active = accent text + underline (`.nav-link`);
+  hover is neutral because Volt's ghost hover is `bg-accent`, which hid accent text.
+- SVG `pathLength` via `[moveAnimation]`: do not set the `pathLength` attribute on the path; the
+  engine measures `getTotalLength()` and the attribute rescales dash units. `/templates` itself is unchanged.
 - `e2e-static` "event replay" (theme click before hydration) is intermittent on `main` too (2/8
   locally); "deep link hydrates without errors" fails only in sandboxes that block Google Fonts.
 - Local tooling gotcha: the container's Node 22.22.0 is below the Angular CLI minimum (22.22.3), and

@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MoveInViewDirective, MoveStaggerDirective } from 'movement';
+import { MoveHoverDirective, MoveInViewDirective, MoveStaggerDirective } from 'movement';
 import {
   VoltBadge,
   VoltCard,
@@ -11,6 +11,7 @@ import {
   VoltNativeButton,
 } from '@voltui/components';
 import { LmnCheckIcon } from 'lumen-icons/check';
+import { SpotlightDirective } from '../../../../shared/spotlight/spotlight.directive';
 
 interface Tool {
   name: string;
@@ -23,8 +24,10 @@ interface Tool {
   selector: 'app-choose-tool',
   imports: [
     RouterLink,
+    MoveHoverDirective,
     MoveInViewDirective,
     MoveStaggerDirective,
+    SpotlightDirective,
     VoltBadge,
     VoltCard,
     VoltCardHeader,
@@ -53,34 +56,34 @@ interface Tool {
         class="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4"
       >
         @for (tool of tools; track tool.name) {
-          <volt-card
-            moveInView="fade-up"
-            class="landing-card h-full"
-            [class.border-accent]="tool.highlight"
-            [style.box-shadow]="
-              tool.highlight ? '0 20px 60px -28px var(--color-accent-glow)' : null
-            "
-          >
-            <volt-card-header>
-              <div class="flex items-start justify-between gap-2">
-                <volt-card-title>{{ tool.name }}</volt-card-title>
-                @if (tool.highlight) {
-                  <volt-badge class="shrink-0 whitespace-nowrap">State-driven</volt-badge>
-                }
-              </div>
-              <volt-card-description>{{ tool.when }}</volt-card-description>
-            </volt-card-header>
-            <volt-card-content>
-              <ul class="text-text-muted m-0 flex list-none flex-col gap-2 p-0 text-sm">
-                @for (point of tool.points; track point) {
-                  <li class="flex gap-2">
-                    <lmn-check class="text-accent mt-0.5 shrink-0" [size]="16" ariaLabel="" />
-                    <span>{{ point }}</span>
-                  </li>
-                }
-              </ul>
-            </volt-card-content>
-          </volt-card>
+          <!-- Reveal on the wrapper, lift on the card; the featured column wears a moving border. -->
+          <div moveInView="fade-up" class="h-full" [class.tool-featured]="tool.highlight">
+            <volt-card
+              appSpotlight
+              class="landing-card tool-card h-full"
+              [moveWhileHover]="{ y: [0, -6] }"
+            >
+              <volt-card-header>
+                <div class="flex items-start justify-between gap-2">
+                  <volt-card-title>{{ tool.name }}</volt-card-title>
+                  @if (tool.highlight) {
+                    <volt-badge class="shrink-0 whitespace-nowrap">State-driven</volt-badge>
+                  }
+                </div>
+                <volt-card-description>{{ tool.when }}</volt-card-description>
+              </volt-card-header>
+              <volt-card-content>
+                <ul class="text-text-muted m-0 flex list-none flex-col gap-2 p-0 text-sm">
+                  @for (point of tool.points; track point) {
+                    <li class="flex gap-2">
+                      <lmn-check class="text-accent mt-0.5 shrink-0" [size]="16" ariaLabel="" />
+                      <span>{{ point }}</span>
+                    </li>
+                  }
+                </ul>
+              </volt-card-content>
+            </volt-card>
+          </div>
         }
       </div>
 
