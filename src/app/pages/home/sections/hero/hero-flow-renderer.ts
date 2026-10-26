@@ -1,6 +1,6 @@
 /**
  * Depth-of-field particle sphere for the hero: a curl-noise shell folded by fractal octaves,
- * sharp sparkling dust on the focal rim and a few soft bokeh orbs in front. A faithful, dependency-free take on the reference
+ * fine steady dust on the focal rim, with everything out of focus fading away. A faithful, dependency-free take on the reference
  * portfolio's Three.js scene — one draw call, no render targets, no simulation state (the flow
  * is a pure function of seed + time, so positions are computed per vertex).
  */
@@ -127,13 +127,13 @@ mat3 rotateX(float a) {
 }
 
 void main() {
-  float t = uTime * 0.11;
+  float t = uTime * 0.05;
   vec3 seed = aSeed.xyz;
   float rnd = aSeed.w;
 
   // The reference sphere: curl noise of a point is a unit direction, so particles live on a
   // shell; a fractal octave stack folds that shell into filaments, and a slow noise blend
-  // breathes between the two so the surface never settles.
+  // breathes between the two so the surface drifts instead of settling.
   vec3 shell = curlNoise(seed * CURL_FREQ + t);
   vec3 folded = shell;
   folded += curlNoise(folded * CURL_FREQ * 2.0) * 0.5;
@@ -142,7 +142,7 @@ void main() {
   vec3 p = mix(shell, folded, snoise(shell + t)) * RADIUS;
 
   // A slow turntable plus a pointer tilt: the volume reads as 3D, the hero copy never moves.
-  p = rotateX(-uPointer.y * 0.28) * rotateY(uTime * 0.035 + uPointer.x * 0.42) * p;
+  p = rotateX(-uPointer.y * 0.22) * rotateY(uTime * 0.02 + uPointer.x * 0.32) * p;
 
   vec3 view = vec3(p.x, p.y, p.z - CAM_DIST);
   float dist = max(-view.z, 0.4);
@@ -153,20 +153,19 @@ void main() {
   ndc.x /= uAspect;
   gl_Position = vec4(ndc, 0.0, 1.0);
 
-  // Fine sharp dust (~96%) and a few soft bokeh orbs drifting in front of the copy (~4%).
-  float bokeh = step(0.96, fract(rnd * 7.13));
+  // Calm by design: fine, steady dust (no twinkle) and a rare, very faint out-of-focus orb.
+  float bokeh = step(0.985, fract(rnd * 7.13));
+  float base = mix(1.1 + rnd * 1.1, 10.0 + rnd * 12.0, bokeh);
+  float size = base * (1.0 + dof * mix(0.35, 0.5, bokeh));
+  gl_PointSize = clamp(size * (FOCUS / dist), 1.0, 36.0);
 
-  float base = mix(1.2 + rnd * 1.6, 7.0 + rnd * 14.0, bokeh);
-  float size = base * (1.0 + dof * mix(1.1, 0.6, bokeh));
-  gl_PointSize = clamp(size * (FOCUS / dist), 1.0, 44.0);
-
-  // The rim sits in the focal plane and sparkles; front and back fall out of focus.
-  float band = exp(-dof * dof * mix(1.6, 0.3, bokeh));
-  float twinkle = 0.7 + 0.3 * sin(uTime * (1.2 + rnd * 2.4) + rnd * 40.0);
-  float alpha = mix(mix(0.035, 0.95, band) * twinkle, mix(0.012, 0.13, band), bokeh);
+  // Only the focal rim is bright; everything in front of or behind it falls away quickly,
+  // which is what keeps the field soft instead of grainy.
+  float band = exp(-dof * dof * mix(2.2, 0.35, bokeh));
+  float alpha = mix(mix(0.0, 0.85, band), mix(0.0, 0.05, band), bokeh);
 
   vAlpha = alpha;
-  vSoft = max(bokeh, smoothstep(0.3, 1.2, dof));
+  vSoft = max(bokeh, smoothstep(0.25, 1.0, dof));
   vTint = fract(rnd * 13.73);
 }
 `;
@@ -191,10 +190,11 @@ void main() {
 }
 `;
 
-export const HERO_PARTICLE_LIMIT = 22000;
+// Few, fine particles drawn every frame read as smooth; many coarse ones read as noise.
+export const HERO_PARTICLE_LIMIT = 10000;
 
 export function heroParticleCount(width: number): number {
-  return width < 768 ? 7500 : HERO_PARTICLE_LIMIT;
+  return width < 768 ? 4000 : HERO_PARTICLE_LIMIT;
 }
 
 export function heroBackingSize(width: number, height: number, deviceRatio: number) {

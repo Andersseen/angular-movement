@@ -6,7 +6,7 @@ describe('hero rendering budget', () => {
     for (const width of [320, 390, 768, 1440, 1920, 7680]) {
       expect(heroParticleCount(width)).toBeLessThanOrEqual(HERO_PARTICLE_LIMIT);
     }
-    expect(HERO_PARTICLE_LIMIT).toBeLessThanOrEqual(22000);
+    expect(HERO_PARTICLE_LIMIT).toBeLessThanOrEqual(10000);
   });
 
   it.each([

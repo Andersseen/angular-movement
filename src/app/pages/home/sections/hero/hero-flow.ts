@@ -17,7 +17,9 @@ import { ThemeService } from '../../../../shared/theme.service';
 import { createHeroFlowRenderer, type HeroFlowRenderer } from './hero-flow-renderer';
 import { warmHeroGpu } from './hero-flow-warmup';
 
-const FRAME_INTERVAL = 1000 / 24;
+// 60 draws/s at most: slow motion only looks fluid when it is not sampled in steps. The
+// slack keeps a 60 Hz display on every frame and halves a 120 Hz one.
+const FRAME_INTERVAL = 1000 / 60 - 2;
 
 @Component({
   selector: 'app-hero-flow',
@@ -192,8 +194,8 @@ export class HeroFlow {
     if (delta >= FRAME_INTERVAL) {
       this.#elapsed += Math.min(delta, 100) / 1000;
       // Glide toward the pointer so the parallax feels weighted, not sticky.
-      this.#pointer.x += (this.#pointerTarget.x - this.#pointer.x) * 0.08;
-      this.#pointer.y += (this.#pointerTarget.y - this.#pointer.y) * 0.08;
+      this.#pointer.x += (this.#pointerTarget.x - this.#pointer.x) * 0.04;
+      this.#pointer.y += (this.#pointerTarget.y - this.#pointer.y) * 0.04;
       this.#renderer.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
       this.#lastDraw = now - (delta % FRAME_INTERVAL);
     }

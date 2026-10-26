@@ -139,7 +139,7 @@ test('organic hero draws a bounded field and supports theme changes and route cl
     .toBeGreaterThan(12);
   const sample = await metrics(page);
   expect(sample.requestedPerformanceGuard).toBe(true);
-  expect(Math.max(...sample.points)).toBeLessThanOrEqual(22000);
+  expect(Math.max(...sample.points)).toBeLessThanOrEqual(10000);
   const canvasSize = await field
     .locator('canvas')
     .evaluate((canvas) => ({ width: canvas.width, height: canvas.height }));
@@ -147,7 +147,8 @@ test('organic hero draws a bounded field and supports theme changes and route cl
   expect(canvasSize.height).toBeLessThanOrEqual(1000);
   const cadence = sample.times.slice(3);
   const seconds = (cadence.at(-1)! - cadence[0]) / 1000;
-  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(27);
+  // Capped at 60 draws/s (a 120 Hz display draws every other frame).
+  expect((cadence.length - 1) / seconds).toBeLessThanOrEqual(64);
   await info.attach('hero-draw-submission-sample', {
     body: JSON.stringify(sample),
     contentType: 'application/json',
@@ -259,7 +260,7 @@ test('compact screens use the smaller particle budget', async ({ page }) => {
   const field = await openField(page);
   await expect(field).toHaveAttribute('data-motion-state', 'running');
   await expect.poll(async () => (await metrics(page)).times.length).toBeGreaterThan(3);
-  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(7500);
+  expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(4000);
 });
 
 for (const theme of ['dark', 'light']) {

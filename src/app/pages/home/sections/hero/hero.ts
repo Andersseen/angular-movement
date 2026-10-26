@@ -125,10 +125,6 @@ const STATS: readonly HeroStat[] = [
           </p>
         </div>
       </div>
-
-      <a href="#state-demo" class="hero-scroll-cue" aria-label="Scroll to the live example">
-        <span class="hero-scroll-wheel" aria-hidden="true"></span>
-      </a>
     </section>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
