@@ -1,5 +1,5 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import {
   MoveAnimateDirective,
   MovePresenceForDirective,
@@ -27,6 +27,10 @@ export const routeMeta: RouteMeta = { title: 'movePresenceFor demo — Angular M
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
+      (resetDemo)="resetList()"
+      [customCode]="presenceCode()"
+      supportCode="readonly items = signal([{ id: 1, label: 'First item' }]); readonly byId = (_: number, item: { id: number }) => item.id;"
+      [sourceImports]="['MovePresenceForDirective', 'MoveAnimateDirective']"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -86,6 +90,15 @@ export const routeMeta: RouteMeta = { title: 'movePresenceFor demo — Angular M
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoPresenceList {
+  protected resetList(): void {
+    this.items.set([
+      { id: 1, label: 'First item' },
+      { id: 2, label: 'Second item' },
+      { id: 3, label: 'Third item' },
+    ]);
+    this.mode.set('sync');
+    this.#nextId = 4;
+  }
   protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = DEFAULT_CONTROLS.standard;
 
@@ -96,6 +109,14 @@ export default class DemoPresenceList {
   ]);
   protected readonly mode = signal<MovePresenceForMode>('sync');
 
+  protected readonly presenceCode = computed(
+    () => `<ul>
+  <li *movePresenceFor="let item of items(); trackBy: byId; mode: '${this.mode()}'"
+    move="${this.preset()}" moveDuration="${this.duration()}ms" moveEasing="${this.easing()}">
+    {{ item.label }}
+  </li>
+</ul>`,
+  );
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
   protected easing = signal('ease');

@@ -1,5 +1,12 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { MoveEnterDirective, MoveStaggerDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
@@ -11,6 +18,8 @@ export const routeMeta: RouteMeta = { title: 'moveStagger demo — Angular Movem
   imports: [DemoContainer, MoveStaggerDirective, MoveEnterDirective],
   template: `
     <app-demo-container
+      supportCode="readonly items = [{ id: 1, label: 'One' }, { id: 2, label: 'Two' }, { id: 3, label: 'Three' }];"
+      [sourceImports]="['MoveStaggerDirective', 'MoveEnterDirective']"
       title="moveStagger"
       description="Animate multiple children with a staggered delay. Perfect for lists, grids, and card layouts."
       directive="moveStagger"
@@ -49,6 +58,11 @@ export const routeMeta: RouteMeta = { title: 'moveStagger demo — Angular Movem
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoStagger {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = {
     ...DEFAULT_CONTROLS.standard,
@@ -76,7 +90,7 @@ export default class DemoStagger {
   protected readonly staggerCode = computed(
     () => `<div moveStagger moveStaggerStep="${this.staggerDelay()}ms">
   @for (item of items; track item.id) {
-    <div moveEnter="${this.preset()}" moveDuration="${this.duration()}ms">{{ item.label }}</div>
+    <div moveEnter="${this.preset()}" moveDuration="${this.duration()}ms" moveEasing="${this.easing()}">{{ item.label }}</div>
   }
 </div>`,
   );
@@ -91,6 +105,7 @@ export default class DemoStagger {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 50);
   }
 }

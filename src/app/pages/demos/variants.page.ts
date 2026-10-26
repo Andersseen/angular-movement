@@ -10,6 +10,7 @@ export const routeMeta: RouteMeta = { title: 'moveVariants demo — Angular Move
   imports: [DemoContainer, MoveVariantsDirective],
   template: `
     <app-demo-container
+      [supportCode]="variantsSupportCode"
       title="moveVariants"
       description="Define multiple animation states and transition between them. Perfect for interactive components with multiple states."
       directive="moveVariant"
@@ -72,8 +73,11 @@ export default class DemoVariants {
   protected easing = signal('spring');
   protected currentVariant = signal('idle');
 
+  protected readonly variantsSupportCode = `readonly variantsConfig = {
+    idle: { scale: 1, rotate: 0 }, hover: { scale: 1.1, rotate: 5 }, active: { scale: 0.95, rotate: -5 }
+  };`;
   protected readonly variantsCode = computed(() => {
-    return `<div [moveVariants]="variantsConfig" [moveVariant]="'${this.currentVariant()}'">\n  Target Element\n</div>`;
+    return `<div [moveVariants]="{ idle: { scale: 1, rotate: 0 }, hover: { scale: 1.1, rotate: 5 }, active: { scale: 0.95, rotate: -5 } }" moveDuration="${this.duration()}ms" moveEasing="${this.easing()}" [moveVariant]="'${this.currentVariant()}'">\n  Target Element\n</div>`;
   });
 
   protected readonly variantsConfig: Record<string, MoveVariant> = {

@@ -152,22 +152,22 @@ change after 1.0, which is the whole point of freezing a surface.
 ## Implementation plan
 
 - [x] 1. `projects/movement/src/lib/tokens/presence.tokens.ts` — no signature change; confirm
-     `MovePresenceProvider` is sufficient for a per-item scope.
+      `MovePresenceProvider` is sufficient for a per-item scope.
 - [x] 2. `projects/movement/src/lib/directives/move-presence-for.directive.ts` — new structural
-     directive. Per-item `Injector.create({ providers: [MOVE_PRESENCE_PARENT …] })` passed to
-     `createEmbeddedView(tpl, ctx, { injector })`.
-     **Validated before writing the spec** — see Verification notes. The fallback (attributing
-     registrations by matching the child's host element against `view.rootNodes`) is not needed.
+      directive. Per-item `Injector.create({ providers: [MOVE_PRESENCE_PARENT …] })` passed to
+      `createEmbeddedView(tpl, ctx, { injector })`.
+      **Validated before writing the spec** — see Verification notes. The fallback (attributing
+      registrations by matching the child's host element against `view.rootNodes`) is not needed.
 - [x] 3. Colocated `move-presence-for.directive.spec.ts`.
 - [x] 4. `projects/movement/src/lib/directives/shared-layout.registry.ts` — internal root service.
 - [x] 5. `projects/movement/src/lib/directives/move-layout.directive.ts` — consume the registry;
-     publish the live rect each render; read the peer rect on mount.
+      publish the live rect each render; read the peer rect on mount.
 - [x] 6. Extend `move-layout.directive.spec.ts` with shared-id and stale-entry cases.
 - [x] 7. `projects/movement/src/lib/engines/move-animator.service.ts` + colocated spec.
 - [x] 8. `projects/movement/src/lib/directives/move-animation.directive.ts` — move the play into an
-     `effect()` keyed on the `animate` state; keep `initial` first-render-only.
+      `effect()` keyed on the `animate` state; keep `initial` first-render-only.
 - [x] 9. `projects/movement/src/lib/engines/animation-engine.service.ts` — collapse the dead
-     `if`/`else` at lines 111-115 (both branches call the same `setProperty`).
+      `if`/`else` at lines 111-115 (both branches call the same `setProperty`).
 - [x] 10. `projects/movement/src/lib/movement.ts` — add `MovePresenceForDirective` to
       `MOVEMENT_DIRECTIVES` + `export *` lines for the directive and `MoveAnimator`.
 - [x] 11. `src/app/pages/demos/presence-list/` demo page + demos navigation entry.

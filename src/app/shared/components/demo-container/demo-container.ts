@@ -7,10 +7,13 @@ import {
   output,
   signal,
 } from '@angular/core';
+import { DemoWorkbench } from '../demo-workbench/demo-workbench';
 import { FormsModule } from '@angular/forms';
 import { MovePreset } from 'movement';
 import { RangeSlider } from '../range-slider/range-slider';
-import { CodeBlock } from '../code-block/code-block';
+import { DemoCodeTabs } from '../demo-workbench/demo-code-tabs';
+import { DEMO_GROUPS } from '../demo-workbench/demo-navigation';
+import { DEMO_LINKS } from '../../../motion-examples/demo-links';
 
 export interface DemoControlConfig {
   showPreset?: boolean;
@@ -44,253 +47,200 @@ export interface DemoState {
 
 @Component({
   selector: 'app-demo-container',
-  imports: [FormsModule, RangeSlider, CodeBlock],
+  imports: [FormsModule, RangeSlider, DemoCodeTabs, DemoWorkbench],
   template: `
-    <div class="space-y-8">
-      <!-- Header -->
-      <div>
-        <h1
-          class="font-display text-text relative mb-4 inline-block text-3xl font-bold tracking-tight md:text-4xl"
-        >
-          {{ title() }}
-          <span
-            class="bg-accent-solid absolute -bottom-2 left-0 block h-1 w-1/3 rounded-full"
-          ></span>
-        </h1>
-        <p class="text-text-muted mt-6 max-w-2xl text-lg">
-          {{ description() }}
-        </p>
-      </div>
-
-      <div class="flex flex-col items-start gap-8 lg:flex-row lg:gap-12">
-        <!-- Left Panel: Controls (40%) -->
-        <div
-          class="bg-surface border-border w-full shrink-0 rounded-2xl border p-6 shadow-sm md:p-8 lg:w-[40%]"
-        >
-          <div class="mb-8 flex items-center justify-between">
-            <h2 class="font-display text-text text-xl font-semibold">Configuration</h2>
-            @if (showReplay()) {
-              <button
-                class="text-accent hover:text-accent-light bg-accent/10 flex items-center gap-1 rounded-full px-3 py-1.5 text-sm font-medium transition-colors"
-                (click)="replay.emit()"
-              >
-                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-                  ></path>
-                </svg>
-                Replay
-              </button>
-            }
-          </div>
-
-          <div class="space-y-8">
-            <!-- Preset Selector -->
-            @if (controls().showPreset !== false && availablePresets().length > 0) {
-              <div>
-                <div class="mb-2 flex items-end justify-between">
-                  <label for="preset-select" class="text-text-muted block text-sm font-medium"
-                    >Preset</label
-                  >
-                  <span class="text-text-subtle font-mono text-xs">{{ preset() }}</span>
-                </div>
-                <div class="relative">
-                  <select
-                    id="preset-select"
-                    [ngModel]="preset()"
-                    (ngModelChange)="updatePreset($event)"
-                    class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full appearance-none rounded-xl border py-3 pr-10 pl-4 text-sm transition-shadow focus:ring-1 focus:outline-none"
-                  >
-                    @for (group of presetGroups(); track group.label) {
-                      <optgroup [label]="group.label">
-                        @for (p of group.presets; track p) {
-                          <option [value]="p">{{ p }}</option>
-                        }
-                      </optgroup>
-                    }
-                  </select>
-                  <div
-                    class="text-text-subtle pointer-events-none absolute inset-y-0 right-0 flex items-center px-4"
-                  >
-                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path
-                        stroke-linecap="round"
-                        stroke-linecap="round"
-                        stroke-width="2"
-                        d="M19 9l-7 7-7-7"
-                      />
-                    </svg>
-                  </div>
+    <app-demo-workbench
+      [title]="title()"
+      [description]="description()"
+      [experimental]="experimental()"
+      [canReplay]="showReplay()"
+      [canReset]="true"
+      (replay)="replay.emit()"
+      (resetRequested)="resetDefaults()"
+    >
+      <div stage class="workbench-preview-content"><ng-content select="[preview]" /></div>
+      <div controls>
+        <div class="space-y-8">
+          <!-- Preset Selector -->
+          @if (controls().showPreset !== false && availablePresets().length > 0) {
+            <div>
+              <div class="mb-2 flex items-end justify-between">
+                <label for="preset-select" class="text-text-muted block text-sm font-medium"
+                  >Preset</label
+                >
+                <span class="text-text-subtle font-mono text-xs">{{ preset() }}</span>
+              </div>
+              <div class="relative">
+                <select
+                  id="preset-select"
+                  [ngModel]="preset()"
+                  (ngModelChange)="updatePreset($event)"
+                  class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full appearance-none rounded-xl border py-3 pr-10 pl-4 text-sm transition-shadow focus:ring-1 focus:outline-none"
+                >
+                  @for (group of presetGroups(); track group.label) {
+                    <optgroup [label]="group.label">
+                      @for (p of group.presets; track p) {
+                        <option [value]="p">{{ p }}</option>
+                      }
+                    </optgroup>
+                  }
+                </select>
+                <div
+                  class="text-text-subtle pointer-events-none absolute inset-y-0 right-0 flex items-center px-4"
+                >
+                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linecap="round"
+                      stroke-width="2"
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
                 </div>
               </div>
-            }
+            </div>
+          }
 
-            <!-- Duration Slider -->
-            @if (controls().showDuration !== false) {
-              <app-range-slider
-                controlId="duration-range"
-                label="Duration"
-                unit="ms"
-                [value]="duration()"
-                [min]="100"
-                [max]="2000"
-                [step]="50"
-                (valueChange)="updateDuration($event)"
-              />
-            }
+          <!-- Duration Slider -->
+          @if (controls().showDuration !== false) {
+            <app-range-slider
+              controlId="duration-range"
+              label="Duration"
+              unit="ms"
+              [value]="duration()"
+              [min]="100"
+              [max]="2000"
+              [step]="50"
+              (valueChange)="updateDuration($event)"
+            />
+          }
 
-            <!-- Delay Slider -->
-            @if (controls().showDelay !== false) {
-              <app-range-slider
-                controlId="delay-range"
-                label="Delay"
-                unit="ms"
-                [value]="delay()"
-                [min]="0"
-                [max]="1000"
-                [step]="50"
-                (valueChange)="updateDelay($event)"
-              />
-            }
+          <!-- Delay Slider -->
+          @if (controls().showDelay !== false) {
+            <app-range-slider
+              controlId="delay-range"
+              label="Delay"
+              unit="ms"
+              [value]="delay()"
+              [min]="0"
+              [max]="1000"
+              [step]="50"
+              (valueChange)="updateDelay($event)"
+            />
+          }
 
-            <!-- Easing Selector -->
-            @if (controls().showEasing !== false) {
+          <!-- Easing Selector -->
+          @if (controls().showEasing !== false) {
+            <div>
+              <div class="mb-2 flex items-end justify-between">
+                <span class="text-text-muted block text-sm font-medium">Easing</span>
+                <span class="text-text-subtle font-mono text-xs">{{ easing() }}</span>
+              </div>
+              <div class="grid grid-cols-2 gap-2">
+                @for (ease of easings(); track ease) {
+                  <button
+                    (click)="updateEasing(ease)"
+                    [attr.aria-pressed]="easing() === ease"
+                    [class]="
+                      easing() === ease
+                        ? 'bg-accent-solid border-accent-solid text-white'
+                        : 'bg-bg text-text-muted border-border hover:border-accent/50'
+                    "
+                    class="rounded-lg border py-2 text-center text-sm transition-all"
+                  >
+                    {{ ease }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          <!-- Custom Controls -->
+          @if (controls().customControls) {
+            @for (control of controls().customControls; track control.id) {
               <div>
                 <div class="mb-2 flex items-end justify-between">
-                  <span class="text-text-muted block text-sm font-medium">Easing</span>
-                  <span class="text-text-subtle font-mono text-xs">{{ easing() }}</span>
-                </div>
-                <div class="grid grid-cols-2 gap-2">
-                  @for (ease of easings(); track ease) {
-                    <button
-                      (click)="updateEasing(ease)"
-                      [class]="
-                        easing() === ease
-                          ? 'bg-accent-solid border-accent-solid text-white'
-                          : 'bg-bg text-text-muted border-border hover:border-accent/50'
-                      "
-                      class="rounded-lg border py-2 text-center text-sm transition-all"
+                  <label [for]="control.id" class="text-text-muted block text-sm font-medium">
+                    {{ control.label }}
+                  </label>
+                  @if (control.type === 'range') {
+                    <span class="text-text-subtle font-mono text-xs"
+                      >{{ customValues()[control.id] }}{{ customControlUnit(control.id) }}</span
                     >
-                      {{ ease }}
+                  }
+                </div>
+
+                @switch (control.type) {
+                  @case ('select') {
+                    <select
+                      [id]="control.id"
+                      [ngModel]="customValues()[control.id]"
+                      (ngModelChange)="updateCustomValue(control.id, $event)"
+                      class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
+                    >
+                      @for (opt of control.options; track opt.value) {
+                        <option [value]="opt.value">{{ opt.label }}</option>
+                      }
+                    </select>
+                  }
+                  @case ('range') {
+                    <input
+                      [id]="control.id"
+                      type="range"
+                      [min]="control.min ?? 0"
+                      [max]="control.max ?? 100"
+                      [step]="control.step ?? 1"
+                      [ngModel]="customValues()[control.id]"
+                      (ngModelChange)="updateCustomValue(control.id, $event)"
+                      class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
+                    />
+                    <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
+                      <span>{{ control.min ?? 0 }}{{ customControlUnit(control.id) }}</span>
+                      <span>{{ control.max ?? 100 }}{{ customControlUnit(control.id) }}</span>
+                    </div>
+                  }
+                  @case ('text') {
+                    <input
+                      [id]="control.id"
+                      type="text"
+                      [ngModel]="customValues()[control.id]"
+                      (ngModelChange)="updateCustomValue(control.id, $event)"
+                      class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
+                    />
+                  }
+                  @case ('toggle') {
+                    <button
+                      [id]="control.id"
+                      (click)="updateCustomValue(control.id, !customValues()[control.id])"
+                      [attr.aria-label]="control.label"
+                      [attr.aria-pressed]="!!customValues()[control.id]"
+                      [class]="
+                        customValues()[control.id]
+                          ? 'bg-accent-solid border-accent'
+                          : 'bg-bg border-border'
+                      "
+                      class="w-full rounded-lg border py-2 text-sm transition-all"
+                      [class.text-white]="customValues()[control.id]"
+                      [class.text-text-muted]="!customValues()[control.id]"
+                    >
+                      {{ customValues()[control.id] ? 'On' : 'Off' }}
                     </button>
                   }
-                </div>
+                }
               </div>
             }
-
-            <!-- Custom Controls -->
-            @if (controls().customControls) {
-              @for (control of controls().customControls; track control.id) {
-                <div>
-                  <div class="mb-2 flex items-end justify-between">
-                    <label [for]="control.id" class="text-text-muted block text-sm font-medium">
-                      {{ control.label }}
-                    </label>
-                    @if (control.type === 'range') {
-                      <span class="text-text-subtle font-mono text-xs"
-                        >{{ customValues()[control.id] }}{{ customControlUnit(control.id) }}</span
-                      >
-                    }
-                  </div>
-
-                  @switch (control.type) {
-                    @case ('select') {
-                      <select
-                        [id]="control.id"
-                        [ngModel]="customValues()[control.id]"
-                        (ngModelChange)="updateCustomValue(control.id, $event)"
-                        class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
-                      >
-                        @for (opt of control.options; track opt.value) {
-                          <option [value]="opt.value">{{ opt.label }}</option>
-                        }
-                      </select>
-                    }
-                    @case ('range') {
-                      <input
-                        [id]="control.id"
-                        type="range"
-                        [min]="control.min ?? 0"
-                        [max]="control.max ?? 100"
-                        [step]="control.step ?? 1"
-                        [ngModel]="customValues()[control.id]"
-                        (ngModelChange)="updateCustomValue(control.id, $event)"
-                        class="bg-surface-raised accent-accent h-2 w-full cursor-pointer appearance-none rounded-lg"
-                      />
-                      <div class="text-text-subtle mt-1 flex justify-between px-1 text-xs">
-                        <span>{{ control.min ?? 0 }}{{ customControlUnit(control.id) }}</span>
-                        <span>{{ control.max ?? 100 }}{{ customControlUnit(control.id) }}</span>
-                      </div>
-                    }
-                    @case ('text') {
-                      <input
-                        [id]="control.id"
-                        type="text"
-                        [ngModel]="customValues()[control.id]"
-                        (ngModelChange)="updateCustomValue(control.id, $event)"
-                        class="bg-bg border-border text-text focus:border-accent focus:ring-accent block w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
-                      />
-                    }
-                    @case ('toggle') {
-                      <button
-                        (click)="updateCustomValue(control.id, !customValues()[control.id])"
-                        [class]="
-                          customValues()[control.id]
-                            ? 'bg-accent-solid border-accent'
-                            : 'bg-bg border-border'
-                        "
-                        class="w-full rounded-lg border py-2 text-sm transition-all"
-                        [class.text-white]="customValues()[control.id]"
-                        [class.text-text-muted]="!customValues()[control.id]"
-                      >
-                        {{ customValues()[control.id] ? 'On' : 'Off' }}
-                      </button>
-                    }
-                  }
-                </div>
-              }
-            }
-          </div>
-        </div>
-
-        <!-- Right Panel: Preview & Code (60%) -->
-        <div class="flex w-full flex-col gap-6 lg:w-[60%]">
-          <!-- Live Preview Area -->
-          <div
-            class="border-border group relative flex h-[300px] items-center justify-center overflow-hidden rounded-2xl border bg-[url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAAXNSR0IArs4c6QAAACVJREFUKFNjZCASMDKgAnv37v3PjE8RXxKYIsIymIagGgYKAAAACv0E/7zZ9k0AAAAASUVORK5CYII=')] bg-repeat sm:h-[340px]"
-          >
-            <div class="bg-bg/80 absolute inset-0 z-0 backdrop-blur-[1px]"></div>
-
-            <div class="relative z-10 flex h-full w-full items-center justify-center p-4 sm:p-6">
-              <ng-content select="[preview]" />
-            </div>
-
-            <div class="absolute right-4 bottom-4 z-20">
-              <span
-                class="text-text-subtle bg-bg/80 border-border rounded border px-2 py-1 font-mono text-xs backdrop-blur"
-              >
-                Preview Area
-              </span>
-            </div>
-          </div>
-
-          <!-- Generated Code Snippet: same source of truth as the controls above -->
-          <app-code-block title="demo.html" language="html" [code]="highlightedCode()" />
+          }
         </div>
       </div>
-
-      <!-- Additional Content Slot -->
-      <ng-content />
-    </div>
+      <app-demo-code-tabs code [files]="sourceFiles()" />
+    </app-demo-workbench>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DemoContainer implements OnInit {
   // Inputs
   readonly title = input.required<string>();
+  readonly experimental = input(false);
   readonly description = input.required<string>();
   readonly controls = input<DemoControlConfig>({});
   readonly availablePresets = input<MovePreset[]>([
@@ -319,6 +269,7 @@ export class DemoContainer implements OnInit {
   ]);
   readonly directive = input<string>('');
   readonly showReplay = input<boolean>(true);
+  readonly initialPreset = input<MovePreset>('fade-up');
   readonly initialDuration = input<number>(300);
   readonly initialDelay = input<number>(0);
   readonly initialEasing = input<string>('ease');
@@ -332,10 +283,46 @@ export class DemoContainer implements OnInit {
 
   /** Override the entire generated code block. Useful for multi-element demos. */
   readonly customCode = input<string | undefined>(undefined);
+  /** Component-local state required by the generated HTML; owned by the demo. */
+  readonly supportCode = input('');
+  readonly sourceImports = input<readonly string[] | undefined>(undefined);
+  readonly sourceFiles = computed(() => {
+    const slug = DEMO_GROUPS.flatMap((group) => group.items).find(
+      (item) => item.label === this.title(),
+    )?.path;
+    const imports =
+      (slug ? DEMO_LINKS[slug]?.api : [])
+        ?.map((api) => api.label)
+        .filter((label) => /^[A-Z]/.test(label)) ?? [];
+    const names = (
+      this.sourceImports() ?? imports.filter((name) => name.endsWith('Directive'))
+    ).join(', ');
+    return [
+      { title: 'demo.html', code: this.highlightedCode() },
+      {
+        title: 'demo.component.ts',
+        code: `import { Component, signal } from '@angular/core';
+import { ${names} } from 'angular-movement';
+
+@Component({
+  selector: 'app-demo',
+  imports: [${names
+    .split(', ')
+    .filter((name) => name.endsWith('Directive'))
+    .join(', ')}],
+  templateUrl: './demo.html',
+})
+export class Demo {
+${this.supportCode()}
+}`,
+      },
+    ];
+  });
 
   // Outputs
   readonly stateChange = output<DemoState>();
   readonly replay = output<void>();
+  readonly resetDemo = output<void>();
 
   // State
   readonly preset = signal<MovePreset>('fade-up');
@@ -432,6 +419,7 @@ export class DemoContainer implements OnInit {
   });
 
   ngOnInit(): void {
+    this.preset.set(this.initialPreset());
     this.duration.set(this.initialDuration());
     this.delay.set(this.initialDelay());
     this.easing.set(this.initialEasing());
@@ -440,6 +428,12 @@ export class DemoContainer implements OnInit {
       (this.controls().customControls ?? []).map((control) => [control.id, control.value]),
     );
     this.customValues.set(initialCustomValues);
+  }
+
+  protected resetDefaults(): void {
+    this.ngOnInit();
+    this.emitStateChange();
+    this.resetDemo.emit();
   }
 
   protected updatePreset(value: MovePreset): void {

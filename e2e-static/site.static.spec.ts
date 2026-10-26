@@ -185,6 +185,7 @@ test.describe('hydration and navigation in the production build', () => {
     await page.waitForLoadState('networkidle');
     await page.locator('article a[href="/demos/enter"]').first().click();
     await expect(page).toHaveURL(/\/demos\/enter$/);
+    await page.getByText('Learn more', { exact: true }).click();
     await expect(page.getByTestId('demo-links')).toBeVisible();
     await page.getByTestId('demo-links').locator('a[href="/docs/guides/enter"]').click();
     await expect(page).toHaveURL(/\/docs\/guides\/enter$/);

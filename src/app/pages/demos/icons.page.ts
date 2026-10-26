@@ -1,7 +1,6 @@
 import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import {
-  MoveAnimateDirective,
   MoveTargetDirective,
   MoveTriggerDirective,
   MoveVariantsDirective,
@@ -13,15 +12,17 @@ export const routeMeta: RouteMeta = { title: 'SVG Icons demo — Angular Movemen
 
 @Component({
   selector: 'app-demo-icons',
-  imports: [
-    DemoContainer,
-    MoveTargetDirective,
-    MoveTriggerDirective,
-    MoveVariantsDirective,
-    MoveAnimateDirective,
-  ],
+  imports: [DemoContainer, MoveTargetDirective, MoveTriggerDirective, MoveVariantsDirective],
   template: `
     <app-demo-container
+      [experimental]="true"
+      supportCode="readonly animated = signal(false); readonly movePathDraw = movePathDraw;"
+      [sourceImports]="[
+        'MoveTriggerDirective',
+        'MoveVariantsDirective',
+        'MoveTargetDirective',
+        'movePathDraw',
+      ]"
       title="SVG Icons"
       description="First-class SVG path drawing with pathLength, pathOffset, per-property transitions, and one-shot triggers. Ideal for animated icon systems like @lumen/icons."
       directive="moveTarget"
@@ -84,7 +85,7 @@ export const routeMeta: RouteMeta = { title: 'SVG Icons demo — Angular Movemen
             >
               <path
                 [moveVariants]="checkVariants()"
-                [moveAnimate]="animated() ? 'draw' : 'normal'"
+                [moveVariant]="animated() ? 'draw' : 'normal'"
                 [moveDuration]="duration()"
                 d="M20 6L9 17l-5-5"
               />
@@ -209,15 +210,17 @@ export default class DemoIcons {
   }));
 
   protected readonly iconsCode = computed(() => {
-    return `<!-- Trigger (no reverse) -->
-<path
+    return `<button (click)="animated.set(!animated())">Animate / reset</button>
+<svg viewBox="0 0 24 24" width="96" fill="none" stroke="currentColor">
+<!-- Trigger (no reverse) -->
+<path d="M20 6L9 17l-5-5"
   [moveTrigger]="animated()"
   [moveFrames]="{ pathLength: [0, 1], opacity: [0, 1] }"
-  moveDuration="${this.duration()}ms"
+  moveDuration="${this.duration()}ms" moveEasing="${this.easing()}"
   moveResetState="clear" />
 
 <!-- Variants with per-property transition -->
-<path
+<path d="M20 6L9 17l-5-5"
   [moveVariants]="{
     normal: { pathLength: 1, opacity: 1 },
     draw: {
@@ -226,13 +229,14 @@ export default class DemoIcons {
       transition: { duration: ${this.duration()}, opacity: { duration: 200, delay: 100 } }
     }
   }"
-  [moveAnimate]="animated() ? 'draw' : 'normal'" />
+  [moveVariant]="animated() ? 'draw' : 'normal'" />
 
 <!-- Helper function -->
-<path
+<path d="M20 6L9 17l-5-5"
   [moveTarget]="animated()"
   [moveFrames]="movePathDraw({ opacity: [0, 0.72, 1] })"
-  moveDuration="${this.duration()}ms" />`;
+  moveDuration="${this.duration()}ms" moveEasing="${this.easing()}" />
+</svg>`;
   });
 
   protected onStateChange(state: DemoState): void {

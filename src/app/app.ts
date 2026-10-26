@@ -1,4 +1,11 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import {
+  ApplicationRef,
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  afterNextRender,
+  signal,
+} from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { Navbar } from './layout/navbar/navbar';
 import { Footer } from './layout/footer/footer';
@@ -6,6 +13,7 @@ import { SeoService } from './shared/seo.service';
 
 @Component({
   selector: 'app-root',
+  host: { '[attr.data-hydrated]': 'hydrated()' },
   imports: [RouterOutlet, Navbar, Footer],
   template: `
     <a
@@ -23,8 +31,13 @@ import { SeoService } from './shared/seo.service';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class App {
+  protected readonly hydrated = signal(false);
   constructor() {
     inject(SeoService).start();
+    const application = inject(ApplicationRef);
+    afterNextRender(() => {
+      void application.whenStable().then(() => this.hydrated.set(true));
+    });
   }
 
   /** `<base href="/">` turns a bare `#main` into a navigation to `/`, so focus the landmark directly. */

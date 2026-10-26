@@ -12,6 +12,7 @@ export const routeMeta: RouteMeta = { title: 'moveWhileFocus demo — Angular Mo
   template: `
     <app-demo-container
       title="moveWhileFocus"
+      initialEasing="ease-out"
       description="Add focus animations to inputs, buttons, or cards. The animation plays forward on focus and reverses on blur."
       directive="moveWhileFocus"
       [availablePresets]="[]"

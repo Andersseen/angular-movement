@@ -1,29 +1,39 @@
 import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, inject, Injector } from '@angular/core';
 import { moveSpringValue, moveTransform, moveValue } from 'movement';
+import { DemoWorkbench } from '../../shared/components/demo-workbench/demo-workbench';
 import { CodeBlock } from '../../shared/components/code-block/code-block';
 
-const CODE = `import { Component, inject, Injector } from '@angular/core';
+const CODE = `import { Component, computed, inject, Injector } from '@angular/core';
 import { moveValue, moveTransform, moveSpringValue } from 'angular-movement';
 
-@Component({ /* ... */ })
+@Component({
+  selector: 'app-values',
+  template: \`
+    <label>Progress
+      <input type="range" min="0" max="100" [value]="progress()"
+        (input)="progress.set(+$any($event.target).value)" />
+    </label>
+    <div style="height: 64px; position: relative">
+      <div [style.transform]="linearTransform()" [style.opacity]="fade()"
+        style="width: 40px; height: 40px; background: indigo"></div>
+    </div>
+    <div [style.transform]="springTransform()"
+      style="width: 40px; height: 40px; background: slateblue"></div>
+  \`,
+})
 export class Demo {
-  readonly #injector = inject(Injector);
-
-  // 1. A driver signal — anything that produces a number works.
   readonly progress = moveValue(0);
-
-  // 2. Map that number onto whatever the UI needs.
-  readonly x       = moveTransform(this.progress, [0, 100], [0, 260]);
-  readonly rotate  = moveTransform(this.progress, [0, 100], ['0deg', '360deg']);
-  readonly hue     = moveTransform(this.progress, [0, 50, 100], [0.4, 1, 0.4]);
-
-  // 3. Let a spring smooth the raw value instead of following it rigidly.
+  readonly x = moveTransform(this.progress, [0, 100], [0, 200]);
+  readonly rotate = moveTransform(this.progress, [0, 100], ['0deg', '360deg']);
+  readonly fade = moveTransform(this.progress, [0, 50, 100], [0.4, 1, 0.4]);
   readonly springX = moveSpringValue(this.x, {
-    stiffness: 170,
-    damping: 18,
-    injector: this.#injector, // required: moveSpringValue creates an effect
+    stiffness: 170, damping: 18, injector: inject(Injector),
   });
+  readonly linearTransform = computed(() =>
+    'translate(' + this.x() + 'px, -50%) rotate(' + this.rotate() + ')');
+  readonly springTransform = computed(() =>
+    'translate(' + this.springX() + 'px, -50%) rotate(' + this.rotate() + ')');
 }`;
 
 export const routeMeta: RouteMeta = {
@@ -32,63 +42,55 @@ export const routeMeta: RouteMeta = {
 
 @Component({
   selector: 'app-demo-values',
-  imports: [CodeBlock],
+  imports: [CodeBlock, DemoWorkbench],
   template: `
-    <div class="space-y-8">
-      <header class="space-y-3">
-        <h1 class="font-display text-text text-3xl font-bold sm:text-4xl">Signal values</h1>
-        <p class="text-text-muted max-w-3xl">
-          When motion should come from your own state rather than a lifecycle event, drive it with
-          signals. <code class="text-accent">moveValue</code> holds a number,
-          <code class="text-accent">moveTransform</code> maps it onto any output range, and
-          <code class="text-accent">moveSpringValue</code> smooths it with spring physics — all
-          plain signals, so they compose with <code class="text-accent">computed</code> and work
-          under zoneless change detection.
-        </p>
-      </header>
-
-      <section class="bg-surface border-accent/30 space-y-8 rounded-xl border p-6">
-        <div class="space-y-2">
-          <label
-            for="values-driver"
-            class="text-text-muted flex items-center justify-between text-xs tracking-wider uppercase"
+    <app-demo-workbench
+      title="Signal values"
+      description="Drive motion with moveValue, map it with moveTransform, and smooth it with moveSpringValue. Compare direct state with spring response."
+      [canReset]="true"
+      (resetRequested)="progress.set(0)"
+    >
+      <div controls>
+        <label
+          for="values-driver"
+          class="text-text-muted flex items-center justify-between text-xs tracking-wider uppercase"
+        >
+          <span>progress — moveValue(0)</span>
+          <span class="text-accent font-bold tabular-nums" data-testid="values-progress">{{
+            progress()
+          }}</span>
+        </label>
+        <input
+          id="values-driver"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          class="accent-accent w-full cursor-pointer"
+          data-testid="values-slider"
+          [value]="progress()"
+          (input)="onInput($event)"
+        />
+        <div class="flex gap-2 pt-1">
+          <button
+            type="button"
+            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            data-testid="values-start"
+            (click)="progress.set(0)"
           >
-            <span>progress — moveValue(0)</span>
-            <span class="text-accent font-bold tabular-nums" data-testid="values-progress">{{
-              progress()
-            }}</span>
-          </label>
-          <input
-            id="values-driver"
-            type="range"
-            min="0"
-            max="100"
-            step="1"
-            class="accent-accent w-full cursor-pointer"
-            data-testid="values-slider"
-            [value]="progress()"
-            (input)="onInput($event)"
-          />
-          <div class="flex gap-2 pt-1">
-            <button
-              type="button"
-              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              data-testid="values-start"
-              (click)="progress.set(0)"
-            >
-              0
-            </button>
-            <button
-              type="button"
-              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              data-testid="values-end"
-              (click)="progress.set(100)"
-            >
-              100
-            </button>
-          </div>
+            0
+          </button>
+          <button
+            type="button"
+            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            data-testid="values-end"
+            (click)="progress.set(100)"
+          >
+            100
+          </button>
         </div>
-
+      </div>
+      <div stage class="w-full max-w-2xl">
         <!-- Raw vs spring: the whole point of moveSpringValue is visible in the lag -->
         <div class="space-y-6">
           <div class="space-y-2">
@@ -97,7 +99,7 @@ export const routeMeta: RouteMeta = {
             </div>
             <div class="bg-surface-raised relative h-16 overflow-hidden rounded-lg">
               <div
-                class="bg-accent absolute top-1/2 left-2 h-10 w-10 -translate-y-1/2 rounded-lg"
+                class="bg-accent absolute top-1/2 left-2 h-10 w-10 rounded-lg"
                 data-testid="values-linear-box"
                 [style.transform]="linearTransform()"
                 [style.opacity]="fade()"
@@ -111,7 +113,7 @@ export const routeMeta: RouteMeta = {
             </div>
             <div class="bg-surface-raised relative h-16 overflow-hidden rounded-lg">
               <div
-                class="bg-accent/70 border-accent absolute top-1/2 left-2 h-10 w-10 -translate-y-1/2 rounded-lg border-2"
+                class="bg-accent/70 border-accent absolute top-1/2 left-2 h-10 w-10 rounded-lg border-2"
                 data-testid="values-spring-box"
                 [style.transform]="springTransform()"
               ></div>
@@ -127,10 +129,9 @@ export const routeMeta: RouteMeta = {
             </div>
           }
         </dl>
-      </section>
-
-      <app-code-block title="values.component.ts" [code]="code" />
-    </div>
+      </div>
+      <app-code-block code title="values.component.ts" [code]="code" />
+    </app-demo-workbench>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -141,7 +142,7 @@ export default class DemoValues {
 
   protected readonly progress = moveValue(0);
 
-  protected readonly x = moveTransform(this.progress, [0, 100], [0, 260]);
+  protected readonly x = moveTransform(this.progress, [0, 100], [0, 200]);
   protected readonly rotate = moveTransform(this.progress, [0, 100], ['0deg', '360deg']);
   protected readonly fade = moveTransform(this.progress, [0, 50, 100], [0.4, 1, 0.4]);
 

@@ -3,71 +3,112 @@ import {
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   Component,
+  DestroyRef,
+  PLATFORM_ID,
   ElementRef,
   inject,
   signal,
   viewChild,
   ViewEncapsulation,
 } from '@angular/core';
-import { DOCUMENT } from '@angular/common';
-import { MoveAnimator, MoveTriggerDirective } from 'movement';
-import { CodeBlock } from '../../shared/components/code-block/code-block';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { AnimationControls, MoveAnimator, MoveTriggerDirective } from 'movement';
+import { DemoWorkbench } from '../../shared/components/demo-workbench/demo-workbench';
+import { DemoCodeTabs } from '../../shared/components/demo-workbench/demo-code-tabs';
 
-const ANIMATOR_CODE = `import { Component, ElementRef, inject, viewChild } from '@angular/core';
-import { MoveAnimator } from 'angular-movement';
+const ANIMATOR_CODE = `import { Component, DestroyRef, ElementRef, inject, viewChild } from '@angular/core';
+import { AnimationControls, MoveAnimator } from 'angular-movement';
 
-@Component({ /* ... */ })
+@Component({
+  selector: 'app-checkout',
+  template: \`
+    <button (click)="pulse()">animate()</button>
+    <button (click)="dim()">set()</button>
+    <button (click)="reset()">clear()</button>
+    <div #card>Order confirmed</div>
+  \`,
+})
 export class Checkout {
   readonly #animator = inject(MoveAnimator);
   readonly card = viewChild.required<ElementRef<HTMLElement>>('card');
-
-  async confirm() {
-    // ElementRef or Element — no .nativeElement needed.
-    await this.#animator.animate(this.card(), { scale: [1, 1.04, 1] }, { duration: '240ms' })
-      ?.finished;
-    // finished always resolves, also when cancelled: no try/catch.
-    this.#animator.set(this.card(), { opacity: 0.6, y: 8 }); // commit a state instantly
+  #player: AnimationControls | null = null;
+  constructor() { inject(DestroyRef).onDestroy(() => this.#player?.cancel()); }
+  pulse() {
+    this.#player?.cancel();
+    this.#player = this.#animator.animate(this.card(), { scale: [1, 1.06, 1] }, { duration: '240ms' });
   }
+  dim() { this.#animator.set(this.card(), { opacity: 0.6, y: 8 }); }
+  reset() { this.#animator.clear(this.card()); }
+}`;
 
-  reset() {
-    this.#animator.clear(this.card()); // back to the stylesheet
+const VIEW_TRANSITION_CODE = `import { Component, ChangeDetectorRef, DestroyRef, inject, signal, ViewEncapsulation } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { AnimationControls, MoveAnimator } from 'angular-movement';
+
+@Component({
+  selector: 'app-reveal',
+  encapsulation: ViewEncapsulation.None,
+  styles: [':root[data-demo-reveal]::view-transition-old(root), :root[data-demo-reveal]::view-transition-new(root) { animation: none; mix-blend-mode: normal; }'],
+  template: \`
+    <section [style.background]="revealed() ? '#1e1b4b' : '#fff'">
+      <button (click)="reveal($event)">Reveal from here</button>
+    </section>
+  \`,
+})
+export class RevealDemo {
+  readonly #animator = inject(MoveAnimator);
+  readonly #document = inject(DOCUMENT);
+  readonly #cdr = inject(ChangeDetectorRef);
+  readonly revealed = signal(false);
+  #player: AnimationControls | null = null;
+  #destroyed = false;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => { this.#destroyed = true; this.#player?.cancel(); });
+  }
+  reveal(event: MouseEvent) {
+    const doc = this.#document;
+    const commit = () => {
+      if (this.#destroyed) return;
+      this.revealed.update(value => !value);
+      this.#cdr.detectChanges();
+    };
+    if (!doc.startViewTransition) return commit();
+    const root = doc.documentElement;
+    root.setAttribute('data-demo-reveal', '');
+    const transition = doc.startViewTransition(commit);
+    transition.ready.then(async () => {
+      if (this.#destroyed) return;
+      const { clientX: x, clientY: y } = event;
+      const view = doc.defaultView;
+      const radius = Math.hypot(Math.max(x, (view?.innerWidth ?? 0) - x), Math.max(y, (view?.innerHeight ?? 0) - y));
+      this.#player = this.#animator.animate(root, {
+        clipPath: ['circle(0px at ' + x + 'px ' + y + 'px)', 'circle(' + radius + 'px at ' + x + 'px ' + y + 'px)'],
+      }, { duration: '520ms', easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' });
+      await this.#player?.finished;
+    }).catch(() => {}).finally(() => root.removeAttribute('data-demo-reveal'));
   }
 }`;
 
-const VIEW_TRANSITION_CODE = `readonly #animator = inject(MoveAnimator);
-readonly #document = inject(DOCUMENT);
+const TRIGGER_CODE = `import { Component, DestroyRef, inject } from '@angular/core';
+import { MoveTriggerDirective } from 'angular-movement';
 
-reveal(event: MouseEvent, commit: () => void) {
-  const doc = this.#document;
-  if (!doc.startViewTransition) return commit(); // progressive enhancement
-
-  const transition = doc.startViewTransition(commit);
-  transition.ready.then(() => {
-    const { clientX: x, clientY: y } = event;
-    const radius = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y));
-
-    this.#animator.animate(
-      doc.documentElement,
-      { clipPath: [\`circle(0px at \${x}px \${y}px)\`, \`circle(\${radius}px at \${x}px \${y}px)\`] },
-      {
-        duration: '520ms',
-        easing: 'cubic-bezier(0.22, 1, 0.36, 1)',
-        pseudoElement: '::view-transition-new(root)',
-      },
-    );
-  });
-}
-
-/* global CSS — turn off the default cross-fade while this reveal runs */
-::view-transition-old(root),
-::view-transition-new(root) { animation: none; mix-blend-mode: normal; }`;
-
-const TRIGGER_CODE = `<!-- A bare moveTrigger is an imperative handle: no dummy inputs. -->
-<div #overlay="moveTrigger" moveTrigger></div>
-
-// Two phases, two timings — per-call options, no input mutation.
-await overlay.play({ opacity: [0, 1], scale: [0.6, 1] }, { duration: '420ms' });
-await overlay.play({ opacity: [1, 0] }, { duration: '160ms', easing: 'ease-in' });`;
+@Component({
+  selector: 'app-flash',
+  imports: [MoveTriggerDirective],
+  template: \`
+    <div #overlay="moveTrigger" moveTrigger style="opacity: 0; width: 120px; height: 80px; background: indigo"></div>
+    <button (click)="flash(overlay)">Flash</button>
+  \`,
+})
+export class FlashDemo {
+  #destroyed = false;
+  constructor() { inject(DestroyRef).onDestroy(() => { this.#destroyed = true; }); }
+  async flash(overlay: MoveTriggerDirective) {
+    await overlay.play({ opacity: [0, 1] }, { duration: '420ms' });
+    if (this.#destroyed) return;
+    await overlay.play({ opacity: [1, 0] }, { duration: '160ms', easing: 'ease-in' });
+  }
+}`;
 
 type RevealResult = 'idle' | 'animated' | 'skipped' | 'unsupported';
 
@@ -79,7 +120,7 @@ export const routeMeta: RouteMeta = { title: 'MoveAnimator demo — Angular Move
 
 @Component({
   selector: 'app-demo-imperative',
-  imports: [CodeBlock, MoveTriggerDirective],
+  imports: [DemoWorkbench, DemoCodeTabs, MoveTriggerDirective],
   encapsulation: ViewEncapsulation.None,
   styles: `
     /* Scoped to this demo's own transition, so no other page loses the default cross-fade. */
@@ -90,46 +131,51 @@ export const routeMeta: RouteMeta = { title: 'MoveAnimator demo — Angular Move
     }
   `,
   template: `
-    <div class="space-y-10">
-      <header class="space-y-3">
-        <h1 class="font-display text-text text-3xl font-bold sm:text-4xl">MoveAnimator</h1>
-        <p class="text-text-muted max-w-3xl">
-          The imperative API: animate from TypeScript with the same keyframes, timing vocabulary and
-          reduced-motion handling as the directives. Use it to sequence phases, react to a server
-          response, or drive a View Transition. For a declarative relationship between two template
-          elements, see <code class="text-accent">moveTarget</code>.
+    <app-demo-workbench
+      title="MoveAnimator"
+      description="Animate, set and clear from TypeScript. Try a View Transition reveal or sequence a declarative trigger handle."
+      [canReset]="true"
+      (resetRequested)="resetAll()"
+      [scrollStage]="true"
+    >
+      <div controls>
+        <p class="text-text-muted mb-4 text-sm">
+          Animate the order card, commit a state instantly, or clear it.
         </p>
-      </header>
-
-      <section class="space-y-4">
-        <h2 class="font-display text-text text-2xl font-bold">animate / set / clear</h2>
-        <div class="bg-surface border-accent/30 flex flex-col gap-6 rounded-xl border p-6">
-          <div class="flex flex-wrap gap-2">
-            <button
-              type="button"
-              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              data-testid="animator-animate"
-              (click)="pulse()"
-            >
-              animate()
-            </button>
-            <button
-              type="button"
-              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              data-testid="animator-set"
-              (click)="dim()"
-            >
-              set()
-            </button>
-            <button
-              type="button"
-              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-              data-testid="animator-clear"
-              (click)="reset()"
-            >
-              clear()
-            </button>
-          </div>
+        <div class="flex flex-wrap gap-2">
+          <button
+            type="button"
+            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            data-testid="animator-animate"
+            (click)="pulse()"
+          >
+            animate()
+          </button>
+          <button
+            type="button"
+            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            data-testid="animator-set"
+            (click)="dim()"
+          >
+            set()
+          </button>
+          <button
+            type="button"
+            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+            data-testid="animator-clear"
+            (click)="reset()"
+          >
+            clear()
+          </button>
+        </div>
+        <p class="text-text-muted mt-5 text-sm">
+          Reveal and flash actions live beside their targets. Each source tab shows its
+          corresponding API.
+        </p>
+      </div>
+      <div stage class="imperative-stage">
+        <section>
+          <h2>animate / set / clear</h2>
           <div
             #card
             data-testid="animator-card"
@@ -137,67 +183,63 @@ export const routeMeta: RouteMeta = { title: 'MoveAnimator demo — Angular Move
           >
             Order confirmed
           </div>
-        </div>
-        <app-code-block title="checkout.ts" [code]="animatorCode" />
-      </section>
-
-      <section class="space-y-4">
-        <h2 class="font-display text-text text-2xl font-bold">View Transition reveal</h2>
-        <p class="text-text-muted max-w-3xl">
-          <code class="text-accent">pseudoElement</code> lets the same API animate
-          <code class="text-accent">::view-transition-new(root)</code>, so a theme reveal stays
-          inside your motion system instead of dropping to raw WAAPI. Browsers without View
-          Transitions simply swap instantly; under reduced motion the pseudo-element animation is
-          skipped and the new state appears at once.
-        </p>
-        <div
-          data-testid="reveal-panel"
-          class="flex flex-col items-center gap-4 rounded-xl border p-8 transition-none"
-          [class]="
-            revealed()
-              ? 'border-transparent bg-[#1e1b4b] text-white'
-              : 'border-accent/30 bg-surface text-text'
-          "
-        >
-          <p class="font-display text-xl font-bold">{{ revealed() ? 'Midnight' : 'Daylight' }}</p>
-          <button
-            type="button"
-            class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-            data-testid="reveal-toggle"
-            (click)="reveal($event)"
-          >
-            Reveal from here
-          </button>
-          <p class="text-xs opacity-70">
-            last run: <span data-testid="reveal-status">{{ status() }}</span>
-          </p>
-        </div>
-        <app-code-block title="theme-reveal.ts" [code]="viewTransitionCode" />
-      </section>
-
-      <section class="space-y-4">
-        <h2 class="font-display text-text text-2xl font-bold">moveTrigger as a handle</h2>
-        <div
-          class="bg-surface border-accent/30 relative flex h-40 items-center justify-center overflow-hidden rounded-xl border"
-        >
+        </section>
+        <section>
+          <h2>View Transition reveal</h2>
           <div
-            #overlay="moveTrigger"
-            moveTrigger
-            data-testid="trigger-overlay"
-            class="bg-accent/30 pointer-events-none absolute inset-0 opacity-0"
-          ></div>
-          <button
-            type="button"
-            class="bg-accent/10 text-accent hover:bg-accent/20 relative cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-            data-testid="trigger-flash"
-            (click)="flash(overlay)"
+            data-testid="reveal-panel"
+            class="flex flex-col items-center gap-4 rounded-xl border p-8 transition-none"
+            [class]="
+              revealed()
+                ? 'border-transparent bg-[#1e1b4b] text-white'
+                : 'border-accent/30 bg-surface text-text'
+            "
           >
-            Flash (420ms in, 160ms out)
-          </button>
-        </div>
-        <app-code-block title="flash.html" [code]="triggerCode" />
-      </section>
-    </div>
+            <p class="font-display text-xl font-bold">{{ revealed() ? 'Midnight' : 'Daylight' }}</p>
+            <button
+              type="button"
+              class="bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              data-testid="reveal-toggle"
+              (click)="reveal($event)"
+            >
+              Reveal from here
+            </button>
+            <p class="text-xs opacity-70">
+              last run: <span data-testid="reveal-status">{{ status() }}</span>
+            </p>
+          </div>
+        </section>
+        <section>
+          <h2>moveTrigger · experimental</h2>
+          <div
+            class="bg-surface border-accent/30 relative flex h-40 items-center justify-center overflow-hidden rounded-xl border"
+          >
+            <div
+              #overlay="moveTrigger"
+              moveTrigger
+              data-testid="trigger-overlay"
+              class="bg-accent/30 pointer-events-none absolute inset-0 opacity-0"
+            ></div>
+            <button
+              type="button"
+              class="bg-accent/10 text-accent hover:bg-accent/20 relative cursor-pointer rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
+              data-testid="trigger-flash"
+              (click)="flash(overlay)"
+            >
+              Flash (420ms in, 160ms out)
+            </button>
+          </div>
+        </section>
+      </div>
+      <app-demo-code-tabs
+        code
+        [files]="[
+          { title: 'checkout.ts', code: animatorCode },
+          { title: 'theme-reveal.component.ts', code: viewTransitionCode },
+          { title: 'flash.component.ts', code: triggerCode },
+        ]"
+      />
+    </app-demo-workbench>
   `,
   host: { class: 'block' },
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -206,6 +248,18 @@ export default class DemoImperative {
   readonly #animator = inject(MoveAnimator);
   readonly #document = inject(DOCUMENT);
   readonly #cdr = inject(ChangeDetectorRef);
+  #cardPlayer: AnimationControls | null = null;
+  #revealPlayer: AnimationControls | null = null;
+  #destroyed = false;
+  readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  constructor() {
+    inject(DestroyRef).onDestroy(() => {
+      this.#destroyed = true;
+      this.#cardPlayer?.cancel();
+      this.#revealPlayer?.cancel();
+      if (this.#isBrowser) this.#document.documentElement.removeAttribute('data-demo-reveal');
+    });
+  }
 
   protected readonly card = viewChild.required<ElementRef<HTMLElement>>('card');
   protected readonly revealed = signal(false);
@@ -216,11 +270,22 @@ export default class DemoImperative {
   protected readonly triggerCode = TRIGGER_CODE;
 
   protected pulse(): void {
-    this.#animator.animate(this.card(), { scale: [1, 1.06, 1] }, { duration: '240ms' });
+    this.#cardPlayer?.cancel();
+    this.#cardPlayer = this.#animator.animate(
+      this.card(),
+      { scale: [1, 1.06, 1] },
+      { duration: '240ms' },
+    );
   }
 
   protected dim(): void {
     this.#animator.set(this.card(), { opacity: 0.6, y: 8 });
+  }
+
+  protected resetAll(): void {
+    this.reset();
+    this.revealed.set(false);
+    this.status.set('idle');
   }
 
   protected reset(): void {
@@ -229,6 +294,7 @@ export default class DemoImperative {
 
   protected async flash(overlay: MoveTriggerDirective): Promise<void> {
     await overlay.play({ opacity: [0, 1] }, { duration: '420ms' });
+    if (this.#destroyed) return;
     await overlay.play({ opacity: [1, 0] }, { duration: '160ms', easing: 'ease-in' });
   }
 
@@ -239,6 +305,7 @@ export default class DemoImperative {
     // The DOM must be updated synchronously inside the transition callback; a zoneless signal
     // write alone would only schedule change detection.
     const commit = () => {
+      if (this.#destroyed) return;
       this.revealed.update((value) => !value);
       this.#cdr.detectChanges();
     };
@@ -255,6 +322,7 @@ export default class DemoImperative {
 
     transition.ready
       .then(async () => {
+        if (this.#destroyed) return;
         const { clientX: x, clientY: y } = event;
         const view = doc.defaultView ?? window;
         const radius = Math.hypot(
@@ -271,6 +339,7 @@ export default class DemoImperative {
             pseudoElement: '::view-transition-new(root)',
           },
         );
+        this.#revealPlayer = controls;
         this.status.set(controls ? 'animated' : 'skipped');
         await controls?.finished;
       })

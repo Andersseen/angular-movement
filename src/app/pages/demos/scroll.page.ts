@@ -2,6 +2,7 @@ import type { RouteMeta } from '@analogjs/router';
 import { ChangeDetectionStrategy, Component, computed, signal, viewChild } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
 import { MoveScrollDirective, moveSpringValue, moveTransform } from 'movement';
+import { keyframesToString } from '../../shared/utils/demo.utils';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 
 export const routeMeta: RouteMeta = { title: 'moveScroll demo — Angular Movement' };
@@ -24,6 +25,9 @@ export const routeMeta: RouteMeta = { title: 'moveScroll demo — Angular Moveme
       <div preview class="relative h-full w-full overflow-hidden">
         <div
           id="scroll-demo-container"
+          tabindex="0"
+          role="region"
+          aria-label="scroll scroll preview"
           data-testid="scroll-container"
           class="h-full w-full overflow-y-auto pr-2"
         >
@@ -137,11 +141,13 @@ export default class DemoScroll {
   );
 
   protected readonly scrollCode = computed(() => {
-    const effect = this.effect();
-    const intensity = this.intensity();
-    const y = effect === 'translate' || effect === 'mixed' ? intensity : 0;
-    const rotate = effect === 'rotate' || effect === 'mixed' ? intensity : 0;
-    return `<div [moveScroll]="{ y: [0, ${y}], rotate: [0, ${rotate}] }" moveScrollContainer="'.container'">\n  Scroll Element\n</div>`;
+    return `<div id="scroll-preview" style="height: 360px; overflow-y: auto">
+  <div style="height: 400px">Scroll down</div>
+  <div [moveScroll]="${keyframesToString(this.bgKeyframes())}" moveScrollContainer="#scroll-preview">Background</div>
+  <div [moveScroll]="${keyframesToString(this.midKeyframes())}" moveScrollContainer="#scroll-preview">Middle</div>
+  <div [moveScroll]="${keyframesToString(this.fgKeyframes())}" moveScrollContainer="#scroll-preview">Foreground</div>
+  <div style="height: 400px"></div>
+</div>`;
   });
 
   // Computed keyframes

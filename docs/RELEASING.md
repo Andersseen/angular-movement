@@ -71,6 +71,13 @@ generated commit list under "Commits in this release", and the `Unreleased` head
 So you may keep curating highlights under `## Unreleased` — or write nothing and rely on the
 generated list. Both are safe, and repeated runs never duplicate a section.
 
+The same preparation step normalizes `.release-please-manifest.json` with
+`scripts/release/normalize-manifest.mjs`, using locked Prettier and configuration from trusted
+`main` tooling. Multiline JSON preserves an indent that Release Please can reuse; both tools
+produce identical output on repeated updates. Formatting preserves version values and is committed
+with the changelog only when either file changed. Dependencies are installed from `main` with
+lifecycle scripts disabled; no tooling or configuration from the Release PR is executed.
+
 Review the PR like any other: check the proposed version and the notes, edit `CHANGELOG.md` on
 the PR branch if wording needs polish (the adapter will not overwrite an existing section), then
 merge it. **Use _Squash and merge_ (or a merge commit).**

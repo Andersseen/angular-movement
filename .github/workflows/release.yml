@@ -90,7 +90,7 @@ jobs:
               --json body --jq .body > "$RUNNER_TEMP/pr-body.md"
           fi
 
-      # Scripts always come from main; only the CHANGELOG.md of the bot-owned branch is edited.
+      # Scripts and configuration always come from main; only release metadata is edited.
       - name: Checkout trusted tooling (main)
         if: steps.pr.outputs.number
         uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
@@ -107,23 +107,40 @@ jobs:
           path: release-pr
           token: ${{ steps.app-token.outputs.token || secrets.GITHUB_TOKEN }}
 
+      - name: Setup trusted pnpm
+        if: steps.pr.outputs.number
+        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
+        with:
+          package_json_file: trusted/package.json
+
+      - name: Setup trusted Node.js
+        if: steps.pr.outputs.number
+        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install trusted formatting tooling
+        if: steps.pr.outputs.number
+        run: pnpm --dir trusted install --frozen-lockfile --ignore-scripts
+
       # release-please cannot address the root CHANGELOG.md from the projects/movement package
       # path, so this writes the section (folding any hand-written `## Unreleased` notes in).
       # Idempotent: a branch that already has the section is left alone.
-      - name: Write CHANGELOG.md section
+      - name: Prepare changelog and normalize release manifest
         if: steps.pr.outputs.number
         env:
           BRANCH: ${{ steps.pr.outputs.branch }}
         run: |
           version=$(node trusted/scripts/release/cli.mjs fold-changelog \
             --repo release-pr --pr-body-file "$RUNNER_TEMP/pr-body.md" | sed -n 's/^version=//p')
+          node trusted/scripts/release/normalize-manifest.mjs release-pr/.release-please-manifest.json
           cd release-pr
-          if [ -n "$(git status --porcelain CHANGELOG.md)" ]; then
+          if [ -n "$(git status --porcelain CHANGELOG.md .release-please-manifest.json)" ]; then
             git config user.name 'github-actions[bot]'
             git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-            git add CHANGELOG.md
+            git add CHANGELOG.md .release-please-manifest.json
             # Same prefix as the squash title, so a rebase-merge still yields a recognisable release commit.
-            git commit -m "chore(release): angular-movement v${version} changelog"
+            git commit -m "chore(release): angular-movement v${version} metadata"
             git push origin "HEAD:refs/heads/$BRANCH"
           fi
 

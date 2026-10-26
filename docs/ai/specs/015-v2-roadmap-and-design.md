@@ -42,11 +42,11 @@ No consumer/browser/device/performance certification in this planning task.
 ## Implementation plan
 
 - [x] 1. Audit public surface, runtime, tests, CI, consumers recorded in specs, and official
-     Angular/browser/competitor documentation.
+      Angular/browser/competitor documentation.
 - [x] 2. Create `docs/v2/{README,AUDIT,SDD,MIGRATION-STRATEGY,VALIDATION,DECISIONS}.md`.
 - [x] 3. Create `docs/v2/plans/` release plans for 1.3–1.9 and conditional 2.0.
 - [x] 4. Link the future planning area from `ROADMAP.md`; add Unreleased changelog entry and
-     session record to `docs/ai/STATE.md`.
+      session record to `docs/ai/STATE.md`.
 - [x] 5. Apply docs-only verify skill gate, check links/scope, and record actual results here.
 
 ## Verification notes

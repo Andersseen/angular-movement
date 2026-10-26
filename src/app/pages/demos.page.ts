@@ -1,162 +1,69 @@
-import { ChangeDetectionStrategy, Component } from '@angular/core';
-import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
-import { DemoLinksStrip } from '../motion-examples/demo-links.component';
-
-interface DemoGroup {
-  title: string;
-  items: DemoItem[];
-}
-
-interface DemoItem {
-  path: string;
-  label: string;
-  description?: string;
-}
-
-const DEMO_GROUPS: DemoGroup[] = [
-  {
-    title: 'Basic Animations',
-    items: [
-      { path: 'enter', label: 'moveEnter', description: 'Animate on element enter' },
-      { path: 'leave', label: 'moveLeave', description: 'Animate on element leave' },
-      { path: 'animate', label: 'moveAnimate', description: 'Shorthand for enter/leave' },
-      {
-        path: 'animation',
-        label: 'moveAnimation',
-        description: 'Object-based Framer-style API',
-      },
-    ],
-  },
-  {
-    title: 'Interaction',
-    items: [
-      { path: 'hover', label: 'moveWhileHover', description: 'Hover animations' },
-      { path: 'tap', label: 'moveWhileTap', description: 'Click/tap animations' },
-      { path: 'focus', label: 'moveWhileFocus', description: 'Focus animations' },
-      { path: 'target', label: 'moveTarget', description: 'Boolean target animations' },
-      { path: 'in-view', label: 'moveInView', description: 'Scroll-triggered animations' },
-      { path: 'drag', label: 'moveDrag', description: 'Draggable elements' },
-    ],
-  },
-  {
-    title: 'Advanced',
-    items: [
-      { path: 'text', label: 'moveText', description: 'Split text animations' },
-      { path: 'stagger', label: 'moveStagger', description: 'Staggered children' },
-      { path: 'layout', label: 'moveLayout', description: 'Layout animations' },
-      { path: 'variants', label: 'moveVariants', description: 'Variant-based animations' },
-      { path: 'loop', label: 'moveLoop', description: 'Infinite loop animations' },
-    ],
-  },
-  {
-    title: 'SVG',
-    items: [{ path: 'icons', label: 'SVG Icons', description: 'Path drawing and icon animations' }],
-  },
-  {
-    title: 'Scroll Effects',
-    items: [
-      { path: 'scroll', label: 'moveScroll', description: 'Scroll-linked animations' },
-      { path: 'parallax', label: 'Parallax', description: 'Multi-layer depth effect' },
-      {
-        path: 'smooth-scroll',
-        label: 'moveSmoothScroll',
-        description: 'Inertial smooth scrolling',
-      },
-    ],
-  },
-  {
-    title: 'Special',
-    items: [
-      { path: 'presence', label: 'movePresence', description: 'AnimatePresence pattern' },
-      {
-        path: 'presence-list',
-        label: 'movePresenceFor',
-        description: 'Exit animations for keyed lists',
-      },
-      { path: 'values', label: 'Signal values', description: 'moveValue / moveTransform / spring' },
-      {
-        path: 'imperative',
-        label: 'MoveAnimator',
-        description: 'Imperative animation and View Transitions',
-      },
-    ],
-  },
-];
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { NavigationEnd, Router, RouterOutlet, RouterLink } from '@angular/router';
+import { filter, map } from 'rxjs';
+import { DEMO_GROUPS } from '../shared/components/demo-workbench/demo-navigation';
 
 @Component({
   selector: 'app-demos-layout',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, DemoLinksStrip],
+  imports: [RouterOutlet, RouterLink],
   template: `
-    <div
-      class="mx-auto min-h-[calc(100vh-theme('spacing.64'))] max-w-7xl px-4 py-24 sm:px-6 lg:px-8"
-    >
-      <!-- Mobile Navigation (horizontal scrollable tabs) -->
-      <nav class="hidden-scrollbar -mx-4 mb-8 overflow-x-auto px-4 sm:-mx-6 sm:px-6 lg:hidden">
-        <div class="flex min-w-max gap-1 pb-2">
-          @for (group of demoGroups; track group.title) {
-            @for (item of group.items; track item.path) {
-              <a
-                [routerLink]="[item.path]"
-                routerLinkActive="bg-accent/10 text-accent font-medium"
-                class="text-text-muted hover:text-text rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors"
-              >
-                {{ item.label }}
-              </a>
-            }
-          }
-        </div>
-      </nav>
-
-      <div class="flex flex-col gap-12 lg:flex-row">
-        <!-- Sidebar Navigation (desktop only) -->
-        <aside
-          class="hidden-scrollbar hidden w-64 shrink-0 overflow-y-auto lg:sticky lg:top-24 lg:block lg:max-h-[calc(100vh-theme('spacing.32'))] lg:self-start"
+    <div class="demo-shell">
+      <aside class="demo-sidebar" aria-label="Demo navigation">
+        <a routerLink="/demos" class="demo-sidebar-brand"
+          >The motion lab <span>23 experiments. Your ideas.</span></a
         >
-          <nav class="space-y-8">
-            @for (group of demoGroups; track group.title) {
-              <div>
-                <p
-                  class="font-display text-text mb-3 px-3 text-sm font-bold tracking-wider uppercase"
+        <nav aria-label="Demos">
+          @for (group of demoGroups; track group.title) {
+            <div class="demo-nav-group">
+              <h2>{{ group.title }}</h2>
+              @for (item of group.items; track item.path) {
+                <a
+                  [routerLink]="[item.path]"
+                  [class.demo-nav-active]="slug() === item.path"
+                  [attr.aria-current]="slug() === item.path ? 'page' : null"
+                  [title]="item.description"
+                  >{{ item.label }}</a
                 >
-                  {{ group.title }}
-                </p>
-                <ul class="space-y-1">
-                  @for (item of group.items; track item.path) {
-                    <li>
-                      <a
-                        [routerLink]="[item.path]"
-                        routerLinkActive="bg-accent/10 text-accent font-medium"
-                        class="text-text-muted hover:text-text hover:bg-surface-raised block rounded-lg px-3 py-2 text-sm transition-colors"
-                      >
-                        {{ item.label }}
-                      </a>
-                    </li>
-                  }
-                </ul>
-              </div>
-            }
-          </nav>
-        </aside>
-
-        <!-- Main Content Area -->
-        <div class="min-w-0 flex-1">
-          <app-demo-links />
-          <router-outlet />
-        </div>
+              }
+            </div>
+          }
+        </nav>
+      </aside>
+      <div class="demo-mobile-selector">
+        <label for="demo-selector">Explore demos</label>
+        <select id="demo-selector" [value]="slug()" (change)="navigate($event)">
+          @for (group of demoGroups; track group.title) {
+            <optgroup [label]="group.title">
+              @for (item of group.items; track item.path) {
+                <option [value]="item.path" [selected]="slug() === item.path">
+                  {{ item.label }}
+                </option>
+              }
+            </optgroup>
+          }
+        </select>
       </div>
+      <div class="demo-route"><router-outlet /></div>
     </div>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styles: `
-    .hidden-scrollbar::-webkit-scrollbar {
-      display: none;
-    }
-    .hidden-scrollbar {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
-    }
-  `,
 })
 export default class DemosLayout {
+  readonly #router = inject(Router);
   protected readonly demoGroups = DEMO_GROUPS;
+  protected readonly slug = toSignal(
+    this.#router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => this.getSlug(event.urlAfterRedirects)),
+    ),
+    { initialValue: this.getSlug(this.#router.url) },
+  );
+  protected navigate(event: Event): void {
+    void this.#router.navigate(['/demos', (event.target as HTMLSelectElement).value]);
+  }
+  private getSlug(url: string): string {
+    const slug = url.split(/[?#]/)[0].split('/').filter(Boolean).pop();
+    return slug === 'demos' ? 'enter' : (slug ?? 'enter');
+  }
 }

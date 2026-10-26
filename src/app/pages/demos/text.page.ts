@@ -1,5 +1,12 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import {
+  DestroyRef,
+  inject,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  signal,
+} from '@angular/core';
 import { MoveTextDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
@@ -16,6 +23,7 @@ export const routeMeta: RouteMeta = { title: 'moveText demo — Angular Movement
       directive="moveText"
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
+      [customCode]="textCode()"
       (stateChange)="onStateChange($event)"
       (replay)="replay()"
     >
@@ -39,6 +47,11 @@ export const routeMeta: RouteMeta = { title: 'moveText demo — Angular Movement
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export default class DemoText {
+  #replayTimer: ReturnType<typeof setTimeout> | undefined;
+  constructor() {
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.#replayTimer));
+  }
+
   protected readonly availablePresets = ALL_PRESETS;
   protected readonly controlsConfig = {
     ...DEFAULT_CONTROLS.standard,
@@ -71,6 +84,13 @@ export default class DemoText {
     ],
   };
 
+  protected readonly textCode = computed(
+    () => `<h2 moveText="${this.preset()}"
+  moveTextSplit="${this.split()}" moveTextStagger="${this.stagger()}ms"
+  moveDuration="${this.duration()}ms" moveEasing="${this.easing()}">
+  ${this.text().replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('{', '&#123;').replaceAll('}', '&#125;')}
+</h2>`,
+  );
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
   protected easing = signal('ease');
@@ -91,6 +111,7 @@ export default class DemoText {
 
   protected replay(): void {
     this.showDemo.set(false);
-    setTimeout(() => this.showDemo.set(true), 50);
+    clearTimeout(this.#replayTimer);
+    this.#replayTimer = setTimeout(() => this.showDemo.set(true), 50);
   }
 }

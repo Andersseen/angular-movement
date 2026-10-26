@@ -1,0 +1,36 @@
+{
+  "implementation": "Spec 019 DoF hero field (rework 2026-10-26), PR #89",
+  "rendererSha256": "88beee05bee2fa7f85bb0e23f3ef0990b127d408d6730198c75067d48f3aac9c",
+  "nativeChromeSample": {
+    "adapter": "ANGLE Metal Renderer: Apple M4",
+    "viewport": [1440, 900],
+    "draws": 87,
+    "drawsPerSecond": 24,
+    "avgDrawSubmissionMs": 0.006,
+    "maxDrawSubmissionMs": 0.1,
+    "submissionNote": "Main-thread API submission only; measures neither GPU execution nor power",
+    "backing": [1440, 872]
+  },
+  "productionChunks": {
+    "renderer": { "file": "hero-flow-Cw2R3PIy.js", "bytes": 12775, "gzipBytes": 5334 },
+    "warmupWorker": {
+      "file": "hero-flow-warmup.worker-ae-wSpcN.js",
+      "bytes": 7744,
+      "gzipBytes": 3424
+    },
+    "note": "Both load lazily after the idle defer; the worker only probes GPU capability."
+  },
+  "budgets": {
+    "desktopPoints": 22000,
+    "compactPoints": 7500,
+    "lightThemeDrawsHalf": true,
+    "maxDrawsPerSecond": 24,
+    "maxDpr": 1.5,
+    "maxBacking": [1600, 1000]
+  },
+  "softwareProtection": {
+    "majorPerformanceCaveat": true,
+    "knownSoftwareAdaptersRejectedBeforeProgramCreation": true,
+    "softwareBrowserRegressionTest": "passed"
+  }
+}

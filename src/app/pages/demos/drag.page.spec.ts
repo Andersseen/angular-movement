@@ -1,16 +1,19 @@
+import { provideRouter } from '@angular/router';
 import { provideMovement } from 'movement';
 import { render, screen } from '@testing-library/angular';
 import DemoDrag from './drag.page';
 
 describe('DemoDrag', () => {
   it('shows a Replay control so a dragged-out-of-view card can be reset', async () => {
-    await render(DemoDrag, { providers: [provideMovement()] });
+    await render(DemoDrag, { providers: [provideMovement(), provideRouter([])] });
 
     expect(screen.getByRole('button', { name: /replay/i })).toBeTruthy();
   });
 
   it('recreates the draggable card (resetting its position) when replay runs', async () => {
-    const { fixture } = await render(DemoDrag, { providers: [provideMovement()] });
+    const { fixture } = await render(DemoDrag, {
+      providers: [provideMovement(), provideRouter([])],
+    });
     const component = fixture.componentInstance;
 
     component['replay']();
@@ -21,7 +24,9 @@ describe('DemoDrag', () => {
   });
 
   it('resets the card whenever a control changes', async () => {
-    const { fixture } = await render(DemoDrag, { providers: [provideMovement()] });
+    const { fixture } = await render(DemoDrag, {
+      providers: [provideMovement(), provideRouter([])],
+    });
     const component = fixture.componentInstance;
 
     component['onStateChange']({

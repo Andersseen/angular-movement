@@ -3,17 +3,17 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-24
-**Library version:** `1.2.0` (`v1.2.0` tag, 2026-09-26) — spec 014 (Consumer DX & Imperative
-Motion), cut with the (since removed) `pnpm release minor` after PR #69 merged. `angular-movement-mcp` is bumped to
-`0.2.0` in its `package.json`; tag `mcp-v0.2.0` is still to be pushed (last published: `0.1.0`).
+**Last updated:** 2026-10-26
+**Library source version:** `1.3.0`. Registry audit for spec 019 found npm latest `1.2.0` and
+GitHub `v1.3.0` still draft. No publication was attempted; maintainers own release recovery.
+`angular-movement-mcp` is separate from this site-only milestone.
 **WebKit touch e2e:** Playwright's Linux WebKit (CI) _does_ send a touch `pointerdown` for `tap()`
 (the 1.2.0 guard assumed it sent none and never fired), but not reliably the matching
 `pointerup`/`pointercancel`. `e2e/touch.spec.ts` now records the full touch pointer sequence, asserts
 the press only when both press and release arrived, and polls for the committed `scale: 1` rather
 than reading it once. macOS WebKit sends everything, so a local run cannot reproduce CI.
 **Angular peer range:** `^21.2.0 || ^22.0.0` (`@angular/core`, `@angular/common`)
-**Branch state:** `main` includes everything through PR #69 (spec 014) plus the `v1.2.0` release commit.
+**Branch state:** site milestone on `feat/site-demo-workbench-ci`, PR #89, based on `ad1d3ef`.
 **Roadmap phase:** **1.0.0 is out**, and 1.1.0 has since shipped on top of it (spec 013). Spec 009
 made the API-freeze decisions (see `docs/ai/specs/009-10-api-freeze-decision.md`). **Recurring
 gotcha, now resolved twice:** both the `v1.0.0` and `v1.1.0`/`mcp-v0.1.0` release tags were created
@@ -21,6 +21,34 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## In progress — Spec 019 (website workbench and CI)
+
+Branch `feat/site-demo-workbench-ci`, based on `ad1d3ef` (current origin/main at bootstrap).
+Evidence and visual diagnosis: `docs/ai/evidence/019/README.md`.
+
+- All 23 demo routes now compose `DemoWorkbench`, directly or through `DemoContainer`. Desktop uses
+  a 224px independently scrolling sidebar and a viewport-height stage/controls/source grid; below
+  1024px it switches to grouped native selection and document scrolling. Source tabs retain the
+  existing safe CodeBlock tokenizer and clipboard announcements.
+- The smooth-scroll demo now initializes **only its preview container** via `moveSmoothScroll`;
+  keyboard tests target that region. Native page scrolling elsewhere remains unchanged.
+- Release preparation uses main's locked Prettier and configuration to normalize the Release PR
+  manifest, committing it with the changelog only when changed. The regression test invokes the
+  actual release-please updater, preserves versions and proves idempotence.
+- `app-root[data-hydrated="true"]` marks the first completed browser render after Angular stability. E2E must wait for this,
+  since the `ng` debug global appears before controls finish hydrating. Source examples are compiled
+  against the public API by `e2e/workbench-source.spec.ts`.
+- Release audit: source package is **1.3.0**, GitHub `v1.3.0` is still **draft**, npm latest is **1.2.0**.
+  No publication/recovery was triggered. Source badges explicitly say “source”. Historical release
+  status below predates this audit; use the registry, not package.json, to infer publication.
+- The hero has a lazy native WebGL depth-of-field particle field — a single-draw port of the
+  reference site's Three.js DoF scene: fractal curl-noise flow, fine in-focus dust plus a few soft
+  bokeh orbs, additive in dark theme / faint ink in light, lerped pointer parallax. Capped at
+  22,000 desktop / 7,500 compact points, backing ≤1600×1000, 24 draws/s. No dependency was added.
+  The pause toggle was removed by user decision (2026-10-26); reduced motion, visibility and route
+  cleanup own its lifecycle; unsupported/software WebGL retains a static CSS fallback.
+- Final verification and PR delivery are underway; see spec 019 for acceptance tracking.
 
 ## Done — Spec 018 (Website 2.0: Doqs docs, dedicated demos, new product page) — site only
 

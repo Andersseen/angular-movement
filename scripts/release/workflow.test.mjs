@@ -294,3 +294,17 @@ describe('MCP package stays independent', () => {
     assert.doesNotMatch(read('.github/workflows/release.yml'), /movement-mcp/);
   });
 });
+
+describe('release metadata normalization', () => {
+  it('uses trusted tooling and commits formatting with the changelog only when changed', () => {
+    const prepare = runText('prepare');
+    assert.match(prepare, /pnpm --dir trusted install --frozen-lockfile --ignore-scripts/);
+    assert.match(
+      prepare,
+      /node trusted\/scripts\/release\/normalize-manifest.mjs release-pr\/\.release-please-manifest.json/,
+    );
+    assert.match(prepare, /git status --porcelain CHANGELOG.md \.release-please-manifest.json/);
+    assert.match(prepare, /git add CHANGELOG.md \.release-please-manifest.json/);
+    assert.doesNotMatch(prepare, /git push.*--force/);
+  });
+});

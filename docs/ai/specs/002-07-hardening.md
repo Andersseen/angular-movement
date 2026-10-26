@@ -93,11 +93,11 @@ an enforced gate. Fully data-driving the editorial pages is recorded as a follow
 
 - [x] 1. `projects/movement/src/lib/directives/move-layout.directive.ts` — measure untransformed rects.
 - [x] 2. `projects/movement/src/lib/directives/move-layout.directive.spec.ts` — tests for the two
-     double-counting cases + transform restoration.
+      double-counting cases + transform restoration.
 - [x] 3. `projects/movement/src/lib/directives/move-scroll.directive.spec.ts` — cover container mode,
-     invalid offsets, RAF settle, destroy cleanup.
+      invalid offsets, RAF settle, destroy cleanup.
 - [x] 4. `projects/movement/src/lib/scroll/smooth-scroll.service.spec.ts` — cover init/teardown,
-     reduced motion, SSR, RAF loop.
+      reduced motion, SSR, RAF loop.
 - [x] 5. `projects/movement/src/lib/movement.ts` — `@stability` JSDoc on every export.
 - [x] 6. `src/app/pages/demos/smooth-scroll.page.ts` + nav entry in `src/app/pages/demos.page.ts`.
 - [x] 7. `src/app/pages/demos/values.page.ts` + nav entry.

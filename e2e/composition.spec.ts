@@ -1,3 +1,4 @@
+import { waitForHydration } from './hydration';
 import { expect, test } from '@playwright/test';
 import { settledMotionState } from './motion-state';
 
@@ -15,6 +16,7 @@ test.describe('composition scenarios', () => {
     page,
   }) => {
     await page.goto('/demos/drag');
+    await waitForHydration(page);
 
     const card = page.getByTestId('drag-card');
     await expect(card).toBeVisible();
@@ -62,6 +64,7 @@ test.describe('composition scenarios', () => {
     page,
   }) => {
     await page.goto('/demos/drag');
+    await waitForHydration(page);
 
     const card = page.getByTestId('drag-card');
     await expect(card).toBeVisible();
@@ -87,6 +90,7 @@ test.describe('composition scenarios', () => {
     page,
   }) => {
     await page.goto('/demos/presence-list');
+    await waitForHydration(page);
 
     await expect(page.getByTestId('presence-list-item-1')).toBeVisible();
 
@@ -126,6 +130,7 @@ test.describe('composition scenarios', () => {
     page.on('pageerror', (error) => errors.push(error.message));
 
     await page.goto('/demos/presence');
+    await waitForHydration(page);
     await expect(page.getByTestId('presence-panel-1')).toBeVisible();
 
     // Switch tabs twice in immediate succession (the second switch starts while the first exit is
@@ -143,6 +148,7 @@ test.describe('composition scenarios', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/demos/presence');
+    await waitForHydration(page);
 
     const first = page.getByTestId('presence-panel-1');
     await expect(first).toBeVisible();
@@ -159,6 +165,7 @@ test.describe('composition scenarios', () => {
     page,
   }) => {
     await page.goto('/demos/scroll');
+    await waitForHydration(page);
 
     const foreground = page.getByTestId('scroll-foreground');
     const linked = page.getByTestId('scroll-linked-value');
@@ -182,8 +189,9 @@ test.describe('composition scenarios', () => {
     page,
   }) => {
     await page.goto('/demos/icons');
+    await waitForHydration(page);
 
-    const toggle = page.getByRole('button', { name: /Animate|Reset/ });
+    const toggle = page.getByTestId('demo-stage').getByRole('button', { name: /Animate|Reset/ });
     await expect(toggle).toBeVisible();
 
     // Flip the toggle four times with no settling in between.

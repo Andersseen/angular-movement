@@ -14,12 +14,14 @@ import { motionState, settledMotionState } from './motion-state';
 
 test('basic [move] plays an entrance preset', async ({ page }) => {
   await page.goto('/demos/enter');
+  await waitForHydration(page);
 
   await expect(page.locator('.font-display', { hasText: /^Fade Up$/i })).toBeVisible();
 });
 
 test('enter/leave: moveLeave plays before *movePresence removes the view', async ({ page }) => {
   await page.goto('/demos/leave');
+  await waitForHydration(page);
 
   const card = page.getByTestId('leave-demo-card');
   await expect(card).toBeVisible();
@@ -38,6 +40,7 @@ test('presence: the outgoing panel stays mounted until its leave animation resol
   page,
 }) => {
   await page.goto('/demos/presence');
+  await waitForHydration(page);
 
   const first = page.getByTestId('presence-panel-1');
   await expect(first).toBeVisible();
@@ -51,6 +54,7 @@ test('presence: the outgoing panel stays mounted until its leave animation resol
 
 test('variants: switching the active variant changes the animated state', async ({ page }) => {
   await page.goto('/demos/variants');
+  await waitForHydration(page);
 
   const target = page.getByTestId('variants-target');
   await expect(target).toBeVisible();
@@ -61,21 +65,27 @@ test('variants: switching the active variant changes the animated state', async 
   await expect.poll(async () => motionState(target), { timeout: 3000 }).not.toBe(before);
 });
 
-test('hover: moveWhileHover starts a WAAPI animation on pointer enter', async ({ page }) => {
+test('hover: moveWhileHover holds the lifted state and reverses on leave', async ({ page }) => {
   await page.goto('/demos/hover');
+  await waitForHydration(page);
 
   const card = page.locator('.cursor-pointer', { hasText: 'Hover over this card' });
   await expect(card).toBeVisible();
 
   await card.hover();
 
+  await expect.poll(() => card.evaluate((el) => getComputedStyle(el).translate)).toBe('0px -4px');
+  await page.mouse.move(0, 0);
   await expect
-    .poll(async () => card.evaluate((el) => el.getAnimations().length), { timeout: 3000 })
-    .toBeGreaterThan(0);
+    .poll(() =>
+      card.evaluate((el) => ['none', '0px', '0px 0px'].includes(getComputedStyle(el).translate)),
+    )
+    .toBe(true);
 });
 
 test('focus: moveWhileFocus keeps the element visible and focused', async ({ page }) => {
   await page.goto('/demos/focus');
+  await waitForHydration(page);
 
   const button = page.locator('button', { hasText: 'Focus me' });
   await expect(button).toBeVisible();
@@ -86,8 +96,9 @@ test('focus: moveWhileFocus keeps the element visible and focused', async ({ pag
   await expect(button).toBeVisible();
 });
 
-test('tap: moveWhileTap starts a WAAPI animation on press', async ({ page }) => {
+test('tap: moveWhileTap holds the pressed state and reverses on release', async ({ page }) => {
   await page.goto('/demos/tap');
+  await waitForHydration(page);
 
   const button = page.locator('button', { hasText: /Press|Shrink/ });
   await expect(button).toBeVisible();
@@ -98,17 +109,17 @@ test('tap: moveWhileTap starts a WAAPI animation on press', async ({ page }) => 
   await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
   await page.mouse.down();
 
-  await expect
-    .poll(async () => button.evaluate((el) => el.getAnimations().length), { timeout: 3000 })
-    .toBeGreaterThan(0);
+  await expect.poll(() => button.evaluate((el) => getComputedStyle(el).scale)).toBe('0.97');
 
   await page.mouse.up();
+  await expect.poll(() => button.evaluate((el) => getComputedStyle(el).scale)).toBe('1');
 });
 
 test('drag: a pointer gesture moves the element and settles cleanly on release', async ({
   page,
 }) => {
   await page.goto('/demos/drag');
+  await waitForHydration(page);
 
   const card = page.getByTestId('drag-card');
   await expect(card).toBeVisible();
@@ -131,6 +142,7 @@ test('drag: a pointer gesture moves the element and settles cleanly on release',
 
 test('layout: switching layout mode re-flows the tracked items', async ({ page }) => {
   await page.goto('/demos/layout');
+  await waitForHydration(page);
 
   const layoutContainer = page.getByTestId('layout-demo-items');
   await expect(page.getByTestId('layout-demo-item').first()).toBeVisible();
@@ -144,6 +156,7 @@ test('layout: switching layout mode re-flows the tracked items', async ({ page }
 
 test('scroll: container scroll updates the mapped element state', async ({ page }) => {
   await page.goto('/demos/scroll');
+  await waitForHydration(page);
 
   const container = page.getByTestId('scroll-container');
   const foreground = page.getByTestId('scroll-foreground');
@@ -162,12 +175,16 @@ test('scroll: container scroll updates the mapped element state', async ({ page 
 
 test('SVG: an icon helper animates path drawing when toggled', async ({ page }) => {
   await page.goto('/demos/icons');
+  await waitForHydration(page);
 
   const path = page.getByTestId('icons-paperclip');
   await expect(path).toBeVisible();
 
   const before = await settledMotionState(path);
-  await page.getByRole('button', { name: /Animate|Reset/ }).click();
+  await page
+    .getByTestId('demo-stage')
+    .getByRole('button', { name: /Animate|Reset/ })
+    .click();
 
   await expect.poll(async () => motionState(path), { timeout: 3000 }).not.toBe(before);
 });
@@ -176,6 +193,7 @@ test('Motion Values: moveTransform updates synchronously and moveSpringValue set
   page,
 }) => {
   await page.goto('/demos/values');
+  await waitForHydration(page);
 
   const linear = page.getByTestId('values-linear-box');
   await expect(page.getByTestId('values-slider')).toBeVisible();
@@ -203,6 +221,7 @@ test('Motion Values: moveTransform updates synchronously and moveSpringValue set
 test('reduced motion: content that animates in is still readable', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
   await page.goto('/demos/stagger');
+  await waitForHydration(page);
 
   const items = page.getByTestId('stagger-item');
   await expect(items.first()).toBeVisible();
@@ -216,24 +235,26 @@ test('reduced motion: content that animates in is still readable', async ({ page
     .toBe(true);
 });
 
-test('smooth scroll: keyboard and programmatic page scrolls are not snapped back', async ({
+test('smooth scroll: keyboard and programmatic container scrolls are not snapped back', async ({
   page,
 }) => {
-  // The smooth-scroll demo runs SmoothScrollService for the page. Its resync listener used to sit
-  // on documentElement, where page scroll events never fire, so every non-wheel scroll was reverted.
   await page.goto('/demos/smooth-scroll');
+  await waitForHydration(page);
+  const region = page.getByTestId('smooth-scroll-container');
   await page.waitForFunction(
     () =>
       typeof (window as unknown as { ng?: { getComponent?: unknown } }).ng?.getComponent ===
       'function',
   );
-
-  await page.evaluate(() => window.scrollTo(0, 600));
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
-
-  await page.evaluate(() => window.scrollTo(0, 0));
-  await page.locator('body').press('End');
-  await page.waitForTimeout(400);
-  expect(await page.evaluate(() => window.scrollY)).toBeGreaterThan(100);
+  await region.evaluate((el) => {
+    el.scrollTop = 600;
+  });
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(500);
+  await region.evaluate((el) => {
+    el.scrollTop = 0;
+  });
+  await region.focus();
+  await region.press('End');
+  await expect.poll(() => region.evaluate((el) => el.scrollTop)).toBeGreaterThan(500);
+  expect(await page.evaluate(() => window.scrollY)).toBe(0);
 });

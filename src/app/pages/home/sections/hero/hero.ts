@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MoveParallaxDirective } from 'movement';
 import {
   VoltAccordion,
   VoltAccordionContent,
@@ -17,6 +16,7 @@ import { InstallCommand } from '../../../../shared/components/install-command/in
 import { CodeBlock } from '../../../../shared/components/code-block/code-block';
 import { SITE } from '../../../../shared/site';
 import { MOVEMENT_VERSION_LABEL } from '../../../../shared/version';
+import { HeroFlow } from './hero-flow';
 import { Showcase } from '../showcase/showcase';
 
 const SHOWCASE_SOURCE = `import { Component, signal } from '@angular/core';
@@ -71,7 +71,7 @@ export class Tasks {
   selector: 'app-hero',
   imports: [
     RouterLink,
-    MoveParallaxDirective,
+    HeroFlow,
     InstallCommand,
     CodeBlock,
     Showcase,
@@ -87,36 +87,23 @@ export class Tasks {
     LmnSparklesIcon,
   ],
   template: `
-    <section class="relative overflow-hidden pt-28 pb-24 lg:pt-36">
-      <div class="landing-grid pointer-events-none absolute inset-0 z-0" aria-hidden="true"></div>
+    <section class="home-hero relative overflow-hidden pt-16 pb-16 lg:pt-24 lg:pb-20">
       <div
-        class="pointer-events-none absolute -top-24 -left-24 z-0 h-[28rem] w-[28rem]"
+        class="hero-flow-fallback pointer-events-none absolute inset-0 z-0"
         aria-hidden="true"
-        [moveParallax]="0.25"
-      >
-        <div
-          class="landing-orb bg-accent/25 h-full w-full rounded-full blur-3xl"
-          style="--i: 0"
-        ></div>
-      </div>
-      <div
-        class="pointer-events-none absolute top-10 -right-24 z-0 h-[24rem] w-[24rem]"
-        aria-hidden="true"
-        [moveParallax]="-0.15"
-      >
-        <div
-          class="landing-orb h-full w-full rounded-full blur-3xl"
-          style="background: oklch(0.7 0.2 320 / 0.18); animation-delay: -5s"
-        ></div>
-      </div>
+      ></div>
+      @defer (on idle) {
+        <app-hero-flow />
+      }
 
       <div
         class="relative z-10 mx-auto grid w-full max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:px-8"
       >
         <div class="min-w-0">
+          <p class="home-kicker">ANGULAR NATIVE <span>/</span> BROWSER POWERED</p>
           <volt-badge variant="secondary" class="landing-rise mb-6 gap-2" style="--i: 0">
-            <lmn-sparkles [size]="14" [animate]="true" ariaLabel="New" />
-            {{ version ? version + ' · ' : '' }}Angular 21 and 22
+            <lmn-sparkles [size]="14" [animate]="false" ariaLabel="New" />
+            {{ version ? version + ' source · ' : '' }}Angular 21 and 22
           </volt-badge>
           <h1
             class="landing-rise font-display text-text mb-6 text-4xl leading-[1.05] font-extrabold tracking-tight text-balance sm:text-5xl lg:text-6xl"
@@ -129,9 +116,9 @@ export class Tasks {
             class="landing-rise text-text-muted mb-8 max-w-xl text-lg leading-relaxed"
             style="--i: 2"
           >
-            Declarative directives on top of the Web Animations API. Start with one attribute; reach
-            for presence, variants, scroll, springs and signals when the interface needs coordinated
-            motion. Built for standalone, zoneless and SSR Angular.
+            Start with one attribute. Coordinate enter, exit and state changes when your interface
+            needs more. Native browser animations, Angular signals, with zero runtime dependencies.
+            Built for standalone, zoneless and server-rendered Angular.
           </p>
 
           <div class="landing-rise mb-8 flex flex-col gap-3 sm:flex-row" style="--i: 3">
@@ -174,8 +161,12 @@ export class Tasks {
 
         <!-- Interactive showcase: mounted after idle so the initial render/hydration stays cheap -->
         <div class="landing-rise min-w-0" style="--i: 3">
-          <volt-card class="landing-card shadow-[0_20px_60px_-24px_var(--color-accent-glow)]">
+          <volt-card class="landing-card home-showcase">
             <volt-card-content class="p-5 sm:p-6" role="group" aria-label="Interactive example">
+              <div class="home-showcase-heading">
+                <span>STATE → MOTION</span
+                ><a routerLink="/demos/presence-list">Open in the motion lab ↗</a>
+              </div>
               @defer (on idle) {
                 <app-showcase />
               } @placeholder {
@@ -197,7 +188,7 @@ export class Tasks {
           <volt-accordion type="single" [collapsible]="true" class="mt-3">
             <volt-accordion-item value="code">
               <volt-accordion-trigger>Show the code</volt-accordion-trigger>
-              <volt-accordion-content>
+              <volt-accordion-content class="grid">
                 <div class="max-h-96">
                   <app-code-block title="tasks.component.ts" [code]="source" />
                 </div>

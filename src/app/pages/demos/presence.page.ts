@@ -1,5 +1,5 @@
 import type { RouteMeta } from '@analogjs/router';
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
 import { MoveLeaveDirective, MovePresenceDirective, MovePreset } from 'movement';
 import { DemoContainer, DemoState } from '../../shared/components/demo-container/demo-container';
 import { ALL_PRESETS, getPresetLabel, DEFAULT_CONTROLS } from '../../shared/utils/demo.utils';
@@ -17,6 +17,10 @@ export const routeMeta: RouteMeta = { title: 'movePresence demo — Angular Move
       [availablePresets]="availablePresets"
       [controls]="controlsConfig"
       (stateChange)="onStateChange($event)"
+      (resetDemo)="activeTab.set(tabs[0].id)"
+      [customCode]="presenceCode()"
+      supportCode="readonly open = signal(true);"
+      [sourceImports]="['MovePresenceDirective', 'MoveLeaveDirective']"
       [showReplay]="false"
     >
       <!-- Preview -->
@@ -77,6 +81,12 @@ export default class DemoPresence {
     { id: 3, label: 'Tab 3' },
   ];
 
+  protected readonly presenceCode = computed(
+    () => `<button (click)="open.set(!open())">Toggle panel</button>
+<ng-container *movePresence="open()">
+  <article moveLeave="${this.preset()}" moveDuration="${this.duration()}ms" moveEasing="${this.easing()}">Panel</article>
+</ng-container>`,
+  );
   protected preset = signal<MovePreset>('fade-up');
   protected duration = signal(300);
   protected easing = signal('ease');

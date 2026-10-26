@@ -81,7 +81,7 @@ const LINKS: readonly NavLink[] = [
               >
             }
             <volt-separator orientation="vertical" class="mx-2 h-6" />
-            <volt-badge variant="outline" class="font-mono">{{ version }}</volt-badge>
+            <volt-badge variant="outline" class="font-mono">{{ version }} source</volt-badge>
             <button
               voltButton
               variant="ghost"
@@ -165,7 +165,7 @@ const LINKS: readonly NavLink[] = [
             }
             <volt-separator class="my-1" />
             <div class="flex items-center justify-between px-2">
-              <volt-badge variant="outline" class="font-mono">{{ version }}</volt-badge>
+              <volt-badge variant="outline" class="font-mono">{{ version }} source</volt-badge>
               <a voltButton variant="ghost" size="sm" [href]="github" (click)="closeMobileMenu()"
                 >GitHub</a
               >
