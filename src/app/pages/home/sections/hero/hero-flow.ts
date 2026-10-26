@@ -34,11 +34,10 @@ const FRAME_INTERVAL = 1000 / 24;
         type="button"
         class="hero-flow-toggle"
         [attr.aria-pressed]="paused()"
-        [attr.aria-label]="paused() ? 'Resume background motion' : 'Pause background motion'"
         (click)="paused.update(toggle)"
       >
         <span aria-hidden="true">{{ paused() ? '▶' : 'Ⅱ' }}</span>
-        {{ paused() ? 'Resume motion' : 'Pause motion' }}
+        {{ paused() ? 'Resume background motion' : 'Pause background motion' }}
       </button>
     }
   `,

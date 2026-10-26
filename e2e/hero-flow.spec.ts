@@ -1,4 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import { waitForHydration } from './hydration';
 
 // Test-only software WebGL makes shader and lifecycle checks deterministic on GPU-less CI.
@@ -208,3 +209,22 @@ test('compact screens use the smaller particle budget', async ({ page }) => {
   await expect.poll(async () => (await metrics(page)).times.length).toBeGreaterThan(3);
   expect(Math.max(...(await metrics(page)).points)).toBeLessThanOrEqual(6000);
 });
+
+for (const theme of ['dark', 'light']) {
+  test(`mounted hero has accessible naming and contrast in ${theme} theme`, async ({ page }) => {
+    await page.addInitScript((value) => localStorage.setItem('movement-theme', value), theme);
+    await openField(page);
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll('.landing-rise')].every(
+        (element) => getComputedStyle(element).opacity === '1',
+      ),
+    );
+    await twoFrames(page);
+    const result = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+      .analyze();
+    expect(
+      result.violations.map((violation) => ({ id: violation.id, nodes: violation.nodes })),
+    ).toEqual([]);
+  });
+}
