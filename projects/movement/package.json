@@ -18,6 +18,8 @@
     "layout-animation",
     "ssr",
     "zoneless",
+    "web-animations",
+    "angular-animations",
     "movement"
   ],
   "author": "Andersseen",
@@ -27,7 +29,7 @@
     "url": "git+https://github.com/Andersseen/angular-movement.git",
     "directory": "projects/movement"
   },
-  "homepage": "https://github.com/Andersseen/angular-movement#readme",
+  "homepage": "https://angular-movement.andersseen.dev",
   "bugs": {
     "url": "https://github.com/Andersseen/angular-movement/issues"
   },

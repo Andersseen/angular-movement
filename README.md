@@ -19,6 +19,7 @@ SVG path-drawing. SSR-safe, zoneless-ready. Zero `@angular/animations`.
 [![Angular](https://img.shields.io/badge/Angular-21%20%7C%2022-DD0031?style=flat-square&logo=angular&logoColor=white&labelColor=0d0b1a)](https://angular.dev)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue?style=flat-square&labelColor=0d0b1a)](LICENSE)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-6533FF?style=flat-square&labelColor=0d0b1a)](CONTRIBUTING.md)
+[![GitHub stars](https://img.shields.io/github/stars/Andersseen/angular-movement?style=flat-square&logo=github&color=6533FF&labelColor=0d0b1a)](https://github.com/Andersseen/angular-movement/stargazers)
 
 <p>
   <a href="https://angular-movement.andersseen.dev"><b>🌐 Live Demo</b></a>
@@ -26,6 +27,10 @@ SVG path-drawing. SSR-safe, zoneless-ready. Zero `@angular/animations`.
   <a href="https://angular-movement.andersseen.dev/docs"><b>📚 Docs</b></a>
   &nbsp;·&nbsp;
   <a href="https://angular-movement.andersseen.dev/docs/reference"><b>🧩 API reference</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://angular-movement.andersseen.dev/demos"><b>🎛️ Motion lab</b></a>
+  &nbsp;·&nbsp;
+  <a href="https://angular-movement.andersseen.dev/docs/mcp"><b>🤖 AI / MCP</b></a>
   &nbsp;·&nbsp;
   <a href="https://www.npmjs.com/package/angular-movement"><b>📦 npm</b></a>
   &nbsp;·&nbsp;
@@ -165,9 +170,11 @@ Several of these look interchangeable at first glance. They're not — each cove
   staggers **nested `[moveVariants]` subtrees** on a variant change — the tool when the staggered
   items are themselves stateful, not just entering once.
 
-## 🎛️ Explore the interactive playground
+## 🎛️ Explore the motion lab
 
-Every directive has a focused page with a live config panel and copy-paste HTML output.
+23 interactive playgrounds, one per directive or pattern: a live preview, a config panel, replay and
+reset, and source tabs with code that is compiled against the public API in CI — what you copy
+builds.
 
 <div align="center">
   <a href="https://angular-movement.andersseen.dev/demos">
@@ -175,8 +182,9 @@ Every directive has a focused page with a live config panel and copy-paste HTML 
   </a>
 </div>
 
-**Demo pages:** Animate · Animation (object API) · Enter & Leave · Hover & Tap · Focus · In-View ·
-Scroll & Parallax · Presence · Layout · Drag · Variants · Text · SVG Icons
+**Experiments:** Enter · Leave · Animate · Animation (object API) · Presence · Presence list ·
+Stagger · Hover · Tap · Focus · In-View · Scroll · Parallax · Smooth scroll · Variants · Target ·
+Loop · Text · Values · Imperative (`MoveAnimator`) · Layout · Drag · SVG Icons
 
 ## 🧭 Common patterns
 
@@ -402,6 +410,18 @@ Scroll directives expose progress as a signal, so you can derive values without 
 
 </details>
 
+## 🤖 Built for AI coding agents
+
+Agents guess animation APIs. Give yours the real one:
+
+- **MCP server** — `npx angular-movement-mcp init` adds the
+  [`angular-movement-mcp`](projects/movement-mcp) server and a usage skill to your repo, so Claude
+  Code (or any MCP client) looks up real directives, inputs and presets instead of inventing them.
+  See the [AI agent setup guide](https://angular-movement.andersseen.dev/docs/mcp).
+- **`llms.txt`** — [angular-movement.andersseen.dev/llms.txt](https://angular-movement.andersseen.dev/llms.txt)
+  indexes every guide, demo and API page with its summary, generated from the built site on every
+  deploy.
+
 ## 🧪 API stability
 
 | Status               | APIs                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
@@ -490,6 +510,22 @@ pnpm test           # library unit tests (Vitest)
 ng build movement   # build the library → dist/movement
 pnpm build          # build the demo site (client + SSR)
 ```
+
+## ✅ Quality gates
+
+Every pull request runs the full pipeline in parallel jobs
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)):
+
+- **Static** — ESLint, Prettier, documentation snippets compiled against the library, API reference
+  and docs drift checks.
+- **Unit** — library (Vitest, coverage), website, release scripts and the migration tool.
+- **Package** — library build, public API snapshot, `npm pack` contents.
+- **Packed package on every supported Angular major** — the real tarball installed, AOT-compiled,
+  server-rendered, hydrated and animated in Chromium.
+- **E2E** — the comprehensive Chromium suite (sharded), Firefox and WebKit smoke and touch suites,
+  and the production build as Cloudflare Pages serves it: routing, 404s, search, hydration, and the
+  search metadata in the raw HTML (titles, social cards, canonical URLs, JSON-LD, sitemap,
+  `llms.txt`, response headers).
 
 ## 🚢 Deployment
 

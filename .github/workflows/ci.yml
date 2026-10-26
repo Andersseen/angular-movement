@@ -14,33 +14,24 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
-env:
-  NODE_VERSION: 22
+# The pipeline used to be one ~10 minute serial job (6m50s of it a single-worker e2e run) next to a
+# consumer-runtime job that spent most of its time installing a browser. The jobs below run side by
+# side and the slow suites are sharded, so wall time is the slowest job rather than the sum of every
+# step. Every check that ran before still runs; nothing is skipped or retried more.
+#
+# `build-and-test` at the bottom keeps the old required-check name, so branch protection needs no
+# change however many jobs exist above it.
 
 jobs:
-  build-and-test:
+  static:
+    name: Lint · format · docs
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Playwright browsers
-        # Firefox and WebKit are only exercised by the small e2e/cross-browser.spec.ts smoke suite
-        # (see playwright.config.ts) — the comprehensive suite stays Chromium-only.
-        run: pnpm exec playwright install --with-deps chromium firefox webkit
+          persist-credentials: false
+      - uses: ./.github/actions/setup
 
       - name: Lint
         run: pnpm run lint
@@ -54,11 +45,39 @@ jobs:
       - name: Verify documentation (snippets, API reference, content, drift, Doqs doctor)
         run: pnpm run docs:verify
 
+  unit:
+    name: Unit tests (library · site · scripts · migrate)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
       - name: Test library
         run: pnpm run test:coverage
 
       - name: Test website
         run: pnpm run test:site
+
+      - name: Test release and site scripts
+        run: pnpm run test:scripts
+
+      - name: Test and build the migration assessment tool
+        run: |
+          pnpm run migrate:test
+          pnpm run migrate:build
+
+  library:
+    name: Library build · API surface · npm package
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
 
       - name: Build library
         run: pnpm exec ng build movement
@@ -66,86 +85,209 @@ jobs:
       - name: Check public API surface
         run: node scripts/check-api-snapshot.mjs
 
+      # `pnpm pack:check` rebuilds the library first; the build above is the same one.
       - name: Check npm package
-        run: pnpm run pack:check
+        run: pnpm --dir dist/movement pack --dry-run
 
-      - name: Test and build the migration assessment tool
-        run: |
-          pnpm run test:scripts
-          pnpm run migrate:test
-          pnpm run migrate:build
+  site-build:
+    name: Build site (production)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
 
       - name: Build app
         run: pnpm run build:prod
 
-      - name: Run e2e
-        run: pnpm run e2e
+      - name: Upload the static output for e2e-static
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: site-public
+          path: dist/analog/public
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 1
 
-      # The build above is what Cloudflare Pages serves: prerendered Markdown, the Pagefind index,
-      # real 404s, the sitemap, hydration in the production bundle (Chromium, Firefox, WebKit).
-      - name: Run e2e against the production build (Cloudflare Pages emulation)
+  # Browser jobs run in Playwright's own image (browsers and their OS packages preinstalled, same
+  # version as the lockfile): installing them with apt on the runner depends on the Ubuntu mirror,
+  # which has served packages at ~45 kB/s and held single jobs for 10 to 20 minutes.
+  #
+  # The comprehensive dev-server suite. CI keeps one worker per runner (timing-sensitive assertions,
+  # see playwright.config.ts), so it is split across runners instead of across workers.
+  e2e:
+    name: E2E chromium (${{ matrix.shard }}/3)
+    needs: versions
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - name: Run e2e
+        run: pnpm exec playwright test --project=chromium --shard=${{ matrix.shard }}/3
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report-chromium-${{ matrix.shard }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  # The cross-browser and touch smoke suites (e2e/cross-browser.spec.ts, e2e/touch.spec.ts).
+  e2e-browsers:
+    name: E2E ${{ matrix.browser }}
+    needs: versions
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [firefox, webkit]
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - name: Run e2e
+        run: pnpm exec playwright test --project=${{ matrix.browser }}
+
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: playwright-report-${{ matrix.browser }}
+          path: |
+            playwright-report
+            test-results
+          retention-days: 7
+
+  # What Cloudflare Pages serves: prerendered Markdown, the Pagefind index, real 404s, the sitemap,
+  # llms.txt, response headers, the search metadata in the raw HTML and hydration of the production
+  # bundle (Chromium, Firefox, WebKit). Runs against the exact output of `site-build`.
+  e2e-static:
+    name: E2E production build (Cloudflare Pages emulation)
+    needs: [versions, site-build]
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.versions.outputs.playwright-image }}
+      # The runner's uid, so checkout and the pnpm store stay writable (Playwright's CI guide).
+      options: --user 1001
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+
+      - name: Download the static output
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: site-public
+          path: dist/analog/public
+
+      - name: Run e2e against the production build
         run: pnpm run e2e:static
+
+  # Versions the other jobs are parameterised by, read from the repository so nothing here drifts:
+  # the supported Angular majors from the library's own peer range (as in the validation scripts),
+  # and the Playwright image from the version the lockfile resolved.
+  versions:
+    name: Resolve Angular majors and Playwright image
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      majors: ${{ steps.majors.outputs.majors }}
+      playwright-image: ${{ steps.playwright.outputs.image }}
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+        with:
+          persist-credentials: false
+      - id: majors
+        run: |
+          majors=$(node -p "JSON.stringify([...require('./projects/movement/package.json').peerDependencies['@angular/core'].matchAll(/\^(\d+)\./g)].map(m => m[1]))")
+          echo "majors=$majors" >> "$GITHUB_OUTPUT"
+          echo "Supported Angular majors: $majors"
+      - id: playwright
+        run: |
+          version=$(grep -A2 "'@playwright/test':" pnpm-lock.yaml | awk '/version:/ { sub(/\(.*/, "", $2); print $2; exit }')
+          [[ "$version" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "::error::cannot read @playwright/test from pnpm-lock.yaml"; exit 1; }
+          echo "image=mcr.microsoft.com/playwright:v${version}-noble" >> "$GITHUB_OUTPUT"
+          echo "Playwright image: mcr.microsoft.com/playwright:v${version}-noble"
 
   # Compiles the *packed* library inside a real Angular app, once per supported major. The demo site
   # imports the library through a Vite source alias, so nothing else here exercises the published
   # package — this is what catches a broken peer range, `exports` map or `.d.ts`.
   consumer-validation:
+    name: Packed package compiles on Angular ${{ matrix.angular }}
+    needs: versions
     runs-on: ubuntu-latest
-
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ${{ fromJSON(needs.versions.outputs.majors) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+          persist-credentials: false
+      - uses: ./.github/actions/setup
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Validate against every supported Angular major
-        run: pnpm run validate:consumer
+      - name: Validate against Angular ${{ matrix.angular }}
+        run: pnpm run validate:consumer ${{ matrix.angular }}
 
   # Executes the packed tarball: server prerender, hydration, event replay, real animations,
   # presence, reduced motion, teardown and no-JS rendering in Chromium, once per Angular major.
-  # validate:consumer (above) only proves install + AOT compilation.
+  # consumer-validation (above) only proves install + AOT compilation.
   consumer-runtime:
+    name: Packed package runs on Angular ${{ matrix.angular }}
+    needs: versions
     runs-on: ubuntu-latest
-
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        angular: ${{ fromJSON(needs.versions.outputs.majors) }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
+          persist-credentials: false
+      - uses: ./.github/actions/setup
+      # A small fixture app with system fonts only: skips the apt step that can stall for minutes.
+      - uses: ./.github/actions/setup-playwright
+        with:
+          os-deps: 'false'
 
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Install Chromium
-        run: pnpm exec playwright install --with-deps chromium
-
-      - name: Run packed-package runtime validation
-        run: pnpm run validate:consumer:runtime
+      - name: Run packed-package runtime validation on Angular ${{ matrix.angular }}
+        run: pnpm run validate:consumer:runtime ${{ matrix.angular }}
 
   # The release pipeline publishes to npm; its workflow files get a static check on every PR.
   workflow-lint:
+    name: Lint GitHub Actions workflows
     runs-on: ubuntu-latest
-
+    timeout-minutes: 5
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
         with:
           persist-credentials: false
 
@@ -154,30 +296,29 @@ jobs:
           bash <(curl -fsSL https://raw.githubusercontent.com/rhysd/actionlint/914e7df21a07ef503a81201c76d2b11c789d3fca/scripts/download-actionlint.bash) 1.7.12
           ./actionlint -color
 
-  # Squash merges use the PR title as the commit message, and release-please reads it to decide the
-  # next version. An unparseable title would silently drop a change from the release.
-  pr-title:
-    if: github.event_name == 'pull_request'
+  # One required check, whatever the number of jobs above. Keeps the name of the old single job.
+  build-and-test:
+    name: build-and-test
+    if: always()
+    needs:
+      - static
+      - unit
+      - library
+      - site-build
+      - e2e
+      - e2e-browsers
+      - e2e-static
+      - versions
+      - consumer-validation
+      - consumer-runtime
+      - workflow-lint
     runs-on: ubuntu-latest
-
+    timeout-minutes: 5
+    permissions: {}
     steps:
-      - name: Checkout
-        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5.1.0
-        with:
-          persist-credentials: false
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320 # v4.4.0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5.0.0
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: pnpm
-
-      - run: pnpm install --frozen-lockfile
-
-      - name: Pull request title is a Conventional Commit
+      - name: Every job must have succeeded
         env:
-          PR_TITLE: ${{ github.event.pull_request.title }}
-        run: printf '%s\n' "$PR_TITLE" | pnpm exec commitlint
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          echo "job results: $RESULTS"
+          for result in $RESULTS; do [ "$result" = "success" ] || exit 1; done

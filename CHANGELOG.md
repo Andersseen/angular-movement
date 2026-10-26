@@ -7,6 +7,12 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
 
 ### Fixed
 
+- Website SEO: the ~90 prerendered documentation pages shipped the **site's** title and description
+  in `og:*` / `twitter:*`, because Doqs writes a page's head after its Markdown loads, later than the
+  navigation event the social tags were derived on. They are now derived right before the HTML is
+  serialized (`BEFORE_APP_SERIALIZED`) and, in the browser, once the app is stable. `/demos` and
+  `/templates` no longer reuse the home page's title and description.
+
 - Release PR preparation normalizes the generated manifest with trusted Prettier tooling alongside
   the changelog, preventing compact Release Please JSON from failing CI (spec 019).
 
@@ -18,6 +24,15 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
   transform channels share one easing.
 
 ### Added
+
+- Website SEO and metadata: JSON-LD (`WebSite` + `SoftwareSourceCode` on the home page,
+  `BreadcrumbList` on docs and demos), `og:image` size and alt text, `og:locale`, a generated
+  `llms.txt` built from every page's own title and description, security and immutable-cache
+  response headers (`public/_headers`), and e2e-static checks for all of it in the raw HTML.
+- CI: the single ~10 minute serial job is split into parallel jobs (static, unit, library, site
+  build, a 3-way sharded Chromium e2e, Firefox, WebKit, e2e-static on the shared build artifact, and
+  the packed-package checks per Angular major from the peer range), with shared composite setup
+  actions and a cached Playwright browser download. `build-and-test` remains the one required check.
 
 - Website motion lab (spec 019): one responsive workbench across all 23 demos, with a dominant
   preview, independent desktop panels, grouped mobile selection, source tabs, replay/reset feedback
