@@ -815,6 +815,6 @@ app-home > app-choose-tool {
     transparent 0.6px
   );
   background-size: 28px 28px;
-  mask-image: linear-gradient(transparent, #000 20%, transparent);
+  mask-image: linear-gradient(transparent, #000 12%, #000 85%, transparent);
   opacity: 0.35;
 }

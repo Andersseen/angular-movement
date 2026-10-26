@@ -7,6 +7,9 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
 
 ### Fixed
 
+- Release PR preparation normalizes the generated manifest with trusted Prettier tooling alongside
+  the changelog, preventing compact Release Please JSON from failing CI (spec 019).
+
 - `moveLayout`: a FLIP that is **cancelled** (preempted by a drag, `MoveAnimator.set()/clear()` or a
   newer animation) now releases its render suppression and restores `transform-origin`. Previously
   only a natural finish did, so the host could stop measuring and animating layout changes.
@@ -15,6 +18,14 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
   transform channels share one easing.
 
 ### Added
+
+- Website motion lab (spec 019): one responsive workbench across all 23 demos, with a dominant
+  preview, independent desktop panels, grouped mobile selection, source tabs, replay/reset feedback
+  and strict compilation of generated examples. Scoped smooth-scroll preview and refined homepage
+  surfaces preserve Doqs and the library API. Website unit tests now run in regular CI.
+- Hero background: a lazy native WebGL depth-of-field particle field (fractal curl-noise flow,
+  fine dust plus soft bokeh orbs) with bounded density/resolution, subtle pointer parallax, static
+  reduced motion, offscreen suspension and complete resource cleanup; no new dependency.
 
 - `movement-migrate` (`projects/movement-migrate`, private, not published): read-only assessment of
   legacy `@angular/animations` usage using the TypeScript compiler API and Angular's template parser.

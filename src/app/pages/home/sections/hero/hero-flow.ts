@@ -13,33 +13,18 @@ import {
   signal,
   viewChild,
 } from '@angular/core';
-import { VoltNativeButton } from '@voltui/components';
 import { ThemeService } from '../../../../shared/theme.service';
 import { createHeroFlowRenderer, type HeroFlowRenderer } from './hero-flow-renderer';
+import { warmHeroGpu } from './hero-flow-warmup';
 
 const FRAME_INTERVAL = 1000 / 24;
 
 @Component({
   selector: 'app-hero-flow',
-  imports: [VoltNativeButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <canvas #field aria-hidden="true"></canvas>
     <div class="hero-flow-scrim" aria-hidden="true"></div>
-    @if (supported() && !reduced()) {
-      <button
-        voltButton
-        variant="ghost"
-        size="sm"
-        type="button"
-        class="hero-flow-toggle"
-        [attr.aria-pressed]="paused()"
-        (click)="paused.update(toggle)"
-      >
-        <span aria-hidden="true">{{ paused() ? '▶' : 'Ⅱ' }}</span>
-        {{ paused() ? 'Resume background motion' : 'Pause background motion' }}
-      </button>
-    }
   `,
   host: {
     '[attr.data-motion-state]': 'state()',
@@ -62,21 +47,7 @@ const FRAME_INTERVAL = 1000 / 24;
       position: absolute;
       inset: 0;
       background: linear-gradient(90deg, var(--color-bg), transparent 72%);
-      opacity: 0.22;
-    }
-    .hero-flow-toggle {
-      position: absolute;
-      top: 16px;
-      right: 24px;
-      pointer-events: auto;
-      color: var(--color-text-muted);
-      font-size: 11px;
-      gap: 6px;
-    }
-    @media (max-width: 639px) {
-      .hero-flow-toggle {
-        right: 16px;
-      }
+      opacity: 0.3;
     }
   `,
 })
@@ -86,18 +57,16 @@ export class HeroFlow {
   readonly #theme = inject(ThemeService);
   readonly #isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   protected readonly canvas = viewChild.required<ElementRef<HTMLCanvasElement>>('field');
-  protected readonly paused = signal(false);
   protected readonly reduced = signal(false);
   protected readonly supported = signal(false);
   readonly #visible = signal(false);
   readonly #hidden = signal(false);
-  protected readonly toggle = (value: boolean) => !value;
   protected readonly state = computed(() =>
     !this.supported()
       ? 'unavailable'
       : this.reduced()
         ? 'static'
-        : this.paused() || !this.#visible() || this.#hidden()
+        : !this.#visible() || this.#hidden()
           ? 'paused'
           : 'running',
   );
@@ -106,6 +75,8 @@ export class HeroFlow {
   #lastDraw = 0;
   #elapsed = 0;
   #dark = true;
+  #pointerTarget = { x: 0, y: 0 };
+  #pointer = { x: 0, y: 0 };
   #events: AbortController | undefined;
   #resizeObserver: ResizeObserver | undefined;
   #intersectionObserver: IntersectionObserver | undefined;
@@ -113,12 +84,11 @@ export class HeroFlow {
   constructor() {
     effect(() => {
       this.#dark = this.#theme.theme() === 'dark';
-      const active =
-        this.supported() && !this.reduced() && !this.paused() && this.#visible() && !this.#hidden();
+      const active = this.supported() && !this.reduced() && this.#visible() && !this.#hidden();
       this.#zone.runOutsideAngular(() => this.#sync(active));
     });
     afterNextRender(() => {
-      if (this.#isBrowser) this.#zone.runOutsideAngular(() => this.#setup());
+      if (this.#isBrowser) this.#zone.runOutsideAngular(() => void this.#setup());
     });
     inject(DestroyRef).onDestroy(() => {
       this.#events?.abort();
@@ -130,17 +100,18 @@ export class HeroFlow {
     });
   }
 
-  #setup(): void {
+  async #setup(): Promise<void> {
     const canvas = this.canvas().nativeElement;
     const view = this.#document.defaultView;
     if (!view) return;
+    this.#events = new AbortController();
+    if (!(await warmHeroGpu(this.#events.signal)) || this.#events.signal.aborted) return;
     try {
       this.#renderer = createHeroFlowRenderer(canvas);
     } catch {
       return;
     }
     if (!this.#renderer) return;
-    this.#events = new AbortController();
     const options = { signal: this.#events.signal };
     const media = view.matchMedia('(prefers-reduced-motion: reduce)');
     this.reduced.set(media.matches);
@@ -149,6 +120,15 @@ export class HeroFlow {
     this.#document.addEventListener(
       'visibilitychange',
       () => this.#hidden.set(this.#document.hidden),
+      options,
+    );
+    // The field quietly follows the pointer; the hero content above it never notices.
+    this.#document.addEventListener(
+      'pointermove',
+      (event) => {
+        this.#pointerTarget.x = (event.clientX / view.innerWidth) * 2 - 1;
+        this.#pointerTarget.y = -((event.clientY / view.innerHeight) * 2 - 1);
+      },
       options,
     );
     canvas.addEventListener(
@@ -186,7 +166,7 @@ export class HeroFlow {
     const { width, height } = canvas.getBoundingClientRect();
     if (!width || !height || !this.#renderer) return;
     this.#renderer.resize(width, height, this.#document.defaultView?.devicePixelRatio ?? 1);
-    this.#renderer.draw(this.#elapsed, this.#dark);
+    this.#renderer.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
   }
 
   #sync(active: boolean): void {
@@ -197,7 +177,9 @@ export class HeroFlow {
       }
     } else {
       this.#stop();
-      if (this.#visible() && !this.#hidden()) this.#renderer?.draw(this.#elapsed, this.#dark);
+      if (this.#visible() && !this.#hidden()) {
+        this.#renderer?.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
+      }
     }
   }
 
@@ -209,7 +191,10 @@ export class HeroFlow {
     const delta = this.#lastDraw ? now - this.#lastDraw : FRAME_INTERVAL;
     if (delta >= FRAME_INTERVAL) {
       this.#elapsed += Math.min(delta, 100) / 1000;
-      this.#renderer.draw(this.#elapsed, this.#dark);
+      // Glide toward the pointer so the parallax feels weighted, not sticky.
+      this.#pointer.x += (this.#pointerTarget.x - this.#pointer.x) * 0.08;
+      this.#pointer.y += (this.#pointerTarget.y - this.#pointer.y) * 0.08;
+      this.#renderer.draw(this.#elapsed, this.#dark, this.#pointer.x, this.#pointer.y);
       this.#lastDraw = now - (delta % FRAME_INTERVAL);
     }
     this.#frame = requestAnimationFrame(this.#tick);

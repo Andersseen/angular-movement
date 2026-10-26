@@ -22,6 +22,7 @@ test('the home page presents the product: one h1, CTAs, install command and real
   );
 
   // The hero showcase's source sits behind a Volt accordion and opens on demand.
+  await waitForHydration(page);
   await hero.getByRole('button', { name: 'Show the code' }).click();
   await expect(hero.locator('app-code-block')).toBeVisible();
 });
