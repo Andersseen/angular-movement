@@ -271,6 +271,37 @@ interact — see `engines/active-player-registry.ts` (internal, not barrel-expor
   already worked correctly (verified by tracing `BaseAnimationPlayer.cancel()`, which is idempotent
   and always resolves `finished`) and needed no change.
 
+### Drag displacement is stored once (spec 020)
+
+The 1.4 drag drifted further from the pointer on every repeated drag. Two independent faults, both
+fixed; the invariants they broke are now the contract:
+
+1. **A displacement is never read back as a base.** `MoveDragDirective` keeps the drag's own
+   translation only in `#_x`/`#_y` and the consumer's transform in `#origin`. Every write is
+   `origin + displacement + gesture`. The old code snapshotted the inline transform at
+   `pointerdown` as "base" — which already contained the previous drag's displacement — and then
+   added `#_x`/`#_y` on top, so the second drag counted the first one twice (and a snap-to-point
+   release also left a second copy in the individual `translate` property). `#deriveOrigin()` now
+   takes the displacement back out, using the rendered matrix (`readRenderedTransform`) for
+   translation so units and percentages resolve.
+2. **A release is a hand-off, not a commit.** `#animateTo` starts from the origin alone, forces the
+   engine onto the composed `transform` path (an identity origin is written as
+   `translate(0px, 0px)`), and `#settleRelease` replaces whatever the finished animation committed
+   with the canonical string. A `pointerdown` that interrupts a release **samples the rendered
+   position before cancelling** (a cancelled WAAPI animation snaps to the inline style) and
+   continues from there, so there is no jump. A token (`#releaseToken`) stops a superseded release
+   from writing after a newer interaction.
+
+**Composer rule (affects every directive):** an animation whose frames have no transform channel
+(opacity, filter, passthrough) must not emit a `transform` keyframe, even when the element has an
+inline transform. A constant `transform` keyframe pins the property for the animation's whole life
+and commits a stale value on finish — it was how the tap/hover _leave_ animation overrode the drag
+release spring in the real browser.
+
+Known limits: only `translate → rotate → scale` (the order `formatTransform` writes) round-trips;
+skew and non-canonical function order in a consumer's inline transform are not decomposed, and a
+stylesheet-only transform is not folded into the origin (unchanged from 1.4).
+
 Deliberately **not** generalized into "any new engine-driven animation cancels the previous one on
 the same element" — two WAAPI animations composing concurrently on different properties (a hover
 fade and a variant slide, say) is normal, desired layering; cancelling one because another started

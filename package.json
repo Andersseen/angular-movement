@@ -36,6 +36,7 @@
     "validate:consumer:runtime": "node scripts/validate-consumer-runtime.mjs",
     "api:snapshot": "ng build movement && node scripts/update-api-snapshot.mjs",
     "api:check": "ng build movement && node scripts/check-api-snapshot.mjs",
+    "contracts:check": "node scripts/check-contract-inventory.mjs",
     "mcp:install": "pnpm --dir projects/movement-mcp install",
     "mcp:snapshot": "node projects/movement-mcp/scripts/generate-snapshot.mjs",
     "mcp:build": "pnpm --dir projects/movement-mcp run build",

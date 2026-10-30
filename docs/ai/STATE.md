@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-26
+**Last updated:** 2026-10-30
 **Library source version:** `1.3.0`. Registry audit for spec 019 found npm latest `1.2.0` and
 GitHub `v1.3.0` still draft. No publication was attempted; maintainers own release recovery.
 `angular-movement-mcp` is separate from this site-only milestone.
@@ -21,6 +21,27 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## In progress — Spec 020 (1.5 reliability and contract gate)
+
+Branch `fix/1.5-reliability-contract-gate`, based on `ce9b03d`. Spec: `docs/ai/specs/020-1.5-reliability-contract-gate.md`;
+evidence: `docs/v2/evidence/1.5/` (README + `contracts.json`, checked by `pnpm contracts:check`).
+
+- **Fixed:** repeated `moveDrag` drift (displacement counted twice), jump when pressing during a
+  release, and the composer emitting a constant `transform` in opacity-only animations (which pinned
+  `transform` over the release spring). See "Drag displacement is stored once" in `ARCHITECTURE.md`.
+- **Gotcha:** an animation's `transform` keyframe is a _claim of ownership_ for its whole life. Only
+  emit it when the animation has a transform channel.
+- **Gotcha:** Playwright WebKit drops all but one `pointermove` of a diagonal, axis-locked drag from
+  the 2nd drag on (a document-level capture listener sees one too; pre-fix code identical). Library is
+  not at fault; `drag-repeat.spec.ts` uses a horizontal path on WebKit for that scenario.
+- **Gotcha:** never stash/switch source while a Playwright run is using the Vite dev server — Vite
+  caches the half-reverted module graph and the whole run fails with 500s.
+- **Release:** version is grouped as 1.5.0 via a `Release-As: 1.5.0` commit footer (docs/RELEASING.md);
+  the previously planned Router / View Transitions work is deferred to a later minor.
+- **Not covered (recorded as NOT_TESTED, not claimed):** repeated/interruption/cleanup contracts for
+  scroll, parallax, smooth-scroll, in-view, text, stagger, loop, target, trigger, enter, leave, focus;
+  `repeat-contract.spec.ts` on Firefox/WebKit; any performance measurement; physical devices.
 
 ## Done — CI parallelisation and website SEO (follow-up to spec 019, site/tooling only)
 

@@ -1,0 +1,846 @@
+{
+  "$comment": "Spec 020. Validated by scripts/check-contract-inventory.mjs. A missing dimension means NOT_TESTED.",
+  "version": "1.5",
+  "baseline": "ce9b03d547bc774268768e5f57c028452e70b9ad",
+  "runtime": {
+    "MOVEMENT_CONFIG": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/providers/provide-movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MOVEMENT_DEFAULTS": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/providers/provide-movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MOVEMENT_DIRECTIVES": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MOVEMENT_EXPERIMENTAL_DIRECTIVES": {
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MOVEMENT_STABLE_DIRECTIVES": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MOVE_PRESETS": {
+      "stability": "unclassified",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/presets.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveAnimateDirective": {
+      "selector": "[move], [moveAnimate]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-animate.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveAnimationDirective": {
+      "selector": "[moveAnimation]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-animation.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveAnimator": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/engines/move-animator.service.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "MoveAnimator: animate/set/clear sequences always restore the element"
+            }
+          ]
+        },
+        "interruption": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "MoveAnimator: animate/set/clear sequences always restore the element"
+            }
+          ]
+        }
+      }
+    },
+    "MoveDragDirective": {
+      "selector": "[moveDrag]",
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-drag.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "free drag: the element tracks the pointer on every one of 20 cycles"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "X-only: follows horizontally"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "Y-only: follows vertically"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "numeric constraints"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "snap to origin"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "snap points"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "momentum: no press jump"
+            },
+            {
+              "file": "projects/movement/src/lib/directives/move-drag.directive.spec.ts",
+              "title": "does not count the previous drag twice"
+            },
+            {
+              "file": "scripts/validate-consumer-runtime.mjs",
+              "title": "Repeated moveDrag: 12 consecutive drags track the pointer with no drift"
+            }
+          ]
+        },
+        "interruption": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "pressing during a release animation continues from where it is"
+            },
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "hover and tap before a drag"
+            }
+          ]
+        },
+        "cancellation": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/drag-repeat.spec.ts",
+              "title": "pointercancel ends the drag cleanly"
+            }
+          ]
+        },
+        "cleanup": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-drag.directive.spec.ts",
+              "title": "should cancel player and cleanup on destroy"
+            }
+          ]
+        },
+        "reactive": {
+          "status": "NOT_TESTED",
+          "note": "Changing constraints/axis inputs mid-drag is not exercised."
+        }
+      }
+    },
+    "MoveEnterDirective": {
+      "selector": "[moveEnter]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-enter.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveFocusDirective": {
+      "selector": "[moveWhileFocus]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-focus.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveHoverDirective": {
+      "selector": "[moveWhileHover]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-hover.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "moveWhileHover: 30 rapid enter/leave cycles"
+            }
+          ]
+        }
+      }
+    },
+    "MoveInViewDirective": {
+      "selector": "[moveInView]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-in-view.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveLayoutDirective": {
+      "selector": "[moveLayout]",
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-layout.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "moveLayout: 20 grid/list toggles"
+            }
+          ]
+        }
+      }
+    },
+    "MoveLeaveDirective": {
+      "selector": "[moveLeave]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-leave.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveLoopDirective": {
+      "selector": "[moveLoop]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-loop.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveParallaxDirective": {
+      "selector": "[moveParallax]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-parallax.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MovePresenceDirective": {
+      "selector": "[movePresence]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-presence.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "movePresence: 20 tab switches never leave a ghost panel"
+            }
+          ]
+        }
+      }
+    },
+    "MovePresenceForDirective": {
+      "selector": "[movePresenceFor]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-presence-for.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "movePresenceFor: add/remove churn"
+            }
+          ]
+        }
+      }
+    },
+    "MoveScrollDirective": {
+      "selector": "[moveScroll]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-scroll.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveSmoothScrollDirective": {
+      "selector": "[moveSmoothScroll]",
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/scroll/move-smooth-scroll.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveStaggerDirective": {
+      "selector": "[moveStagger]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-stagger.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveTapDirective": {
+      "selector": "[moveWhileTap]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-tap.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "moveWhileTap: 20 press/release cycles"
+            }
+          ]
+        }
+      }
+    },
+    "MoveTargetDirective": {
+      "selector": "[moveTarget]",
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-target.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveTextDirective": {
+      "selector": "[moveText]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-text.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveTriggerDirective": {
+      "selector": "[moveTrigger]",
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-trigger.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "MoveVariantsDirective": {
+      "selector": "[moveVariants]",
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/directives/move-variants.directive.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        },
+        "repeated": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "moveVariants: 24 rapid state switches"
+            }
+          ]
+        },
+        "interruption": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "e2e/repeat-contract.spec.ts",
+              "title": "moveVariants: 24 rapid state switches"
+            }
+          ]
+        }
+      }
+    },
+    "SmoothScrollService": {
+      "stability": "experimental",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/scroll/smooth-scroll.service.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveIconBounce": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/icon-helpers.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveIconPulse": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/icon-helpers.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveIconRotate": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/icon-helpers.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveIconShake": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/icon-helpers.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "movePathDraw": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/presets/icon-helpers.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveSpringValue": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/values/move-values.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveTimeToMs": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/move-time.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveTransform": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/values/move-values.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "moveValue": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/values/move-values.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    },
+    "provideMovement": {
+      "stability": "stable",
+      "dimensions": {
+        "initial": {
+          "status": "PASS",
+          "tests": [
+            {
+              "file": "projects/movement/src/lib/providers/provide-movement.spec.ts"
+            }
+          ],
+          "note": "Unit spec (jsdom); no browser evidence unless another dimension cites one."
+        }
+      }
+    }
+  },
+  "types": {
+    "names": [
+      "AnimationControls",
+      "MoveAnimateOptions",
+      "MoveAnimationConfig",
+      "MoveAnimationTarget",
+      "MoveDragAxis",
+      "MoveDragConstraints",
+      "MoveDragEvent",
+      "MoveDragSnapPoint",
+      "MoveKeyframeProperties",
+      "MoveKeyframeState",
+      "MoveKeyframes",
+      "MovePresenceForContext",
+      "MovePresenceForMode",
+      "MovePresenceForTrackBy",
+      "MovePreset",
+      "MovePresetDefinition",
+      "MovePropertyTransition",
+      "MoveRepeatOptions",
+      "MoveRepeatType",
+      "MoveSpring",
+      "MoveSpringValueConfig",
+      "MoveStaggerDirection",
+      "MoveStateValue",
+      "MoveTime",
+      "MoveTransformOptions",
+      "MoveTransformValue",
+      "MoveTransitionConfig",
+      "MoveValue",
+      "MoveValuePair",
+      "MoveVariant",
+      "MoveVariantOrchestration",
+      "MoveVariantState",
+      "MovementConfig",
+      "MovementConfigInput"
+    ],
+    "status": "PASS",
+    "note": "Compile-time contract: api:check diffs the declarations; validate:consumer AOT-compiles them under strictTemplates for Angular 21 and 22.",
+    "tests": [
+      {
+        "file": "scripts/check-api-snapshot.mjs"
+      },
+      {
+        "file": "scripts/validate-consumer.mjs"
+      }
+    ]
+  },
+  "crossCutting": {
+    "ssr-unit": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "projects/movement/src/lib/directives/ssr.spec.ts"
+        }
+      ],
+      "note": "Server-safety of directives under the server platform (jsdom)."
+    },
+    "reduced-motion-unit": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "projects/movement/src/lib/directives/reduced-motion.spec.ts"
+        }
+      ]
+    },
+    "teardown-unit": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "projects/movement/src/lib/directives/teardown.spec.ts"
+        }
+      ]
+    },
+    "transform-ownership-composer": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "projects/movement/src/lib/engines/keyframe-composer.spec.ts",
+          "title": "does not emit a transform for an opacity-only animation"
+        }
+      ]
+    },
+    "cross-browser-drag": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "e2e/drag-repeat.spec.ts",
+          "title": "free drag: the element tracks the pointer on every one of 20 cycles"
+        }
+      ]
+    },
+    "webkit-diagonal-axis-lock-input": {
+      "status": "KNOWN_LIMITATION",
+      "note": "Playwright WebKit delivers one pointermove of a diagonal axis-locked path from the 2nd drag; a capturing document listener sees one event too and the pre-fix code is identical, so events are lost before page code. WebKit uses a horizontal path for that scenario. Not verified on a real Safari."
+    },
+    "packed-consumer-angular-21-22-runtime": {
+      "status": "PASS",
+      "tests": [
+        {
+          "file": "scripts/validate-consumer-runtime.mjs",
+          "title": "Presence: leave keeps the node mounted, then removes it"
+        },
+        {
+          "file": "scripts/validate-consumer-runtime.mjs",
+          "title": "Repeated moveDrag: 12 consecutive drags track the pointer with no drift"
+        }
+      ],
+      "note": "Packed tarball, Angular 21.2.25 and 22.2.4, Chromium only, SSR + hydration + reduced motion + no-JS."
+    },
+    "physical-devices": {
+      "status": "NOT_TESTED",
+      "note": "No physical iOS Safari / Android Chromium run; Playwright touch emulation is not a substitute."
+    }
+  }
+}

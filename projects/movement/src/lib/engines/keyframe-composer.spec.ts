@@ -290,4 +290,36 @@ describe('applyKeyframeTimes', () => {
   it('returns null for an empty keyframe list', () => {
     expect(applyKeyframeTimes([], [])).toBeNull();
   });
+
+  describe('transform ownership', () => {
+    it('does not emit a transform for an opacity-only animation, even over an inline transform', () => {
+      // A constant `transform` keyframe would pin the property and override a concurrent
+      // animation that is really moving the element (the repeated-drag release race).
+      const el = document.createElement('div');
+      el.style.transform = 'translate(40px, 24px)';
+
+      const keyframes = composeElementKeyframes(el, { opacity: [0.7, 1] });
+
+      expect(keyframes).toEqual([{ opacity: 0.7 }, { opacity: 1 }]);
+    });
+
+    it('still composes transform channels onto the inline transform', () => {
+      const el = document.createElement('div');
+      el.style.transform = 'translate(40px, 24px)';
+
+      const keyframes = composeElementKeyframes(el, { x: [0, 10] });
+
+      expect(keyframes[1]['transform']).toBe('translate(50px, 24px)');
+    });
+
+    it('leaves spring keyframes without transform channels untouched', () => {
+      const el = document.createElement('div');
+      el.style.transform = 'translate(40px, 24px)';
+
+      expect(composeKeyframesWithBase(el, [{ opacity: 1 }, { opacity: 0.5 }])).toEqual([
+        { opacity: 1 },
+        { opacity: 0.5 },
+      ]);
+    });
+  });
 });

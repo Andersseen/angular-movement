@@ -179,6 +179,60 @@ export function resetTransformToBase(el: Element, base: TransformState): void {
   (el as HTMLElement).style.transform = formatTransform(base);
 }
 
+/** The 2D transform the browser is rendering right now, running animations included. */
+export interface RenderedTransform {
+  translateX: number;
+  translateY: number;
+  scaleX: number;
+  scaleY: number;
+  /** Degrees. */
+  rotate: number;
+}
+
+/**
+ * Reads the transform as currently rendered, via the computed matrix.
+ *
+ * Unlike {@link readTransformState} this sees a WAAPI animation's in-flight value and resolves
+ * units such as percentages, so it is the right source when a gesture has to take over from an
+ * animation without a visible jump. Returns `null` when the environment has no `DOMMatrix`
+ * (jsdom) or the transform is 3D — callers keep their own bookkeeping as the fallback.
+ *
+ * Assumes the canonical `translate → rotate → scale` order that {@link formatTransform} writes, so
+ * the matrix's `e`/`f` are the translation, and ignores skew.
+ */
+export function readRenderedTransform(el: Element): RenderedTransform | null {
+  const view = el.ownerDocument?.defaultView;
+  const Matrix = view?.DOMMatrix;
+  if (!view || typeof Matrix !== 'function') return null;
+
+  try {
+    const css = view.getComputedStyle(el);
+    const raw = css.transform;
+    const matrix = !raw || raw === 'none' ? new Matrix() : new Matrix(raw);
+    if (!matrix.is2D) return null;
+
+    // The individual `translate` property composes before `transform`; add it when present.
+    let extraX = 0;
+    let extraY = 0;
+    const individual = css.translate;
+    if (individual && individual !== 'none') {
+      const parts = individual.split(/\s+/).map(parseNumber);
+      extraX = parts[0] ?? 0;
+      extraY = parts[1] ?? 0;
+    }
+
+    return {
+      translateX: matrix.e + extraX,
+      translateY: matrix.f + extraY,
+      scaleX: Math.hypot(matrix.a, matrix.b),
+      scaleY: Math.hypot(matrix.c, matrix.d),
+      rotate: (Math.atan2(matrix.b, matrix.a) * 180) / Math.PI,
+    };
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Returns true if the element currently has any inline transform set by us.
  */
