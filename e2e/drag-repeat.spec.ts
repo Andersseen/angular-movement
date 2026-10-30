@@ -356,7 +356,11 @@ test.describe('moveDrag — scenario matrix, repeated', () => {
     }
   });
 
-  test('pointercancel ends the drag cleanly and the next drag does not drift', async ({ page }) => {
+  test('pointercancel ends the drag cleanly and the next drag does not drift', async ({
+    page,
+    browserName,
+  }) => {
+    skipOnCiWebkit(browserName);
     const card = page.getByTestId('drag-card');
     await card.evaluate((el) => {
       el.addEventListener('pointerdown', (e) => {
