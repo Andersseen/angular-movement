@@ -41,6 +41,7 @@ On the old code 6 of 10 drag scenarios fail on Chromium; all 10 pass after the f
   events reaches the page — a capturing `document` listener sees one too, with pointer capture held.
   Identical on the pre-fix code, pure-horizontal path passes. Treated as a harness limitation; the
   scenario uses a horizontal path on WebKit. **Not verified on real Safari.**
+- **Same input loss on Linux CI WebKit** (found by the PR's CI run, not locally): Y-only, snap-points and press-during-release lose their moves after the 2nd press, so those three are skipped on CI-WebKit only (`skipOnCiWebkit`); they pass on Chromium, Firefox and macOS WebKit.
 - Physical iOS Safari / Android Chromium: **NOT TESTED.** Chromium touch emulation is not a substitute.
 - Drag transform decomposition: only the canonical `translate → rotate → scale` order round-trips;
   skew / reordered functions in a consumer's inline transform and stylesheet-only transforms are not

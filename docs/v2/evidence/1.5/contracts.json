@@ -822,7 +822,7 @@
     },
     "webkit-diagonal-axis-lock-input": {
       "status": "KNOWN_LIMITATION",
-      "note": "Playwright WebKit delivers one pointermove of a diagonal axis-locked path from the 2nd drag; a capturing document listener sees one event too and the pre-fix code is identical, so events are lost before page code. WebKit uses a horizontal path for that scenario. Not verified on a real Safari."
+      "note": "Playwright WebKit delivers one pointermove of a diagonal axis-locked path from the 2nd drag; a capturing document listener sees one event too and the pre-fix code is identical, so events are lost before page code. WebKit uses a horizontal path for that scenario. On Linux CI WebKit the same input loss also hits three more scenarios (Y-only, snap points, press-during-release), which are skipped there only (CI=1) and still run on Chromium, Firefox and macOS WebKit. Not verified on a real Safari."
     },
     "packed-consumer-angular-21-22-runtime": {
       "status": "PASS",

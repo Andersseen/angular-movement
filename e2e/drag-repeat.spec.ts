@@ -116,7 +116,24 @@ test.describe('moveDrag — repeated drags do not drift', () => {
   });
 });
 
-interface Point { x: number; y: number }
+interface Point {
+  x: number;
+  y: number;
+}
+
+/**
+ * KNOWN LIMITATION (test environment, not the library): on Linux WebKit in CI, Playwright delivers
+ * only the first `pointermove` of a path issued right after `mouse.down()` from the second drag on
+ * — a capturing document-level listener sees one event too, and the pre-fix code behaves
+ * identically, so the page never receives the input. These scenarios still run on Chromium,
+ * Firefox and macOS WebKit. Recorded in docs/v2/evidence/1.5/README.md; not verified on real Safari.
+ */
+function skipOnCiWebkit(browserName: string): void {
+  test.skip(
+    browserName === 'webkit' && !!process.env['CI'],
+    'Playwright Linux WebKit drops pointermove after a 2nd press (see KNOWN LIMITATION above)',
+  );
+}
 
 async function configure(
   page: Page,
@@ -179,7 +196,8 @@ test.describe('moveDrag — scenario matrix, repeated', () => {
     expect((await settle(card)).y).toBeCloseTo(origin.y, 0);
   });
 
-  test('Y-only: follows vertically, never leaves its column', async ({ page }) => {
+  test('Y-only: follows vertically, never leaves its column', async ({ page, browserName }) => {
+    skipOnCiWebkit(browserName);
     await configure(page, { axis: 'y' });
     const card = page.getByTestId('drag-card');
     const origin = await settle(card);
@@ -232,7 +250,11 @@ test.describe('moveDrag — scenario matrix, repeated', () => {
     }
   });
 
-  test('snap points: rests on a snap point every time, and never accumulates', async ({ page }) => {
+  test('snap points: rests on a snap point every time, and never accumulates', async ({
+    page,
+    browserName,
+  }) => {
+    skipOnCiWebkit(browserName);
     await configure(page, { snapPoints: true });
     const card = page.getByTestId('drag-card');
     const origin = await settle(card);
@@ -272,7 +294,9 @@ test.describe('moveDrag — scenario matrix, repeated', () => {
 
   test('pressing during a release animation continues from where it is — no jump', async ({
     page,
+    browserName,
   }) => {
+    skipOnCiWebkit(browserName);
     await configure(page, { snapToOrigin: true });
     const card = page.getByTestId('drag-card');
     const origin = await settle(card);
