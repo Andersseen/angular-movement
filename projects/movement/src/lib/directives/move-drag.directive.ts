@@ -13,8 +13,9 @@ import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import {
   applyComposedTransform,
+  formatTransform,
+  readRenderedTransform,
   readTransformState,
-  resetTransformToBase,
   TransformState,
 } from '../engines/transform-state';
 import { cancelActivePlayer } from '../engines/active-player-registry';
@@ -56,6 +57,18 @@ interface DragGesture {
 
 const NO_GESTURE: DragGesture = { scaleX: 1, scaleY: 1, rotate: 0 };
 
+function readTransformStateDefault(): TransformState {
+  return {
+    translateX: 0,
+    translateY: 0,
+    scaleX: 1,
+    scaleY: 1,
+    rotate: 0,
+    rotateX: 0,
+    rotateY: 0,
+  };
+}
+
 /**
  * Experimental API — may change significantly between minor versions.
  *
@@ -86,6 +99,7 @@ export interface MoveDragEvent {
     '(pointermove)': 'onPointerMove($event)',
     '(pointerup)': 'onPointerUp($event)',
     '(pointercancel)': 'onPointerUp($event)',
+    '(lostpointercapture)': 'onPointerUp($event)',
   },
 })
 export class MoveDragDirective implements OnDestroy {
@@ -128,9 +142,19 @@ export class MoveDragDirective implements OnDestroy {
   #velocityX = 0;
   #velocityY = 0;
 
+  /**
+   * The drag's own translation, relative to {@link #origin}. This is the only place the drag's
+   * displacement is stored: the element's inline `transform` is always rewritten from
+   * `#origin` + this, never read back as a base, so a displacement cannot be counted twice.
+   */
   #_x = 0;
   #_y = 0;
-  #baseTransform: TransformState | null = null;
+  /** The element's transform with the drag's contribution removed (the consumer's own transform). */
+  #origin: TransformState = readTransformStateDefault();
+  /** True from the moment a release animation starts until it settles or is superseded. */
+  #releasing = false;
+  /** Identifies the latest release, so a superseded one cannot write after a newer interaction. */
+  #releaseToken = 0;
 
   #dragBounds: { top?: number; right?: number; bottom?: number; left?: number } | null = null;
   #player: AnimationControls | null = null;
@@ -146,16 +170,43 @@ export class MoveDragDirective implements OnDestroy {
       this.#host.nativeElement.setPointerCapture(e.pointerId);
     }
 
+    const el = this.#host.nativeElement;
+
+    // A release animation still in flight owns the visible position. Sample it *before* cancelling:
+    // a cancelled WAAPI animation snaps back to the inline style, which would make the card jump.
+    const live = this.#releasing ? readRenderedTransform(el) : null;
+
     this.#player?.cancel();
     // Preempt any in-flight hover/tap/focus/variants/layout animation on this element: without
     // this, a WAAPI animation still mid-flight at the instant a drag starts would later commit its
     // own final transform over whatever the drag wrote in the meantime, discarding drag movement.
     // Drag owns the transform exclusively from pointerdown forward — see "Transform ownership and
     // composition" in ARCHITECTURE.md.
-    cancelActivePlayer(this.#host.nativeElement);
-    // read bounds and base transform cleanly before we start mutating styles
+    cancelActivePlayer(el);
+    this.#player = null;
+    this.#releasing = false;
+    this.#releaseToken += 1;
+
+    if (!live) {
+      // At rest the inline transform is `origin + our displacement`; take the displacement back
+      // out so the origin is the consumer's transform only.
+      this.#origin = this.#deriveOrigin();
+    }
+    if (live) {
+      // Continue from where the release animation had got to, expressed relative to the origin.
+      this.#_x = this.#resolveAxisValue(live.translateX - this.#origin.translateX, 'x');
+      this.#_y = this.#resolveAxisValue(live.translateY - this.#origin.translateY, 'y');
+      this.#gesture = {
+        scaleX: live.scaleX / (this.#origin.scaleX || 1),
+        scaleY: live.scaleY / (this.#origin.scaleY || 1),
+        rotate: live.rotate - this.#origin.rotate,
+      };
+    }
+
+    // read bounds before we start mutating styles
     this.#dragBounds = this.resolveBounds();
-    this.#baseTransform = readTransformState(this.#host.nativeElement);
+    // Re-assert the exact current position so nothing moves at press time.
+    this.applyTransform();
 
     this.#startX = e.clientX - this.#_x;
     this.#startY = e.clientY - this.#_y;
@@ -224,8 +275,10 @@ export class MoveDragDirective implements OnDestroy {
     if (!constraints) return null;
 
     if (constraints instanceof HTMLElement) {
+      // Measure the element where it sits with no drag displacement: the bounds are expressed
+      // relative to that position.
       const oldTransform = this.#host.nativeElement.style.transform;
-      this.#host.nativeElement.style.transform = '';
+      this.#host.nativeElement.style.transform = formatTransform(this.#origin);
 
       const elRect = this.#host.nativeElement.getBoundingClientRect();
       const containerRect = constraints.getBoundingClientRect();
@@ -261,7 +314,7 @@ export class MoveDragDirective implements OnDestroy {
         scaleY: this.#gesture.scaleY,
         rotate: this.#gesture.rotate,
       },
-      this.#baseTransform ?? undefined,
+      this.#origin,
     );
   }
 
@@ -345,13 +398,15 @@ export class MoveDragDirective implements OnDestroy {
     const toX = movesBack ? target.x : current.x;
     const toY = movesBack ? target.y : current.y;
 
-    this.#animateTo(current.x, current.y, toX, toY, gesture);
+    // Settle the logical position first: an animation that finishes synchronously (reduced motion)
+    // writes the final transform from it.
     this.#gesture = { ...NO_GESTURE };
-
     if (movesBack) {
       this.#_x = target.x;
       this.#_y = target.y;
     }
+
+    this.#animateTo(current.x, current.y, toX, toY, gesture);
   }
 
   #resolveTarget(x: number, y: number): { x: number; y: number } {
@@ -449,13 +504,16 @@ export class MoveDragDirective implements OnDestroy {
     toY: number,
     gesture: DragGesture = NO_GESTURE,
   ): void {
-    if (!this.#host.nativeElement.isConnected) return;
+    const el = this.#host.nativeElement;
+    if (!el.isConnected) return;
 
-    // Reset the inline transform to the base state so the engine animates the
-    // drag delta exactly once instead of composing it on top of itself.
-    if (this.#baseTransform) {
-      resetTransformToBase(this.#host.nativeElement, this.#baseTransform);
-    }
+    // The engine composes its keyframes on top of the inline transform, so start from the origin
+    // alone: the animation then carries the whole drag displacement exactly once. An identity
+    // origin is written explicitly as `translate(0px, 0px)` — an empty or `none` transform would
+    // make the engine animate the individual `translate` property instead and commit the
+    // displacement there, a second copy `transform` would then add to.
+    const originOnly = formatTransform(this.#origin);
+    el.style.transform = originOnly === 'none' ? 'translate(0px, 0px)' : originOnly;
 
     const frames: MoveKeyframes = {
       x: [fromX, toX],
@@ -472,11 +530,44 @@ export class MoveDragDirective implements OnDestroy {
       frames.rotate = [gesture.rotate, 0];
     }
 
-    this.#player = this.#engine.play(this.#host.nativeElement, frames, {
+    const token = (this.#releaseToken += 1);
+    this.#releasing = true;
+    this.#player = this.#engine.play(el, frames, {
       config: { duration: 300, easing: 'ease', delay: 0, disabled: false, iterations: 1 },
       spring: this.moveSpring() ?? { stiffness: 500, damping: 30 },
       disabled: prefersReducedMotion(this.#documentRef),
+      onDone: () => this.#settleRelease(token),
     });
+  }
+
+  /**
+   * Replaces whatever the finished release animation committed with the canonical
+   * `origin + displacement` transform. A no-op if a newer interaction took over meanwhile.
+   */
+  #settleRelease(token: number): void {
+    if (token !== this.#releaseToken || this.#isDragging) return;
+    this.#releasing = false;
+    if (!this.#host.nativeElement.isConnected) return;
+    this.#gesture = { ...NO_GESTURE };
+    this.applyTransform();
+  }
+
+  /**
+   * Splits the element's current transform into the consumer's own part and the displacement the
+   * drag has already written. Translation comes from the rendered matrix when available (exact,
+   * and resolves units), the rest from the inline transform.
+   */
+  #deriveOrigin(): TransformState {
+    const el = this.#host.nativeElement;
+    const state = readTransformState(el);
+    const rendered = readRenderedTransform(el);
+    const embedded = this.#visiblePosition(this.#_x, this.#_y);
+
+    return {
+      ...state,
+      translateX: (rendered?.translateX ?? state.translateX) - embedded.x,
+      translateY: (rendered?.translateY ?? state.translateY) - embedded.y,
+    };
   }
 
   #createDragEvent(e: PointerEvent, deltaX: number, deltaY: number): MoveDragEvent {
@@ -491,6 +582,8 @@ export class MoveDragDirective implements OnDestroy {
 
   ngOnDestroy(): void {
     this.#stopGestureTween();
+    this.#releaseToken += 1;
+    this.#releasing = false;
     if (this.#pointerId !== null) {
       try {
         if (typeof this.#host.nativeElement.releasePointerCapture === 'function') {

@@ -85,6 +85,10 @@ jobs:
       - name: Check public API surface
         run: node scripts/check-api-snapshot.mjs
 
+      # Fails on an export without an inventory entry, a PASS whose cited test vanished, or any FAIL.
+      - name: Check runtime contract inventory
+        run: node scripts/check-contract-inventory.mjs
+
       # `pnpm pack:check` rebuilds the library first; the build above is the same one.
       - name: Check npm package
         run: pnpm --dir dist/movement pack --dry-run

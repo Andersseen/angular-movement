@@ -217,6 +217,53 @@ async function runBrowserChecks({ distDir, major, versions }) {
       },
     );
 
+    // The packed artifact, not the source alias: a drag must track the pointer exactly on every
+    // repeat (spec 020). Alternating pairs of same-direction drags make a double-counted
+    // displacement accumulate instead of cancelling out.
+    await check(
+      'Repeated moveDrag: 12 consecutive drags track the pointer with no drift',
+      async () => {
+        const centre = () =>
+          page.evaluate(() => {
+            const r = document.querySelector('[data-testid="drag"]').getBoundingClientRect();
+            return { x: r.x + r.width / 2, y: r.y + r.height / 2 };
+          });
+        const settled = async () => {
+          let previous = await centre();
+          for (let i = 0; i < 100; i += 1) {
+            await sleep(40);
+            const current = await centre();
+            if (Math.hypot(current.x - previous.x, current.y - previous.y) < 0.05) return current;
+            previous = current;
+          }
+          return previous;
+        };
+
+        let worst = 0;
+        for (let i = 0; i < 12; i += 1) {
+          const sign = Math.floor(i / 2) % 2 === 0 ? 1 : -1;
+          const before = await settled();
+          await page.mouse.move(before.x + 6, before.y + 4);
+          await page.mouse.down();
+          const pressed = await settled();
+          await page.mouse.move(before.x + 6 + sign * 30, before.y + 4 + sign * 18, { steps: 6 });
+          const held = await centre();
+          await page.mouse.up();
+          const released = await settled();
+
+          const pressJump = Math.hypot(pressed.x - before.x, pressed.y - before.y);
+          const follow = Math.hypot(held.x - pressed.x - sign * 30, held.y - pressed.y - sign * 18);
+          const releaseJump = Math.hypot(released.x - held.x, released.y - held.y);
+          worst = Math.max(worst, pressJump, follow, releaseJump);
+          assert(
+            pressJump < 1.5 && follow < 1.5 && releaseJump < 1.5,
+            `drag ${i}: press jump ${pressJump.toFixed(1)}, follow error ${follow.toFixed(1)}, release jump ${releaseJump.toFixed(1)} px`,
+          );
+        }
+        return `worst error ${worst.toFixed(2)} px`;
+      },
+    );
+
     await check(
       'Teardown: destroying a looping + hover host leaves no running animations',
       async () => {

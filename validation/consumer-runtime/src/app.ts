@@ -1,6 +1,7 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import {
   MoveAnimationDirective,
+  MoveDragDirective,
   MoveEnterDirective,
   MoveHoverDirective,
   MoveLeaveDirective,
@@ -37,6 +38,7 @@ interface Row {
   selector: 'app-root',
   imports: [
     MoveAnimationDirective,
+    MoveDragDirective,
     MoveEnterDirective,
     MoveHoverDirective,
     MoveLeaveDirective,
@@ -56,6 +58,16 @@ interface Row {
     </ng-container>
 
     <div data-testid="card" [moveWhileHover]="{ scale: [1, 1.2] }" moveDuration="150ms">card</div>
+
+    <div
+      data-testid="drag"
+      moveDrag
+      [moveWhileDrag]="{ scale: [1, 1.05] }"
+      [moveWhileHover]="{ opacity: [1, 0.9] }"
+      style="width: 80px; height: 80px; margin: 24px; background: #888"
+    >
+      drag
+    </div>
 
     <button data-testid="flip" (click)="on.set(!on())">flip state</button>
     <div

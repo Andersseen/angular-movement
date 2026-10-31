@@ -1,4 +1,4 @@
-import { Component, DebugElement } from '@angular/core';
+import { Component, DebugElement, Type } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { vi } from 'vitest';
@@ -590,5 +590,83 @@ describe('MoveDragDirective whileDrag', () => {
     // The control for the test above: with frames never running, the gesture must still be at
     // identity, proving the reduced-motion case really took the instant path.
     expect(el.style.transform).not.toContain('scale(');
+  });
+});
+
+@Component({
+  selector: 'move-drag-free-host',
+  template: '<div moveDrag>Free</div>',
+  imports: [MoveDragDirective],
+})
+class FreeRepeatHost {}
+
+@Component({
+  selector: 'move-drag-scaled-host',
+  template: '<div moveDrag style="transform: scale(2)">Scaled</div>',
+  imports: [MoveDragDirective],
+})
+class ScaledRepeatHost {}
+
+describe('MoveDragDirective repeated drags', () => {
+  const down = (el: HTMLElement, x: number, y: number) =>
+    el.dispatchEvent(
+      new PointerEvent('pointerdown', { button: 0, pointerId: 1, clientX: x, clientY: y }),
+    );
+  const move = (el: HTMLElement, x: number, y: number) =>
+    el.dispatchEvent(new PointerEvent('pointermove', { pointerId: 1, clientX: x, clientY: y }));
+  const up = (el: HTMLElement, x: number, y: number) =>
+    el.dispatchEvent(new PointerEvent('pointerup', { pointerId: 1, clientX: x, clientY: y }));
+
+  beforeEach(() => {
+    HTMLElement.prototype.setPointerCapture = HTMLElement.prototype.setPointerCapture || vi.fn();
+    HTMLElement.prototype.releasePointerCapture =
+      HTMLElement.prototype.releasePointerCapture || vi.fn();
+    TestBed.configureTestingModule({
+      imports: [AxisHostComponent],
+      providers: [provideMovement()],
+    });
+  });
+
+  afterEach(() => TestBed.resetTestingModule());
+
+  function create(host: Type<unknown>): HTMLElement {
+    TestBed.resetTestingModule();
+    TestBed.configureTestingModule({ imports: [host], providers: [provideMovement()] });
+    const fixture = TestBed.createComponent(host);
+    fixture.detectChanges();
+    return fixture.nativeElement.querySelector('div') as HTMLElement;
+  }
+
+  it('does not count the previous drag twice: the 2nd drag moves 1:1 with the pointer', () => {
+    const el = create(FreeRepeatHost);
+
+    down(el, 100, 100);
+    move(el, 120, 130);
+    up(el, 120, 130);
+    expect(el.style.transform).toBe('translate(20px, 30px)');
+
+    // Second drag begins where the first ended. The element must move by exactly the pointer's
+    // delta (+20, +30) — not by the delta plus the 1st drag's displacement again.
+    down(el, 120, 130);
+    expect(el.style.transform).toBe('translate(20px, 30px)'); // no jump at press
+    move(el, 140, 160);
+    expect(el.style.transform).toBe('translate(40px, 60px)');
+    up(el, 140, 160);
+
+    down(el, 140, 160);
+    move(el, 130, 150);
+    expect(el.style.transform).toBe('translate(30px, 50px)');
+  });
+
+  it('keeps the consumer-owned transform and does not fold it into the displacement', () => {
+    const el = create(ScaledRepeatHost);
+
+    down(el, 0, 0);
+    move(el, 10, 0);
+    up(el, 10, 0);
+    down(el, 10, 0);
+    move(el, 25, 0);
+
+    expect(el.style.transform).toBe('translate(25px, 0px) scale(2)');
   });
 });

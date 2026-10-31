@@ -2,6 +2,32 @@
 
 ## Unreleased
 
+**1.5 — Reliability and repeated-interaction contract (spec 020).** No public API change: selectors,
+inputs, outputs and exports are untouched (`pnpm api:check` unchanged). The previously planned
+Router / View Transitions work is deferred to a later minor.
+
+### Fixed
+
+- `moveDrag` (experimental): every drag after the first drifted further from the pointer. The
+  previous drag's displacement was read back as the base transform and then added again; each repeat
+  jumped by the accumulated distance at press and again at release. The displacement is now stored
+  once and the inline transform is always rewritten from `origin + displacement + gesture`.
+- `moveDrag`: pressing during the release animation no longer snaps the element to a stale position —
+  the new drag continues from the rendered position. A superseded release can no longer write after a
+  newer interaction, and `lostpointercapture` now ends the drag.
+- Animations that change only opacity/filter (the `moveWhileTap` / `moveWhileHover` leave animations,
+  for one) no longer write a constant `transform` keyframe when the element has an inline transform.
+  That keyframe pinned `transform` over a concurrently running animation (for example a drag release
+  spring) and committed a stale value on finish.
+
+### Added (tooling, not runtime)
+
+- Runtime contract inventory (`docs/v2/evidence/1.5/contracts.json`) and its CI gate
+  `scripts/check-contract-inventory.mjs`: every export, per behavioural dimension, tied to executable
+  tests; unevidenced dimensions are reported as `NOT_TESTED`, never as passes.
+- Repeated real-browser suites: `e2e/drag-repeat.spec.ts` (Chromium, Firefox, WebKit) and
+  `e2e/repeat-contract.spec.ts` (hover, tap, variants, presence, layout, `MoveAnimator`).
+
 **1.3 — Adoption, DX & Website (spec 016).** No runtime API change: the public barrel, selectors
 and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new docs and tooling.
 

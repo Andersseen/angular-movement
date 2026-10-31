@@ -185,6 +185,16 @@ function keyframeToTransform(keyframe: ComposedKeyframe, base: TransformState): 
   return formatTransform(state);
 }
 
+/**
+ * True when a keyframe drives any transform channel. An animation that only changes opacity,
+ * filter or a passthrough property must not emit a `transform` at all: a constant `transform`
+ * keyframe pins the property for the animation's whole life and commits whatever stale value it
+ * captured on finish, overriding a concurrent animation that is genuinely moving the element.
+ */
+function hasTransformChannel(kf: ComposedKeyframe): boolean {
+  return !!(kf.translate || kf.scale || kf.rotate || kf.transform);
+}
+
 function hasTransformConflict(frames: MoveKeyframes, keyframes: ComposedKeyframe[]): boolean {
   const hasAtomic =
     frames.x || frames.y || frames.scale || frames.scaleX || frames.scaleY || frames.rotate;
@@ -212,6 +222,8 @@ export function composeKeyframesWithBase(el: Element, keyframes: ComposedKeyfram
   const inlineTransform = (el as HTMLElement).style.transform;
   const hasTransform = keyframes.some((kf) => kf.transform);
   const hasAtomic = keyframes.some((kf) => kf.translate || kf.scale || kf.rotate);
+
+  if (!keyframes.some(hasTransformChannel)) return keyframes as Keyframe[];
 
   if (!((inlineTransform && inlineTransform !== 'none') || (hasAtomic && hasTransform))) {
     return keyframes as Keyframe[];
@@ -262,7 +274,8 @@ export function composeElementKeyframes(el: Element, frames: MoveKeyframes): Key
     keyframes.push(composeKeyframeAt(frames, i));
   }
 
-  const useComposedTransform = shouldComposeWithBase(el, frames, keyframes);
+  const useComposedTransform =
+    keyframes.some(hasTransformChannel) && shouldComposeWithBase(el, frames, keyframes);
   const base = useComposedTransform ? readTransformState(el) : null;
 
   return keyframes.map((kf) => {
