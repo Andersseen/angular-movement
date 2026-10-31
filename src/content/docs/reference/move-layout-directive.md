@@ -13,6 +13,12 @@ category: directive
 Animates the element from its previous position and size to its new layout (FLIP), including
 shared-element transitions by `moveLayoutId`.
 
+Contract (spec 021): every Angular render pass measures the host's *natural* box (own transforms
+inverted, running animations included), so a layout change that lands while a previous FLIP is
+still running continues from where the element is painted instead of jumping. A cancelled,
+replaced or destroyed FLIP always releases the transform origin it borrowed. Layout changes that
+happen without an Angular render (CSS-only) are not observed until the next one.
+
 Experimental API — may change significantly between minor versions.
 
 - **Kind:** Directive
@@ -30,6 +36,7 @@ Experimental API — may change significantly between minor versions.
 | --- | --- | --- | --- | --- |
 | `moveLayout` | `unknown` | `true` |  | Transform `booleanAttribute`; reads as `boolean \| ""`. |
 | `moveLayoutId` | `string \| undefined` | `undefined` |  |  |
+| `moveLayoutScope` | `string \| undefined` | `undefined` |  | Namespace for `moveLayoutId`. Two regions that reuse the same local id (several dashboard panels each with a `"card"`) must not hand over to one another: give each region its own scope. Without it, ids share one app-wide namespace. |
 | `moveDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
 | `moveEasing` | `string \| undefined` | `undefined` |  |  |
 | `moveDelay` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`. |

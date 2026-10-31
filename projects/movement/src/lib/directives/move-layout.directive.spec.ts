@@ -2,7 +2,7 @@ import { Component, signal } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { PLATFORM_ID } from '@angular/core';
-import { vi } from 'vitest';
+import { onTestFinished, vi } from 'vitest';
 import { MoveLayoutDirective } from './move-layout.directive';
 import { SHARED_LAYOUT_MAX_AGE_MS } from './shared-layout.registry';
 import { provideMovement } from '../providers/provide-movement';
@@ -198,10 +198,134 @@ describe('MoveLayoutDirective', () => {
       expect(playSpy).toHaveBeenCalledTimes(2);
 
       // The first player settling again (e.g. a late microtask) must not interfere.
-      currentRect = rect({ left: 120, top: 20, width: 100, height: 50 });
-      await render();
-      expect(playSpy).toHaveBeenCalledTimes(2); // still animating: second FLIP owns the host
+      await first.player.finished;
+      await Promise.resolve();
+      expect(host.style.transformOrigin).toBe('0 0');
       second.cancel();
+    });
+  });
+
+  describe('a layout change while a FLIP is running', () => {
+    function runningPlayer(): { player: AnimationControls; cancel: ReturnType<typeof vi.fn> } {
+      let settle!: () => void;
+      const finished = new Promise<void>((resolve) => (settle = resolve));
+      const cancel = vi.fn(() => settle());
+      return {
+        player: { play: vi.fn(), pause: vi.fn(), cancel, currentTime: 0, finished },
+        cancel,
+      };
+    }
+
+    it('replaces the running FLIP instead of layering a second one on top', async () => {
+      const first = runningPlayer();
+      const second = runningPlayer();
+      playSpy.mockReturnValueOnce(first.player).mockReturnValueOnce(second.player);
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      expect(first.cancel).not.toHaveBeenCalled();
+
+      currentRect = rect({ left: 90, top: 60, width: 100, height: 50 });
+      await render(); // lands while the first FLIP is still running
+
+      expect(playSpy).toHaveBeenCalledTimes(2);
+      expect(first.cancel).toHaveBeenCalledTimes(1);
+      expect(second.cancel).not.toHaveBeenCalled();
+    });
+
+    it('does not restart the FLIP for a render that moved nothing', async () => {
+      const first = runningPlayer();
+      playSpy.mockReturnValueOnce(first.player);
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      await render();
+      await render();
+
+      expect(playSpy).toHaveBeenCalledTimes(1);
+      expect(first.cancel).not.toHaveBeenCalled();
+    });
+
+    it('hands the user their original transform-origin back after any number of replaced FLIPs', async () => {
+      const players = [runningPlayer(), runningPlayer(), runningPlayer()];
+      players.forEach((p) => playSpy.mockReturnValueOnce(p.player));
+      host.style.transformOrigin = '50% 50%';
+      await render();
+
+      for (const left of [40, 90, 130]) {
+        currentRect = rect({ left, top: 20, width: 100, height: 50 });
+        await render();
+      }
+      expect(host.style.transformOrigin).toBe('0 0'); // borrowed while a FLIP runs
+
+      players[2].player.cancel();
+      await players[2].player.finished;
+      await Promise.resolve();
+
+      expect(host.style.transformOrigin).toBe('50% 50%');
+    });
+
+    it('turning layout off mid-FLIP cancels it and releases the host', async () => {
+      const first = runningPlayer();
+      playSpy.mockReturnValueOnce(first.player);
+      host.style.transformOrigin = '50% 50%';
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+
+      fixture.componentInstance.disabled.set(true);
+      await render();
+
+      expect(first.cancel).toHaveBeenCalledTimes(1);
+      expect(host.style.transformOrigin).toBe('50% 50%');
+    });
+
+    it('destroying the host cancels the FLIP, restores the origin and ignores a late settle', async () => {
+      const first = runningPlayer();
+      playSpy.mockReturnValueOnce(first.player);
+      host.style.transformOrigin = '50% 50%';
+      await render();
+
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      expect(host.style.transformOrigin).not.toBe('50% 50%');
+
+      fixture.destroy();
+      expect(first.cancel).toHaveBeenCalledTimes(1);
+      expect(host.style.transformOrigin).toBe('50% 50%');
+
+      host.style.transformOrigin = '10px 10px'; // a later owner of the node
+      await first.player.finished;
+      await Promise.resolve();
+      expect(host.style.transformOrigin).toBe('10px 10px');
+    });
+
+    it('re-reads prefers-reduced-motion on every pass', async () => {
+      let reduce = false;
+      const original = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: () => ({ matches: reduce }) as MediaQueryList,
+      });
+      onTestFinished(() => {
+        if (original) Object.defineProperty(window, 'matchMedia', original);
+        else delete (window as { matchMedia?: unknown }).matchMedia;
+      });
+      await render();
+
+      reduce = true;
+      currentRect = rect({ left: 40, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).not.toHaveBeenCalled();
+
+      reduce = false;
+      currentRect = rect({ left: 90, top: 20, width: 100, height: 50 });
+      await render();
+      expect(playSpy).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -357,9 +481,13 @@ function rect(value: { left: number; top: number; width: number; height: number 
   selector: 'move-shared-layout-host',
   template: `
     @if (expanded()) {
-      <div moveLayout [moveLayoutId]="sharedId()" class="expanded">card</div>
+      <div moveLayout [moveLayoutId]="sharedId()" [moveLayoutScope]="scope()" class="expanded">
+        card
+      </div>
     } @else {
-      <div moveLayout [moveLayoutId]="sharedId()" class="thumb">card</div>
+      <div moveLayout [moveLayoutId]="sharedId()" [moveLayoutScope]="scope()" class="thumb">
+        card
+      </div>
     }
     <span class="sr-only">{{ renderTick() }}</span>
   `,
@@ -368,6 +496,7 @@ function rect(value: { left: number; top: number; width: number; height: number 
 class SharedLayoutHostComponent {
   expanded = signal(false);
   sharedId = signal<string | undefined>('card');
+  scope = signal<string | undefined>(undefined);
   renderTick = signal(0);
 }
 
@@ -464,6 +593,31 @@ describe('MoveLayoutDirective shared layout', () => {
 
     // Same element, same box: nothing further to animate.
     await render();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not hand over across moveLayoutScope boundaries', async () => {
+    fixture.componentInstance.scope.set('panel-a');
+    await render();
+
+    // The incoming element lives in a different scope: the other panel's thumb is not its source.
+    fixture.componentInstance.scope.set('panel-b');
+    fixture.componentInstance.expanded.set(true);
+    await render();
+
+    expect(playSpy).not.toHaveBeenCalled();
+  });
+
+  it('a changed moveLayoutId does not hand over from the old id', async () => {
+    await render();
+    fixture.componentInstance.expanded.set(true);
+    await render();
+    expect(playSpy).toHaveBeenCalledTimes(1);
+
+    now += 10;
+    fixture.componentInstance.sharedId.set('other');
+    await render();
+    // Nothing is published under 'other' yet.
     expect(playSpy).toHaveBeenCalledTimes(1);
   });
 

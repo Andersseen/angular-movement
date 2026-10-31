@@ -227,6 +227,36 @@ Defaults (`MOVEMENT_DEFAULTS`): `duration: 300`, `easing: 'cubic-bezier(0.16, 1,
   (`pathLength`, `strokeDashoffset`, …) — see `MoveKeyframeProperties` in `presets/presets.types.ts`.
 - Springs: `{ stiffness?, damping?, mass?, velocity? }` (`MoveSpring`).
 
+## Layout geometry and shared elements (spec 021)
+
+`MoveLayoutDirective` animates only the _consequence_ of application state, so correctness is a
+geometry question. `engines/layout-geometry.ts` (internal) defines it:
+
+- **Natural box** = viewport rect with the element's _own_ 2D transform inverted from **computed**
+  style (`translate`, `rotate`, `scale`, `transform`, `transform-origin`; a running WAAPI animation
+  is included), plus every ancestor's scroll offset (scroll-adjusted space). Comparing natural boxes
+  is what keeps drag offsets, hover scales and in-flight FLIPs from being counted twice.
+- A layout host that is mid-FLIP registers with `setLayoutProjecting`; descendants undo its
+  transform _before_ inverting their own (the child's translate is in local px, which a scaling
+  parent stretches). Otherwise a render during the parent's FLIP looks like the child moved.
+- Measurement runs on every `afterEveryRender` `earlyRead` — also mid-FLIP. A change mid-FLIP
+  starts from `projectBox(previousNatural, currentAnimatedTransform)` and **replaces** the running
+  player; if that start already equals the new layout the old player is retired (its keyframes are
+  relative to a layout that no longer exists). All writes (`transform-origin`, `engine.play`) are in
+  the `write` phase.
+- The borrowed `transform-origin` is saved once (`#borrowedOrigin`) and restored by `#restoreOrigin`
+  on every terminal path; `#flipId` makes a late settle of a replaced player a no-op; `#destroyed`
+  makes it inert after destroy.
+- `SharedLayoutRegistry` is keyed `scope + id`, stores `{ owner token, box copy, time, window size }`
+  — never an `Element` — capped at 128, 300 ms lifetime, dropped on resize. Scroll needs no re-base
+  because boxes are scroll-adjusted. `moveLayoutScope` (experimental input) is the scope.
+- Fallback: without `DOMMatrix` (jsdom) it clears the inline `transform` around the read.
+
+Gotchas: the engine's `commitStyles()` writes `translate: 0; scale: 1` inline when a FLIP finishes,
+so a consumer's inline `translate`/`scale` on a layout host is overwritten (use `transform`).
+Layout is not observed without an Angular render (no ResizeObserver, deliberately). Do not put
+`moveLayout` on a container to animate its children: it scales them.
+
 ## Transform ownership and composition (spec 013)
 
 Two independent writers touch an element's `transform`, and post-1.0 hardening formalized how they

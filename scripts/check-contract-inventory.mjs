@@ -2,7 +2,7 @@
 /**
  * Release gate for the runtime contract inventory (spec 020).
  *
- * `docs/v2/evidence/1.5/contracts.json` records, per public export and per behavioural dimension,
+ * the newest `docs/v2/evidence/<version>/contracts.json` records, per public export and per behavioural dimension,
  * a status and the executable tests that back it. This script keeps that file honest:
  *
  * - every export in the API snapshot is covered (a new export without an inventory entry fails);
@@ -15,10 +15,27 @@
  *
  *   node scripts/check-contract-inventory.mjs [--summary]
  */
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
 
 const SNAPSHOT = 'projects/movement/api-report.txt';
-const INVENTORY = 'docs/v2/evidence/1.5/contracts.json';
+const EVIDENCE = 'docs/v2/evidence';
+
+/**
+ * The newest `docs/v2/evidence/<major.minor>/contracts.json`. Older versions stay as historical
+ * evidence and are never edited; a new milestone adds a directory and becomes the gate.
+ */
+export function latestInventory(root = EVIDENCE) {
+  const versions = readdirSync(root)
+    .filter((name) => /^\d+\.\d+$/.test(name) && existsSync(`${root}/${name}/contracts.json`))
+    .sort((a, b) => {
+      const [am, an] = a.split('.').map(Number);
+      const [bm, bn] = b.split('.').map(Number);
+      return am - bm || an - bn;
+    });
+  const latest = versions.at(-1);
+  if (!latest) throw new Error(`no contracts.json under ${root}`);
+  return `${root}/${latest}/contracts.json`;
+}
 const STATUSES = new Set(['PASS', 'FAIL', 'BLOCKED', 'NOT_TESTED', 'KNOWN_LIMITATION']);
 const DIMENSIONS = [
   'initial',
@@ -141,7 +158,7 @@ export function checkInventory(report, inventory) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { problems, counts, runtimeCount } = checkInventory(
     readFileSync(SNAPSHOT, 'utf8'),
-    JSON.parse(readFileSync(INVENTORY, 'utf8')),
+    JSON.parse(readFileSync(latestInventory(), 'utf8')),
   );
   console.log(`runtime exports: ${runtimeCount}  |  ${JSON.stringify(counts)}`);
   if (problems.length > 0) {

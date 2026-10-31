@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { checkInventory, readExports } from './check-contract-inventory.mjs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { checkInventory, latestInventory, readExports } from './check-contract-inventory.mjs';
 
 const REPORT = [
   '/**',
@@ -79,4 +82,18 @@ test('inventory stability must match the snapshot tag', () => {
     checkInventory(REPORT, inventory).problems.join('\n'),
     /stability experimental != @stability stable/,
   );
+});
+
+test('latestInventory picks the highest numeric version, not the lexicographic one', () => {
+  const root = mkdtempSync(join(tmpdir(), 'evidence-'));
+  try {
+    for (const v of ['1.5', '1.6', '1.10', '2.0', 'notes']) {
+      mkdirSync(join(root, v));
+      writeFileSync(join(root, v, 'contracts.json'), '{}');
+    }
+    mkdirSync(join(root, '3.0')); // no contracts.json: not an inventory yet
+    assert.equal(latestInventory(root), `${root}/2.0/contracts.json`);
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
