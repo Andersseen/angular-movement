@@ -9,6 +9,7 @@ import {
   MovePresenceDirective,
   MovePresenceForDirective,
 } from 'angular-movement';
+import { Composed, Dashboard, SharedDetail } from './layout';
 
 /** A child that owns an endless loop and a hover handler — used to prove teardown cleans up. */
 @Component({
@@ -45,6 +46,9 @@ interface Row {
     MovePresenceDirective,
     MovePresenceForDirective,
     Spinner,
+    Dashboard,
+    SharedDetail,
+    Composed,
   ],
   template: `
     <h1 data-testid="title">Packed runtime</h1>
@@ -99,6 +103,9 @@ interface Row {
     @if (mounted()) {
       <app-spinner />
     }
+    <app-dashboard />
+    <app-shared-detail />
+    <app-composed />
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

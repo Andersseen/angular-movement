@@ -22,7 +22,7 @@ Drag depends on pointer capture, constraints measured from real layout and touch
 
 ::source{file="src/docs-snippets/experimental.ts" region="experimental-layout" title="reorder.ts"}
 
-Layout transitions need real DOM measurements across a re-render, so they are shown in the [layout playground](/demos/layout), not in a controls panel.
+Layout transitions need real DOM measurements across a re-render, so they are shown in the [layout playground](/demos/layout), not in a controls panel. The measured contract — supported geometry, interruption, shared elements, limits — is in [Layout motion](/docs/guides/layout).
 
 ## Targets and triggers
 

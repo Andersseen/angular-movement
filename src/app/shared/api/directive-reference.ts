@@ -281,6 +281,7 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
     inputs: [
       { name: 'moveLayout', type: 'boolean | ""', required: false, defaultValue: 'true' },
       { name: 'moveLayoutId', type: 'string', required: false },
+      { name: 'moveLayoutScope', type: 'string', required: false },
       { name: 'moveDuration', type: 'MoveTime', required: false, defaultValue: '400' },
       {
         name: 'moveEasing',

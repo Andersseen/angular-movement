@@ -34,12 +34,12 @@ export default defineConfig({
       // "Browser support and testing strategy" in docs/ai/ARCHITECTURE.md. The touch suite
       // (e2e/touch.spec.ts) runs here too: touch/pointer semantics differ most between engines.
       name: 'firefox',
-      testMatch: /(cross-browser|touch|drag-repeat)\.spec\.ts/,
+      testMatch: /(cross-browser|touch|drag-repeat|layout-contract)\.spec\.ts/,
       use: { ...devices['Desktop Firefox'] },
     },
     {
       name: 'webkit',
-      testMatch: /(cross-browser|touch|drag-repeat)\.spec\.ts/,
+      testMatch: /(cross-browser|touch|drag-repeat|layout-contract)\.spec\.ts/,
       use: { ...devices['Desktop Safari'] },
     },
   ],

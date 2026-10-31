@@ -2,6 +2,47 @@
 
 ## Unreleased
 
+**1.6 — Layout motion and shared-element reliability (spec 021).** `moveLayout` stays experimental.
+One additive experimental input (`moveLayoutScope`); no stable API changes. Evidence:
+`docs/v2/evidence/1.6/`.
+
+### Fixed
+
+- `moveLayout`: a layout change that landed while a FLIP was running was lost and the items jumped
+  (168 px in the reproduction). Measurement now continues mid-FLIP and the new animation starts from
+  where the element is painted; the running one is replaced.
+- `moveLayout`: scrolling the page or a scroll container between renders no longer reads as layout
+  movement (spurious FLIP of the scroll distance).
+- `moveLayout`: nested layout hosts no longer re-animate each other — a child measured during its
+  parent's FLIP is measured against the parent's final layout.
+- `moveLayout`: the host's own `translate`/`scale`/`rotate`/`transform` (stylesheet, committed hover
+  scale, running animation) is inverted from computed style instead of only clearing the inline
+  `transform`; a held hover scale is not a layout change.
+- `moveLayout`: a replaced FLIP no longer leaks `transform-origin: 0 0`; every terminal path
+  (finish, cancel, replace, disable, destroy) restores the original; a change back to the FLIP's
+  start retires the stale animation; `prefers-reduced-motion` is re-read on every pass.
+- Shared layout (`moveLayoutId`): the registry no longer retains DOM elements, is capped at 128
+  entries, is dropped on viewport resize, and an id change is a new identity.
+
+### Added
+
+- `moveLayoutScope` (experimental input on `[moveLayout]`): namespaces `moveLayoutId` so regions that
+  reuse a local id do not hand over to one another.
+- `/demos/layout` scenarios: reflow (filter, columns, resize, nest), shared card/detail, and layout
+  with presence. `docs/guides/layout` documents the supported geometry and limits.
+- Tests: `e2e/layout-contract.spec.ts` (Chromium, Firefox, WebKit), `e2e/layout-perf.spec.ts`, and
+  eight layout checks (dashboard, card/detail, layout + hover + drag) in the packed-tarball runtime
+  validation for Angular 21 and 22. Contract inventory is now version-aware
+  (`docs/v2/evidence/1.6/contracts.json`; the gate reads the newest).
+
+### Known limitations
+
+CSS-only size changes without an Angular render are not observed; 3D transforms, non-host ancestor
+scale/rotation and content distortion inside a scaling layout host are not handled. RTL, sticky/fixed
+ancestors, Linux WebKit and real Safari have no layout tests. See the contract inventory.
+
+---
+
 **1.5 — Reliability and repeated-interaction contract (spec 020).** No public API change: selectors,
 inputs, outputs and exports are untouched (`pnpm api:check` unchanged). The previously planned
 Router / View Transitions work is deferred to a later minor.

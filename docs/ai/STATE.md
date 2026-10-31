@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-30
+**Last updated:** 2026-10-31
 **Library source version:** `1.3.0`. Registry audit for spec 019 found npm latest `1.2.0` and
 GitHub `v1.3.0` still draft. No publication was attempted; maintainers own release recovery.
 `angular-movement-mcp` is separate from this site-only milestone.
@@ -22,7 +22,28 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
 
-## In progress — Spec 020 (1.5 reliability and contract gate)
+## In progress — Spec 021 (1.6 layout motion and shared-element reliability)
+
+Branch `feat/1.6-layout-motion-reliability`, based on `ed9bacb`. Spec: `docs/ai/specs/021-1.6-layout-motion.md`;
+evidence: `docs/v2/evidence/1.6/` (README + `contracts.json`; `pnpm contracts:check` reads the newest
+version directory, 1.5 is kept as history). Architecture: "Layout geometry and shared elements".
+
+- **Fixed (all reproduced in a real browser first):** layout change during a FLIP lost/jumped;
+  scroll read as movement; nested hosts re-animating; own transform baked into snapshots; leaked
+  `transform-origin`; shared registry retaining DOM / no scope / no cap; reduced motion read once.
+- **Added:** `moveLayoutScope` (experimental input). No other API change.
+- **Gotcha:** `getAnimations()` on the page includes CSS transitions (Tailwind `transition-*`); layout
+  tests must filter `CSSTransition`/`CSSAnimation`.
+- **Gotcha:** a cancelled animation's `cancel` event fires asynchronously — `getAnimations()` is empty
+  a frame before `finished` settles and the origin is restored; poll the residue, do not read once.
+- **Gotcha:** Playwright round-trips are the flake source under 3-engine parallel runs; do loops of
+  clicks inside one `page.evaluate`.
+- **Not covered (recorded, not claimed):** RTL, sticky/fixed ancestors, CSS zoom, Linux WebKit, real
+  Safari, physical devices, CSS-only size changes (no ResizeObserver by design).
+- **Release:** v1.5.0 Release PR (#99) and the v1.3.0/v1.4.0 draft releases were still unresolved at
+  start; npm `latest` is 1.2.0. 1.6 is not publishable until those are. Do not bump versions here.
+
+## Done (pending release) — Spec 020 (1.5 reliability and contract gate)
 
 Branch `fix/1.5-reliability-contract-gate`, based on `ce9b03d`. Spec: `docs/ai/specs/020-1.5-reliability-contract-gate.md`;
 evidence: `docs/v2/evidence/1.5/` (README + `contracts.json`, checked by `pnpm contracts:check`).

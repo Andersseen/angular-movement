@@ -55,7 +55,7 @@ export class Reorder {
 
 [View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/experimental.ts#L18-L29)
 
-Layout transitions need real DOM measurements across a re-render, so they are shown in the [layout playground](/demos/layout), not in a controls panel.
+Layout transitions need real DOM measurements across a re-render, so they are shown in the [layout playground](/demos/layout), not in a controls panel. The measured contract — supported geometry, interruption, shared elements, limits — is in [Layout motion](/docs/guides/layout).
 
 ## Targets and triggers
 

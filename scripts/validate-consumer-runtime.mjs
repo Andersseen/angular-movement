@@ -114,6 +114,77 @@ async function poll(page, fn, arg, { timeout = 3000 } = {}) {
   await page.waitForFunction(fn, arg, { timeout });
 }
 
+/** Web Animations Movement started on matching elements (CSS transitions are not counted). */
+const motionCount = (page, selector) =>
+  page.evaluate(
+    (sel) =>
+      Array.from(document.querySelectorAll(sel)).reduce(
+        (n, el) =>
+          n +
+          el
+            .getAnimations()
+            .filter((a) => !(a instanceof CSSTransition) && !(a instanceof CSSAnimation)).length,
+        0,
+      ),
+    selector,
+  );
+
+const boxesOf = (page, selector) =>
+  page.evaluate(
+    (sel) =>
+      Array.from(document.querySelectorAll(sel)).map((el) => {
+        const r = el.getBoundingClientRect();
+        return [r.x, r.y, r.width, r.height].map((v) => Math.round(v * 10) / 10);
+      }),
+    selector,
+  );
+
+const hasResidue = (page, selector) =>
+  page.evaluate(
+    (sel) =>
+      Array.from(document.querySelectorAll(sel)).some((el) => {
+        const c = getComputedStyle(el);
+        const identity =
+          ['none', '0px', '0px 0px'].includes(c.translate) &&
+          ['none', '1', '1 1'].includes(c.scale);
+        return el.style.transformOrigin !== '' || !identity;
+      }),
+    selector,
+  );
+
+/** Resolves once nothing Movement started is running on the matching elements. */
+const settle = (page, selector, timeout = 4000) =>
+  page.waitForFunction(
+    (sel) =>
+      Array.from(document.querySelectorAll(sel)).every((el) =>
+        el.getAnimations().every((a) => a instanceof CSSTransition || a instanceof CSSAnimation),
+      ),
+    selector,
+    { timeout },
+  );
+
+/** Clicks inside the page and reports the boxes before and `frames` animation frames after. */
+const clickAndMeasure = (page, clickSelector, boxSelector, frames = 2) =>
+  page.evaluate(
+    async ({ clickSelector, boxSelector, frames }) => {
+      const read = () =>
+        Array.from(document.querySelectorAll(boxSelector)).map((el) => {
+          const r = el.getBoundingClientRect();
+          return [r.x, r.y, r.width, r.height];
+        });
+      const before = read();
+      document.querySelector(clickSelector).click();
+      for (let i = 0; i < frames; i += 1) {
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+      }
+      return { before, after: read() };
+    },
+    { clickSelector, boxSelector, frames },
+  );
+
+const maxJump = (a, b) =>
+  Math.max(...a.map((box, i) => Math.max(...box.map((v, k) => Math.abs(v - b[i][k])))));
+
 async function runBrowserChecks({ distDir, major, versions }) {
   const { check, rows } = createChecks();
   const browser = await chromium.launch();
@@ -264,6 +335,279 @@ async function runBrowserChecks({ distDir, major, versions }) {
       },
     );
 
+    // --- Layout motion (spec 021): two consumer workflows + composition, on the packed tarball ----
+    const CARD = '[data-testid="dash-card"]';
+    const click = (id) =>
+      page.evaluate((i) => document.querySelector(`[data-testid="${i}"]`).click(), id);
+
+    await check('Layout dashboard: hydration starts no FLIP and cards are laid out', async () => {
+      await settle(page, CARD);
+      assert((await boxesOf(page, CARD)).length === 6, 'expected six dashboard cards');
+      return 'no layout animation after hydration';
+    });
+
+    await check(
+      'Layout dashboard: 12 un-awaited column/filter/expand toggles (4 each) return to the exact grid',
+      async () => {
+        await settle(page, CARD);
+        const original = await boxesOf(page, CARD);
+        for (let i = 0; i < 12; i += 1) {
+          await click(['dash-cols', 'dash-filter', 'dash-expand'][i % 3]);
+        }
+        await settle(page, CARD);
+        assert(!(await hasResidue(page, CARD)), 'residual translate/scale/origin on a card');
+        const after = await boxesOf(page, CARD);
+        assert(
+          JSON.stringify(after) === JSON.stringify(original),
+          `cards did not return: ${JSON.stringify(original[0])} vs ${JSON.stringify(after[0])}`,
+        );
+        return `${original.length} cards, 12 changes`;
+      },
+    );
+
+    await check(
+      'Layout dashboard: a change mid-FLIP continues from the visible position',
+      async () => {
+        await settle(page, CARD);
+        await click('dash-cols');
+        // Mid-flight, not at time zero: a change landing at t=0 would be trivially continuous.
+        await page.waitForFunction(
+          (sel) =>
+            document
+              .querySelector(sel)
+              .getAnimations()
+              .some((a) => a.currentTime > 90),
+          CARD,
+        );
+        const { before, after } = await clickAndMeasure(page, '[data-testid="dash-cols"]', CARD);
+        const jump = maxJump(before, after);
+        assert(
+          jump < 24,
+          `cards jumped ${jump.toFixed(1)} px when the layout changed mid-FLIP: ` +
+            before
+              .map((b, i) => `#${i} ${b.map(Math.round)} -> ${after[i].map(Math.round)}`)
+              .join('; '),
+        );
+        await settle(page, CARD);
+        return `${jump.toFixed(1)} px in two frames`;
+      },
+    );
+
+    await check(
+      'Layout dashboard: insert, remove and reorder keep identity and settle',
+      async () => {
+        await settle(page, CARD);
+        await page.evaluate(() =>
+          document
+            .querySelector('[data-testid="dash-card"][data-id="2"]')
+            .setAttribute('data-mark', 'kept'),
+        );
+        await click('dash-add');
+        await click('dash-add');
+        await click('dash-shuffle');
+        await click('dash-remove');
+        await click('dash-remove');
+        await click('dash-shuffle');
+        await settle(page, CARD);
+        const count = (await boxesOf(page, CARD)).length;
+        assert(count === 6, `expected 6 cards after +2 −2, found ${count}`);
+        assert(
+          await page.evaluate(() => !!document.querySelector('[data-mark="kept"]')),
+          'a surviving card was recreated instead of moved',
+        );
+        assert(!(await hasResidue(page, CARD)), 'residue after insert/remove/reorder');
+      },
+    );
+
+    await check(
+      'Layout dashboard: scrolling the page between renders is not layout movement',
+      async () => {
+        await settle(page, CARD);
+        await page.evaluate(() =>
+          document.querySelector('[data-testid="dash-grid"]').scrollIntoView(),
+        );
+        await page.evaluate(() => window.scrollBy(0, 60));
+        await click('dash-add');
+        await page.waitForFunction(
+          () => document.querySelectorAll('[data-testid="dash-card"]').length === 7,
+        );
+        const running = await motionCount(page, `${CARD}:not(:last-child)`);
+        await click('dash-remove');
+        await settle(page, CARD);
+        assert(running === 0, `${running} animation(s) started by scrolling alone`);
+      },
+    );
+
+    const SHARED_DETAIL = '[data-testid="shared-detail"]';
+    await check(
+      'Shared card/detail: the detail starts on its card and lands on its natural box',
+      async () => {
+        await page.evaluate(() =>
+          document.querySelector('[data-testid="shared-grid"]').scrollIntoView(),
+        );
+        const cardBox = (await boxesOf(page, '[data-testid="shared-card-2"]'))[0];
+        const { after } = await page.evaluate(async () => {
+          document.querySelector('[data-testid="shared-card-2"]').click();
+          await new Promise((r) =>
+            requestAnimationFrame(() => requestAnimationFrame(() => r(null))),
+          );
+          const r = document.querySelector('[data-testid="shared-detail"]').getBoundingClientRect();
+          return { after: [r.x, r.y, r.width, r.height] };
+        });
+        await settle(page, SHARED_DETAIL);
+        const natural = (await boxesOf(page, SHARED_DETAIL))[0];
+        const dist = (a, b) => Math.hypot(...a.map((v, i) => v - b[i]));
+        assert(
+          dist(after, cardBox) < dist(after, natural) * 0.6,
+          `detail did not start from its card: ${after.map(Math.round)} vs card ${cardBox.map(Math.round)}`,
+        );
+        assert(natural[2] > cardBox[2] * 2, 'detail did not reach its natural width');
+        assert(!(await hasResidue(page, SHARED_DETAIL)), 'residue on the detail');
+      },
+    );
+
+    await check('Shared card/detail: focus follows the application on open and close', async () => {
+      const focused = () =>
+        page.evaluate(() => document.activeElement?.getAttribute('data-testid'));
+      await page.waitForFunction(
+        () => document.activeElement?.getAttribute('data-testid') === 'shared-close',
+      );
+      assert((await focused()) === 'shared-close', 'close button not focused after open');
+      await click('shared-close');
+      await page.waitForFunction(
+        () => document.activeElement?.getAttribute('data-testid') === 'shared-card-2',
+      );
+    });
+
+    await check(
+      'Shared card/detail: rapid A/B/A/C opens leave one detail, no ghost, no residue',
+      async () => {
+        for (const id of [1, 2, 1, 3]) await click(`shared-card-${id}`);
+        await settle(page, '[data-testid^="shared"]');
+        const details = (await boxesOf(page, SHARED_DETAIL)).length;
+        assert(details === 1, `${details} detail surfaces`);
+        assert(!(await hasResidue(page, '[data-testid^="shared"]')), 'residue after A/B/A/C');
+        await click('shared-close');
+        await settle(page, '[data-testid^="shared"]');
+        assert(
+          (await boxesOf(page, '[data-testid^="shared-card-"]')).length === 3,
+          'cards not restored',
+        );
+      },
+    );
+
+    await check('Shared card/detail: destroying the host mid-handover throws nothing', async () => {
+      const before = errors.length;
+      await click('shared-card-1');
+      await click('toggle'); // unrelated re-render while the handover runs
+      await click('toggle');
+      await click('shared-close');
+      await settle(page, '[data-testid^="shared"]');
+      assert(errors.length === before, errors.slice(before).join(' | '));
+    });
+
+    const ITEM = '[data-testid="composed-item"]';
+    const GRID = '[data-testid="composed-grid"]';
+    /** Offset of the item from its layout cell: the part of its position that is not layout. */
+    const displacement = () =>
+      page.evaluate(
+        ({ ITEM, GRID }) => {
+          const el = document.querySelector(ITEM);
+          const g = document.querySelector(GRID).getBoundingClientRect();
+          const r = el.getBoundingClientRect();
+          return [r.x - g.x - el.offsetLeft, r.y - g.y - el.offsetTop].map(
+            (v) => Math.round(v * 10) / 10,
+          );
+        },
+        { ITEM, GRID },
+      );
+
+    await check('Layout + hover: a held hover scale is not a layout change', async () => {
+      await page.evaluate(() =>
+        document.querySelector('[data-testid="composed-grid"]').scrollIntoView({ block: 'center' }),
+      );
+      await settle(page, ITEM);
+      const box = (await boxesOf(page, ITEM))[0];
+      await page.mouse.move(box[0] + box[2] / 2, box[1] + box[3] / 2);
+      await page.waitForFunction(
+        (sel) => parseFloat(getComputedStyle(document.querySelector(sel)).scale) > 1.05,
+        ITEM,
+      );
+      await settle(page, ITEM);
+      await click('composed-add'); // a render pass while hover is held
+      await page.waitForFunction(
+        () => document.querySelectorAll('[data-testid="composed-grid"] > div').length === 5,
+      );
+      const running = await motionCount(page, ITEM);
+      assert(running === 0, `${running} animation(s) started on a hovered, unmoved layout host`);
+      await page.mouse.move(0, 0);
+      await settle(page, ITEM);
+    });
+
+    await check(
+      'Layout + drag: 10 reflows after a drag keep the drag offset exactly, no drift',
+      async () => {
+        await settle(page, ITEM);
+        let box = (await boxesOf(page, ITEM))[0];
+        const x = box[0] + box[2] / 2;
+        const y = box[1] + box[3] / 2;
+        await page.mouse.move(x, y);
+        await page.mouse.down();
+        await page.mouse.move(x + 24, y + 14, { steps: 6 });
+        await page.mouse.up();
+        await page.mouse.move(0, 0);
+        await settle(page, ITEM);
+        const offset = await displacement();
+        assert(Math.abs(offset[0]) > 10, `drag did not displace the item: ${offset}`);
+
+        for (let i = 0; i < 10; i += 1) {
+          await click('composed-cols');
+          await settle(page, ITEM);
+          const now = await displacement();
+          assert(
+            Math.abs(now[0] - offset[0]) < 1 && Math.abs(now[1] - offset[1]) < 1,
+            `reflow ${i}: drag offset ${offset} became ${now}`,
+          );
+        }
+        assert((await hasResidue(page, ITEM)) === false, 'layout residue after drag + reflow');
+        return `offset ${offset} held for 10 reflows`;
+      },
+    );
+
+    await check(
+      'Layout + drag: pressing during a FLIP takes over cleanly and layout keeps working',
+      async () => {
+        await settle(page, ITEM);
+        await click('composed-cols');
+        await page.waitForFunction(
+          (sel) => document.querySelector(sel).getAnimations().length > 0,
+          ITEM,
+        );
+        const box = (await boxesOf(page, ITEM))[0];
+        await page.mouse.move(box[0] + box[2] / 2, box[1] + box[3] / 2);
+        await page.mouse.down();
+        await page.mouse.move(box[0] + box[2] / 2 + 10, box[1] + box[3] / 2 + 6, { steps: 4 });
+        await page.mouse.up();
+        await page.mouse.move(0, 0);
+        await settle(page, ITEM);
+        assert(
+          await page.evaluate(
+            (sel) => document.querySelector(sel).style.transformOrigin === '',
+            ITEM,
+          ),
+          'transform-origin still borrowed after the drag preempted the FLIP',
+        );
+        // Layout must still animate afterwards.
+        await click('composed-cols');
+        await page.waitForFunction(
+          (sel) => document.querySelector(sel).getAnimations().length > 0,
+          ITEM,
+          { timeout: 2000 },
+        );
+        await settle(page, ITEM);
+      },
+    );
+
     await check(
       'Teardown: destroying a looping + hover host leaves no running animations',
       async () => {
@@ -285,6 +629,7 @@ async function runBrowserChecks({ distDir, major, versions }) {
     await context.close();
 
     // --- prefers-reduced-motion ----------------------------------------------------------------
+    const CARD_SEL = '[data-testid="dash-card"]';
     const reduced = await browser.newContext({ reducedMotion: 'reduce' });
     const rp = await reduced.newPage();
     await rp.goto(url);
@@ -318,6 +663,26 @@ async function runBrowserChecks({ distDir, major, versions }) {
         'animations still running',
       );
     });
+    await check(
+      'Reduced motion: layout and shared handover apply with no Movement animation',
+      async () => {
+        const before = await boxesOf(rp, CARD_SEL);
+        await rp.evaluate(() => document.querySelector('[data-testid="dash-cols"]').click());
+        await rp.waitForFunction(
+          (sel) => document.querySelector(sel).getBoundingClientRect().x !== undefined,
+          CARD_SEL,
+        );
+        const running = await motionCount(rp, CARD_SEL);
+        assert(running === 0, `${running} layout animation(s) under reduced motion`);
+        assert(
+          JSON.stringify(await boxesOf(rp, CARD_SEL)) !== JSON.stringify(before),
+          'layout did not change',
+        );
+        await rp.evaluate(() => document.querySelector('[data-testid="shared-card-2"]').click());
+        await rp.waitForSelector('[data-testid="shared-detail"]');
+        assert((await motionCount(rp, '[data-testid^="shared"]')) === 0, 'handover animated');
+      },
+    );
     await reduced.close();
 
     // --- No JavaScript -------------------------------------------------------------------------
