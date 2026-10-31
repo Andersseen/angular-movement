@@ -35,6 +35,8 @@
  * either: the visual box is used as measured.
  */
 
+type LayoutWindow = NonNullable<Document['defaultView']>;
+
 /** The four numbers a FLIP needs. A `DOMRect` satisfies it. */
 export interface LayoutBox {
   readonly left: number;
@@ -159,7 +161,7 @@ export function measureLayout(el: HTMLElement): LayoutMeasurement | null {
   const view = el.ownerDocument?.defaultView;
   if (
     !view ||
-    typeof (view as Window & { DOMMatrix?: unknown }).DOMMatrix !== 'function' ||
+    typeof view.DOMMatrix !== 'function' ||
     typeof view.getComputedStyle !== 'function'
   ) {
     return measureWithInlineReset(el);
@@ -226,14 +228,14 @@ function undoAncestor(
 }
 
 /** One element's box with only its *own* transform removed, in unscrolled viewport coordinates. */
-function measureOwn(el: HTMLElement, rect: LayoutBox, view: Window): LayoutMeasurement | null {
+function measureOwn(
+  el: HTMLElement,
+  rect: LayoutBox,
+  view: LayoutWindow,
+): LayoutMeasurement | null {
   if (rect.width === 0 || rect.height === 0) return null;
 
-  const own = readOwnTransform(
-    el,
-    view.getComputedStyle(el),
-    (view as Window & { DOMMatrix: typeof DOMMatrix }).DOMMatrix,
-  );
+  const own = readOwnTransform(el, view.getComputedStyle(el), view.DOMMatrix);
   if (own === null || own === 'unsupported') {
     return {
       box: { left: rect.left, top: rect.top, width: rect.width, height: rect.height },

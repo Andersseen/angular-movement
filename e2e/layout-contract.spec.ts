@@ -285,10 +285,11 @@ test.describe('layout: geometry', () => {
     expect(running.every((n) => n === 0)).toBe(true);
 
     // A real layout change inside the scrolled container continues from the visible positions.
-    // Measured in the container's content space: the browser may itself move `scrollTop` when the
-    // content changes (scroll anchoring), which shifts viewport positions without any animation
-    // discontinuity. The scroll delta is part of the failure message.
-    const { before, after, scrolled } = await page.evaluate(async () => {
+    // Deterministic, not a race against the frame clock: after the change every new animation is
+    // rewound to time 0, where the painted box must equal the box painted before the change.
+    // Measured in the container's content space, so a browser moving `scrollTop` itself (scroll
+    // anchoring) cannot masquerade as a discontinuity; the delta is in the failure message.
+    const { before, after, scrolled, rewound } = await page.evaluate(async () => {
       const grid = document.querySelector('[data-testid="layout-demo-items"]') as HTMLElement;
       const read = () =>
         Array.from(document.querySelectorAll('[data-testid="layout-demo-item"]')).map((el) => {
@@ -298,12 +299,23 @@ test.describe('layout: geometry', () => {
       const scrollBefore = grid.scrollTop;
       const before = read();
       (document.querySelector('[data-testid="layout-list-button"]') as HTMLElement).click();
-      for (let i = 0; i < 2; i += 1) {
-        await new Promise((r) => requestAnimationFrame(() => r(null)));
-      }
-      return { before, after: read(), scrolled: grid.scrollTop - scrollBefore };
+      await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(() => r(null))));
+      const motion = document
+        .getAnimations()
+        .filter((a) => !(a instanceof CSSTransition) && !(a instanceof CSSAnimation));
+      motion.forEach((a) => {
+        a.pause();
+        a.currentTime = 0;
+      });
+      return {
+        before,
+        after: read(),
+        scrolled: grid.scrollTop - scrollBefore,
+        rewound: motion.length,
+      };
     });
-    expect(maxJump(before, after), `container scrollTop moved by ${scrolled}`).toBeLessThan(30);
+    expect(rewound).toBeGreaterThan(0);
+    expect(maxJump(before, after), `container scrollTop moved by ${scrolled}`).toBeLessThan(2);
   });
 
   test('an element with its own transform is measured in layout space, not counted twice', async ({
