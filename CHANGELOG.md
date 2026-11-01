@@ -1,6 +1,8 @@
 # Changelog
 
-## Unreleased
+## [1.5.0] - 2026-10-31
+
+**Full changelog:** [v1.4.0...v1.5.0](https://github.com/Andersseen/angular-movement/compare/v1.4.0...v1.5.0)
 
 **1.6 — Layout motion and shared-element reliability (spec 021).** `moveLayout` stays experimental.
 One additive experimental input (`moveLayoutScope`); no stable API changes. Evidence:
@@ -160,6 +162,20 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
   only on its demo page (the idle rAF loop it kept running on every page is gone).
 - Docs/status text synchronised with source: CONTEXT, ROADMAP, stability table (aggregates, `MoveTime`,
   experimental aggregate).
+
+### Commits in this release
+
+#### Features
+
+* **movement:** layout motion and shared-element reliability (1.6) ([0196851](https://github.com/Andersseen/angular-movement/commit/0196851a8897f3c05473c0e210b73164517bbfe6))
+* **movement:** make moveLayout reliable under interruption, scroll, nesting and shared handover ([3253c5a](https://github.com/Andersseen/angular-movement/commit/3253c5a04135f52baddb73b2ba43f522ec7a6611))
+
+
+#### Bug Fixes
+
+* **movement:** keep the layout geometry types out of the global Window intersection ([63e7fb4](https://github.com/Andersseen/angular-movement/commit/63e7fb4e1f0d68d2728af3a04a5804fbfcffc1f1))
+* **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([ed9bacb](https://github.com/Andersseen/angular-movement/commit/ed9bacbd7c3acde5961d8a2c1744ba52f9c2b17d))
+* **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([6223381](https://github.com/Andersseen/angular-movement/commit/62233815cea8f44cf5877880bf7e77f8ed7d0ff6))
 
 ## [1.2.0] - 2026-09-26
 
