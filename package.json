@@ -95,7 +95,7 @@
     "lint-staged": "^17.4.1",
     "ng-packagr": "^22.2.4",
     "pagefind": "1.5.2",
-    "postcss": "^8.5.3",
+    "postcss": "^8.5.32",
     "prettier": "^3.9.10",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "release-please": "17.6.0",
