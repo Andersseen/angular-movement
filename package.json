@@ -82,7 +82,7 @@
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
-    "@playwright/test": "^1.58.2",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4.1.12",
     "@testing-library/angular": "^19.4.2",
     "@testing-library/dom": "^10.4.1",
