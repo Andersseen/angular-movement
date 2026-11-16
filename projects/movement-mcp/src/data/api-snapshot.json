@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-10-31T12:01:39.479Z",
+  "generatedAt": "2026-11-16T12:48:28.503Z",
   "directives": [
     {
       "className": "MoveAnimateDirective",
@@ -273,7 +273,8 @@
         {
           "name": "moveWhileHover",
           "type": "MovePreset | MoveKeyframes",
-          "required": true
+          "required": false,
+          "defaultValue": "'lift'"
         },
         {
           "name": "moveDuration",
@@ -698,7 +699,8 @@
         {
           "name": "moveWhileTap",
           "type": "MovePreset | MoveKeyframes",
-          "required": true
+          "required": false,
+          "defaultValue": "'press'"
         },
         {
           "name": "moveDuration",

@@ -38,7 +38,7 @@ Stable API — covered by semantic-versioning guarantees.
 
 | Input | Type | Default | Required | Description |
 | --- | --- | --- | --- | --- |
-| `moveWhileHover` | `MovePreset \| MoveKeyframes` |  | Yes |  |
+| `moveWhileHover` | `"" \| MovePreset \| MoveKeyframes \| null \| undefined` | `'lift'` |  | Preset or keyframes to play. Defaults to `'lift'`, so a bare `moveWhileHover` attribute works and the directive can be composed through `hostDirectives` without exposing this input. Transform `(value) => value \|\| 'lift'`; reads as `MovePreset \| MoveKeyframes`. |
 | `moveDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
 | `moveEasing` | `string \| undefined` | `undefined` |  |  |
 | `moveDelay` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`. |

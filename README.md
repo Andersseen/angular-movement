@@ -198,6 +198,8 @@ The shapes real apps use most — full explanations on the
 <!-- Button or link: lift (translate) + press (scale) compose on one element.
      Hover is mouse/pen only; touch gets moveWhileTap. Taps and scrolling stay native. -->
 <a routerLink="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
+<!-- lift and press are the defaults: this is the same thing -->
+<button moveWhileHover moveWhileTap>Buy now</button>
 
 <!-- Staggered grid: numbers are ms; strings say their unit -->
 <ul moveStagger moveStaggerStep="80ms">
@@ -230,6 +232,10 @@ animator.animate(
   `try/catch` around `await`.
 - **Any CSS property** passes through: `{ clipPath: [...] }`, `{ filter: [...] }`,
   `{ borderRadius: [...] }`.
+- **Your own directive:** compose `MoveHoverDirective` / `MoveTapDirective` with `hostDirectives`
+  — `lift` and `press` are their defaults, so nothing has to be exposed but `moveDisabled`.
+- **Elements positioned with `translate`:** moving presets animate `translate` and commit it
+  inline, replacing a centring `-translate-x-1/2`. Animate an inner wrapper instead.
 - **First paint:** an above-the-fold entrance that must move before hydration belongs in CSS;
   the library takes over once the app runs.
 

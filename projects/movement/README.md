@@ -107,6 +107,44 @@ and scrolling stay native.
 <a routerLink="/pricing" moveWhileHover="lift" moveWhileTap="press">Pricing</a>
 ```
 
+Both presets are the defaults, so `<button moveWhileHover moveWhileTap>` is the same thing.
+
+**Your own interaction directive** — compose the two through `hostDirectives`. Neither preset input
+is required, so you do not have to expose them; expose them only if call sites should be able to
+override the preset:
+
+```ts
+@Directive({
+  selector: '[appPressable]',
+  hostDirectives: [
+    { directive: MoveHoverDirective, inputs: ['moveDisabled'] }, // lift
+    { directive: MoveTapDirective, inputs: ['moveDisabled'] }, // press
+  ],
+})
+export class Pressable {}
+```
+
+```html
+<button appPressable>Play</button> <button appPressable [moveDisabled]="busy()">Save</button>
+```
+
+**Element already positioned with `translate`** — presets that move (`fade-*`, `slide-*`, `lift`,
+…) animate the CSS `translate` property, and the end state is written inline when they finish. A
+`translate` from your stylesheet — a dialog centred with `-translate-x-1/2 -translate-y-1/2`
+(Tailwind v4) or `translate: -50% -50%` — is replaced during the animation and after it, so the
+element jumps off-centre. The same applies to `scale` and `rotate`. Put the motion on an inner
+wrapper and keep the positioning on the outer element:
+
+```html
+<!-- ✗ the preset overwrites the centring translate -->
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" move="fade-up">…</div>
+
+<!-- ✓ outer element positions, inner element animates -->
+<div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+  <div move="fade-up">…</div>
+</div>
+```
+
 **Staggered grid:**
 
 ```html

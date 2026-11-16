@@ -1,5 +1,27 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- An animation that finished on an element that was not rendered (`display: none` on it or an
+  ancestor — e.g. a column hidden by a media query) threw an uncaught `InvalidStateError` from
+  `commitStyles()`; the animation was never cancelled, `finished` never resolved and the completion
+  callback never ran. The end keyframe is now written inline instead, and `finished` always settles.
+  _(patch)_
+
+### Changed
+
+- `moveWhileHover` now defaults to `'lift'` and `moveWhileTap` to `'press'`; neither input is
+  required. `<button moveWhileHover moveWhileTap>` works, and both directives can be composed through
+  `hostDirectives` without exposing the preset input (previously NG2019 / NG8008). Backwards
+  compatible. _(minor)_
+
+### Docs
+
+- Common patterns: composing hover + tap in your own directive with `hostDirectives`, and why an
+  element positioned with `translate` (a centred dialog) needs an inner wrapper for moving presets.
+
 ## [1.5.0] - 2026-10-31
 
 **Full changelog:** [v1.4.0...v1.5.0](https://github.com/Andersseen/angular-movement/compare/v1.4.0...v1.5.0)
@@ -167,15 +189,14 @@ and inputs are untouched (`pnpm api:check` unchanged). One internal fix, new doc
 
 #### Features
 
-* **movement:** layout motion and shared-element reliability (1.6) ([0196851](https://github.com/Andersseen/angular-movement/commit/0196851a8897f3c05473c0e210b73164517bbfe6))
-* **movement:** make moveLayout reliable under interruption, scroll, nesting and shared handover ([3253c5a](https://github.com/Andersseen/angular-movement/commit/3253c5a04135f52baddb73b2ba43f522ec7a6611))
-
+- **movement:** layout motion and shared-element reliability (1.6) ([0196851](https://github.com/Andersseen/angular-movement/commit/0196851a8897f3c05473c0e210b73164517bbfe6))
+- **movement:** make moveLayout reliable under interruption, scroll, nesting and shared handover ([3253c5a](https://github.com/Andersseen/angular-movement/commit/3253c5a04135f52baddb73b2ba43f522ec7a6611))
 
 #### Bug Fixes
 
-* **movement:** keep the layout geometry types out of the global Window intersection ([63e7fb4](https://github.com/Andersseen/angular-movement/commit/63e7fb4e1f0d68d2728af3a04a5804fbfcffc1f1))
-* **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([ed9bacb](https://github.com/Andersseen/angular-movement/commit/ed9bacbd7c3acde5961d8a2c1744ba52f9c2b17d))
-* **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([6223381](https://github.com/Andersseen/angular-movement/commit/62233815cea8f44cf5877880bf7e77f8ed7d0ff6))
+- **movement:** keep the layout geometry types out of the global Window intersection ([63e7fb4](https://github.com/Andersseen/angular-movement/commit/63e7fb4e1f0d68d2728af3a04a5804fbfcffc1f1))
+- **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([ed9bacb](https://github.com/Andersseen/angular-movement/commit/ed9bacbd7c3acde5961d8a2c1744ba52f9c2b17d))
+- **movement:** stop repeated moveDrag drift and add the 1.5 contract gate ([6223381](https://github.com/Andersseen/angular-movement/commit/62233815cea8f44cf5877880bf7e77f8ed7d0ff6))
 
 ## [1.2.0] - 2026-09-26
 
