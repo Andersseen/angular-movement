@@ -22,12 +22,15 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
 
-## Done (pending release) — `commitStyles` on unrendered targets (patch)
+## Done (pending release) — Spec 022 (unrendered commit safety, lift/press defaults)
 
-Branch `fix/commit-styles-unrendered`.
+Branch `fix/commit-styles-unrendered-and-interaction-defaults`. Spec:
+`docs/ai/specs/022-unrendered-commit-and-interaction-defaults.md`.
 
 - **Fixed:** `commitStyles()` on an unrendered target (`display: none`) threw and left `finished`
   pending; the end keyframe is now written inline and the finish path runs in a `finally`.
+- **Changed:** `moveWhileHover` / `moveWhileTap` default to `lift` / `press` (not required) so they
+  compose through `hostDirectives`.
 - **Gotcha:** every engine (Chromium, Firefox, WebKit) throws `InvalidStateError` from
   `commitStyles()` on an unrendered target. Any new code that commits styles must go through
   `commitFinalState()` in `engines/base-player.ts`.

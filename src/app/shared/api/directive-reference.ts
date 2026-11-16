@@ -106,7 +106,12 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
     description:
       'Animate elements while a mouse or pen hovers them. Touch never triggers hover — pair with moveWhileTap (e.g. moveWhileHover="lift" moveWhileTap="press")',
     inputs: [
-      { name: 'moveWhileHover', type: 'MovePreset | MoveKeyframes', required: true },
+      {
+        name: 'moveWhileHover',
+        type: 'MovePreset | MoveKeyframes',
+        required: false,
+        defaultValue: "'lift'",
+      },
       { name: 'moveDuration', type: 'MoveTime', required: false, defaultValue: '300' },
       {
         name: 'moveEasing',
@@ -126,7 +131,12 @@ export const DIRECTIVE_REFERENCE: DirectiveInfo[] = [
     selector: '[moveWhileTap]',
     description: 'Animate elements on tap/click',
     inputs: [
-      { name: 'moveWhileTap', type: 'MovePreset | MoveKeyframes', required: true },
+      {
+        name: 'moveWhileTap',
+        type: 'MovePreset | MoveKeyframes',
+        required: false,
+        defaultValue: "'press'",
+      },
       { name: 'moveDuration', type: 'MoveTime', required: false, defaultValue: '300' },
       {
         name: 'moveEasing',

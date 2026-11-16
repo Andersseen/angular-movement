@@ -1,7 +1,7 @@
 {
   "generator": "doq content",
   "files": {
-    "accessibility.md": "8145e363555fc3be97ac42b30bde3ffefed853d4787075be4f0e9884c2e73e8e",
+    "accessibility.md": "4a7a0b4e15422b53dd13bc6db90f49fc1365410ef68d6eed4aaff529cebb2c06",
     "api-selection.md": "e6c47879416bf5ec2c2719343f1c148a7d7b511e7da416bfc876f903c8d52ff5",
     "api.md": "398415b336b38ce91908a6880d67bacef74ab4f19d71209efa028abb0f814d46",
     "choose-a-tool.md": "b37d6e233b8d54db938d3516245babf81e322abf9e7f614b164f4c3d1500d90e",
@@ -17,7 +17,7 @@
     "introduction.md": "ad0bb93c056357f8478d8f413f4ab1fc3315e7ba1c419f553581debe29c69f2e",
     "mcp.md": "60b67d62f4ee6b05179953a2cf9b120326cc4869a673d8aa3696fcc8f04de6dd",
     "migration.md": "9c776a1c760264502412b8e72f351b7d597a641dc95ba1c06cfe303354597848",
-    "patterns.md": "d4f5c1e7286f5e2a3f8c32da488927f77e5bd2dc1907c45b948b4a11184e448b",
+    "patterns.md": "bbe0e7ee6280d813693aa7683e1ecd595d4ed7ce75f6e92f029b4a1ae7ab28b6",
     "presets.md": "21020a0e4c60d369ef5439fa259a3712ecd2cdf6d3875b051158ca41a09d0391"
   }
 }
