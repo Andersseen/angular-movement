@@ -19,6 +19,38 @@ test('basic [move] plays an entrance preset', async ({ page }) => {
   await expect(page.locator('.font-display', { hasText: /^Fade Up$/i })).toBeVisible();
 });
 
+test('an entrance that finishes under display:none settles without throwing', async ({ page }) => {
+  // e.g. a column hidden by a mobile media query. commitStyles() throws InvalidStateError for an
+  // unrendered target; the player must still finish cleanly and leave the end state inline.
+  const errors: string[] = [];
+  page.on('pageerror', (error) => errors.push(error.message));
+  await page.addInitScript(() => {
+    document.addEventListener('DOMContentLoaded', () => {
+      const style = document.createElement('style');
+      style.id = 'hide-preview';
+      style.textContent = '[preview] { display: none !important; }';
+      document.head.append(style);
+    });
+  });
+
+  await page.goto('/demos/enter');
+  await waitForHydration(page);
+
+  const card = page.locator('[preview] > div').first();
+  await expect(card).toBeAttached();
+  await expect(card).toBeHidden();
+  // The entrance ran while hidden; once it has finished no animation is left on the element.
+  await expect
+    .poll(() => card.evaluate((el) => el.getAnimations().length), { timeout: 5000 })
+    .toBe(0);
+
+  await page.evaluate(() => document.getElementById('hide-preview')?.remove());
+  await expect(card).toBeVisible();
+  // Shown in its end state, not frozen on the first frame.
+  expect(await card.evaluate((el) => getComputedStyle(el).opacity)).toBe('1');
+  expect(errors).toEqual([]);
+});
+
 test('enter/leave: moveLeave plays before *movePresence removes the view', async ({ page }) => {
   await page.goto('/demos/leave');
   await waitForHydration(page);

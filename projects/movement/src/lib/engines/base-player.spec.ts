@@ -153,6 +153,111 @@ describe('BaseAnimationPlayer', () => {
     expect(animation.cancel).toHaveBeenCalledTimes(1);
   });
 
+  describe('when commitStyles throws (target not rendered)', () => {
+    /** What Chromium throws for a `display: none` target or ancestor. */
+    const notRendered = () => {
+      throw new DOMException(
+        "Failed to execute 'commitStyles' on 'Animation': Target element is not rendered.",
+        'InvalidStateError',
+      );
+    };
+
+    function hiddenAnimation(frames: Keyframe[], timing: EffectTiming = {}) {
+      const target = document.createElement('div');
+      const effect = {
+        target,
+        pseudoElement: null,
+        getKeyframes: () => frames.map((frame, i) => ({ computedOffset: i, ...frame })),
+        getTiming: () => ({ iterations: 1, direction: 'normal', ...timing }),
+      };
+      const animation = makeAnimation({
+        commitStyles: vi.fn(notRendered),
+        effect: effect as unknown as KeyframeEffect,
+      });
+      return { animation, target };
+    }
+
+    it('still cancels, resolves `finished` and calls onDone', async () => {
+      const onDone = vi.fn();
+      const { animation } = hiddenAnimation([{ opacity: '0' }, { opacity: '1' }]);
+      const player = new TestPlayer(animation, onDone);
+
+      expect(() => animation.fireFinish()).not.toThrow();
+
+      await expect(player.finished).resolves.toBeUndefined();
+      expect(animation.cancel).toHaveBeenCalledTimes(1);
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('resolves onDone routed through the constructor promise too', async () => {
+      const onDone = vi.fn();
+      const { animation } = hiddenAnimation([{ opacity: '0' }, { opacity: '1' }]);
+      const player = new ConstructorOnDonePlayer(animation, onDone);
+
+      animation.fireFinish();
+      await player.finished;
+      await Promise.resolve();
+
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('writes the end keyframe inline so the element is in its final state when shown', async () => {
+      const { animation, target } = hiddenAnimation([
+        { opacity: '0', translate: '-24px 0', '--glow': '0', easing: 'ease-out' },
+        { opacity: '1', translate: '0px 0px', '--glow': '1' },
+      ]);
+      new TestPlayer(animation);
+
+      animation.fireFinish();
+
+      expect(target.style.opacity).toBe('1');
+      expect(target.style.getPropertyValue('translate')).toBe('0px 0px');
+      expect(target.style.getPropertyValue('--glow')).toBe('1');
+      expect(target.getAttribute('style')).not.toContain('offset');
+    });
+
+    it.each<[EffectTiming, string]>([
+      [{ direction: 'reverse' }, '0'],
+      [{ direction: 'alternate', iterations: 2 }, '0'],
+      [{ direction: 'alternate', iterations: 3 }, '1'],
+      [{ direction: 'alternate-reverse', iterations: 1 }, '0'],
+      [{ direction: 'alternate-reverse', iterations: 2 }, '1'],
+    ])('picks the keyframe playback ends on (%o → opacity %s)', (timing, expected) => {
+      const { animation, target } = hiddenAnimation([{ opacity: '0' }, { opacity: '1' }], timing);
+      new TestPlayer(animation);
+
+      animation.fireFinish();
+
+      expect(target.style.opacity).toBe(expected);
+    });
+
+    it('survives an effect that cannot be read', async () => {
+      const onDone = vi.fn();
+      const animation = makeAnimation({
+        commitStyles: vi.fn(notRendered),
+        effect: {
+          target: document.createElement('div'),
+          getKeyframes: () => {
+            throw new Error('detached');
+          },
+        } as unknown as KeyframeEffect,
+      });
+      const player = new TestPlayer(animation, onDone);
+
+      expect(() => animation.fireFinish()).not.toThrow();
+      await expect(player.finished).resolves.toBeUndefined();
+      expect(onDone).toHaveBeenCalledTimes(1);
+    });
+
+    it('survives an animation with no effect', async () => {
+      const animation = makeAnimation({ commitStyles: vi.fn(notRendered), effect: null });
+      const player = new TestPlayer(animation);
+
+      expect(() => animation.fireFinish()).not.toThrow();
+      await expect(player.finished).resolves.toBeUndefined();
+    });
+  });
+
   it('supports onDone passed through the constructor promise', async () => {
     const onDone = vi.fn();
     const animation = makeAnimation();

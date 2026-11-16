@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-10-31
+**Last updated:** 2026-11-16
 **Library source version:** `1.3.0`. Registry audit for spec 019 found npm latest `1.2.0` and
 GitHub `v1.3.0` still draft. No publication was attempted; maintainers own release recovery.
 `angular-movement-mcp` is separate from this site-only milestone.
@@ -21,6 +21,16 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 — `package.json`/`CHANGELOG.md` briefly disagreed with what was live on npm each time. If a future
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
+
+## Done (pending release) — `commitStyles` on unrendered targets (patch)
+
+Branch `fix/commit-styles-unrendered`.
+
+- **Fixed:** `commitStyles()` on an unrendered target (`display: none`) threw and left `finished`
+  pending; the end keyframe is now written inline and the finish path runs in a `finally`.
+- **Gotcha:** every engine (Chromium, Firefox, WebKit) throws `InvalidStateError` from
+  `commitStyles()` on an unrendered target. Any new code that commits styles must go through
+  `commitFinalState()` in `engines/base-player.ts`.
 
 ## In progress — Spec 021 (1.6 layout motion and shared-element reliability)
 

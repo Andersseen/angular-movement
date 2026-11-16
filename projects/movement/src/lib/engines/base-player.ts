@@ -40,12 +40,17 @@ export abstract class BaseAnimationPlayer implements AnimationControls {
     animation.addEventListener(
       'finish',
       () => {
-        if (commit) {
-          animation.commitStyles?.();
-          animation.cancel();
+        // `finished` resolves and `onDone` runs whatever happens while committing: an exception
+        // here would otherwise skip both and leave every awaiting caller hanging.
+        try {
+          if (commit) {
+            commitFinalState(animation);
+            animation.cancel();
+          }
+        } finally {
+          this.#resolveFinished();
+          onDone?.();
         }
-        this.#resolveFinished();
-        onDone?.();
       },
       { once: true },
     );
@@ -85,5 +90,69 @@ export abstract class BaseAnimationPlayer implements AnimationControls {
     if (this.#animation) {
       this.#animation.currentTime = time;
     }
+  }
+}
+
+/** Timing members of a keyframe that are not CSS properties. */
+const NON_STYLE_KEYS = new Set(['offset', 'computedOffset', 'easing', 'composite']);
+
+/**
+ * Writes the animation's end state into the target's inline style so it survives `cancel()`.
+ *
+ * `commitStyles()` throws `InvalidStateError` when the target is not rendered — `display: none` on
+ * it or an ancestor (a column hidden by a media query, a closed `<details>`). Nothing is painted
+ * then, but the element still needs its final state for when it is shown, so the end keyframe is
+ * written inline instead. A failure here is swallowed: the caller must still cancel and resolve.
+ */
+function commitFinalState(animation: Animation): void {
+  try {
+    animation.commitStyles?.();
+    return;
+  } catch {
+    // Not rendered — fall through to the keyframe fallback.
+  }
+
+  try {
+    applyEndKeyframe(animation);
+  } catch {
+    // Nothing more can be done; the animation still ends cleanly.
+  }
+}
+
+function applyEndKeyframe(animation: Animation): void {
+  const effect = animation.effect as KeyframeEffect | null;
+  if (!effect || typeof effect.getKeyframes !== 'function' || effect.pseudoElement) return;
+
+  const style = (effect.target as (Element & Partial<ElementCSSInlineStyle>) | null)?.style;
+  if (!style) return;
+
+  const frames = effect.getKeyframes();
+  if (!frames.length) return;
+
+  const frame = endsOnFirstFrame(effect.getTiming()) ? frames[0] : frames[frames.length - 1];
+
+  for (const [property, value] of Object.entries(frame)) {
+    if (NON_STYLE_KEYS.has(property) || value === null || value === undefined) continue;
+    if (property.startsWith('--')) {
+      style.setProperty(property, String(value));
+    } else {
+      // Keyframe keys are camelCase CSSOM names (`backgroundColor`, `cssFloat`).
+      (style as unknown as Record<string, string>)[property] = String(value);
+    }
+  }
+}
+
+/** Whether playback stops on the first keyframe rather than the last. */
+function endsOnFirstFrame(timing: EffectTiming): boolean {
+  const iterations = Math.max(1, Math.ceil(Number(timing.iterations ?? 1)) || 1);
+  switch (timing.direction) {
+    case 'reverse':
+      return true;
+    case 'alternate':
+      return iterations % 2 === 0;
+    case 'alternate-reverse':
+      return iterations % 2 === 1;
+    default:
+      return false;
   }
 }
