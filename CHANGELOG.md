@@ -10,6 +10,18 @@
   callback never ran. The end keyframe is now written inline instead, and `finished` always settles.
   _(patch)_
 
+### Changed
+
+- `moveWhileHover` now defaults to `'lift'` and `moveWhileTap` to `'press'`; neither input is
+  required. `<button moveWhileHover moveWhileTap>` works, and both directives can be composed through
+  `hostDirectives` without exposing the preset input (previously NG2019 / NG8008). Backwards
+  compatible. _(minor)_
+
+### Docs
+
+- Common patterns: composing hover + tap in your own directive with `hostDirectives`, and why an
+  element positioned with `translate` (a centred dialog) needs an inner wrapper for moving presets.
+
 ## [1.5.0] - 2026-10-31
 
 **Full changelog:** [v1.4.0...v1.5.0](https://github.com/Andersseen/angular-movement/compare/v1.4.0...v1.5.0)

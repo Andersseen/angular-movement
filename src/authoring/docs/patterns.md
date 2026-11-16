@@ -21,6 +21,20 @@ Reveal once when scrolled into view, lift on hover. Import the two directives th
 
 ::source{file="src/docs-snippets/patterns.ts" region="patterns-buttons" title="buttons.ts"}
 
+`lift` and `press` are also the defaults, so `<button moveWhileHover moveWhileTap>` does the same thing.
+
+### Your own interaction directive
+
+Compose [[api:MoveHoverDirective]] and [[api:MoveTapDirective]] with `hostDirectives` to get lift and press from one attribute. Neither preset input is required, so expose only what call sites should control — here `moveDisabled`. Add `moveWhileHover` / `moveWhileTap` to `inputs` if they should be able to swap the preset.
+
+::source{file="src/docs-snippets/patterns.ts" region="patterns-pressable" title="pressable.ts"}
+
+### Elements positioned with `translate`
+
+**Common mistake:** putting a moving preset on an element that is itself positioned with `translate` — a dialog centred with `-translate-x-1/2 -translate-y-1/2` (Tailwind v4) or `translate: -50% -50%`. `fade-*`, `slide-*`, `lift` and the other moving presets animate the CSS `translate` property and write their end state inline when they finish, so the centring translate is replaced during the animation and after it, and the element ends up off-centre. `scale` and `rotate` presets do the same to those properties. Keep the positioning on an outer element and animate an inner wrapper:
+
+::source{file="src/docs-snippets/patterns.ts" region="patterns-translate-wrapper" title="dialog.ts"}
+
 ### Staggered grid
 
 ::source{file="src/docs-snippets/patterns.ts" region="patterns-grid" title="grid.ts"}

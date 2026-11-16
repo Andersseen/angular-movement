@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, Directive, signal } from '@angular/core';
 import {
   MoveAnimator,
   MoveEnterDirective,
@@ -33,6 +33,44 @@ export class ProductCard {}
 })
 export class Buttons {}
 // #endregion doqs:patterns-buttons
+
+// #region doqs:patterns-pressable
+// `lift` and `press` are the defaults, so neither preset input has to be exposed.
+@Directive({
+  selector: '[appPressable]',
+  hostDirectives: [
+    { directive: MoveHoverDirective, inputs: ['moveDisabled'] },
+    { directive: MoveTapDirective, inputs: ['moveDisabled'] },
+  ],
+})
+export class Pressable {}
+
+@Component({
+  selector: 'app-toolbar',
+  imports: [Pressable],
+  template: `
+    <button type="button" appPressable>Play</button>
+    <button type="button" appPressable [moveDisabled]="saving()">Save</button>
+  `,
+})
+export class Toolbar {
+  protected readonly saving = signal(false);
+}
+// #endregion doqs:patterns-pressable
+
+// #region doqs:patterns-translate-wrapper
+@Component({
+  selector: 'app-dialog',
+  imports: [MoveEnterDirective],
+  template: `
+    <!-- The outer element keeps the centring translate; the inner one animates. -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div moveEnter="fade-up" role="dialog" aria-label="Settings">…</div>
+    </div>
+  `,
+})
+export class Dialog {}
+// #endregion doqs:patterns-translate-wrapper
 
 // #region doqs:patterns-grid
 @Component({

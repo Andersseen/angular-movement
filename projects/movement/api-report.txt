@@ -515,7 +515,11 @@ export declare class MoveLeaveDirective implements OnDestroy, OnInit, MovePresen
  */
 export declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild {
   #private;
-  readonly moveWhileHover: import("@angular/core").InputSignal<MovePreset | MoveKeyframes>;
+  /**
+   * Preset or keyframes to play. Defaults to `'lift'`, so a bare `moveWhileHover` attribute works and
+   * the directive can be composed through `hostDirectives` without exposing this input.
+   */
+  readonly moveWhileHover: import("@angular/core").InputSignalWithTransform<MovePreset | MoveKeyframes, "" | MovePreset | MoveKeyframes | null | undefined>;
   readonly moveDuration: import("@angular/core").InputSignalWithTransform<number | undefined, unknown>;
   readonly moveEasing: import("@angular/core").InputSignal<string | undefined>;
   readonly moveDelay: import("@angular/core").InputSignalWithTransform<number | undefined, unknown>;
@@ -556,7 +560,7 @@ export declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresen
   static ɵdir: i0.ɵɵDirectiveDeclaration<MoveHoverDirective, "[moveWhileHover]", never, {
     "moveWhileHover": {
       "alias": "moveWhileHover";
-      "required": true;
+      "required": false;
       "isSignal": true;
     };
     "moveDuration": {
@@ -606,7 +610,11 @@ export declare class MoveHoverDirective implements OnDestroy, OnInit, MovePresen
  */
 export declare class MoveTapDirective implements OnDestroy, OnInit, MovePresenceChild {
   #private;
-  readonly moveWhileTap: import("@angular/core").InputSignal<MovePreset | MoveKeyframes>;
+  /**
+   * Preset or keyframes to play. Defaults to `'press'`, so a bare `moveWhileTap` attribute works and
+   * the directive can be composed through `hostDirectives` without exposing this input.
+   */
+  readonly moveWhileTap: import("@angular/core").InputSignalWithTransform<MovePreset | MoveKeyframes, "" | MovePreset | MoveKeyframes | null | undefined>;
   readonly moveDuration: import("@angular/core").InputSignalWithTransform<number | undefined, unknown>;
   readonly moveEasing: import("@angular/core").InputSignal<string | undefined>;
   readonly moveDelay: import("@angular/core").InputSignalWithTransform<number | undefined, unknown>;
@@ -630,7 +638,7 @@ export declare class MoveTapDirective implements OnDestroy, OnInit, MovePresence
   static ɵdir: i0.ɵɵDirectiveDeclaration<MoveTapDirective, "[moveWhileTap]", never, {
     "moveWhileTap": {
       "alias": "moveWhileTap";
-      "required": true;
+      "required": false;
       "isSignal": true;
     };
     "moveDuration": {

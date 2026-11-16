@@ -37,7 +37,7 @@ export const killSwitchConfig: ApplicationConfig = {
 };
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L73-L85)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L111-L123)
 
 Avoid a starting style that only an animation undoes (`.card { opacity: 0 }`): users with reduced motion would never see the element.
 
@@ -86,6 +86,6 @@ export const timingConfig: ApplicationConfig = {
 };
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L55-L69)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L93-L107)
 
 **Related:** [Patterns](/docs/patterns) · [Choose the right tool](/docs/choose-a-tool)

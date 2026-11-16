@@ -41,7 +41,14 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
   },
 })
 export class MoveHoverDirective implements OnDestroy, OnInit, MovePresenceChild {
-  readonly moveWhileHover = input.required<MovePreset | MoveKeyframes>();
+  /**
+   * Preset or keyframes to play. Defaults to `'lift'`, so a bare `moveWhileHover` attribute works and
+   * the directive can be composed through `hostDirectives` without exposing this input.
+   */
+  readonly moveWhileHover = input<
+    MovePreset | MoveKeyframes,
+    MovePreset | MoveKeyframes | '' | null | undefined
+  >('lift', { transform: (value) => value || 'lift' });
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalTimeAttribute('moveDuration'),
   });

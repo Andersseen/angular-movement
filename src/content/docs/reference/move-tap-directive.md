@@ -28,7 +28,7 @@ Stable API — covered by semantic-versioning guarantees.
 
 | Input | Type | Default | Required | Description |
 | --- | --- | --- | --- | --- |
-| `moveWhileTap` | `MovePreset \| MoveKeyframes` |  | Yes |  |
+| `moveWhileTap` | `"" \| MovePreset \| MoveKeyframes \| null \| undefined` | `'press'` |  | Preset or keyframes to play. Defaults to `'press'`, so a bare `moveWhileTap` attribute works and the directive can be composed through `hostDirectives` without exposing this input. Transform `(value) => value \|\| 'press'`; reads as `MovePreset \| MoveKeyframes`. |
 | `moveDuration` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDuration')`; reads as `number \| undefined`. |
 | `moveEasing` | `string \| undefined` | `undefined` |  |  |
 | `moveDelay` | `unknown` | `undefined` |  | Transform `optionalTimeAttribute('moveDelay')`; reads as `number \| undefined`. |

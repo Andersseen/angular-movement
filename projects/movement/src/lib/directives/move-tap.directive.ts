@@ -33,7 +33,14 @@ import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.toke
   },
 })
 export class MoveTapDirective implements OnDestroy, OnInit, MovePresenceChild {
-  readonly moveWhileTap = input.required<MovePreset | MoveKeyframes>();
+  /**
+   * Preset or keyframes to play. Defaults to `'press'`, so a bare `moveWhileTap` attribute works and
+   * the directive can be composed through `hostDirectives` without exposing this input.
+   */
+  readonly moveWhileTap = input<
+    MovePreset | MoveKeyframes,
+    MovePreset | MoveKeyframes | '' | null | undefined
+  >('press', { transform: (value) => value || 'press' });
   readonly moveDuration = input<number | undefined, unknown>(undefined, {
     transform: optionalTimeAttribute('moveDuration'),
   });

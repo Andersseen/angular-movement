@@ -49,6 +49,62 @@ export class Buttons {}
 
 [View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L24-L34)
 
+`lift` and `press` are also the defaults, so `<button moveWhileHover moveWhileTap>` does the same thing.
+
+### Your own interaction directive
+
+Compose [`MoveHoverDirective`](/docs/reference/move-hover-directive) and [`MoveTapDirective`](/docs/reference/move-tap-directive) with `hostDirectives` to get lift and press from one attribute. Neither preset input is required, so expose only what call sites should control — here `moveDisabled`. Add `moveWhileHover` / `moveWhileTap` to `inputs` if they should be able to swap the preset.
+
+:::code pressable.ts
+
+```ts
+// `lift` and `press` are the defaults, so neither preset input has to be exposed.
+@Directive({
+  selector: '[appPressable]',
+  hostDirectives: [
+    { directive: MoveHoverDirective, inputs: ['moveDisabled'] },
+    { directive: MoveTapDirective, inputs: ['moveDisabled'] },
+  ],
+})
+export class Pressable {}
+
+@Component({
+  selector: 'app-toolbar',
+  imports: [Pressable],
+  template: `
+    <button type="button" appPressable>Play</button>
+    <button type="button" appPressable [moveDisabled]="saving()">Save</button>
+  `,
+})
+export class Toolbar {
+  protected readonly saving = signal(false);
+}
+```
+
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L38-L58)
+
+### Elements positioned with `translate`
+
+**Common mistake:** putting a moving preset on an element that is itself positioned with `translate` — a dialog centred with `-translate-x-1/2 -translate-y-1/2` (Tailwind v4) or `translate: -50% -50%`. `fade-*`, `slide-*`, `lift` and the other moving presets animate the CSS `translate` property and write their end state inline when they finish, so the centring translate is replaced during the animation and after it, and the element ends up off-centre. `scale` and `rotate` presets do the same to those properties. Keep the positioning on an outer element and animate an inner wrapper:
+
+:::code dialog.ts
+
+```ts
+@Component({
+  selector: 'app-dialog',
+  imports: [MoveEnterDirective],
+  template: `
+    <!-- The outer element keeps the centring translate; the inner one animates. -->
+    <div class="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+      <div moveEnter="fade-up" role="dialog" aria-label="Settings">…</div>
+    </div>
+  `,
+})
+export class Dialog {}
+```
+
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L62-L72)
+
 ### Staggered grid
 
 :::code grid.ts
@@ -70,7 +126,7 @@ export class Grid {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L38-L51)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L76-L89)
 
 ### Imperative animation
 
@@ -143,7 +199,7 @@ export const timingConfig: ApplicationConfig = {
 };
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L55-L69)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L93-L107)
 
 ## Reduced motion
 
@@ -162,7 +218,7 @@ export class FirstRender {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L89-L96)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L127-L134)
 
 ## When CSS is the better tool
 
@@ -204,7 +260,7 @@ Keyframes are typed for the common shorthands (`x`, `y`, `scale`, `blur`, …), 
 export class Passthrough {}
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L100-L108)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L138-L146)
 
 ## Awaiting and cancellation
 
@@ -232,7 +288,7 @@ export class Sequence {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L129-L145)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L167-L183)
 
 ## `@if` and leave animations
 
@@ -275,7 +331,7 @@ export class StaggerFor {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L112-L125)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L150-L163)
 
 Your `track` expression matters more than it looks:
 
@@ -320,4 +376,4 @@ There is no NgModule. Import the directives a component uses — usually one to 
 export class SaveButton {}
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L149-L154)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/patterns.ts#L187-L192)
