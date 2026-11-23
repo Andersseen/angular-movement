@@ -4,6 +4,30 @@
 
 ### Fixed
 
+- A leave inside `*movePresence` / `*movePresenceFor` read `moveDisabled` as it was when the element
+  **entered**. With `[moveDisabled]="!changed()"` (skip the entrance of server-rendered content after
+  hydration) the outgoing element was then removed with no exit at all. `moveAnimate` / `[move]`,
+  `moveLeave`, `[moveAnimation]` and `moveVariants` now read `moveDisabled`, the exit inputs and
+  `prefers-reduced-motion` when the element leaves, after the change-detection pass that removed it
+  has refreshed its bindings. A leave started and revived within the same tick no longer starts an
+  exit animation at all. _(patch)_
+- Development builds now warn (`[Movement] [moveEnter] changed after the animation played…`) when the
+  entrance input of a one-shot directive (`moveEnter`, `moveAnimate` / `[move]`, `moveInView`) changes
+  after it played, instead of silently ignoring it. No effect in production builds. _(patch)_
+
+### Docs
+
+- Presence guide: skipping the entrance of server-rendered content after hydration while keeping its
+  exit (compiled carousel example).
+- Loops: SVG shapes need `transform-box: fill-box` for `scale` / `rotate`; prefer `scale` over
+  animating geometry attributes such as `r`.
+
+## [1.6.0] - 2026-11-16
+
+**Full changelog:** [v1.5.0...v1.6.0](https://github.com/Andersseen/angular-movement/compare/v1.5.0...v1.6.0)
+
+### Fixed
+
 - An animation that finished on an element that was not rendered (`display: none` on it or an
   ancestor — e.g. a column hidden by a media query) threw an uncaught `InvalidStateError` from
   `commitStyles()`; the animation was never cancelled, `finished` never resolved and the completion

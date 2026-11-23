@@ -3,7 +3,7 @@
 > **Living document.** Whoever finishes a task MUST update this file (see "How to update" at the bottom).
 > Paste-friendly: this file is designed to be loaded at the start of every AI session.
 
-**Last updated:** 2026-11-16
+**Last updated:** 2026-11-23
 **Library source version:** `1.3.0`. Registry audit for spec 019 found npm latest `1.2.0` and
 GitHub `v1.3.0` still draft. No publication was attempted; maintainers own release recovery.
 `angular-movement-mcp` is separate from this site-only milestone.
@@ -22,7 +22,22 @@ locally (version bumped, `CHANGELOG.md` rolled, commit made) well before they we
 session sees that mismatch again, check for an unpushed local tag before assuming the version is
 just stale or the release failed.
 
-## Done (pending release) — Spec 022 (unrendered commit safety, lift/press defaults)
+## Done (pending release) — Spec 023 (presence exit reads `moveDisabled` at leave; one-shot warning)
+
+Branch `fix/presence-exit-disabled`. Spec: `docs/ai/specs/023-presence-exit-disabled-and-one-shot-warning.md`.
+
+- **Fixed:** a leave read `moveDisabled` as it was at entrance, so `[moveDisabled]="!changed()"`
+  (skip the hydrated entrance) also killed the exit. Leaves now read inputs at leave time.
+- **Added (dev only):** warning when a one-shot entrance input changes after playing.
+- **Gotcha:** `*movePresence` / `*movePresenceFor` call `playLeave()` from their effect, _before_ the
+  leaving view's bindings refresh in that pass. Any `playLeave()` that reads inputs must go through
+  `afterLeaveBindings()` (one microtask) and guard with a leave token; tests must `await` a microtask
+  after triggering a removal before asserting on the exit player.
+- **Release state found:** v1.3.0–v1.6.0 GitHub releases are drafts and the publish jobs were
+  skipped; the 1.6.0 Release PR did not roll `Unreleased` (fixed by hand into `[1.6.0]`).
+  Maintainer-owned; not touched.
+
+## Released in 1.6.0 — Spec 022 (unrendered commit safety, lift/press defaults)
 
 Branch `fix/commit-styles-unrendered-and-interaction-defaults`. Spec:
 `docs/ai/specs/022-unrendered-commit-and-interaction-defaults.md`.

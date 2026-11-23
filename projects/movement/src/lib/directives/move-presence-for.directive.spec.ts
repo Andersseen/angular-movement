@@ -138,6 +138,8 @@ describe('MovePresenceForDirective', () => {
 
     fixture.componentInstance.rows.set([{ id: 2, label: 'two' }]);
     fixture.detectChanges();
+    // Let the exit actually start (it waits for the pass that refreshes the leaving view's inputs).
+    await Promise.resolve();
 
     fixture.componentInstance.rows.set([
       { id: 1, label: 'one' },
@@ -149,6 +151,25 @@ describe('MovePresenceForDirective', () => {
     expect(player.cancel).toHaveBeenCalled();
     expect(ids(fixture)).toEqual(['1', '2']);
     expect(fixture.nativeElement.querySelector('[data-id="1"]')).toBe(original);
+  });
+
+  it('never starts the exit of an item revived in the same tick', async () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const play = vi.spyOn(engine, 'play').mockReturnValue(deferredControls().player);
+
+    fixture.detectChanges();
+
+    fixture.componentInstance.rows.set([{ id: 2, label: 'two' }]);
+    fixture.detectChanges();
+    fixture.componentInstance.rows.set([
+      { id: 1, label: 'one' },
+      { id: 2, label: 'two' },
+    ]);
+    fixture.detectChanges();
+    await new Promise((r) => setTimeout(r, 0));
+
+    expect(play).not.toHaveBeenCalled();
+    expect(ids(fixture)).toEqual(['1', '2']);
   });
 
   it('does not remove a revived view when the stale leave resolves afterwards', async () => {
@@ -287,6 +308,7 @@ describe('MovePresenceForDirective', () => {
 
     fixture.componentInstance.rows.set([]);
     fixture.detectChanges();
+    await Promise.resolve();
 
     fixture.destroy();
     await new Promise((r) => setTimeout(r, 0));

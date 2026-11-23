@@ -103,6 +103,8 @@ describe('MovePresenceDirective', () => {
 
     fixture.componentInstance.show.set(false);
     fixture.detectChanges();
+    // The leave starts once the pass that refreshed the leaving view's inputs has finished.
+    await Promise.resolve();
 
     // Toggle back before leave finishes
     fixture.componentInstance.show.set(true);

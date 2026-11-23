@@ -545,6 +545,10 @@ Two deliberate groups, frozen for 1.0:
   later input changes: `moveAnimate` / `[move]`, `moveEnter`, `moveLeave`, `moveInView`,
   `moveSmoothScroll`. To play one again, wrap the element in `*movePresence` / `*movePresenceFor`
   or re-create the view.
+  Development builds log a `[Movement]` warning when the entrance input of `moveEnter`,
+  `moveAnimate` or `moveInView` changes after it played. A leave reads `moveDisabled` when the
+  element leaves, so `[moveDisabled]="!changed()"` can skip the entrance of server-rendered content
+  after hydration and still play its exit.
 
 `[moveAnimation]` compares its `animate` state **by value**, so binding an object literal straight
 in the template does not replay the animation on every change detection pass.

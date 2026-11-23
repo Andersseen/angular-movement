@@ -1,5 +1,6 @@
 import { Component, signal } from '@angular/core';
 import {
+  MoveAnimateDirective,
   MoveEnterDirective,
   MoveLeaveDirective,
   MovePresenceDirective,
@@ -47,3 +48,37 @@ export class Rows {
   protected readonly byId = (_: number, row: Row) => row.id;
 }
 // #endregion doqs:presence-list
+
+// #region doqs:presence-hydration
+@Component({
+  selector: 'app-carousel',
+  imports: [MovePresenceForDirective, MoveAnimateDirective],
+  template: `
+    <div class="relative aspect-video">
+      <img
+        *movePresenceFor="let src of slide(); trackBy: bySrc"
+        class="absolute inset-0"
+        move="fade-up"
+        [moveDisabled]="!changed()"
+        [src]="src"
+        alt=""
+      />
+    </div>
+    <button type="button" (click)="next()">Next</button>
+  `,
+})
+export class Carousel {
+  readonly #photos = ['/a.jpg', '/b.jpg', '/c.jpg'];
+  #index = 0;
+  protected readonly slide = signal([this.#photos[0]]);
+  /** False until the user navigates: the server-rendered photo must not fade in again. */
+  protected readonly changed = signal(false);
+  protected readonly bySrc = (_: number, src: string) => src;
+
+  protected next(): void {
+    this.#index = (this.#index + 1) % this.#photos.length;
+    this.changed.set(true);
+    this.slide.set([this.#photos[this.#index]]);
+  }
+}
+// #endregion doqs:presence-hydration
