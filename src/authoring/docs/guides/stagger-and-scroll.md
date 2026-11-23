@@ -38,4 +38,7 @@ Both read the native scroll position (smoothed with a short interpolation) and f
 
 ::source{file="src/docs-snippets/stagger-and-scroll.ts" region="loop" title="spinner.ts"}
 
+> [!TIP]
+> **SVG elements.** `scale`, `rotate` and `opacity` loops work on SVG shapes, but a transform is measured from the SVG view box, not from the shape, unless you set `transform-box: fill-box` (with `transform-origin: center`) on the shape. Prefer `scale` over animating geometry attributes such as `r`: Web Animations support for SVG attributes is not consistent across browsers.
+
 **Related:** [`moveStagger` playground](/demos/stagger) · [`moveText` playground](/demos/text) · [`moveScroll` playground](/demos/scroll) · [`moveParallax` playground](/demos/parallax) · [`moveLoop` playground](/demos/loop)

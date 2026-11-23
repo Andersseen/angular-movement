@@ -28,6 +28,14 @@ Toggle the panel with the control or the button in the preview. [Open the full p
 
 Plain `@for (row of rows(); track row.id)` is still right when rows never need an exit animation.
 
+## Skip the entrance after hydration, keep the exit
+
+Content rendered on the server is already visible on the first paint, so fading it in again after hydration looks like a flicker. Disable the entrance until something actually changes. `moveDisabled` is read **when the element leaves**, not only when it entered, so the server-rendered item still plays its exit once it is replaced:
+
+::source{file="src/docs-snippets/presence.ts" region="presence-hydration" title="carousel.ts"}
+
+The same holds for `moveLeave`, `[moveAnimation]`'s `exit` and `moveExitVariant`: a leave uses `moveDisabled` (and `prefers-reduced-motion`) as they are at the moment the element leaves.
+
 ## Exit variants
 
 With `moveVariants`, `moveExitVariant` names the variant that plays inside `*movePresence` before removal. With `[moveAnimation]`, use its `exit` state.

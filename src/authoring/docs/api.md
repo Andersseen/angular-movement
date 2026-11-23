@@ -65,6 +65,6 @@ Stable APIs follow semantic-versioning expectations. Experimental APIs can chang
 Most interaction directives react to input changes while they are active. A few read their configuration once at initialisation, by design:
 
 - **Reactive after init:** `moveWhileHover`, `moveWhileTap`, `moveWhileFocus`, `moveVariants`, `moveTarget`, `moveTrigger`, `moveScroll`, `moveParallax`, `moveDrag`, `moveLoop`, `moveText`, and the `animate` state of `[moveAnimation]`.
-- **Init-only:** `moveAnimate` / `[move]`, `moveEnter`, `moveLeave`, `moveInView`, `moveSmoothScroll`. Wrap the element in `*movePresence` or recreate the view to replay.
+- **Init-only:** `moveAnimate` / `[move]`, `moveEnter`, `moveLeave`, `moveInView`, `moveSmoothScroll`. Wrap the element in `*movePresence` or recreate the view to replay. In development builds, changing the entrance input of `moveEnter`, `moveAnimate` or `moveInView` after it played logs a `[Movement]` warning. The exception is `moveDisabled` on a presence child, which is read again when the element leaves.
 
 [Choose an API](/docs/api-selection) turns this into a decision guide.

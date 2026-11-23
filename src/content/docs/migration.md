@@ -80,7 +80,7 @@ export class Panel {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L10-L21)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L11-L22)
 
 ### Keyed lists and `@for` track identity
 
@@ -110,7 +110,7 @@ export class Rows {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L30-L48)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L31-L49)
 
 Plain `@for (row of rows(); track row.id) { <li>{{ row.name }}</li> }` is still right when rows never need an exit animation.
 

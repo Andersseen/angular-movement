@@ -27,7 +27,7 @@ export class Panel {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L10-L21)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L11-L22)
 
 [`MovePresenceDirective`](/docs/reference/move-presence-directive) waits for **all** descendants that registered a leave animation, including nested ones.
 
@@ -63,12 +63,56 @@ export class Rows {
 }
 ```
 
-[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L30-L48)
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L31-L49)
 
 > [!IMPORTANT]
 > Track by a **stable identity**, never by index. With `track $index` Angular reuses DOM nodes, so reordering does not replay enter animations and exit animations attach to the wrong row.
 
 Plain `@for (row of rows(); track row.id)` is still right when rows never need an exit animation.
+
+## Skip the entrance after hydration, keep the exit
+
+Content rendered on the server is already visible on the first paint, so fading it in again after hydration looks like a flicker. Disable the entrance until something actually changes. `moveDisabled` is read **when the element leaves**, not only when it entered, so the server-rendered item still plays its exit once it is replaced:
+
+:::code carousel.ts
+
+```ts
+@Component({
+  selector: 'app-carousel',
+  imports: [MovePresenceForDirective, MoveAnimateDirective],
+  template: `
+    <div class="relative aspect-video">
+      <img
+        *movePresenceFor="let src of slide(); trackBy: bySrc"
+        class="absolute inset-0"
+        move="fade-up"
+        [moveDisabled]="!changed()"
+        [src]="src"
+        alt=""
+      />
+    </div>
+    <button type="button" (click)="next()">Next</button>
+  `,
+})
+export class Carousel {
+  readonly #photos = ['/a.jpg', '/b.jpg', '/c.jpg'];
+  #index = 0;
+  protected readonly slide = signal([this.#photos[0]]);
+  /** False until the user navigates: the server-rendered photo must not fade in again. */
+  protected readonly changed = signal(false);
+  protected readonly bySrc = (_: number, src: string) => src;
+
+  protected next(): void {
+    this.#index = (this.#index + 1) % this.#photos.length;
+    this.changed.set(true);
+    this.slide.set([this.#photos[this.#index]]);
+  }
+}
+```
+
+[View source](https://github.com/Andersseen/angular-movement/blob/main/src/docs-snippets/presence.ts#L53-L83)
+
+The same holds for `moveLeave`, `[moveAnimation]`'s `exit` and `moveExitVariant`: a leave uses `moveDisabled` (and `prefers-reduced-motion`) as they are at the moment the element leaves.
 
 ## Exit variants
 
