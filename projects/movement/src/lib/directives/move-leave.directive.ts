@@ -3,6 +3,7 @@ import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angula
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  afterLeaveBindings,
   optionalBooleanAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
@@ -44,48 +45,55 @@ export class MoveLeaveDirective implements OnDestroy, OnInit, MovePresenceChild 
   readonly #engine = inject(AnimationEngine);
   readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
 
-  #config = this.#defaults;
   #player: AnimationControls | null = null;
+  /** Bumped by every leave, cancel and destroy so a deferred leave can tell it is stale. */
+  #leaveToken = 0;
 
   ngOnInit(): void {
     this.#presence?.register(this);
-
-    this.#config = resolveMovementConfig(
-      this.#defaults,
-      {
-        duration: this.moveDuration(),
-        easing: this.moveEasing(),
-        delay: this.moveDelay(),
-        disabled: this.moveDisabled(),
-      },
-      prefersReducedMotion(this.#documentRef),
-    );
   }
 
   ngOnDestroy(): void {
+    this.#leaveToken += 1;
     this.#presence?.unregister(this);
     this.#player?.cancel();
   }
 
   playLeave(): Promise<void> {
-    if (this.#config.disabled) {
-      return Promise.resolve();
-    }
+    const token = ++this.#leaveToken;
 
-    this.#player = this.#engine.play(
-      this.#host.nativeElement,
-      resolveMoveFrames(this.moveLeave(), 'leave'),
-      {
-        config: this.#config,
-        spring: this.moveSpring(),
-        disabled: false,
-      },
-    );
+    // See `afterLeaveBindings`: the inputs are read once the leaving view has been refreshed.
+    return afterLeaveBindings().then(() => {
+      if (token !== this.#leaveToken) return;
 
-    return this.#player?.finished ?? Promise.resolve();
+      const config = resolveMovementConfig(
+        this.#defaults,
+        {
+          duration: this.moveDuration(),
+          easing: this.moveEasing(),
+          delay: this.moveDelay(),
+          disabled: this.moveDisabled(),
+        },
+        prefersReducedMotion(this.#documentRef),
+      );
+      if (config.disabled) return;
+
+      this.#player = this.#engine.play(
+        this.#host.nativeElement,
+        resolveMoveFrames(this.moveLeave(), 'leave'),
+        {
+          config,
+          spring: this.moveSpring(),
+          disabled: false,
+        },
+      );
+
+      return this.#player?.finished;
+    });
   }
 
   cancelLeave(): void {
+    this.#leaveToken += 1;
     this.#player?.cancel();
     this.#player = null;
   }

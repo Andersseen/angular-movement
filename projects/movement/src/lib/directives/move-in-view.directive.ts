@@ -7,6 +7,7 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  Injector,
 } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
@@ -22,6 +23,7 @@ import {
 import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
+import { warnOnChangeAfterPlay } from '../dev-warn';
 
 /**
  * Plays when the element scrolls into view, once or every time, using an IntersectionObserver.
@@ -57,6 +59,7 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
   readonly #platformId = inject(PLATFORM_ID);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #injector = inject(Injector);
 
   #player: AnimationControls | null = null;
   #observer: IntersectionObserver | null = null;
@@ -64,6 +67,13 @@ export class MoveInViewDirective implements OnDestroy, OnInit {
   #isAnimated = false;
 
   ngOnInit(): void {
+    warnOnChangeAfterPlay(
+      this.#injector,
+      'moveInView',
+      this.moveInView,
+      () => this.#frames !== null,
+    );
+
     if (!isPlatformBrowser(this.#platformId) || this.moveDisabled()) return;
 
     const isReduced = prefersReducedMotion(this.#documentRef);

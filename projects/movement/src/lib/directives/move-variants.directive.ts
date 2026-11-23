@@ -17,7 +17,7 @@ import {
   MoveValue,
   MoveVariant,
 } from '../presets/presets.types';
-import { compareDocumentOrder } from './move-animation.utils';
+import { afterLeaveBindings, compareDocumentOrder } from './move-animation.utils';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { MovementConfig, MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -82,6 +82,8 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
 
   #currentPlayer: AnimationControls | null = null;
   #config: MovementConfig = this.#defaults;
+  /** Bumped by every leave, cancel and destroy so a deferred leave can tell it is stale. */
+  #leaveToken = 0;
   #isReducedMotion = false;
   #previousState: Record<string, MoveStateValue | undefined> | null = null;
   readonly #orchestratedChildren = new Set<HTMLElement>();
@@ -106,6 +108,7 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   }
 
   ngOnDestroy(): void {
+    this.#leaveToken += 1;
     this.#stagger?.unregister(this.#host.nativeElement);
     this.#presence?.unregister(this);
     this.#parent?.unregisterChild?.(this.#host.nativeElement);
@@ -164,17 +167,25 @@ export class MoveVariantsDirective implements MoveVariantsProvider, MovePresence
   }
 
   playLeave(): Promise<void> {
-    const exitVariant = this.moveExitVariant();
-    if (this.#config.disabled || !exitVariant) {
-      return Promise.resolve();
-    }
+    const token = ++this.#leaveToken;
 
-    this.#currentPlayer?.cancel();
-    this.#currentPlayer = this.#playVariant(exitVariant);
-    return this.#currentPlayer?.finished ?? Promise.resolve();
+    // See `afterLeaveBindings`: `moveDisabled` and `moveExitVariant` are read as they are when the
+    // item leaves, not as they were when it entered.
+    return afterLeaveBindings().then(() => {
+      if (token !== this.#leaveToken) return;
+
+      const exitVariant = this.moveExitVariant();
+      const disabled = this.#isReducedMotion || (this.moveDisabled() ?? this.#defaults.disabled);
+      if (disabled || !exitVariant) return;
+
+      this.#currentPlayer?.cancel();
+      this.#currentPlayer = this.#playVariant(exitVariant);
+      return this.#currentPlayer?.finished;
+    });
   }
 
   cancelLeave(): void {
+    this.#leaveToken += 1;
     this.#currentPlayer?.cancel();
     this.#currentPlayer = null;
   }

@@ -3,6 +3,7 @@ import { Directive, ElementRef, effect, inject, input, OnDestroy, OnInit } from 
 import { MoveAnimationConfig, MoveKeyframeState, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  afterLeaveBindings,
   optionalBooleanAttribute,
   prefersReducedMotion,
   resolveMovementConfig,
@@ -49,6 +50,8 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
   #config = this.#defaults;
   #enterPlayer: AnimationControls | null = null;
   #leavePlayer: AnimationControls | null = null;
+  /** Bumped by every leave, cancel and destroy so a deferred leave can tell it is stale. */
+  #leaveToken = 0;
   /** The last `animate` state acted on, and the origin of the next transition. */
   #previousAnimate: MoveKeyframeState | null = null;
 
@@ -76,6 +79,7 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
   }
 
   ngOnDestroy(): void {
+    this.#leaveToken += 1;
     this.#stagger?.unregister(this.#host.nativeElement);
     this.#presence?.unregister(this);
     this.#enterPlayer?.cancel();
@@ -83,29 +87,41 @@ export class MoveAnimationDirective implements OnInit, OnDestroy, MovePresenceCh
   }
 
   playLeave(): Promise<void> {
-    const cfg = this.moveAnimation();
+    const token = ++this.#leaveToken;
 
-    if (this.#config.disabled || !cfg.exit || !cfg.animate) {
-      return Promise.resolve();
-    }
+    // See `afterLeaveBindings`: `moveDisabled` and `exit` are read as they are when the item
+    // leaves, not as they were when it entered.
+    return afterLeaveBindings().then(() => {
+      if (token !== this.#leaveToken) return;
 
-    this.#enterPlayer?.cancel();
+      const cfg = this.moveAnimation();
+      if (!cfg.exit || !cfg.animate || this.#leaveDisabled()) return;
 
-    const frames = statesToKeyframes(cfg.animate, cfg.exit);
-    if (Object.keys(frames).length === 0) return Promise.resolve();
+      this.#enterPlayer?.cancel();
 
-    this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
-      config: this.#config,
-      spring: this.moveSpring() ?? cfg.spring,
-      disabled: false,
+      const frames = statesToKeyframes(cfg.animate, cfg.exit);
+      if (Object.keys(frames).length === 0) return;
+
+      this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
+        config: { ...this.#config, disabled: false },
+        spring: this.moveSpring() ?? cfg.spring,
+        disabled: false,
+      });
+
+      return this.#leavePlayer?.finished;
     });
-
-    return this.#leavePlayer?.finished ?? Promise.resolve();
   }
 
   cancelLeave(): void {
+    this.#leaveToken += 1;
     this.#leavePlayer?.cancel();
     this.#leavePlayer = null;
+  }
+
+  #leaveDisabled(): boolean {
+    return (
+      prefersReducedMotion(this.#documentRef) || (this.moveDisabled() ?? this.#defaults.disabled)
+    );
   }
 
   #applyAnimate(cfg: MoveAnimationConfig): void {

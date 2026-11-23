@@ -1,8 +1,9 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit, Injector } from '@angular/core';
 import { MoveKeyframes, MoveKeyframeState, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
+  afterLeaveBindings,
   isMovePresetOrKeyframes,
   isMoveState,
   optionalBooleanAttribute,
@@ -17,6 +18,7 @@ import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
 import { MOVE_PRESENCE_PARENT, MovePresenceChild } from '../tokens/presence.tokens';
 import { MOVE_VARIANTS_PARENT } from '../tokens/variants.tokens';
+import { warnOnChangeAfterPlay } from '../dev-warn';
 
 /**
  * Plays an entrance when the element is created and, inside `*movePresence`, a leave before it is
@@ -51,6 +53,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #injector = inject(Injector);
   readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
   readonly #presence = inject(MOVE_PRESENCE_PARENT, { optional: true });
   readonly #variantsParent = inject(MOVE_VARIANTS_PARENT, { optional: true, self: true });
@@ -58,8 +61,20 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   #config = this.#defaults;
   #enterPlayer: AnimationControls | null = null;
   #leavePlayer: AnimationControls | null = null;
+  /** Bumped by every leave, cancel and destroy so a deferred leave can tell it is stale. */
+  #leaveToken = 0;
+  #played = false;
 
   ngOnInit(): void {
+    // Only the entrance is one-shot. `moveDisabled` and the exit inputs are read when the element
+    // leaves, so changing them is legitimate and must not warn.
+    warnOnChangeAfterPlay(
+      this.#injector,
+      'moveAnimate',
+      () => [this.move(), this.moveAnimate(), this.moveInitial()],
+      () => this.#played,
+    );
+
     // If moveVariants is on the same host, let it handle animation. Do not
     // register with stagger/presence so we don't create no-op entries.
     if (this.#variantsParent) {
@@ -71,6 +86,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
 
     Promise.resolve().then(() => {
       const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
+      this.#played = true;
 
       this.#config = resolveMovementConfig(
         this.#defaults,
@@ -95,6 +111,7 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   }
 
   ngOnDestroy(): void {
+    this.#leaveToken += 1;
     this.#stagger?.unregister(this.#host.nativeElement);
     this.#presence?.unregister(this);
     this.#enterPlayer?.cancel();
@@ -102,25 +119,38 @@ export class MoveAnimateDirective implements OnDestroy, OnInit, MovePresenceChil
   }
 
   playLeave(): Promise<void> {
-    if (this.#variantsParent || this.#config.disabled) {
+    if (this.#variantsParent) {
       return Promise.resolve();
     }
 
-    this.#enterPlayer?.cancel();
+    const token = ++this.#leaveToken;
 
-    const frames = this.resolveLeaveFrames();
-    if (!frames) return Promise.resolve();
+    // See `afterLeaveBindings`: `moveDisabled` is read as it is when the item leaves, not as it was
+    // when it entered, so `[moveDisabled]="!changed()"` can skip a hydrated entrance and still exit.
+    return afterLeaveBindings().then(() => {
+      if (token !== this.#leaveToken) return;
 
-    this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
-      config: this.#config,
-      spring: this.moveSpring(),
-      disabled: false,
+      const disabled =
+        prefersReducedMotion(this.#documentRef) || (this.moveDisabled() ?? this.#defaults.disabled);
+      if (disabled) return;
+
+      this.#enterPlayer?.cancel();
+
+      const frames = this.resolveLeaveFrames();
+      if (!frames) return;
+
+      this.#leavePlayer = this.#engine.play(this.#host.nativeElement, frames, {
+        config: { ...this.#config, disabled: false },
+        spring: this.moveSpring(),
+        disabled: false,
+      });
+
+      return this.#leavePlayer?.finished;
     });
-
-    return this.#leavePlayer?.finished ?? Promise.resolve();
   }
 
   cancelLeave(): void {
+    this.#leaveToken += 1;
     this.#leavePlayer?.cancel();
     this.#leavePlayer = null;
   }

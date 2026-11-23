@@ -141,7 +141,7 @@ interface Case {
   name: string;
   host: Type<unknown>;
   /** Some directives only animate in response to a DOM event or a viewport intersection. */
-  trigger?: (fixture: ComponentFixture<unknown>) => void;
+  trigger?: (fixture: ComponentFixture<unknown>) => void | Promise<void>;
 }
 
 const triggerOn =
@@ -178,9 +178,11 @@ const CASES: Case[] = [
   {
     name: 'moveLeave',
     host: LeaveHost,
-    trigger: (fixture) => {
+    trigger: async (fixture) => {
       (fixture.componentInstance as LeaveHost).visible.set(false);
       fixture.detectChanges();
+      // A leave reads its inputs one microtask later, after the pass that refreshed them.
+      await Promise.resolve();
     },
   },
 ];
@@ -269,7 +271,7 @@ describe('prefers-reduced-motion contract', () => {
         stubReducedMotion(true);
 
         const fixture = await render(testCase.host);
-        testCase.trigger?.(fixture);
+        await testCase.trigger?.(fixture);
 
         expect(animate).not.toHaveBeenCalled();
       });
@@ -282,7 +284,7 @@ describe('prefers-reduced-motion contract', () => {
         stubReducedMotion(false);
 
         const fixture = await render(testCase.host);
-        testCase.trigger?.(fixture);
+        await testCase.trigger?.(fixture);
 
         expect(animate).toHaveBeenCalled();
       });

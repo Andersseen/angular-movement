@@ -45,7 +45,7 @@ describe('MoveLeaveDirective', () => {
     expect(playSpy).not.toHaveBeenCalled();
   });
 
-  it('should play leave animation when playLeave is called', () => {
+  it('should play leave animation when playLeave is called', async () => {
     const engine = TestBed.inject(AnimationEngine);
     const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
 
@@ -53,7 +53,7 @@ describe('MoveLeaveDirective', () => {
     fixture.detectChanges();
 
     const directive = debugElement.injector.get(MoveLeaveDirective);
-    directive.playLeave();
+    await directive.playLeave();
 
     expect(playSpy).toHaveBeenCalledTimes(1);
     expect(playSpy).toHaveBeenCalledWith(
@@ -63,7 +63,7 @@ describe('MoveLeaveDirective', () => {
     );
   });
 
-  it('should cancel player on destroy', () => {
+  it('should cancel player on destroy', async () => {
     const mockPlayer: AnimationControls = {
       play: vi.fn(),
       pause: vi.fn(),
@@ -81,8 +81,25 @@ describe('MoveLeaveDirective', () => {
       .query(By.directive(MoveLeaveDirective))
       .injector.get(MoveLeaveDirective);
     directive.playLeave();
+    // The leave starts one microtask later, once the change-detection pass has refreshed inputs.
+    await Promise.resolve();
 
     localFixture.destroy();
     expect(mockPlayer.cancel).toHaveBeenCalled();
+  });
+
+  it('does not start a leave that was cancelled before it began', async () => {
+    const engine = TestBed.inject(AnimationEngine);
+    const playSpy = vi.spyOn(engine, 'play').mockReturnValue(null as unknown as AnimationControls);
+
+    fixture = TestBed.createComponent(TestHostComponent);
+    fixture.detectChanges();
+
+    const directive = debugElement.injector.get(MoveLeaveDirective);
+    const leave = directive.playLeave();
+    directive.cancelLeave();
+    await leave;
+
+    expect(playSpy).not.toHaveBeenCalled();
   });
 });

@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Directive, ElementRef, inject, input, OnDestroy, OnInit } from '@angular/core';
+import { Directive, ElementRef, inject, input, OnDestroy, OnInit, Injector } from '@angular/core';
 import { MoveKeyframes, MovePreset, MoveSpring } from '../presets/presets.types';
 import { MOVEMENT_CONFIG } from '../tokens/movement.tokens';
 import {
@@ -12,6 +12,7 @@ import { optionalTimeAttribute } from '../move-time';
 import { AnimationEngine } from '../engines/animation-engine.service';
 import { AnimationControls } from '../engines/animation-controls';
 import { MOVE_STAGGER_PARENT } from '../tokens/stagger.tokens';
+import { warnOnChangeAfterPlay } from '../dev-warn';
 
 /**
  * Plays a preset or keyframes once, when the element is created.
@@ -41,15 +42,20 @@ export class MoveEnterDirective implements OnDestroy, OnInit {
   readonly #documentRef = inject(DOCUMENT);
   readonly #host = inject(ElementRef<HTMLElement>);
   readonly #engine = inject(AnimationEngine);
+  readonly #injector = inject(Injector);
   readonly #stagger = inject(MOVE_STAGGER_PARENT, { optional: true });
 
   #player: AnimationControls | null = null;
+  #played = false;
 
   ngOnInit(): void {
+    warnOnChangeAfterPlay(this.#injector, 'moveEnter', this.moveEnter, () => this.#played);
+
     this.#stagger?.register(this.#host.nativeElement);
 
     Promise.resolve().then(() => {
       const staggerDelay = this.#stagger?.getDelay(this.#host.nativeElement) ?? 0;
+      this.#played = true;
 
       const config = resolveMovementConfig(
         this.#defaults,

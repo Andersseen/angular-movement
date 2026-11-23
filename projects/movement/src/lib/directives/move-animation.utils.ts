@@ -82,6 +82,17 @@ export function resetReducedMotionNoticeForTesting(): void {
   reducedMotionNoticeShown = false;
 }
 
+/**
+ * Resolves after the change-detection pass that asked a presence child to leave.
+ *
+ * `*movePresence` / `*movePresenceFor` start a leave from their own effect, which runs *before* the
+ * leaving view's template bindings are refreshed in that same pass. An input read synchronously in
+ * `playLeave()` therefore still holds the previous value; one microtask later the pass has finished.
+ */
+export function afterLeaveBindings(): Promise<void> {
+  return Promise.resolve();
+}
+
 export function resolveMovementConfig(
   defaults: MovementConfig,
   overrides: MoveInputOverrides,
